@@ -1,0 +1,132 @@
+/* Jarvis Games — дизайн-система: true black + crimson, dark glass, glow, smooth-float */
+:root{
+  --bg:#000000;
+  --crimson:#ff2238;
+  --crimson-deep:#c40f23;
+  --crimson-glow:rgba(255,34,56,.55);
+  --text:#f2f2f5;
+  --muted:#8a8a93;
+  --glass:rgba(18,18,22,.55);
+  --glass-2:rgba(28,28,34,.6);
+  --border:rgba(255,255,255,.07);
+  --inner:inset 0 1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.03);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{
+  font-family:'Inter',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  padding:max(46px,6vh) 16px 40px;position:relative;overflow-x:hidden;  /* воздух сверху — контент не лепится к краю */
+}
+/* crimson light-bloom фон */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(700px 380px at 50% -8%, rgba(255,34,56,.18), transparent 60%),
+    radial-gradient(500px 500px at 85% 110%, rgba(255,34,56,.07), transparent 60%),
+    #000;
+}
+h1{font-size:26px;font-weight:800;letter-spacing:.5px;text-align:center;line-height:1.1}
+.sub{color:var(--muted);font-size:13px;text-align:center;margin:7px 0 24px;letter-spacing:.3px}
+a{color:var(--muted);text-decoration:none}
+
+/* dark-glass контейнер */
+.card,.glass{
+  background:linear-gradient(180deg,var(--glass-2),var(--glass));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:18px;padding:16px;margin:10px 0;
+  box-shadow:var(--inner), 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* поля ввода */
+input,select{
+  font-size:16px;padding:14px;border-radius:12px;width:100%;margin:6px 0;font-family:inherit;
+  background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--border);text-align:center;
+  transition:border-color .2s, box-shadow .2s;
+}
+/* select: убираем кривую нативную стрелку, рисуем свою — отодвинута от края */
+select{
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239a9aa4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 14px center;
+  padding-right:40px;   /* место под стрелку, текст не налезает */
+  text-align-last:center;
+}
+select:focus{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ff2238' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");}
+/* пункты списка — хотя бы фон/цвет под тему (где ОС позволяет, напр. Android/десктоп) */
+select option{background:#15151b;color:var(--text)}
+
+/* кнопки-табы (сегментированный выбор) — приятнее системных select, единый вид во всех играх */
+.opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 6px;width:100%}
+.opt{flex:1;min-width:70px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-weight:700;font-size:14px;
+  text-align:center;transition:.15s;user-select:none}
+.opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
+.opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+.opt-label{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 2px}
+input:focus,select:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px rgba(255,34,56,.18)}
+input::placeholder{color:#5c5c64}
+
+/* кнопки */
+button{
+  font-size:16px;padding:14px;border-radius:12px;border:none;width:100%;margin:6px 0;font-family:inherit;
+  font-weight:700;letter-spacing:.3px;cursor:pointer;transition:transform .12s, box-shadow .25s, background .25s;
+  /* по умолчанию — crimson CTA */
+  background:linear-gradient(135deg,var(--crimson),var(--crimson-deep));color:#fff;
+  box-shadow:0 2px 14px rgba(255,34,56,.25);
+}
+button:active{transform:scale(.97)}
+/* fade-in-glow при наведении */
+.btn:hover,button:not(.sec):not(.danger):hover{box-shadow:0 0 26px var(--crimson-glow),0 0 8px var(--crimson-glow)}
+button.sec,.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+button.sec:hover{border-color:var(--crimson);box-shadow:0 0 16px rgba(255,34,56,.2)}
+button.danger{background:linear-gradient(135deg,#ff2238,#7a0c18);color:#fff}
+button.danger:hover{box-shadow:0 0 22px var(--crimson-glow)}
+button:disabled{opacity:.4;box-shadow:none}
+
+.code{font-size:34px;font-weight:900;letter-spacing:8px;text-align:center;
+  background:linear-gradient(90deg,#fff,#ff7a88);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pl{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px;margin:5px 0;font-size:13px}
+.row{display:flex;gap:8px}.row>*{flex:1}.hide{display:none!important}
+.badge,.lbl{font-size:11px;color:var(--muted)}
+
+/* анимации */
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.float{animation:floaty 5s ease-in-out infinite}
+@keyframes glowpulse{0%,100%{box-shadow:0 0 10px rgba(255,34,56,.2)}50%{box-shadow:0 0 24px var(--crimson-glow)}}
+.pulse{animation:glowpulse 2.4s ease-in-out infinite}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.crimson{color:var(--crimson)}
+
+/* ─────── polish v2: больше вкусных анимаций ─────── */
+@keyframes popin{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+@keyframes slidein{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bgshift{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* фон чуть дышит */
+body::before{animation:bgshift 9s ease-in-out infinite}
+
+/* кнопки — блик-свайп + подъём */
+button{position:relative;overflow:hidden}
+button::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.30),transparent);transform:skewX(-20deg);transition:left .6s ease}
+button:hover::after{left:155%}
+button:not(:disabled):hover{transform:translateY(-2px)}
+button:active{transform:scale(.96)}
+
+/* контейнеры — плавный въезд */
+.card,.glass{animation:riseIn .45s cubic-bezier(.2,.7,.3,1) both}
+
+/* чипы (Шпион и др.) — поп + пульс активного */
+.chip{animation:popin .28s cubic-bezier(.2,1.4,.4,1) both;
+  transition:transform .12s,box-shadow .25s,border-color .25s,background .25s}
+.chip:hover{transform:translateY(-2px)}
+.chip.on{animation:popin .28s cubic-bezier(.2,1.4,.4,1) both, glowpulse 2.6s ease-in-out infinite}
+
+/* игроки въезжают, код мерцает, заголовок светится */
+.pl{animation:slidein .3s ease both}
+.code{background-size:200% auto;animation:shimmer 3.6s linear infinite}
+h1{text-shadow:0 0 22px rgba(255,34,56,.22)}
+input:focus,select:focus{transform:translateY(-1px)}
+a{transition:color .2s}a:hover{color:var(--crimson)}

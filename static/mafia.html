@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — Мафия</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;transition:background .8s ease}
+  body.night{background:radial-gradient(circle at 50% -10%,#141a2e 0%,#0a0c14 60%)}
+  body.day{background:radial-gradient(circle at 50% -10%,#2a2418 0%,#14110a 60%)}
+  .card{max-width:420px;width:100%;text-align:center}
+  input,button,select{max-width:380px}
+  .phase{font-size:22px;font-weight:900;margin:6px 0 2px;letter-spacing:.5px}
+  .phase.night{color:#7aa2ff;text-shadow:0 0 18px rgba(122,162,255,.5)}
+  .phase.day{color:#ffcf5c;text-shadow:0 0 18px rgba(255,207,92,.45)}
+  .rnd{color:var(--muted);font-size:13px;margin-bottom:10px}
+  .rolecard{border-radius:18px;padding:18px;margin:10px 0;border:1px solid var(--border);
+    background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+  .rolecard .emoji{font-size:44px;line-height:1}
+  .rolecard .rname{font-size:26px;font-weight:900;margin:6px 0}
+  .rolecard.mafia .rname{color:#ff4b5c;text-shadow:0 0 16px rgba(255,75,92,.5)}
+  .rolecard.town .rname{color:#5cff9e;text-shadow:0 0 16px rgba(92,255,158,.4)}
+  .rolecard .rdesc{color:var(--muted);font-size:13px;line-height:1.5}
+  .team{margin-top:8px;font-size:13px;color:#ff8a95}
+  .sheriff-log{margin-top:8px;font-size:13px;text-align:left}
+  .sheriff-log .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)}
+  .sheriff-log .maf{color:#ff4b5c;font-weight:800}
+  .sheriff-log .twn{color:#5cff9e;font-weight:800}
+  .players{display:flex;flex-direction:column;gap:7px;margin:12px 0}
+  .pl{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;
+    border:1px solid var(--border);background:rgba(255,255,255,.04);text-align:left;transition:.15s}
+  .pl.dead{opacity:.4;text-decoration:line-through}
+  .pl.selectable{cursor:pointer}
+  .pl.selectable:active{transform:scale(.98)}
+  .pl.picked{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
+  .pl .nm{flex:1;font-weight:700}
+  .pl .badge{font-size:11px;color:var(--muted)}
+  .pl .votes{font-size:12px;color:#ffcf5c;font-weight:800}
+  .pl .roletag{font-size:11px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.08)}
+  .pl .roletag.mafia{color:#ff4b5c}
+  .pl .roletag.town{color:#5cff9e}
+  .hint{color:var(--muted);font-size:13px;margin:8px 0}
+  .acted{color:#5cff9e;font-size:14px;font-weight:700;margin:8px 0}
+  .log{margin-top:14px;max-height:150px;overflow-y:auto;text-align:left;font-size:13px;
+    background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;line-height:1.6}
+  .log div{padding:1px 0}
+  .winbanner{font-size:24px;font-weight:900;margin:14px 0}
+  .winbanner.town{color:#5cff9e;text-shadow:0 0 20px rgba(92,255,158,.5)}
+  .winbanner.mafia{color:#ff4b5c;text-shadow:0 0 20px rgba(255,75,92,.5)}
+  .rolesgrid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+  .rolesgrid .rc{font-size:12px;padding:5px 9px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:10px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
+</head>
+<body class="night">
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔪 Мафия — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1>🔪 Мафия</h1><div class="sub" data-i18n="tagline">Jarvis Games · играй с друзьями</div>
+<div class="langbar" id="langbar" role="group" aria-label="Language">
+  <button type="button" data-lang="uk">УКР</button>
+  <button type="button" data-lang="ru">РУС</button>
+  <button type="button" data-lang="en">ENG</button>
+</div>
+
+<div id="home" class="card">
+  <input id="name" placeholder="Твоё имя" data-i18n-ph="ph_name" maxlength="20">
+  <button onclick="create()" data-i18n="btn_create">Создать комнату</button>
+  <input id="joincode" placeholder="КОД комнаты" data-i18n-ph="ph_code" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
+  <div class="rolesgrid" style="margin-top:18px">
+    <span class="rc" data-i18n="rc_mafia">🔪 Мафия</span><span class="rc" data-i18n="rc_doctor">💉 Доктор</span>
+    <span class="rc" data-i18n="rc_sheriff">🔎 Шериф</span><span class="rc" data-i18n="rc_civ">👤 Мирные</span>
+  </div>
+  <div class="hint" data-i18n="home_hint">От 3 игроков. Доктор с 4, шериф с 5. Можно добрать ботами.</div>
+</div>
+
+<div id="lobby" class="card hide">
+  <div class="sub" data-i18n="lobby_code">Код комнаты — скажи друзьям:</div>
+  <div class="code" id="lcode">----</div>
+  <div id="players" class="players"></div>
+  <button id="botbtn" class="sec hide" onclick="send({action:'add_bot'})" data-i18n="btn_bot">🤖 Добавить бота</button>
+  <button id="startbtn" class="hide" onclick="send({action:'start'})" data-i18n="btn_start">🚀 Начать игру</button>
+  <div class="sub" id="waitmsg" data-i18n="wait_host">Ждём пока хост начнёт…</div>
+</div>
+
+<div id="game" class="card hide">
+  <div class="phase night" id="phase">НОЧЬ</div>
+  <div class="rnd" id="rnd"></div>
+  <div class="rolecard town" id="rolecard">
+    <div class="emoji" id="remoji">👤</div>
+    <div class="rname" id="rname">—</div>
+    <div class="rdesc" id="rdesc"></div>
+    <div class="team hide" id="rteam"></div>
+    <div class="sheriff-log hide" id="rsheriff"></div>
+  </div>
+  <div id="actionzone">
+    <div class="hint" id="acthint"></div>
+    <div id="targets" class="players"></div>
+    <div class="acted hide" id="actedmsg" data-i18n="acted">✅ Ход сделан. Ждём остальных…</div>
+  </div>
+  <div id="votezone" class="hide">
+    <div class="hint" id="votehint">☀️ День. Голосуйте, кого казнить:</div>
+    <div id="votelist" class="players"></div>
+    <button class="sec" id="skipvote" onclick="vote(null)" data-i18n="btn_skip">🤝 Воздержаться</button>
+    <button class="sec hide" id="forceday" onclick="send({action:'mafia_force_day'})" data-i18n="btn_forceday">⏭ Хост: закончить день</button>
+  </div>
+  <div class="log" id="log"></div>
+  <button class="sec" style="margin-top:12px" id="backbtn" data-i18n="btn_back">← В лобби</button>
+</div>
+
+<div id="over" class="card hide">
+  <div class="winbanner" id="winban">—</div>
+  <div id="finalroles" class="players"></div>
+  <button id="againbtn" onclick="send({action:'restart'})" data-i18n="btn_again">🔄 Ещё раз</button>
+  <button class="sec" onclick="send({action:'back'})" data-i18n="btn_back">← В лобби</button>
+</div>
+
+<script>
+// ═══════════ i18n Мафии: УКР / РУС / ENG ═══════════
+const UI={
+ uk:{
+  rules_title:"🔪 Мафія — правила",
+  rules_body:"Вночі мафія вбиває, лікар лікує, шериф перевіряє, патрульний охороняє. Удень місто обговорює та голосує, кого стратити. Місто перемагає, прибравши всю мафію; мафія — коли їх стане врівень із містом.",
+  rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Jarvis Games · грай з друзями",
+  ph_name:"Твоє ім'я", btn_create:"Створити кімнату", ph_code:"КОД кімнати", btn_join:"Увійти за кодом",
+  rc_mafia:"🔪 Мафія", rc_doctor:"💉 Лікар", rc_sheriff:"🔎 Шериф", rc_civ:"👤 Мирні",
+  home_hint:"Від 3 гравців. Лікар з 4, шериф з 5. Можна добрати ботами.",
+  lobby_code:"Код кімнати — скажи друзям:", btn_bot:"🤖 Додати бота", btn_start:"🚀 Почати гру", wait_host:"Чекаємо, поки хост почне…",
+  acted:"✅ Хід зроблено. Чекаємо інших…", btn_skip:"🤝 Утриматися", btn_forceday:"⏭ Хост: завершити день", btn_back:"← До лобі", btn_again:"🔄 Ще раз",
+  ph_night:"🌙 НІЧ", ph_day:"☀️ ДЕНЬ", ph_over:"ПІДСУМОК", round:n=>"Раунд "+n,
+  verb_mafia:"🔪 Кого вбити цієї ночі?", verb_doctor:"💉 Кого лікувати?", verb_sheriff:"🔎 Кого перевірити?", verb_patrol:"🚓 Кого охороняти цієї ночі?", verb_def:"Обери ціль",
+  no_targets:"Немає доступних цілей.", your_mafia:names=>"🔪 Твоя мафія: "+names, patrol_alert:"🚓 Минулої ночі ти запобіг нападу на охоронюваного!",
+  checks:"🔎 Перевірки:", maf:"МАФІЯ", clean:"чист.",
+  asleep:n=>"😴 Ти спиш. Нічні ролі роблять хід… ("+n+" лишилось)", out_watch:"💀 Ти вибув. Спостерігай.",
+  vote_dead:"💀 Ти вибув — голосувати не можна, спостерігай.", vote_ok:"✅ Голос прийнято. Чекаємо інших…", vote_day:"☀️ День. Голосуйте, кого стратити:",
+  win_town:"🎉 ПЕРЕМОГА МІСТА", win_mafia:"🔪 ПЕРЕМОГА МАФІЇ",
+  conn_lost:"З'єднання втрачено, онови сторінку.", def_name:"Гравець", ask_code:"Введи код", confirm_back:"Вийти в лобі? Партія перерветься для всіх.",
+  rid:{mafia:"мафія",doctor:"лікар",sheriff:"шериф",patrol:"патрульний",civilian:"мирний"}
+ },
+ ru:{
+  rules_title:"🔪 Мафия — правила",
+  rules_body:"Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.",
+  rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Jarvis Games · играй с друзьями",
+  ph_name:"Твоё имя", btn_create:"Создать комнату", ph_code:"КОД комнаты", btn_join:"Войти по коду",
+  rc_mafia:"🔪 Мафия", rc_doctor:"💉 Доктор", rc_sheriff:"🔎 Шериф", rc_civ:"👤 Мирные",
+  home_hint:"От 3 игроков. Доктор с 4, шериф с 5. Можно добрать ботами.",
+  lobby_code:"Код комнаты — скажи друзьям:", btn_bot:"🤖 Добавить бота", btn_start:"🚀 Начать игру", wait_host:"Ждём пока хост начнёт…",
+  acted:"✅ Ход сделан. Ждём остальных…", btn_skip:"🤝 Воздержаться", btn_forceday:"⏭ Хост: закончить день", btn_back:"← В лобби", btn_again:"🔄 Ещё раз",
+  ph_night:"🌙 НОЧЬ", ph_day:"☀️ ДЕНЬ", ph_over:"ИТОГ", round:n=>"Раунд "+n,
+  verb_mafia:"🔪 Кого убить этой ночью?", verb_doctor:"💉 Кого лечить?", verb_sheriff:"🔎 Кого проверить?", verb_patrol:"🚓 Кого охранять этой ночью?", verb_def:"Выбери цель",
+  no_targets:"Нет доступных целей.", your_mafia:names=>"🔪 Твоя мафия: "+names, patrol_alert:"🚓 Прошлой ночью ты предотвратил нападение на охраняемого!",
+  checks:"🔎 Проверки:", maf:"МАФИЯ", clean:"чист",
+  asleep:n=>"😴 Ты спишь. Ночные роли делают ход… ("+n+" осталось)", out_watch:"💀 Ты выбыл. Наблюдай.",
+  vote_dead:"💀 Ты выбыл — голосовать нельзя, наблюдай.", vote_ok:"✅ Голос принят. Ждём остальных…", vote_day:"☀️ День. Голосуйте, кого казнить:",
+  win_town:"🎉 ПОБЕДА ГОРОДА", win_mafia:"🔪 ПОБЕДА МАФИИ",
+  conn_lost:"Соединение потеряно, обнови страницу.", def_name:"Игрок", ask_code:"Введи код", confirm_back:"Выйти в лобби? Партия прервётся для всех.",
+  rid:{mafia:"мафия",doctor:"доктор",sheriff:"шериф",patrol:"патрульный",civilian:"мирный"}
+ },
+ en:{
+  rules_title:"🔪 Mafia — rules",
+  rules_body:"At night the mafia kills, the doctor heals, the sheriff checks, the patrol guards. By day the town discusses and votes on who to execute. Town wins by eliminating all mafia; mafia wins once they equal the town.",
+  rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Jarvis Games · play with friends",
+  ph_name:"Your name", btn_create:"Create room", ph_code:"Room CODE", btn_join:"Join by code",
+  rc_mafia:"🔪 Mafia", rc_doctor:"💉 Doctor", rc_sheriff:"🔎 Sheriff", rc_civ:"👤 Townsfolk",
+  home_hint:"3+ players. Doctor from 4, sheriff from 5. You can fill up with bots.",
+  lobby_code:"Room code — tell your friends:", btn_bot:"🤖 Add bot", btn_start:"🚀 Start game", wait_host:"Waiting for the host to start…",
+  acted:"✅ Move made. Waiting for others…", btn_skip:"🤝 Abstain", btn_forceday:"⏭ Host: end the day", btn_back:"← To lobby", btn_again:"🔄 Play again",
+  ph_night:"🌙 NIGHT", ph_day:"☀️ DAY", ph_over:"RESULT", round:n=>"Round "+n,
+  verb_mafia:"🔪 Who to kill tonight?", verb_doctor:"💉 Who to heal?", verb_sheriff:"🔎 Who to check?", verb_patrol:"🚓 Who to guard tonight?", verb_def:"Pick a target",
+  no_targets:"No available targets.", your_mafia:names=>"🔪 Your mafia: "+names, patrol_alert:"🚓 Last night you stopped an attack on the player you guarded!",
+  checks:"🔎 Checks:", maf:"MAFIA", clean:"clean",
+  asleep:n=>"😴 You're asleep. Night roles are acting… ("+n+" left)", out_watch:"💀 You're out. Just watch.",
+  vote_dead:"💀 You're out — you can't vote, just watch.", vote_ok:"✅ Vote counted. Waiting for others…", vote_day:"☀️ Day. Vote on who to execute:",
+  win_town:"🎉 TOWN WINS", win_mafia:"🔪 MAFIA WINS",
+  conn_lost:"Connection lost, refresh the page.", def_name:"Player", ask_code:"Enter a code", confirm_back:"Leave to lobby? The game will end for everyone.",
+  rid:{mafia:"mafia",doctor:"doctor",sheriff:"sheriff",patrol:"patrol",civilian:"civilian"}
+ }
+};
+// роль-титул + описание (канон рус → uk/en)
+const GT={
+ "МАФИЯ":{uk:"МАФІЯ",en:"MAFIA"}, "ДОКТОР":{uk:"ДОКТОР",en:"DOCTOR"}, "ШЕРИФ":{uk:"ШЕРИФ",en:"SHERIFF"},
+ "ПАТРУЛЬНЫЙ":{uk:"ПАТРУЛЬНИЙ",en:"PATROL"}, "МИРНЫЙ":{uk:"МИРНИЙ",en:"CIVILIAN"},
+ "Ночью с подельниками выбираешь жертву. Днём прикидывайся мирным.":{uk:"Вночі з подільниками обираєш жертву. Удень прикидайся мирним.",en:"At night you pick a victim with your accomplices. By day, act innocent."},
+ "Ночью лечишь одного игрока — спасаешь от убийства. Себя нельзя два раза подряд.":{uk:"Вночі лікуєш одного гравця — рятуєш від вбивства. Себе не можна двічі поспіль.",en:"At night you heal one player — saving them from being killed. Not yourself twice in a row."},
+ "Ночью проверяешь одного — узнаёшь, мафия он или нет.":{uk:"Вночі перевіряєш одного — дізнаєшся, мафія він чи ні.",en:"At night you check one player — you learn whether they're mafia or not."},
+ "Помощник комиссара. Ночью охраняешь игрока: если на него нападут — спасаешь его и узнаёшь, что была атака.":{uk:"Помічник комісара. Вночі охороняєш гравця: якщо на нього нападуть — рятуєш його й дізнаєшся, що була атака.",en:"The commissioner's aide. At night you guard a player: if they're attacked, you save them and learn there was an attack."},
+ "Ты мирный житель. Днём вычисляй мафию и голосуй.":{uk:"Ти мирний житель. Удень вираховуй мафію та голосуй.",en:"You're a townsperson. By day, figure out the mafia and vote."}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+// перевод строк лога по шаблонам
+function logTr(s){
+ if(LANG==='ru'||!s)return s;
+ let m;
+ if(s.indexOf("🌙 Город засыпает. Ночь 1")===0) return LANG==='uk'?"🌙 Місто засинає. Ніч 1 — мафія виходить на полювання.":"🌙 The town falls asleep. Night 1 — the mafia goes hunting.";
+ if(m=s.match(/^☠️ Ночью убит: (.+)\.$/)) return LANG==='uk'?"☠️ Уночі вбито: "+m[1]+".":"☠️ Killed at night: "+m[1]+".";
+ if(s==="💉 Ночью было покушение, но доктор спас жертву!") return LANG==='uk'?"💉 Уночі був замах, але лікар врятував жертву!":"💉 There was an attack at night, but the doctor saved the victim!";
+ if(s==="🌫️ Ночь прошла тихо — никто не погиб.") return LANG==='uk'?"🌫️ Ніч минула тихо — ніхто не загинув.":"🌫️ The night passed quietly — no one died.";
+ if(s==="🎉 ПОБЕДА ГОРОДА! Вся мафия вычищена.") return LANG==='uk'?"🎉 ПЕРЕМОГА МІСТА! Уся мафія знищена.":"🎉 TOWN WINS! All mafia eliminated.";
+ if(s==="🔪 ПОБЕДА МАФИИ! Город пал.") return LANG==='uk'?"🔪 ПЕРЕМОГА МАФІЇ! Місто впало.":"🔪 MAFIA WINS! The town has fallen.";
+ if(m=s.match(/^☀️ Город просыпается\. День (\d+) — обсуждайте и голосуйте\.$/)) return LANG==='uk'?"☀️ Місто прокидається. День "+m[1]+" — обговорюйте та голосуйте.":"☀️ The town wakes up. Day "+m[1]+" — discuss and vote.";
+ if(m=s.match(/^⚖️ Город казнил: (.+) — это был (.+)\.$/)){const rl=T(m[2]);return LANG==='uk'?"⚖️ Місто стратило: "+m[1]+" — це був "+rl+".":"⚖️ The town executed: "+m[1]+" — they were "+rl+".";}
+ if(s==="🤝 Голоса разделились — никого не казнили.") return LANG==='uk'?"🤝 Голоси розділилися — нікого не стратили.":"🤝 The vote was split — no one was executed.";
+ if(m=s.match(/^🌙 Наступает ночь (\d+)\. Город засыпает\.$/)) return LANG==='uk'?"🌙 Настає ніч "+m[1]+". Місто засинає.":"🌙 Night "+m[1]+" falls. The town goes to sleep.";
+ return s;
+}
+function applyUI(){
+ document.documentElement.lang=LANG;
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+ document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(typeof v==='string')el.placeholder=v;});
+ document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+ if(window._lastMafiaState)applyState(window._lastMafiaState);
+ if(window._lastMafiaRole)applyRole(window._lastMafiaRole);
+}
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+document.getElementById('backbtn').onclick=()=>{if(confirm(t('confirm_back')))send({action:'back'});};
+
+let ws, pid, isHost=false, myRole=null, myAlive=true, phase='lobby', picked=null;
+function show(id){for(const s of ['home','lobby','game','over'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function connect(cb){
+  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
+  ws.onopen=cb;
+  ws.onmessage=e=>handle(JSON.parse(e.data));
+  ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent=t('conn_lost');};
+}
+function create(){const n=document.getElementById('name').value||t('def_name');connect(()=>send({action:'create',name:n,game:'mafia'}));}
+function join(){const n=document.getElementById('name').value||t('def_name');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
+function nightPick(id){ if(phase!=='night'||!myAlive)return; picked=id; send({action:'mafia_night',target:id}); }
+function vote(id){ if(phase!=='day'||!myAlive)return; picked=id; send({action:'mafia_vote',target:id}); }
+
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  if(m.type==='error'){const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;}
+  if(m.type==='lobby'||m.type==='room'){
+    show('lobby');
+    document.getElementById('lcode').textContent=m.code||'----';
+    isHost=(m.host===pid);
+    document.getElementById('players').innerHTML=(m.players||[]).map(p=>
+      '<div class="pl">'+(p.id===m.host?'👑':'👤')+' <span class="nm">'+esc(p.name)+(p.bot?' 🤖':'')+'</span></div>').join('');
+    document.getElementById('botbtn').classList.toggle('hide',!isHost);
+    document.getElementById('startbtn').classList.toggle('hide',!isHost);
+    document.getElementById('waitmsg').classList.toggle('hide',isHost);
+    return;
+  }
+  if(m.type==='started'){ show('game'); return; }
+  if(m.type==='mafia_role'){ window._lastMafiaRole=m; applyRole(m); return; }
+  if(m.type==='mafia_state'){ window._lastMafiaState=m; applyState(m); return; }
+}
+
+function applyRole(m){
+  myRole=m.role; myAlive=m.alive;
+  const rc=document.getElementById('rolecard');
+  const meta=m.role==='mafia'?'mafia':'town';
+  rc.className='rolecard '+meta;
+  document.getElementById('remoji').textContent=m.emoji||'👤';
+  document.getElementById('rname').textContent=T(m.title)||'—';
+  document.getElementById('rdesc').textContent=T(m.desc)||'';
+  const te=document.getElementById('rteam');
+  if(m.mafia_team&&m.mafia_team.length){te.classList.remove('hide');te.style.color='';te.textContent=t('your_mafia')(m.mafia_team.join(', '));}
+  else if(m.patrol_alert){te.classList.remove('hide');te.style.color='#5cff9e';te.textContent=t('patrol_alert');}
+  else te.classList.add('hide');
+  const sh=document.getElementById('rsheriff');
+  if(m.sheriff_results&&Object.keys(m.sheriff_results).length){
+    sh.classList.remove('hide');
+    sh.innerHTML='<div style="color:var(--muted);margin-bottom:4px">'+t('checks')+'</div>'+
+      Object.entries(m.sheriff_results).map(([n,r])=>
+        '<div class="row"><span>'+esc(n)+'</span><span class="'+(r==='mafia'?'maf':'twn')+'">'+(r==='mafia'?t('maf'):t('clean'))+'</span></div>').join('');
+  } else sh.classList.add('hide');
+  renderTargets(m);
+}
+
+function renderTargets(m){
+  const zone=document.getElementById('actionzone');
+  const acted=document.getElementById('actedmsg');
+  const hint=document.getElementById('acthint');
+  const box=document.getElementById('targets');
+  if(phase!=='night'||!m.can_act){ zone.classList.add('hide'); return; }
+  zone.classList.remove('hide');
+  if(m.acted){ box.innerHTML=''; hint.textContent=''; acted.classList.remove('hide'); return; }
+  acted.classList.add('hide');
+  const verb=t('verb_'+m.role)||t('verb_def');
+  hint.textContent=verb;
+  box.innerHTML=(m.targets||[]).map(t2=>
+    '<div class="pl selectable" onclick="nightPick(\''+t2.id+'\')"><span class="nm">'+esc(t2.name)+'</span></div>').join('')
+    ||'<div class="hint">'+t('no_targets')+'</div>';
+}
+
+function applyState(m){
+  if(m.phase!==phase) picked=null;
+  phase=m.phase;
+  document.body.className=(phase==='day')?'day':(phase==='over'?'':'night');
+  const ph=document.getElementById('phase');
+  ph.className='phase '+(phase==='day'?'day':'night');
+  ph.textContent=phase==='night'?t('ph_night'):phase==='day'?t('ph_day'):t('ph_over');
+  document.getElementById('rnd').textContent=t('round')(m.round||1);
+  document.getElementById('log').innerHTML=(m.log||[]).map(l=>'<div>'+esc(logTr(l))+'</div>').join('');
+  const lg=document.getElementById('log'); lg.scrollTop=lg.scrollHeight;
+  if(phase==='over'||m.winner){ renderOver(m); return; }
+  show('game');
+  const me=(m.players||[]).find(p=>p.id===pid);
+  myAlive=me?me.alive:true;
+  const vz=document.getElementById('votezone');
+  const az=document.getElementById('actionzone');
+  if(phase==='day'){
+    az.classList.add('hide'); vz.classList.remove('hide');
+    renderVote(m);
+  } else {
+    vz.classList.add('hide');
+    const hint=document.getElementById('acthint');
+    if(myRole && !['mafia','doctor','sheriff','patrol'].includes(myRole) || !myAlive){
+      az.classList.remove('hide');
+      document.getElementById('targets').innerHTML='';
+      document.getElementById('actedmsg').classList.add('hide');
+      hint.textContent=myAlive?t('asleep')(m.night_pending||0):t('out_watch');
+    }
+  }
+}
+
+function renderVote(m){
+  const v=m.vote||{tally:{},voted:[]};
+  const voted=v.voted.includes(pid);
+  document.getElementById('votehint').textContent=
+    !myAlive?t('vote_dead'):voted?t('vote_ok'):t('vote_day');
+  document.getElementById('votelist').innerHTML=(m.players||[]).map(p=>{
+    const votes=v.tally[p.id]||0;
+    const cls='pl'+(!p.alive?' dead':'')+((myAlive&&p.alive&&!voted)?' selectable':'')+(picked===p.id?' picked':'');
+    const onclick=(myAlive&&p.alive&&!voted)?' onclick="vote(\''+p.id+'\')"':'';
+    return '<div class="'+cls+'"'+onclick+'>'+(p.alive?'👤':'💀')+
+      ' <span class="nm">'+esc(p.name)+(p.bot?' 🤖':'')+'</span>'+
+      (votes?'<span class="votes">'+votes+' 🗳</span>':'')+'</div>';
+  }).join('');
+  document.getElementById('skipvote').classList.toggle('hide',!(myAlive&&!voted));
+  document.getElementById('forceday').classList.toggle('hide',!isHost);
+}
+
+function renderOver(m){
+  show('over');
+  document.body.className='';
+  const wb=document.getElementById('winban');
+  wb.className='winbanner '+(m.winner||'town');
+  wb.textContent=m.winner==='mafia'?t('win_mafia'):t('win_town');
+  const RMETA={mafia:['🔪','mafia'],doctor:['💉','town'],sheriff:['🔎','town'],patrol:['🚓','town'],civilian:['👤','town']};
+  document.getElementById('finalroles').innerHTML=(m.players||[]).map(p=>{
+    const rm=RMETA[p.role]||['👤','town'];
+    const label=(UI[LANG].rid&&UI[LANG].rid[p.role])||p.role||'?';
+    return '<div class="pl'+(p.alive?'':' dead')+'">'+rm[0]+' <span class="nm">'+esc(p.name)+(p.bot?' 🤖':'')+
+      '</span><span class="roletag '+rm[1]+'">'+label+'</span></div>';
+  }).join('');
+  document.getElementById('againbtn').classList.toggle('hide',!isHost);
+}
+applyUI();
+</script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — Профиль</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;padding:12px;-webkit-user-select:none;user-select:none}
+  .wrap{max-width:460px;width:100%}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+  .phead{display:flex;align-items:center;gap:14px}
+  .avatar{width:66px;height:66px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
+  .phead .nm{font-size:20px;font-weight:800}
+  .phead .role{font-size:12px;color:var(--muted)}
+  .stats{display:flex;gap:8px;margin-top:12px}
+  .stat{flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:8px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800}.stat .l{font-size:11px;color:var(--muted)}
+  .sh{font-weight:800;color:var(--crimson);margin:2px 0 10px;font-size:15px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input{width:100%;box-sizing:border-box;margin:0}
+  .emoji-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .emo{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);
+    display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
+  .emo.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 10px var(--crimson-glow)}
+  .colors{display:flex;gap:8px;flex-wrap:wrap}
+  .col{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+  .col.on{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.4)}
+  .toggle{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .sw{width:48px;height:28px;border-radius:14px;background:#3a3d44;position:relative;cursor:pointer;transition:.2s}
+  .sw.on{background:#2fbf5f}.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+  .sw.on::after{left:23px}
+  .frow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .frow .fav{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .frow .fn{flex:1;font-weight:700}
+  .frow button{margin:0;padding:6px 12px;font-size:13px;width:auto}
+  .btn-mini{padding:6px 12px !important;font-size:13px !important;width:auto !important;margin:0 !important}
+  .backlink{display:inline-block;margin:6px 0 14px;color:var(--muted);text-decoration:none;font-size:14px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--border);
+    padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;transition:.2s;z-index:50}
+  .toast.show{opacity:1}
+  .empty{color:var(--muted);font-size:13px;padding:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" href="/games/">← К играм</a>
+
+  <!-- ШАПКА ПРОФИЛЯ -->
+  <div class="card">
+    <div class="phead">
+      <div class="avatar" id="pAvatar">🙂</div>
+      <div style="flex:1">
+        <div class="nm" id="pName">—</div>
+        <div class="role" id="pRole"></div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sPlayed">—</div><div class="l">сыграно</div></div>
+      <div class="stat"><div class="v" id="sFav" style="font-size:14px">—</div><div class="l">любимая</div></div>
+      <div class="stat"><div class="v" id="sFriends">—</div><div class="l">друзей</div></div>
+    </div>
+  </div>
+
+  <!-- ДРУЗЬЯ -->
+  <div class="card">
+    <div class="sh">👥 Друзья</div>
+    <div id="incoming"></div>
+    <div id="friends"></div>
+    <label>Найти игрока по нику</label>
+    <div style="display:flex;gap:8px">
+      <input id="search" placeholder="ник друга" oninput="doSearch()" style="flex:1">
+    </div>
+    <div id="searchRes"></div>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+  <div class="card">
+    <div class="sh">⚙️ Настройки профиля</div>
+    <label>Отображаемое имя</label>
+    <input id="dispName" maxlength="24" placeholder="как тебя видят">
+    <label>Аватар</label>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <label>Цвет</label>
+    <div class="colors" id="colorGrid"></div>
+    <div class="toggle"><span>🔊 Звук в играх</span><div class="sw" id="soundSw" onclick="toggleSound()"></div></div>
+    <button onclick="saveProfile()" style="margin-top:14px">💾 Сохранить</button>
+  </div>
+
+  <!-- ПАРОЛЬ -->
+  <div class="card">
+    <div class="sh">🔒 Смена пароля</div>
+    <label>Старый пароль</label><input id="oldPw" type="password">
+    <label>Новый пароль</label><input id="newPw" type="password">
+    <button class="sec" onclick="changePw()" style="margin-top:12px">Обновить пароль</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const EMOJIS=['🙂','😎','🐺','🦊','🐱','🐶','🦁','🐯','🐸','🐵','🦉','🦅','🐢','🐉','👾','🤖','👑','💀','🔥','⚡','🌟','🍀','🎮','🎯','🃏','🚀','🐧','🦈','🌚','🎭'];
+const COLORS=['#e0102e','#f59e0b','#22c55e','#3b82f6','#a04bf0','#2fd9d9','#ff6b9d','#94a3b8'];
+let prof={avatar:'🙂',color:'#e0102e',sound:1,display_name:''};
+
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+async function jget(p){const r=await fetch('/games'+p,{credentials:'include'});return r.ok?r.json():null;}
+async function jpost(p,b){const r=await fetch('/games'+p,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?r.json():{ok:false};}
+
+function buildPickers(){
+  document.getElementById('emojiGrid').innerHTML=EMOJIS.map(e=>`<div class="emo" data-e="${e}" onclick="pickEmoji('${e}')">${e}</div>`).join('');
+  document.getElementById('colorGrid').innerHTML=COLORS.map(c=>`<div class="col" data-c="${c}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');
+}
+function pickEmoji(e){prof.avatar=e;syncPickers();}
+function pickColor(c){prof.color=c;syncPickers();}
+function toggleSound(){prof.sound=prof.sound?0:1;document.getElementById('soundSw').classList.toggle('on',!!prof.sound);}
+function syncPickers(){
+  document.querySelectorAll('.emo').forEach(el=>el.classList.toggle('on',el.dataset.e===prof.avatar));
+  document.querySelectorAll('.col').forEach(el=>el.classList.toggle('on',el.dataset.c===prof.color));
+  document.getElementById('pAvatar').textContent=prof.avatar;
+  document.getElementById('pAvatar').style.background=prof.color;
+}
+
+async function loadProfile(){
+  const d=await jget('/me');
+  if(!d||!d.profile){toast('Не залогинен');return;}
+  prof=Object.assign(prof,d.profile);
+  document.getElementById('pName').textContent=prof.display_name;
+  document.getElementById('pRole').textContent=(prof.role==='root'?'👑 админ':'игрок')+' · @'+prof.username;
+  document.getElementById('dispName').value=prof.display_name;
+  document.getElementById('soundSw').classList.toggle('on',!!prof.sound);
+  const st=d.profile.stats||{};
+  document.getElementById('sPlayed').textContent=st.played||0;
+  document.getElementById('sFav').textContent=st.top_games&&st.top_games[0]?gameLabel(st.top_games[0][0]):'—';
+  syncPickers();
+}
+const GL={uno:'UNO',c4:'4 в ряд',poker:'Покер',checkers:'Шашки',chess:'Шахматы',bunker:'Бункер',spy:'Шпион',alias:'Элиас',durak:'Дурак',battleship:'Морской бой',reversi:'Реверси',dots:'Точки',bulls:'Быки',guesswho:'Кто есть кто',mafia:'Мафия',arrows:'Стрелки',g2048:'2048',snake:'Змейка',fifteen:'Пятнашки',mines:'Сапёр',wordle:'5 букв'};
+function gameLabel(g){return GL[g]||g;}
+
+async function loadFriends(){
+  const d=await jget('/friends');if(!d)return;
+  document.getElementById('sFriends').textContent=(d.friends||[]).length;
+  // входящие заявки
+  document.getElementById('incoming').innerHTML=(d.incoming||[]).map(u=>
+    `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
+      <div class="fn">${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">хочет в друзья</div></div>
+      <button class="btn-mini" onclick="respond('${esc(u.username)}',true)">✓</button>
+      <button class="sec btn-mini" onclick="respond('${esc(u.username)}',false)">✕</button></div>`).join('');
+  // друзья (онлайн-статус + «позвать в игру»)
+  const fr=(d.friends||[]);
+  // онлайн сверху
+  fr.sort((a,b)=>(b.online?1:0)-(a.online?1:0));
+  document.getElementById('friends').innerHTML=fr.length?fr.map(u=>{
+    const dot=u.online?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2fbf5f;margin-right:5px;box-shadow:0 0 6px #2fbf5f"></span>'
+                      :'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:5px"></span>';
+    const status=u.online?(u.game?('в игре · '+gName(u.game)):'онлайн'):'офлайн';
+    return `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
+      <div class="fn">${dot}${esc(u.display_name)}<div style="font-size:11px;color:${u.online?'#2fbf5f':'var(--muted)'}">${status}</div></div>
+      <button class="btn-mini" onclick="callToGame('${esc(u.username)}')">🎮 Позвать</button>
+      <button class="sec btn-mini" onclick="removeFriend('${esc(u.username)}')">убрать</button></div>`;}).join('')
+    :'<div class="empty">Пока нет друзей — найди по нику ниже 👇</div>';
+}
+// имя игры для статуса
+const GAME_NAMES={spy:'Шпион',bunker:'Бункер',alias:'Элиас',durak:'Дурак',uno:'UNO',mafia:'Мафия',
+  wordle:'5 букв',arrows:'Стрелки',n2048:'2048',snake:'Змейка',fifteen:'Пятнашки',mines:'Сапёр',
+  tetris:'Тетрис',race:'Гонки',c4:'4 в ряд'};
+function gName(g){return GAME_NAMES[g]||g;}
+// «позвать в игру»: выбрать игру → перейти в неё, invite.js авто-пригласит друга
+const CALL_GAMES=[['spy','🕵️ Шпион'],['bunker','🏠 Бункер'],['alias','💬 Элиас'],['mafia','🔪 Мафия'],
+  ['durak','🃏 Дурак'],['uno','🎴 UNO'],['c4','🔴 4 в ряд']];
+function callToGame(user){
+  let m=document.getElementById('callModal');
+  if(!m){m=document.createElement('div');m.id='callModal';
+    m.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    document.body.appendChild(m);}
+  m.innerHTML=`<div style="max-width:340px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px">
+    <div style="font-size:17px;font-weight:800;margin-bottom:4px">🎮 Позвать @${esc(user)}</div>
+    <div style="font-size:12px;color:#9a9aa4;margin-bottom:12px">Выбери игру — создам комнату и отправлю приглашение.</div>
+    ${CALL_GAMES.map(([g,n])=>`<button class="btn-mini" style="width:100%;text-align:left;margin:5px 0;padding:11px 13px" onclick="location.href='/games/${g}?invite=${encodeURIComponent(user)}'">${n}</button>`).join('')}
+    <button class="sec btn-mini" style="width:100%;margin-top:8px" onclick="document.getElementById('callModal').remove()">Отмена</button></div>`;
+  m.style.display='flex';
+}
+let searchT=null;
+function doSearch(){clearTimeout(searchT);searchT=setTimeout(async()=>{
+  const q=document.getElementById('search').value.trim();
+  if(!q){document.getElementById('searchRes').innerHTML='';return;}
+  const d=await jget('/users/search?q='+encodeURIComponent(q));
+  document.getElementById('searchRes').innerHTML=(d.users||[]).map(u=>
+    `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
+      <div class="fn">${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">@${esc(u.username)}</div></div>
+      <button class="btn-mini" onclick="addFriend('${esc(u.username)}')">+ в друзья</button></div>`).join('')
+    ||'<div class="empty">Никого не нашлось</div>';
+},300);}
+async function addFriend(u){const r=await jpost('/friends/request',{to:u});
+  toast(r.ok?(r.accepted?'Теперь друзья! 🎉':'Заявка отправлена'):(r.error||'Ошибка'));loadFriends();}
+async function respond(u,ok){await jpost('/friends/respond',{from:u,accept:ok});toast(ok?'Добавлен в друзья':'Отклонено');loadFriends();}
+async function removeFriend(u){await jpost('/friends/remove',{user:u});loadFriends();}
+
+async function saveProfile(){
+  prof.display_name=document.getElementById('dispName').value.trim()||prof.username;
+  const r=await jpost('/me',{display_name:prof.display_name,avatar:prof.avatar,color:prof.color,sound:!!prof.sound});
+  if(r.ok){toast('Сохранено ✓');document.getElementById('pName').textContent=prof.display_name;}else toast('Ошибка');
+}
+async function changePw(){
+  const o=document.getElementById('oldPw').value,n=document.getElementById('newPw').value;
+  if(!o||!n)return toast('Заполни оба поля');
+  const r=await jpost('/me/password',{old:o,new:n});
+  if(r.ok){toast('Пароль обновлён ✓');document.getElementById('oldPw').value='';document.getElementById('newPw').value='';}
+  else toast(r.error||'Ошибка');
+}
+buildPickers();loadProfile();loadFriends();
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

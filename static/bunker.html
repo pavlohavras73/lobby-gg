@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>БУНКЕР — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  h1{letter-spacing:3px}
+  .scen{background:rgba(255,34,56,.07);border-left:3px solid var(--crimson);padding:11px;font-size:13px;margin:8px 0;color:#e8d8d8;border-radius:8px}
+  .cell{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:11px;margin:5px 0;font-size:13px}
+  .cell.open{border-color:var(--crimson);background:rgba(255,34,56,.08);box-shadow:0 0 14px rgba(255,34,56,.15)}
+  .cell .lbl{color:var(--muted);font-size:11px}
+  .cell .val{color:#fff;font-weight:700;text-align:right;max-width:60%}
+  .tapbtn{background:rgba(255,34,56,.15);color:var(--crimson);border:1px solid rgba(255,34,56,.4);padding:7px 12px;border-radius:8px;font-size:12px;font-family:inherit}
+  .pl.dead{opacity:.4;text-decoration:line-through}
+  .pl b{color:#fff}.tag{font-size:10px;color:var(--muted)}
+  .seats{color:var(--crimson);font-weight:700}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:10px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
+</head>
+<body>
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">☢ Бункер — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1>☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Jarvis Games · кто достоин места</div>
+<div class="langbar" id="langbar" role="group" aria-label="Language">
+  <button type="button" data-lang="uk">УКР</button>
+  <button type="button" data-lang="ru">РУС</button>
+  <button type="button" data-lang="en">ENG</button>
+</div>
+
+<div id="home" class="card">
+  <input id="name" placeholder="Твой позывной" data-i18n-ph="ph_name" maxlength="20">
+  <button onclick="create()" data-i18n="btn_create">Создать бункер</button>
+  <input id="joincode" placeholder="КОД" data-i18n-ph="ph_code" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" style="color:#8a8568" data-i18n="link_spy">→ играть в Шпиона</a></div>
+</div>
+
+<div id="lobby" class="card hide">
+  <div class="sub" data-i18n="lobby_code">Код бункера:</div><div class="code" id="lcode">----</div>
+  <div id="players"></div>
+  <div id="hostlobby" class="hide">
+    <div style="color:#f5c518;font-weight:700;margin:8px 0 4px" data-i18n="settings">⚙ НАСТРОЙКИ</div>
+    <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_seats">Мест в бункере (0=авто)</span><input id="s_seats" type="number" value="0" style="flex:1"></div>
+    <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_timer">Таймер раунда, сек (0=выкл)</span><input id="s_timer" type="number" value="0" style="flex:1"></div>
+    <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_rev">Вскрытий за раунд (0=∞)</span><input id="s_rev" type="number" value="0" style="flex:1"></div>
+    <button class="sec" onclick="send({action:'add_bot'})" data-i18n="btn_bot">🤖 Добавить бота</button>
+    <button onclick="startGame()" data-i18n="btn_start">🚪 Запустить игру</button>
+  </div>
+  <div class="sub" id="waitmsg" data-i18n="wait_host">Ждём ведущего…</div>
+</div>
+
+<div id="game" class="hide">
+  <div class="scen" id="scen"></div>
+  <div class="card">
+    <div class="sub"><span data-i18n="seats_label">Мест в бункере:</span> <span class="seats" id="seats">?</span> · <span data-i18n="round_label">Раунд</span> <span id="round">1</span> <span id="timerbox"></span></div>
+  </div>
+
+  <div class="card">
+    <div style="color:#f5c518;font-weight:700;margin-bottom:6px" data-i18n="your_card">📋 ТВОЯ КАРТА (тапни ячейку — вскрыть для всех)</div>
+    <div id="mycells"></div>
+  </div>
+
+  <div id="votebox" class="card hide">
+    <div style="color:#ff5c5c;font-weight:700;margin-bottom:6px" data-i18n="vote_title">🗳 ГОЛОСОВАНИЕ — кого изгнать?</div>
+    <div id="votebtns"></div>
+    <div class="sub" id="votestatus"></div>
+  </div>
+
+  <div id="hostpanel" class="card hide">
+    <div style="color:#f5c518;font-weight:700;margin-bottom:6px" data-i18n="host_panel">🎛 ПУЛЬТ ВЕДУЩЕГО</div>
+    <div class="row">
+      <button class="danger" onclick="send({action:'start_vote'})" data-i18n="btn_vote">🗳 Голосование</button>
+      <button class="sec" onclick="send({action:'end_vote'})" data-i18n="btn_endvote">Подвести итог</button>
+    </div>
+    <div class="row">
+      <button class="sec" onclick="send({action:'start_timer'})" data-i18n="btn_timer">⏱ Старт таймер</button>
+      <button class="sec" onclick="send({action:'new_round'})" data-i18n="btn_newround">↻ Новый раунд</button>
+    </div>
+    <div class="row">
+      <button class="sec" onclick="setSeats()" data-i18n="btn_setseats">Мест: задать</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:#f5c518;font-weight:700;margin-bottom:6px" data-i18n="bunker_board">👥 БУНКЕР</div>
+    <div id="board"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════ i18n Бункера: УКР / РУС / ENG ═══════════
+const UI={
+  uk:{
+    rules_title:"☢ Бункер — правила",
+    rules_body:"Апокаліпсис, у бункері мало місць. У кожного свої карти (професія, здоров'я, багаж…). Розкривайте їх, сперечайтеся й голосуйте, кого НЕ пускати в бункер.",
+    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Jarvis Games · хто гідний місця",
+    ph_name:"Твій позивний", btn_create:"Створити бункер", ph_code:"КОД", btn_join:"Увійти за кодом", link_spy:"→ грати у Шпигуна",
+    lobby_code:"Код бункера:", settings:"⚙ НАЛАШТУВАННЯ", set_seats:"Місць у бункері (0=авто)", set_timer:"Таймер раунду, сек (0=вимк)", set_rev:"Розкриттів за раунд (0=∞)",
+    btn_bot:"🤖 Додати бота", btn_start:"🚪 Запустити гру", wait_host:"Чекаємо ведучого…",
+    seats_label:"Місць у бункері:", round_label:"Раунд", your_card:"📋 ТВОЯ КАРТА (тапни комірку — розкрити для всіх)",
+    vote_title:"🗳 ГОЛОСУВАННЯ — кого вигнати?", host_panel:"🎛 ПУЛЬТ ВЕДУЧОГО",
+    btn_vote:"🗳 Голосування", btn_endvote:"Підбити підсумок", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новий раунд", btn_setseats:"Місць: задати", bunker_board:"👥 БУНКЕР",
+    opened:"розкрито", open:"розкрити", exile:"вигнати", voted_ok:"Ти проголосував ✓", out_of_game:"Ти поза грою — не голосуєш",
+    voted_count:(a,b)=>"Проголосувало "+a+" з "+b, nothing_revealed:"ще нічого не розкрив", unexile:"повернути",
+    conn_lost:"Зв'язок втрачено, онови.", def_name:"Той, хто вижив", ask_seats:"Скільки місць?", ask_code:"Код?", time_up:"⏱ ЧАС!"
+  },
+  ru:{
+    rules_title:"☢ Бункер — правила",
+    rules_body:"Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.",
+    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Jarvis Games · кто достоин места",
+    ph_name:"Твой позывной", btn_create:"Создать бункер", ph_code:"КОД", btn_join:"Войти по коду", link_spy:"→ играть в Шпиона",
+    lobby_code:"Код бункера:", settings:"⚙ НАСТРОЙКИ", set_seats:"Мест в бункере (0=авто)", set_timer:"Таймер раунда, сек (0=выкл)", set_rev:"Вскрытий за раунд (0=∞)",
+    btn_bot:"🤖 Добавить бота", btn_start:"🚪 Запустить игру", wait_host:"Ждём ведущего…",
+    seats_label:"Мест в бункере:", round_label:"Раунд", your_card:"📋 ТВОЯ КАРТА (тапни ячейку — вскрыть для всех)",
+    vote_title:"🗳 ГОЛОСОВАНИЕ — кого изгнать?", host_panel:"🎛 ПУЛЬТ ВЕДУЩЕГО",
+    btn_vote:"🗳 Голосование", btn_endvote:"Подвести итог", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новый раунд", btn_setseats:"Мест: задать", bunker_board:"👥 БУНКЕР",
+    opened:"вскрыто", open:"вскрыть", exile:"изгнать", voted_ok:"Ты проголосовал ✓", out_of_game:"Ты вне игры — не голосуешь",
+    voted_count:(a,b)=>"Проголосовало "+a+" из "+b, nothing_revealed:"ещё ничего не вскрыл", unexile:"вернуть",
+    conn_lost:"Связь потеряна, обнови.", def_name:"Выживший", ask_seats:"Сколько мест?", ask_code:"Код?", time_up:"⏱ ВРЕМЯ!"
+  },
+  en:{
+    rules_title:"☢ Bunker — rules",
+    rules_body:"Apocalypse, and the bunker has few seats. Everyone has their own cards (profession, health, baggage…). Reveal them, argue, and vote on who does NOT get in.",
+    rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Jarvis Games · who deserves a spot",
+    ph_name:"Your callsign", btn_create:"Create bunker", ph_code:"CODE", btn_join:"Join by code", link_spy:"→ play Spy",
+    lobby_code:"Bunker code:", settings:"⚙ SETTINGS", set_seats:"Seats in bunker (0=auto)", set_timer:"Round timer, sec (0=off)", set_rev:"Reveals per round (0=∞)",
+    btn_bot:"🤖 Add bot", btn_start:"🚪 Start game", wait_host:"Waiting for the host…",
+    seats_label:"Seats in bunker:", round_label:"Round", your_card:"📋 YOUR CARD (tap a cell — reveal to everyone)",
+    vote_title:"🗳 VOTE — who to exile?", host_panel:"🎛 HOST CONTROLS",
+    btn_vote:"🗳 Vote", btn_endvote:"Tally results", btn_timer:"⏱ Start timer", btn_newround:"↻ New round", btn_setseats:"Set seats", bunker_board:"👥 BUNKER",
+    opened:"revealed", open:"reveal", exile:"exile", voted_ok:"You voted ✓", out_of_game:"You're out — no vote",
+    voted_count:(a,b)=>"Voted "+a+" of "+b, nothing_revealed:"nothing revealed yet", unexile:"bring back",
+    conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!"
+  }
+};
+// Игровой контент: канонич. русская строка → {uk, en}
+const GT={
+ "Метеорит размером с Бельгию превратил поверхность в стекло. Снаружи −200°C.":{uk:"Метеорит розміром з Бельгію перетворив поверхню на скло. Зовні −200°C.",en:"A meteor the size of Belgium turned the surface to glass. It's −200°C outside."},
+ "Утечка нейротоксина: все наверху превратились в агрессивных слизней.":{uk:"Витік нейротоксину: усі нагорі перетворилися на агресивних слимаків.",en:"A neurotoxin leak turned everyone above into aggressive slugs."},
+ "ИИ захватил дроны и охотится на людей. Электроника снаружи = смерть.":{uk:"ШІ захопив дрони й полює на людей. Електроніка зовні = смерть.",en:"An AI seized the drones and hunts humans. Electronics outside = death."},
+ "Грибковая пандемия: споры превращают людей в ходячие грибницы за 3 часа.":{uk:"Грибкова пандемія: спори перетворюють людей на ходячі грибниці за 3 години.",en:"A fungal pandemic: spores turn people into walking mycelium in 3 hours."},
+ "Ядерная зима, 40 лет тьмы. Радиация убивает за сутки без укрытия.":{uk:"Ядерна зима, 40 років темряви. Радіація вбиває за добу без укриття.",en:"Nuclear winter, 40 years of darkness. Radiation kills in a day without shelter."},
+ "Разлом в реальности: наружу выходят твари из чужого измерения.":{uk:"Розлам у реальності: назовні виходять тварюки з чужого виміру.",en:"A rift in reality: creatures from another dimension are coming through."},
+ "Океаны вскипели, атмосфера выгорает. Кислород только в бункере.":{uk:"Океани скипіли, атмосфера вигорає. Кисень лише в бункері.",en:"The oceans boiled, the atmosphere is burning off. Oxygen only in the bunker."},
+ "Бункер на 50 м под землёй. Запас еды на 1 год, мест меньше чем людей.":{uk:"Бункер на 50 м під землею. Запас їжі на 1 рік, місць менше ніж людей.",en:"A bunker 50 m underground. Food for 1 year, fewer seats than people."},
+ "Старый советский бункер. Протечка реактора в дальнем крыле. Воды на 8 месяцев.":{uk:"Старий радянський бункер. Протікання реактора в дальньому крилі. Води на 8 місяців.",en:"An old Soviet bunker. Reactor leak in the far wing. Water for 8 months."},
+ "Роскошный бункер миллиардера: спа, но еды всего на полгода и сломан фильтр воздуха.":{uk:"Розкішний бункер мільярдера: спа, але їжі лише на пів року і зламаний фільтр повітря.",en:"A billionaire's luxury bunker: a spa, but only half a year of food and a broken air filter."},
+ "Тесный бункер на 4 человека, вас больше. Генератор барахлит.":{uk:"Тісний бункер на 4 людини, вас більше. Генератор збоїть.",en:"A cramped 4-person bunker, and there are more of you. The generator is failing."},
+ "Пол / Раса":{uk:"Стать / Раса",en:"Sex / Race"}, "Возраст":{uk:"Вік",en:"Age"}, "Телосложение":{uk:"Статура",en:"Build"},
+ "Профессия":{uk:"Професія",en:"Profession"}, "Здоровье":{uk:"Здоров'я",en:"Health"}, "Хобби / Увлечения":{uk:"Хобі / Захоплення",en:"Hobbies"},
+ "Фобии / Страхи":{uk:"Фобії / Страхи",en:"Phobias / Fears"}, "Крупный инвентарь":{uk:"Великий інвентар",en:"Large inventory"}, "Рюкзак":{uk:"Рюкзак",en:"Backpack"},
+ "Доп. сведения":{uk:"Дод. відомості",en:"Extra info"}, "Спецспособность 1":{uk:"Здібність 1",en:"Special ability 1"}, "Спецспособность 2":{uk:"Здібність 2",en:"Special ability 2"},
+ "Мужчина, альбинос 2.10м":{uk:"Чоловік, альбінос 2.10м",en:"Man, albino, 2.10 m"},
+ "Женщина, карлица-бодибилдер":{uk:"Жінка, карлиця-бодібілдерка",en:"Woman, dwarf bodybuilder"},
+ "Небинарная персона, рыжая":{uk:"Небінарна персона, руда",en:"Non-binary person, redhead"},
+ "Мужчина, сиамский близнец (второй спит)":{uk:"Чоловік, сіамський близнюк (другий спить)",en:"Man, conjoined twin (the other's asleep)"},
+ "Женщина, гермафродит":{uk:"Жінка, гермафродит",en:"Woman, hermaphrodite"},
+ "Мужик, бывший качок-ныне-скелет":{uk:"Мужик, колишній качок-нині-скелет",en:"Guy, ex-muscleman now a skeleton"},
+ "Женщина, 7 месяцев беременна тройней":{uk:"Жінка, 7 місяців вагітна трійнею",en:"Woman, 7 months pregnant with triplets"},
+ "Транс-женщина, экс-морпех":{uk:"Транс-жінка, екс-морпіх",en:"Trans woman, ex-marine"},
+ "Мужчина, без обеих рук":{uk:"Чоловік, без обох рук",en:"Man, missing both arms"},
+ "Женщина-гигант 2.30м":{uk:"Жінка-гігант 2.30м",en:"Giant woman, 2.30 m"},
+ "Мужчина, голубых кровей (буквально синяя кожа)":{uk:"Чоловік, блакитної крові (буквально синя шкіра)",en:"Man, blue-blooded (literally blue skin)"},
+ "Интерсекс, гениальный ребёнок в теле взрослого":{uk:"Інтерсекс, геніальна дитина в тілі дорослого",en:"Intersex, a genius child in an adult's body"},
+ "Женщина, сросшиеся пальцы":{uk:"Жінка, зрощені пальці",en:"Woman, fused fingers"},
+ "Мужчина, третий сосок-детектор лжи":{uk:"Чоловік, третій сосок-детектор брехні",en:"Man, third nipple that detects lies"},
+ "9 лет (вундеркинд)":{uk:"9 років (вундеркінд)",en:"9 years old (prodigy)"}, "16 лет":{uk:"16 років",en:"16 years old"},
+ "19 лет":{uk:"19 років",en:"19 years old"}, "23 года":{uk:"23 роки",en:"23 years old"}, "28 лет":{uk:"28 років",en:"28 years old"},
+ "34 года":{uk:"34 роки",en:"34 years old"}, "41 год":{uk:"41 рік",en:"41 years old"}, "55 лет":{uk:"55 років",en:"55 years old"},
+ "67 лет":{uk:"67 років",en:"67 years old"}, "78 лет":{uk:"78 років",en:"78 years old"}, "92 года (но бодрый)":{uk:"92 роки (але бадьорий)",en:"92 years old (but spry)"},
+ "104 года":{uk:"104 роки",en:"104 years old"}, "13 лет (готка)":{uk:"13 років (готка)",en:"13 years old (goth girl)"}, "47 лет":{uk:"47 років",en:"47 years old"},
+ "Анорексия, 38 кг":{uk:"Анорексія, 38 кг",en:"Anorexic, 38 kg"}, "Ожирение 180 кг":{uk:"Ожиріння 180 кг",en:"Obese, 180 kg"},
+ "Атлет в идеальной форме":{uk:"Атлет в ідеальній формі",en:"Athlete in perfect shape"}, "Дрыщ, но выносливый":{uk:"Дохляк, але витривалий",en:"Scrawny but tough"},
+ "Беременный живот (у мужика тоже)":{uk:"Вагітний живіт (у мужика теж)",en:"Pregnant belly (the guy too)"}, "Культурист на стероидах":{uk:"Культурист на стероїдах",en:"Bodybuilder on steroids"},
+ "Карлик-крепыш":{uk:"Карлик-кремезний",en:"Stocky dwarf"}, "Высокий и хилый":{uk:"Високий і кволий",en:"Tall and frail"},
+ "Один глаз, одна нога":{uk:"Одне око, одна нога",en:"One eye, one leg"}, "Тело покрыто татуировками-оберегами":{uk:"Тіло вкрите татуюваннями-оберегами",en:"Body covered in protective tattoos"},
+ "Горбун с огромной силой рук":{uk:"Горбань з величезною силою рук",en:"Hunchback with enormous arm strength"}, "Идеальные зубы, остальное гниёт":{uk:"Ідеальні зуби, решта гниє",en:"Perfect teeth, the rest is rotting"},
+ "Гибкий как акробат":{uk:"Гнучкий як акробат",en:"Flexible as an acrobat"}, "Парализованы ноги, руки-кувалды":{uk:"Паралізовані ноги, руки-кувалди",en:"Paralyzed legs, sledgehammer arms"},
+ "Гинеколог (стаж 20 лет)":{uk:"Гінеколог (стаж 20 років)",en:"Gynecologist (20 years' experience)"}, "Ассенизатор-философ":{uk:"Асенізатор-філософ",en:"Sewage worker–philosopher"},
+ "Безработный тиктокер":{uk:"Безробітний тіктокер",en:"Unemployed TikToker"}, "Военный хирург":{uk:"Військовий хірург",en:"Military surgeon"},
+ "Повар-отравитель (в прошлом)":{uk:"Кухар-отруйник (у минулому)",en:"Poisoner-chef (former)"}, "Учитель ОБЖ":{uk:"Вчитель ОБЖ",en:"Safety-class teacher"},
+ "Проститутка с медобразованием":{uk:"Повія з медосвітою",en:"Sex worker with a medical degree"}, "Священник-расстрига":{uk:"Священник-розстрига",en:"Defrocked priest"},
+ "Инженер-ядерщик (алкаш)":{uk:"Інженер-ядерник (алкаш)",en:"Nuclear engineer (drunk)"}, "Палач (на пенсии)":{uk:"Кат (на пенсії)",en:"Executioner (retired)"},
+ "Психолог-манипулятор":{uk:"Психолог-маніпулятор",en:"Manipulative psychologist"}, "Фермер-выживальщик":{uk:"Фермер-виживальник",en:"Survivalist farmer"},
+ "Хакер 17 лет":{uk:"Хакер 17 років",en:"17-year-old hacker"}, "Бывший крёстный отец мафии":{uk:"Колишній хрещений батько мафії",en:"Former mafia godfather"},
+ "Ветеринар (лечит и людей)":{uk:"Ветеринар (лікує й людей)",en:"Veterinarian (treats humans too)"}, "Клоун-аниматор с ПТСР":{uk:"Клоун-аніматор з ПТСР",en:"Party clown with PTSD"},
+ "Абсолютно здоров":{uk:"Абсолютно здоровий",en:"Completely healthy"}, "ВИЧ (на терапии)":{uk:"ВІЛ (на терапії)",en:"HIV (on treatment)"},
+ "Бесплоден":{uk:"Безплідний",en:"Infertile"}, "Аллергия на всё кроме воды":{uk:"Алергія на все крім води",en:"Allergic to everything but water"},
+ "Туберкулёз (заразен)":{uk:"Туберкульоз (заразний)",en:"Tuberculosis (contagious)"}, "Диабет, нужен инсулин":{uk:"Діабет, потрібен інсулін",en:"Diabetes, needs insulin"},
+ "Шизофрения (3 голоса советуют)":{uk:"Шизофренія (3 голоси радять)",en:"Schizophrenia (3 voices give advice)"}, "Иммунитет как у бога":{uk:"Імунітет як у бога",en:"Immune system of a god"},
+ "Рак 2 стадии (медленный)":{uk:"Рак 2 стадії (повільний)",en:"Stage 2 cancer (slow)"}, "Эпилепсия":{uk:"Епілепсія",en:"Epilepsy"},
+ "Хронический понос":{uk:"Хронічний пронос",en:"Chronic diarrhea"}, "Сломанная психика, но крепкое тело":{uk:"Зламана психіка, але міцне тіло",en:"Broken mind, but a sturdy body"},
+ "Беременность + здоров":{uk:"Вагітність + здоровий",en:"Pregnant + healthy"}, "Клептомания + идеальное зрение":{uk:"Клептоманія + ідеальний зір",en:"Kleptomania + perfect eyesight"},
+ "Каннибализм (только по праздникам)":{uk:"Канібалізм (тільки на свята)",en:"Cannibalism (holidays only)"}, "Вязание из человеческих волос":{uk:"В'язання з людського волосся",en:"Knitting with human hair"},
+ "Бодибилдинг":{uk:"Бодібілдинг",en:"Bodybuilding"}, "Коллекционирует зубы":{uk:"Колекціонує зуби",en:"Collects teeth"},
+ "Готовит ресторанного уровня":{uk:"Готує ресторанного рівня",en:"Cooks at restaurant level"}, "Дрессировка крыс":{uk:"Дресирування щурів",en:"Rat training"},
+ "Гербарий из ядовитых трав":{uk:"Гербарій з отруйних трав",en:"Herbarium of poisonous plants"}, "Танцы на пилоне":{uk:"Танці на пілоні",en:"Pole dancing"},
+ "Самогоноварение":{uk:"Самогоноваріння",en:"Moonshine brewing"}, "Ставит опыты на себе":{uk:"Ставить досліди на собі",en:"Experiments on himself"},
+ "Оружейный мастер-любитель":{uk:"Зброяр-любитель",en:"Amateur gunsmith"}, "Пишет порно-фанфики":{uk:"Пише порно-фанфіки",en:"Writes porn fanfiction"},
+ "Медитация (реально помогает)":{uk:"Медитація (реально допомагає)",en:"Meditation (actually helps)"}, "Таксидермия":{uk:"Таксидермія",en:"Taxidermy"},
+ "Боязнь темноты (а тут бункер)":{uk:"Страх темряви (а тут бункер)",en:"Fear of the dark (and this is a bunker)"}, "Клаустрофобия (а тут бункер!)":{uk:"Клаустрофобія (а тут бункер!)",en:"Claustrophobia (and this is a bunker!)"},
+ "Панически боится женщин":{uk:"Панічно боїться жінок",en:"Panics around women"}, "Боязнь крови (но врач)":{uk:"Страх крові (але лікар)",en:"Fear of blood (but a doctor)"},
+ "Гемофобия":{uk:"Гемофобія",en:"Hemophobia"}, "Боится детей":{uk:"Боїться дітей",en:"Afraid of children"},
+ "Страх замкнутого пространства":{uk:"Страх замкненого простору",en:"Fear of enclosed spaces"}, "Боязнь микробов (тут грязно)":{uk:"Страх мікробів (тут брудно)",en:"Fear of germs (it's dirty here)"},
+ "Никтофобия":{uk:"Ніктофобія",en:"Nyctophobia"}, "Боится сойти с ума":{uk:"Боїться збожеволіти",en:"Afraid of going insane"},
+ "Не боится ничего (психопат)":{uk:"Не боїться нічого (психопат)",en:"Fears nothing (a psychopath)"}, "Боязнь еды (анорексия)":{uk:"Страх їжі (анорексія)",en:"Fear of food (anorexia)"},
+ "Боится спать":{uk:"Боїться спати",en:"Afraid to sleep"}, "Арахнофобия (а в бункере пауки)":{uk:"Арахнофобія (а в бункері павуки)",en:"Arachnophobia (and there are spiders in the bunker)"},
+ "Канистра самогона 20л":{uk:"Каністра самогону 20л",en:"20 L jerrycan of moonshine"}, "Ящик консервов на год":{uk:"Ящик консервів на рік",en:"A year's crate of canned food"},
+ "Снайперская винтовка + патроны":{uk:"Снайперська гвинтівка + патрони",en:"Sniper rifle + ammo"}, "Аптечка хирурга":{uk:"Аптечка хірурга",en:"Surgeon's medical kit"},
+ "Генератор на солнечных батареях":{uk:"Генератор на сонячних батареях",en:"Solar-powered generator"}, "Швейная машинка + ткань":{uk:"Швейна машинка + тканина",en:"Sewing machine + fabric"},
+ "Бензопила":{uk:"Бензопила",en:"Chainsaw"}, "Библиотека по выживанию":{uk:"Бібліотека з виживання",en:"Survival library"},
+ "Ящик семян (можно выращивать)":{uk:"Ящик насіння (можна вирощувати)",en:"Crate of seeds (you can grow food)"}, "Дойная коза":{uk:"Дійна коза",en:"A milk goat"},
+ "Холодильник с вакциной":{uk:"Холодильник з вакциною",en:"Fridge with a vaccine"}, "Радиостанция дальней связи":{uk:"Радіостанція дальнього зв'язку",en:"Long-range radio station"},
+ "Гроб (вместительный)":{uk:"Труна (містка)",en:"A coffin (roomy)"}, "Надувная секс-кукла (можно как подушку)":{uk:"Надувна секс-лялька (можна як подушку)",en:"Inflatable sex doll (usable as a pillow)"},
+ "Нож + спички + фляга":{uk:"Ніж + сірники + фляга",en:"Knife + matches + flask"}, "Презервативы (100 шт)":{uk:"Презервативи (100 шт)",en:"Condoms (100 pack)"},
+ "Пачка антибиотиков":{uk:"Пачка антибіотиків",en:"Pack of antibiotics"}, "Колода карт + кубики":{uk:"Колода карт + кубики",en:"Deck of cards + dice"},
+ "Пистолет (1 патрон)":{uk:"Пістолет (1 патрон)",en:"Pistol (1 bullet)"}, "Дневник предыдущего жителя":{uk:"Щоденник попереднього мешканця",en:"Diary of the previous resident"},
+ "Витамины на год":{uk:"Вітаміни на рік",en:"A year's vitamins"}, "Верёвка 50м + крюк":{uk:"Мотузка 50м + гак",en:"50 m rope + hook"},
+ "Семена конопли":{uk:"Насіння конопель",en:"Cannabis seeds"}, "Фонарик + батарейки":{uk:"Ліхтарик + батарейки",en:"Flashlight + batteries"},
+ "Зажигалка Zippo (вечная)":{uk:"Запальничка Zippo (вічна)",en:"Zippo lighter (never dies)"}, "Соль (1 кг — ценность!)":{uk:"Сіль (1 кг — цінність!)",en:"Salt (1 kg — a treasure!)"},
+ "Библия + Коран + Тора":{uk:"Біблія + Коран + Тора",en:"Bible + Quran + Torah"}, "Виагра (упаковка)":{uk:"Віагра (упаковка)",en:"Viagra (a pack)"},
+ "Знает код от соседнего склада с едой":{uk:"Знає код від сусіднього складу з їжею",en:"Knows the code to a nearby food depot"}, "Умеет принимать роды":{uk:"Вміє приймати пологи",en:"Can deliver babies"},
+ "Тайно влюблён в ведущего":{uk:"Таємно закоханий у ведучого",en:"Secretly in love with the host"}, "Бесплоден, но мечтает о детях":{uk:"Безплідний, але мріє про дітей",en:"Infertile, but dreams of children"},
+ "Видел карту других бункеров":{uk:"Бачив карту інших бункерів",en:"Has seen a map of other bunkers"}, "Был военнопленным, терпит пытки":{uk:"Був військовополоненим, терпить тортури",en:"Was a POW, endures torture"},
+ "Полиглот (8 языков)":{uk:"Поліглот (8 мов)",en:"Polyglot (8 languages)"}, "Умеет чинить любую технику":{uk:"Вміє лагодити будь-яку техніку",en:"Can fix any machinery"},
+ "Скрывает что заражён":{uk:"Приховує, що заражений",en:"Hiding that he's infected"}, "Был донором органов":{uk:"Був донором органів",en:"Was an organ donor"},
+ "Знает рецепт лекарства от чумы":{uk:"Знає рецепт ліків від чуми",en:"Knows a plague-cure recipe"}, "Гипнотизёр":{uk:"Гіпнотизер",en:"Hypnotist"},
+ "Помнит всё (эйдетик)":{uk:"Пам'ятає все (ейдетик)",en:"Remembers everything (eidetic)"}, "Тайно вегетарианец-радикал":{uk:"Таємно вегетаріанець-радикал",en:"Secretly a radical vegetarian"},
+ "Раз за игру: заглянуть в любую закрытую карту игрока":{uk:"Раз за гру: зазирнути в будь-яку закриту карту гравця",en:"Once per game: peek at any player's hidden card"},
+ "Раз за игру: отменить голосование":{uk:"Раз за гру: скасувати голосування",en:"Once per game: cancel a vote"},
+ "Иммунитет к изгнанию на 1 раунд":{uk:"Імунітет до вигнання на 1 раунд",en:"Immunity from exile for 1 round"},
+ "Поменяться одной картой с любым игроком":{uk:"Помінятися однією картою з будь-яким гравцем",en:"Swap one card with any player"},
+ "Раз за игру: добавить себе случайную профессию":{uk:"Раз за гру: додати собі випадкову професію",en:"Once per game: give yourself a random profession"},
+ "Вылечить любую болезнь (свою или чужую)":{uk:"Вилікувати будь-яку хворобу (свою чи чужу)",en:"Cure any illness (yours or someone's)"},
+ "Раз за игру: украсть инвентарь изгнанного":{uk:"Раз за гру: вкрасти інвентар вигнаного",en:"Once per game: steal an exiled player's inventory"},
+ "Заставить игрока вскрыть случайную карту":{uk:"Змусити гравця відкрити випадкову карту",en:"Force a player to reveal a random card"},
+ "Раз за игру: переголосовать (твой голос ×2)":{uk:"Раз за гру: переголосувати (твій голос ×2)",en:"Once per game: revote (your vote counts ×2)"},
+ "Раз за игру: спасти изгнанного (вернуть)":{uk:"Раз за гру: врятувати вигнаного (повернути)",en:"Once per game: save an exiled player (bring them back)"},
+ "Обнулить чужую спецспособность":{uk:"Обнулити чужу здібність",en:"Nullify another's special ability"},
+ "Раз за игру: тайно увидеть сценарий-секрет":{uk:"Раз за гру: таємно побачити сценарій-секрет",en:"Once per game: secretly see the hidden scenario"},
+ "Поменять свой возраст на любой":{uk:"Поміняти свій вік на будь-який",en:"Change your age to any value"},
+ "Раз за игру: объединиться с игроком (вас не изгнать вместе)":{uk:"Раз за гру: об'єднатися з гравцем (вас не вигнати разом)",en:"Once per game: ally with a player (you can't be exiled together)"},
+ "Раз за игру: форсировать новый раунд карт":{uk:"Раз за гру: форсувати новий раунд карт",en:"Once per game: force a new card round"},
+ "Сделать свою болезнь незаразной навсегда":{uk:"Зробити свою хворобу незаразною назавжди",en:"Make your illness non-contagious forever"}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function msgTr(s){ // серверные строки итога голосования — перевод по шаблону
+  if(LANG==='ru'||!s)return s;
+  const P={uk:{ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
+           en:{ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."}}[LANG];
+  s=s.replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
+     .replace("Никто не проголосовал.",P.none).replace("Игрок уже не в игре.",P.gone);
+  return s;
+}
+function applyUI(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(v!=null)el.textContent=v;});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(v!=null)el.placeholder=v;});
+  document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+  if(window._lastBunker)renderBunker(window._lastBunker); // перерисовать игру под язык
+}
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+
+let ws,pid,isHost=false,myChar=null,cats=[];
+function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){
+  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
+  ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));
+  ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent=t('conn_lost');};
+}
+function create(){const n=document.getElementById('name').value||t('def_name');connect(()=>send({action:'create',name:n,game:'bunker'}));}
+function join(){const n=document.getElementById('name').value||t('def_name');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
+function startGame(){
+  send({action:'set_settings',seats:parseInt(document.getElementById('s_seats').value||0),
+        timer:parseInt(document.getElementById('s_timer').value||0),
+        reveals_per_round:parseInt(document.getElementById('s_rev').value||0)});
+  setTimeout(()=>send({action:'start'}),150);
+}
+function setSeats(){const n=prompt(t('ask_seats'));if(n)send({action:'set_settings',seats:parseInt(n)});}
+function reveal(cat){send({action:'reveal_cell',category:cat});}
+function voteFor(t2){send({action:'vote',target:t2});}
+let timerInt=null;
+function runTimer(secs){
+  clearInterval(timerInt);const box=document.getElementById('timerbox');
+  let s=secs;timerInt=setInterval(()=>{
+    if(s<=0){clearInterval(timerInt);box.innerHTML=' · <span style="color:#ff5c5c">'+t('time_up')+'</span>';return;}
+    box.innerHTML=' · ⏱ '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');s--;
+  },1000);
+}
+
+function renderBunker(m){
+  show('game');isHost=(m.host===pid);
+  document.getElementById('scen').innerHTML='<b style="color:#f5c518">☢ '+T(m.scenario)+'</b><br><span style="color:#c9c39a">'+T(m.bunker)+'</span>';
+  document.getElementById('seats').textContent=m.seats;
+  document.getElementById('round').textContent=m.round;
+  document.getElementById('hostpanel').classList.toggle('hide',!isHost);
+  const me=(m.players||[]).find(p=>p.id===pid);
+  const revealed=me?Object.keys(me.revealed):[];
+  document.getElementById('mycells').innerHTML=(cats||m.categories).map(cat=>{
+    const open=revealed.includes(cat);
+    const val=myChar?myChar[cat]:'?';
+    return '<div class="cell '+(open?'open':'')+'"><div><div class="lbl">'+T(cat)+'</div><div class="val" style="text-align:left;max-width:100%">'+T(val)+'</div></div>'+
+      (open?'<span class="tag">'+t('opened')+'</span>':'<button class="tapbtn" onclick="reveal(\''+cat.replace(/'/g,"")+'\')">'+t('open')+'</button>')+'</div>';
+  }).join('');
+  const vb=document.getElementById('votebox');
+  if(m.vote&&m.vote.active){
+    vb.classList.remove('hide');
+    const meAlive=me?me.alive:false;
+    const already=m.vote.voted.includes(pid);
+    document.getElementById('votebtns').innerHTML=meAlive&&!already?
+      (m.players||[]).filter(p=>p.alive).map(p=>'<button class="danger" style="margin:3px 0" onclick="voteFor(\''+p.id+'\')">'+t('exile')+' '+p.name+(m.vote.tally[p.id]?' ('+m.vote.tally[p.id]+')':'')+'</button>').join(''):
+      '<div class="sub">'+(already?t('voted_ok'):t('out_of_game'))+'</div>';
+    document.getElementById('votestatus').textContent=t('voted_count')(m.vote.voted.length,m.vote.need);
+  } else vb.classList.add('hide');
+  document.getElementById('board').innerHTML=(m.players||[]).map(p=>{
+    const rev=Object.entries(p.revealed).map(([k,v])=>'<div class="tag">• '+T(k)+': <span style="color:#e8e2c8">'+T(v)+'</span></div>').join('')||'<div class="tag">'+t('nothing_revealed')+'</div>';
+    const ctrl=(isHost&&p.id!==pid)?(p.alive?'<button class="danger" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'kick\',target:\''+p.id+'\'})">'+t('exile')+'</button>':'<button class="sec" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'unkick\',target:\''+p.id+'\'})">'+t('unexile')+'</button>'):'';
+    return '<div class="pl '+(p.alive?'':'dead')+'"><b>'+(p.id===m.host?'👑 ':'')+p.name+'</b> <span class="tag">('+Object.keys(p.revealed).length+'/'+p.total+')</span>'+rev+ctrl+'</div>';
+  }).join('');
+}
+
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  else if(m.type==='lobby'){
+    show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
+    isHost=(m.host===pid);
+    document.getElementById('hostlobby').classList.toggle('hide',!isHost);
+    document.getElementById('waitmsg').classList.toggle('hide',isHost);
+  }
+  else if(m.type==='bunker_char'){myChar=m.char;cats=m.categories;}
+  else if(m.type==='bunker_state'){window._lastBunker=m;renderBunker(m);}
+  else if(m.type==='vote_started'){/* доска придёт следом */}
+  else if(m.type==='vote_result'){alert(msgTr(m.msg));}
+  else if(m.type==='timer'){runTimer(m.secs);}
+  else if(m.type==='error'){alert(m.msg);}
+}
+applyUI();
+</script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body>
+</html>

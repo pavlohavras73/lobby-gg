@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🂡 Покер — Discord Poker Night</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #08080c;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; color: #fff;
+  }
+
+  /* Fixed Header Buttons */
+  .top-btn {
+    position: fixed; top: max(10px, var(--sat)); z-index: 99999;
+    background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 6px 14px;
+    color: #fff; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6); cursor: pointer;
+  }
+  .btn-back { left: 10px; }
+  .btn-rules { right: 10px; padding: 6px 12px; font-family: Georgia, serif; font-style: italic; }
+
+  /* Main Container */
+  .game-layout {
+    width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+    padding: max(50px, calc(var(--sat) + 42px)) 12px max(14px, var(--sab));
+    background: radial-gradient(circle at 50% 40%, rgba(20, 80, 45, 0.35), #060609 75%);
+  }
+
+  /* Lobby & Home Screens */
+  .lobby-card {
+    background: linear-gradient(180deg, rgba(28,28,34,0.94), rgba(16,16,20,0.98));
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 28px; padding: 28px 24px;
+    max-width: 420px; width: 100%; margin: auto; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.85);
+  }
+  .lobby-title {
+    font-size: 32px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #fff 40%, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 4px;
+  }
+  .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }
+
+  /* Realistic 3D Oval Felt Table */
+  .poker-table-wrap {
+    flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; max-width: 520px; margin: 0 auto;
+  }
+
+  .poker-table {
+    width: 100%; height: 100%; max-height: 420px; border-radius: 140px;
+    background: radial-gradient(ellipse at center, #1b6338 0%, #0d4022 65%, #062211 100%);
+    border: 12px solid #23140b; outline: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 16px 50px rgba(0,0,0,0.9);
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+  }
+
+  /* Pot Badge */
+  .pot-badge {
+    background: linear-gradient(135deg, rgba(28,28,34,0.9), rgba(16,16,20,0.95));
+    border: 1px solid rgba(255, 215, 0, 0.4); border-radius: 999px; padding: 6px 18px;
+    color: #ffd700; font-size: 14px; font-weight: 900; letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.25); text-shadow: 0 0 10px rgba(255,215,0,0.4);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Community Cards */
+  .community-cards {
+    display: flex; justify-content: center; gap: 6px; min-height: 74px; margin-bottom: 10px;
+  }
+
+  /* Status Banner */
+  .table-status {
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.7); text-align: center; min-height: 18px;
+  }
+  .table-status.my-turn { color: #22c55e; text-shadow: 0 0 12px rgba(34,197,94,0.6); font-size: 13px; }
+
+  /* Player Seats Around Oval Table */
+  .seats-container {
+    position: absolute; inset: -18px; pointer-events: none;
+  }
+  .seat-node {
+    position: absolute; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .seat-node.seat-top { top: 4px; left: 50%; transform: translateX(-50%); }
+  .seat-node.seat-top-left { top: 15%; left: 4%; }
+  .seat-node.seat-top-right { top: 15%; right: 4%; }
+  .seat-node.seat-bottom-left { bottom: 15%; left: 4%; }
+  .seat-node.seat-bottom-right { bottom: 15%; right: 4%; }
+
+  .seat-card {
+    background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 6px 10px; text-align: center;
+    min-width: 90px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); position: relative; transition: all 0.25s;
+  }
+  .seat-card.active-turn {
+    border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.6); transform: scale(1.05);
+  }
+  .seat-card.folded { opacity: 0.4; }
+
+  .seat-name { font-size: 11px; font-weight: 800; color: #fff; white-space: nowrap; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
+  .seat-stack { font-size: 11px; font-weight: 900; color: #ffd700; }
+  .seat-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #8fd0ff; margin-top: 1px; }
+  .dealer-btn { position: absolute; top: -6px; right: -6px; background: #ffd700; color: #000; font-size: 9px; font-weight: 900; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px #000; }
+
+  /* My Cards & Hand Display */
+  .my-cards-section {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px;
+  }
+  .my-cards { display: flex; justify-content: center; gap: 8px; }
+
+  /* Custom Vector Playing Cards Style */
+  .poker-card {
+    width: 58px; height: 82px; border-radius: 8px; background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; justify-content: space-between; padding: 4px 6px;
+    font-weight: 900; font-size: 16px; line-height: 1; relative; transition: transform 0.2s;
+  }
+  .poker-card.red { color: #e0102e; }
+  .poker-card.black { color: #121215; }
+  .poker-card .suit-icon { font-size: 20px; align-self: center; }
+  .poker-card.card-back {
+    background: linear-gradient(135deg, #1c3d72, #0d2142); border: 2px solid #fff;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 6px, transparent 0, transparent 12px);
+  }
+
+  /* Discord-Style Action Bar */
+  .action-bar-wrap {
+    background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 10px;
+    max-width: 480px; width: 100%; margin: 0 auto; box-shadow: 0 12px 36px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .action-buttons { display: flex; gap: 6px; width: 100%; }
+  .action-btn {
+    flex: 1; padding: 12px 6px; border-radius: 16px; border: 0; font-weight: 900; font-size: 12px;
+    letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: transform 0.15s, opacity 0.15s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4); color: #fff; text-align: center;
+  }
+  .action-btn:active { transform: scale(0.95); }
+  .action-btn.btn-fold { background: linear-gradient(135deg, #e0102e, #990519); }
+  .action-btn.btn-call { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+  .action-btn.btn-raise { background: linear-gradient(135deg, #10b981, #059669); }
+  .action-btn.btn-allin { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+  /* Raise Controls */
+  .raise-presets { display: flex; gap: 6px; width: 100%; margin-bottom: 4px; }
+  .btn-preset {
+    flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 6px; font-size: 11px; font-weight: 800; color: #fff; cursor: pointer;
+  }
+  .btn-preset:active { background: rgba(255,255,255,0.2); }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  .slider-row input[type=range] {
+    flex: 1; accent-color: #10b981; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15);
+  }
+  .slider-val { font-size: 14px; font-weight: 900; color: #ffd700; min-width: 50px; text-align: right; }
+</style>
+</head>
+<body>
+
+  <a href="/games/" class="top-btn btn-back">🎮 Игры</a>
+  <button onclick="document.getElementById('rulesModal').style.display='flex'" class="top-btn btn-rules">i</button>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
+    <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:22px;text-align:left">
+      <div style="font-size:20px;font-weight:900;margin-bottom:10px">🂡 Покер — Правила</div>
+      <div style="font-size:13px;line-height:1.6;color:#d8d8de">Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.</div>
+      <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:18px;width:100%;padding:12px;border-radius:14px;border:none;background:#ff2238;color:#fff;font-weight:900;cursor:pointer">Понятно 👍</button>
+    </div>
+  </div>
+
+  <div class="game-layout">
+    
+    <!-- Home / Connection View -->
+    <div id="home" class="lobby-card">
+      <div class="lobby-title">🂡 ПОКЕР</div>
+      <div class="lobby-sub">Texas Hold'em · Discord Night Edition</div>
+      <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px">
+      <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px">Создать Стол 🎴</button>
+      
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="joincode" placeholder="КОД СТОЛА" maxlength="4" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center">
+        <button onclick="join()" style="padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer">Войти</button>
+      </div>
+    </div>
+
+    <!-- Lobby View -->
+    <div id="lobby" class="lobby-card hide">
+      <div class="lobby-title">СТОЛ <span id="lcode" style="color:#ff2238"></span></div>
+      <div class="lobby-sub" id="waitmsg">Ожидание игроков...</div>
+      <div id="players" style="display:flex;flex-direction:column;gap:6px;margin:16px 0"></div>
+      
+      <div id="pkSettings" class="hide" style="display:flex;gap:8px;margin-bottom:16px">
+        <select id="setBlinds" style="flex:1;padding:10px;border-radius:12px;background:#18181c;color:#fff;border:1px solid rgba(255,255,255,0.15)">
+          <option value="10">Блайнды 5/10</option>
+          <option value="20">10/20</option>
+          <option value="50">25/50</option>
+        </select>
+        <select id="setStack" style="flex:1;padding:10px;border-radius:12px;background:#18181c;color:#fff;border:1px solid rgba(255,255,255,0.15)">
+          <option value="1000">Стек 1000</option>
+          <option value="2500">Стек 2500</option>
+          <option value="5000">Стек 5000</option>
+        </select>
+      </div>
+
+      <button id="addbotbtn" onclick="send({action:'add_bot'})" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;margin-bottom:10px;cursor:pointer">+ Добавить Бота 🤖</button>
+      <button id="startbtn" class="hide" onclick="send({action:'start',settings:{bb:parseInt(document.getElementById('setBlinds').value),stack:parseInt(document.getElementById('setStack').value)}})" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;font-size:15px;cursor:pointer">🚀 Раздать Карты</button>
+    </div>
+
+    <!-- Active Game View -->
+    <div id="game" class="hide" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between">
+      
+      <!-- 3D Table Center -->
+      <div class="poker-table-wrap">
+        <div class="poker-table">
+          <!-- Dynamic Opponent Seats -->
+          <div class="seats-container" id="seatsContainer"></div>
+
+          <!-- Pot -->
+          <div class="pot-badge">
+            <span>💰 БАНК:</span>
+            <span id="pot">0</span>
+          </div>
+
+          <!-- Community Cards -->
+          <div class="community-cards" id="community"></div>
+
+          <!-- Table Status -->
+          <div class="table-status" id="status">Префлоп</div>
+          <div id="won" style="font-size:14px;font-weight:900;color:#22c55e;margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- My Hand Cards & Info -->
+      <div class="my-cards-section">
+        <div class="my-cards" id="mine"></div>
+        <div id="meinfo" style="font-size:13px;font-weight:800;color:#fff"></div>
+      </div>
+
+      <!-- Action Controls Bar -->
+      <div class="action-bar-wrap">
+        <div class="raise-presets hide" id="raiseRow">
+          <div class="slider-row" style="width:100%">
+            <input type="range" id="raiseSlider" min="0" max="100" value="0">
+            <span class="slider-val" id="raiseVal">0</span>
+          </div>
+        </div>
+
+        <div class="action-buttons" id="actions"></div>
+        <button id="nextBtn" class="hide" style="width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;cursor:pointer;margin-top:6px" onclick="send({action:'poker_next'})">🔄 Следующая раздача</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="/games/static/sfx.js"></script>
+  <script src="/games/static/reconnect.js"></script>
+  <script>
+    let ws, pid, st = null, isHost = false;
+
+    function show(id) {
+      for (const s of ['home', 'lobby', 'game']) document.getElementById(s).classList.add('hide');
+      document.getElementById(id).classList.remove('hide');
+    }
+
+    function send(o) { ws.send(JSON.stringify(o)); }
+
+    function connect(cb) {
+      ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/games/ws');
+      ws.onopen = cb;
+      ws.onmessage = e => handle(JSON.parse(e.data));
+      ws.onclose = () => {
+        const w = document.getElementById('waitmsg');
+        if (w) w.textContent = 'Связь потеряна, обнови страницу.';
+      };
+    }
+
+    function create() {
+      connect(() => send({ action: 'create', name: document.getElementById('name').value || 'Игрок', game: 'poker' }));
+    }
+
+    function join() {
+      const c = document.getElementById('joincode').value;
+      if (!c) return alert('Введите код!');
+      connect(() => send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: c }));
+    }
+
+    const RANK_SYMBOLS = { 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+    const SUIT_ICONS = { 0: '♠', 1: '♥', 2: '♦', 3: '♣' };
+    const SUIT_COLORS = { 0: 'black', 1: 'red', 2: 'red', 3: 'black' };
+
+    function createCardElement(card, isBack = false) {
+      const el = document.createElement('div');
+      if (isBack || !card) {
+        el.className = 'poker-card card-back';
+        return el;
+      }
+      const rank = RANK_SYMBOLS[card[0]] || card[0];
+      const suit = SUIT_ICONS[card[1]] || '';
+      const color = SUIT_COLORS[card[1]] || 'black';
+
+      el.className = `poker-card ${color}`;
+      el.innerHTML = `
+        <div>${rank}</div>
+        <div class="suit-icon">${suit}</div>
+        <div style="transform:rotate(180deg)">${rank}</div>
+      `;
+      return el;
+    }
+
+    function render() {
+      if (!st) return;
+
+      // Render Seats around Table
+      const container = document.getElementById('seatsContainer');
+      container.innerHTML = '';
+
+      const seatPositions = ['seat-top', 'seat-top-left', 'seat-top-right', 'seat-bottom-left', 'seat-bottom-right'];
+      let posIdx = 0;
+
+      for (const p of st.seats) {
+        if (p === pid) continue;
+        const posClass = seatPositions[posIdx % seatPositions.length];
+        posIdx++;
+
+        const isTurn = st.to_act_pid === p;
+        const isFolded = st.folded.includes(p);
+        const isAllIn = st.allin.includes(p);
+        const isBtn = st.seats[st.button] === p;
+
+        const node = document.createElement('div');
+        node.className = `seat-node ${posClass}`;
+        
+        let badgeText = '';
+        if (st.bets[p]) badgeText = `Ставка ${st.bets[p]}`;
+        else if (isFolded) badgeText = 'ФОЛД';
+        else if (isAllIn) badgeText = 'ОЛЛ-ИН 💥';
+
+        node.innerHTML = `
+          <div class="seat-card ${isTurn ? 'active-turn' : ''} ${isFolded ? 'folded' : ''}">
+            ${isBtn ? '<div class="dealer-btn">D</div>' : ''}
+            <div class="seat-name">${st.names[p] || '?'}</div>
+            <div class="seat-stack">${st.stacks[p] || 0} 🪙</div>
+            ${badgeText ? `<div class="seat-badge">${badgeText}</div>` : ''}
+          </div>
+        `;
+        container.appendChild(node);
+      }
+
+      document.getElementById('pot').textContent = st.pot;
+
+      // Render Community Cards
+      const com = document.getElementById('community');
+      com.innerHTML = '';
+      for (const c of st.community) com.appendChild(createCardElement(c));
+
+      // My Hole Cards
+      const mine = document.getElementById('mine');
+      mine.innerHTML = '';
+      if (st.hole && st.hole.length) {
+        for (const c of st.hole) mine.appendChild(createCardElement(c));
+      }
+
+      // Table Status & Turn Info
+      const status = document.getElementById('status');
+      const stageNames = { preflop: 'Префлоп', flop: 'Флоп', turn: 'Тёрн', river: 'Ривер', showdown: 'Вскрытие' };
+      const myturn = st.to_act_pid === pid;
+
+      status.className = 'table-status' + (myturn ? ' my-turn' : '');
+      status.textContent = st.done ? '' : (stageNames[st.stage] || st.stage) + (myturn ? ' — ТВОЙ ХОД! 🔥' : (st.to_act_pid ? ' — ходит ' + (st.names[st.to_act_pid] || '?') : ''));
+      
+      document.getElementById('meinfo').innerHTML = st.allin.includes(pid) ? '<b style="color:#8b5cf6">💥 ОЛЛ-ИН</b>' : (`Твой стек: <span style="color:#ffd700">${st.my_stack || 0} 🪙</span>` + (st.folded.includes(pid) ? ' · <span style="color:var(--muted)">ты сфолдил</span>' : ''));
+
+      // Hand Results
+      const won = document.getElementById('won');
+      const nextBtn = document.getElementById('nextBtn');
+      if (st.done) {
+        won.classList.remove('hide');
+        won.textContent = '🏆 ' + st.msg;
+        nextBtn.classList.remove('hide');
+        if (window.confetti && st.msg.includes(st.names[pid])) {
+          confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        }
+        renderActions([]);
+      } else {
+        won.classList.add('hide');
+        nextBtn.classList.add('hide');
+        renderActions(myturn && !st.folded.includes(pid) && !st.allin.includes(pid) ? buildActions() : []);
+      }
+    }
+
+    function buildActions() {
+      const toCall = st.to_call || 0, stack = st.my_stack || 0;
+      const acts = [];
+      acts.push({ label: 'Фолд', act: 'fold', cls: 'btn-fold' });
+      if (toCall === 0) acts.push({ label: 'Чек', act: 'check', cls: 'btn-call' });
+      else acts.push({ label: 'Колл ' + Math.min(toCall, stack), act: 'call', cls: 'btn-call' });
+
+      const minRaiseTarget = st.cur_bet + (st.min_raise || st.bb);
+      if (stack > toCall) {
+        if (st.bets[pid] + stack >= minRaiseTarget) acts.push({ label: 'Рейз 🚀', act: 'raise_ui', cls: 'btn-raise' });
+        acts.push({ label: 'Олл-ин 💥', act: 'allin', cls: 'btn-allin' });
+      }
+      return acts;
+    }
+
+    function renderActions(acts) {
+      const box = document.getElementById('actions');
+      box.innerHTML = '';
+      document.getElementById('raiseRow').classList.add('hide');
+
+      for (const a of acts) {
+        const b = document.createElement('button');
+        b.textContent = a.label;
+        b.className = `action-btn ${a.cls}`;
+        b.onclick = () => {
+          if (a.act === 'raise_ui') { showRaiseUI(); return; }
+          send({ action: 'poker_action', act: a.act });
+          if (window.sfx) window.sfx.click();
+        };
+        box.appendChild(b);
+      }
+    }
+
+    function showRaiseUI() {
+      const row = document.getElementById('raiseRow');
+      const sl = document.getElementById('raiseSlider');
+      const val = document.getElementById('raiseVal');
+      const minT = st.cur_bet + (st.min_raise || st.bb);
+      const maxT = st.bets[pid] + (st.my_stack || 0);
+
+      sl.min = minT; sl.max = maxT; sl.value = Math.min(minT, maxT);
+      val.textContent = sl.value + ' 🪙';
+
+      sl.oninput = () => val.textContent = sl.value + ' 🪙';
+      row.classList.remove('hide');
+
+      const box = document.getElementById('actions');
+      box.innerHTML = '';
+
+      const cancel = document.createElement('button');
+      cancel.className = 'action-btn btn-fold';
+      cancel.textContent = '← Назад';
+      cancel.onclick = render;
+
+      const go = document.createElement('button');
+      go.className = 'action-btn btn-raise';
+      go.textContent = 'Рейз до ' + sl.value;
+      go.onclick = () => {
+        const target = parseInt(sl.value);
+        if (target >= maxT) send({ action: 'poker_action', act: 'allin' });
+        else send({ action: 'poker_action', act: 'raise', amount: target });
+        if (window.sfx) window.sfx.click();
+      };
+
+      const upd = () => go.textContent = 'Рейз до ' + sl.value + ' 🪙';
+      sl.addEventListener('input', upd);
+
+      box.appendChild(cancel);
+      box.appendChild(go);
+    }
+
+    function handle(m) {
+      if (m.type === 'joined') { pid = m.pid; isHost = m.host; }
+      else if (m.type === 'lobby') {
+        show('lobby');
+        document.getElementById('lcode').textContent = m.code;
+        document.getElementById('players').innerHTML = m.players.map(p =>
+          '<div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:12px;text-align:left;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between">' +
+          '<span>' + (p.id === m.host ? '👑 ' : '👤 ') + p.name + '</span>' +
+          '</div>'
+        ).join('');
+        isHost = (m.host === pid);
+        document.getElementById('startbtn').classList.toggle('hide', !isHost || m.players.length < 2);
+        document.getElementById('pkSettings').classList.toggle('hide', !isHost);
+        document.getElementById('waitmsg').textContent = m.players.length < 2 ? 'Нужно 2+ игрока…' : (isHost ? 'Жми «Раздать»' : 'Ждём ведущего…');
+      }
+      else if (m.type === 'poker_state') {
+        st = m;
+        show('game');
+        render();
+      }
+      else if (m.type === 'error') {
+        alert(m.msg);
+      }
+    }
+  </script>
+</body>
+</html>

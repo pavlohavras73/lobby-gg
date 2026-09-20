@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — 2048</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
+    -webkit-user-select:none;user-select:none;touch-action:none;overflow:hidden}
+  h1{margin:2px 0 0;font-size:1.5em}
+  .bar{display:flex;gap:10px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:8px 0}
+  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 14px;text-align:center}
+  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}
+  .score .v{font-size:18px;font-weight:800}
+  .board{position:relative;background:rgba(255,255,255,.04);border:1px solid var(--border);
+    border-radius:12px;padding:8px;touch-action:none}
+  .cellbg{position:absolute;background:rgba(255,255,255,.03);border-radius:8px}
+  .tile{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:800;
+    border-radius:8px;transition:left .12s,top .12s;color:#fff}
+  .tile.new{animation:pop .15s}
+  .tile.merged{animation:bump .15s}
+  @keyframes pop{0%{transform:scale(.4);opacity:.4}100%{transform:scale(1);opacity:1}}
+  @keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .over{position:absolute;inset:0;background:rgba(0,0,0,.85);border-radius:12px;display:none;
+    flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
+  .over .big{font-size:28px;font-weight:900;margin-bottom:10px}
+  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
+  .backlink{margin-top:14px;color:var(--muted);font-size:13px;text-decoration:none}
+  button{width:auto;padding:9px 18px}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
+</head>
+<body>
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔢 2048 — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Свайпай в 4 стороны. Одинаковые плитки при столкновении сливаются в одну (2+2=4). Собери плитку <b>2048</b>. Игра кончается, когда ходов нет.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="title">🔢 2048</h1>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="bar">
+  <div class="score"><div class="l" data-i18n="score">Счёт</div><div class="v" id="score">0</div></div>
+  <button class="sec" onclick="newGame()" data-i18n="newbtn">↻ Новая</button>
+  <div class="score"><div class="l" data-i18n="best">Рекорд</div><div class="v" id="best">0</div></div>
+</div>
+<div class="board" id="board">
+  <div class="over" id="over"><div class="big" id="overbig"></div><button onclick="newGame()" data-i18n="again">Ещё раз</button></div>
+</div>
+<div class="hint" data-i18n="hint">Свайпай в 4 стороны. Собери 2048! (на компе — стрелки)</div>
+<a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
+
+<script>
+const UI={
+ uk:{rules_title:"🔢 2048 — правила",rules_body:"Свайпай у 4 боки. Однакові плитки при зіткненні зливаються в одну (2+2=4). Збери плитку <b>2048</b>. Гра закінчується, коли ходів немає.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🔢 2048",score:"Рахунок",best:"Рекорд",newbtn:"↻ Нова",again:"Ще раз",hint:"Свайпай у 4 боки. Збери 2048! (на пк — стрілки)",all_games:"← Усі ігри",win:"🎉 2048! Зібрав!",dead:"💀 Глухий кут. Рахунок: "},
+ ru:{rules_title:"🔢 2048 — правила",rules_body:"Свайпай в 4 стороны. Одинаковые плитки при столкновении сливаются в одну (2+2=4). Собери плитку <b>2048</b>. Игра кончается, когда ходов нет.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🔢 2048",score:"Счёт",best:"Рекорд",newbtn:"↻ Новая",again:"Ещё раз",hint:"Свайпай в 4 стороны. Собери 2048! (на компе — стрелки)",all_games:"← Все игры",win:"🎉 2048! Собрал!",dead:"💀 Тупик. Счёт: "},
+ en:{rules_title:"🔢 2048 — rules",rules_body:"Swipe in 4 directions. Matching tiles merge on contact (2+2=4). Reach the <b>2048</b> tile. Game ends when there are no moves left.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🔢 2048",score:"Score",best:"Best",newbtn:"↻ New",again:"Again",hint:"Swipe in 4 directions. Reach 2048! (on PC — arrow keys)",all_games:"← All games",win:"🎉 2048! You made it!",dead:"💀 Stuck. Score: "}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function applyUI(){
+ document.documentElement.lang=LANG;
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v!=='string')return;
+   if(el.dataset.i18n==='rules_body')el.innerHTML=v; else el.textContent=v;});
+ document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+}
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+
+const N=4;
+let grid, score=0, best=+(localStorage.getItem('g2048_best')||0), size, gap=8, cell, won=false;
+document.getElementById('best').textContent=best;
+const COLORS={2:'#3a3d44',4:'#4a4e57',8:'#e0a72e',16:'#e08a2e',32:'#e06a2e',64:'#e0492e',
+  128:'#2fbf8f',256:'#2fbf5f',512:'#2f9fbf',1024:'#5c6ef0',2048:'#a04bf0',4096:'#f04bb0'};
+function layout(){
+  const b=document.getElementById('board');
+  const W=Math.min(window.innerWidth-24, 400, window.innerHeight*0.6);
+  size=Math.floor(W); cell=Math.floor((size-gap*(N+1))/N);
+  b.style.width=size+'px'; b.style.height=size+'px';
+  b.querySelectorAll('.cellbg').forEach(e=>e.remove());
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const c=document.createElement('div');c.className='cellbg';
+    c.style.width=cell+'px';c.style.height=cell+'px';
+    c.style.left=(gap+x*(cell+gap))+'px';c.style.top=(gap+y*(cell+gap))+'px';
+    b.appendChild(c);
+  }
+}
+function newGame(){
+  grid=Array.from({length:N},()=>Array(N).fill(0));
+  score=0; won=false; document.getElementById('over').style.display='none';
+  addTile(); addTile(); render();
+}
+function addTile(){
+  const empty=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!grid[y][x])empty.push([x,y]);
+  if(!empty.length)return;
+  const [x,y]=empty[Math.floor(Math.random()*empty.length)];
+  grid[y][x]=Math.random()<0.9?2:4;
+  grid[y][x]=-grid[y][x];
+}
+function render(){
+  const b=document.getElementById('board');
+  b.querySelectorAll('.tile').forEach(e=>e.remove());
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    let v=grid[y][x]; if(!v)continue;
+    const isNew=v<0; v=Math.abs(v); grid[y][x]=v;
+    const t2=document.createElement('div');
+    t2.className='tile'+(isNew?' new':'');
+    t2.style.width=cell+'px';t2.style.height=cell+'px';
+    t2.style.left=(gap+x*(cell+gap))+'px';t2.style.top=(gap+y*(cell+gap))+'px';
+    t2.style.background=COLORS[v]||'#f04b6b';
+    t2.style.fontSize=(v<100?cell*0.42:v<1000?cell*0.34:cell*0.26)+'px';
+    t2.textContent=v;
+    b.appendChild(t2);
+  }
+  document.getElementById('score').textContent=score;
+  if(score>best){best=score;localStorage.setItem('g2048_best',best);document.getElementById('best').textContent=best;}
+}
+function slide(row){
+  let a=row.filter(v=>v); let add=0;
+  for(let i=0;i<a.length-1;i++){ if(a[i]===a[i+1]){a[i]*=2;add+=a[i];if(a[i]===2048)won=true;a.splice(i+1,1);} }
+  while(a.length<N)a.push(0);
+  return [a,add];
+}
+function move(dir){
+  let g=grid.map(r=>r.map(v=>Math.abs(v)));
+  const before=JSON.stringify(g);
+  const rot=(m)=>m[0].map((_,i)=>m.map(r=>r[i]));
+  let work=g, times=0;
+  if(dir==='left')times=0; if(dir==='up')times=3; if(dir==='right')times=2; if(dir==='down')times=1;
+  for(let i=0;i<times;i++)work=rot(work).map(r=>r.reverse());
+  let add=0;
+  work=work.map(r=>{const [nr,a]=slide(r);add+=a;return nr;});
+  for(let i=0;i<(4-times)%4;i++)work=rot(work).map(r=>r.reverse());
+  if(JSON.stringify(work)===before)return;
+  grid=work; score+=add; addTile(); render();
+  if(won){won=false;endGame(t('win'));}
+  else if(!canMove())endGame(t('dead')+score);
+}
+function canMove(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    if(!grid[y][x])return true;
+    if(x<N-1&&grid[y][x]===grid[y][x+1])return true;
+    if(y<N-1&&grid[y][x]===grid[y+1][x])return true;
+  }
+  return false;
+}
+function endGame(msg){document.getElementById('overbig').textContent=msg;document.getElementById('over').style.display='flex';}
+let sx,sy;
+const b=document.getElementById('board');
+b.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+b.addEventListener('touchend',e=>{
+  if(sx==null)return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;
+  if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left'); else move(dy>0?'down':'up');
+  sx=sy=null;
+},{passive:true});
+window.addEventListener('keydown',e=>{const m={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.key];if(m){e.preventDefault();move(m);}});
+window.addEventListener('resize',()=>{layout();render();});
+applyUI();layout(); newGame();
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

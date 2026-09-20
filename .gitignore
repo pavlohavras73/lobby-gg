@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.bak*
+.env
+*.db
+*.sqlite*
+auth_secret.txt

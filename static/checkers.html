@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Шашки — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  .bd {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px; max-width: 360px; margin: 10px auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .sq {
+    aspect-ratio: 1; background: #0c1420; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; position: relative;
+    user-select: none; -webkit-user-select: none;
+  }
+  .sq.dark { background: #182838; }
+  .sq.sel { box-shadow: inset 0 0 0 2px var(--crimson, #ff2238); }
+  .sq.dest { cursor: pointer; }
+  .sq.dest::after {
+    content: ""; width: 28%; height: 28%; border-radius: 50%;
+    background: rgba(0, 229, 255, 0.7); box-shadow: 0 0 8px #00e5ff;
+    animation: destPulse 1.2s infinite alternate ease-in-out;
+  }
+  @keyframes destPulse {
+    0% { transform: scale(0.85); opacity: 0.6; }
+    100% { transform: scale(1.15); opacity: 1; }
+  }
+
+  .pc {
+    width: 78%; height: 78%; border-radius: 50%; cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.25);
+    position: relative; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .pc:active { transform: scale(0.92); }
+  .pc.p1 { background: radial-gradient(circle at 35% 30%, #ff5566, #c40f23); }
+  .pc.p2 { background: radial-gradient(circle at 35% 30%, #f0f0f5, #9aa0a6); }
+  .pc.king::after {
+    content: "♛"; font-size: 16px; color: #ffd23f; text-shadow: 0 0 4px #000;
+  }
+
+  /* Подсветка шашек, которыми МОЖНО походить */
+  .pc.can-move {
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.8), inset 0 2px 3px rgba(255,255,255,.4);
+    animation: piecePulse 1.4s infinite alternate;
+  }
+  /* Подсветка шашек при ОБЯЗАТЕЛЬНОМ БОЕ */
+  .pc.must-capture {
+    box-shadow: 0 0 14px #ffd166, inset 0 2px 3px rgba(255,255,255,.5);
+    animation: capturePulse 0.9s infinite alternate;
+  }
+
+  @keyframes piecePulse {
+    0% { transform: scale(0.97); }
+    100% { transform: scale(1.03); }
+  }
+  @keyframes capturePulse {
+    0% { transform: scale(0.95); filter: brightness(1); }
+    100% { transform: scale(1.06); filter: brightness(1.25); }
+  }
+
+  .turn { text-align: center; font-weight: 700; margin: 8px 0; font-size: 14px; }
+  .me { color: var(--crimson, #ff2238); }
+  .badge-cap {
+    display: inline-block; background: #e0102e; color: #fff; font-size: 11px;
+    font-weight: 800; padding: 3px 8px; border-radius: 10px; margin-top: 4px;
+    box-shadow: 0 0 10px rgba(224, 16, 46, 0.6);
+  }
+  .score { display: flex; justify-content: space-around; text-align: center; margin: 6px 0; }
+  .score b { font-size: 26px; }
+</style>
+</head>
+<body>
+
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">
+  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left">
+    <div style="font-size:19px;font-weight:800;margin-bottom:10px">🏁 Шашки — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de">
+      Ходи шашками по диагонали вперед. <b>Бить обязательно</b> (и вперед, и назад!), можно цепочкой.<br>
+      Если есть шашка под боем — доступна только рубка (она подсвечена золотым).<br>
+      Дошел до конца доски — стал дамкой. Победил, кто снял все шашки соперника или запер его!
+    </div>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button>
+  </div>
+</div>
+
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+
+<h1>🏁 ШАШКИ</h1>
+<div class="sub">русские шашки · обязательный бой · на двоих</div>
+
+<div id="home" class="card" style="max-width:360px;margin:0 auto">
+  <input id="name" placeholder="Имя" maxlength="20">
+  <button onclick="create()">Создать игру</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div>
+</div>
+
+<div id="lobby" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
+  <div class="sub">Код игры:</div>
+  <div class="code" id="lcode" onclick="navigator.clipboard.writeText(this.textContent);alert('Код скопирован!')" title="Клик — скопировать">----</div>
+  <div id="players"></div>
+  <div class="row" style="margin-top:8px">
+    <div class="opts botdiff" style="margin:6px 0">
+      <div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div>
+      <div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div>
+      <div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div>
+    </div>
+    <button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button>
+  </div>
+  <div class="sub" id="waitmsg">Ждём второго…</div>
+</div>
+
+<div id="game" class="hide">
+  <div class="score">
+    <div>🔴 <span id="p1-name" style="font-size:12px;color:var(--muted)"></span> <b id="s1">12</b></div>
+    <div>⚪ <span id="p2-name" style="font-size:12px;color:var(--muted)"></span> <b id="s2">12</b></div>
+  </div>
+  <div class="turn" id="turninfo"></div>
+  <div class="bd" id="bd"></div>
+  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center">
+    <h1 id="ot"></h1>
+    <button class="sec" onclick="restart()">Заново</button>
+  </div>
+</div>
+
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script>
+let ws, pid, st = null, sel = null, roomCode = "";
+
+const savedName = localStorage.getItem('jg_player_name') || '';
+if (savedName) document.getElementById('name').value = savedName;
+
+function show(id){
+  for (const s of ['home','lobby','game']) document.getElementById(s).classList.add('hide');
+  document.getElementById(id).classList.remove('hide');
+}
+
+function send(o){
+  if (ws) ws.send(o);
+}
+
+function connect(cb){
+  if (ws && ws.getSocket() && ws.getSocket().readyState === 1) {
+    if (cb) cb();
+    return;
+  }
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (cb) cb();
+    },
+    onmessage: (e) => {
+      handle(JSON.parse(e.data));
+    }
+  });
+}
+
+function create(){
+  const n = document.getElementById('name').value.trim() || 'Игрок';
+  localStorage.setItem('jg_player_name', n);
+  connect(() => send({ action: 'create', name: n, game: 'checkers' }));
+}
+
+function join(c){
+  const code = (c || document.getElementById('joincode').value).trim().toUpperCase();
+  if (!code) return alert('Введите код комнаты');
+  const n = document.getElementById('name').value.trim() || 'Игрок';
+  localStorage.setItem('jg_player_name', n);
+  connect(() => send({ action: 'join', name: n, code: code }));
+}
+
+function restart(){
+  send({ action: 'restart' });
+}
+
+function myLegal(){
+  if (!st || st.turn_pid !== pid) return [];
+  return st.legal || [];
+}
+
+function tap(r, c){
+  const legal = myLegal();
+  if (!legal.length) return;
+
+  // Если уже выбрана фигура и мы тапаем на валидный ход
+  if (sel && legal.some(m => m[0] === sel[0] && m[1] === sel[1] && m[2] === r && m[3] === c)){
+    send({ action: 'ck_move', fr: sel[0], fc: sel[1], tr: r, tc: c });
+    sel = null;
+    if (window.JarvisSFX) JarvisSFX.play('tap');
+    render();
+    return;
+  }
+
+  // Если тапаем на шашку, которой разрешено ходить
+  const canPick = legal.some(m => m[0] === r && m[1] === c);
+  if (canPick) {
+    sel = [r, c];
+    if (window.JarvisSFX) JarvisSFX.play('card');
+  } else {
+    sel = null;
+  }
+  render();
+}
+
+function render(){
+  if (!st) return;
+  const legal = myLegal();
+  const hasCapture = legal.some(m => m[4] !== null && m[4] !== undefined);
+  const dests = sel ? legal.filter(m => m[0] === sel[0] && m[1] === sel[1]).map(m => [m[2], m[3]]) : [];
+  const pickable = new Set(legal.map(m => m[0] + '_' + m[1]));
+
+  let h = '';
+  for (let r = 0; r < 8; r++){
+    for (let c = 0; c < 8; c++){
+      const dark = (r + c) % 2 === 1;
+      const v = st.board[r][c];
+      const isSel = sel && sel[0] === r && sel[1] === c;
+      const isDest = dests.some(d => d[0] === r && d[1] === c);
+      let cls = 'sq' + (dark ? ' dark' : '') + (isSel ? ' sel' : '') + (isDest ? ' dest' : '');
+      let inner = '';
+      if (v) {
+        const p = (v === 1 || v === 3) ? 1 : 2;
+        const king = (v === 3 || v === 4);
+        const canTap = dark && pickable.has(r + '_' + c);
+        const moveCls = canTap ? (hasCapture ? ' must-capture' : ' can-move') : '';
+        inner = `<div class="pc p${p}${king ? ' king' : ''}${moveCls}" ${canTap ? `onclick="tap(${r},${c})"` : ''}></div>`;
+      }
+      h += `<div class="${cls}" ${isDest ? `onclick="tap(${r},${c})"` : ''}>${inner}</div>`;
+    }
+  }
+
+  document.getElementById('bd').innerHTML = h;
+  document.getElementById('s1').textContent = st.counts[0];
+  document.getElementById('s2').textContent = st.counts[1];
+
+  if (st.players && st.names) {
+    document.getElementById('p1-name').textContent = st.names[st.players[0]] || 'Игрок 1';
+    document.getElementById('p2-name').textContent = st.names[st.players[1]] || 'Игрок 2';
+  }
+
+  const myturn = (st.turn_pid === pid);
+  const ov = document.getElementById('over');
+  if (st.done) {
+    ov.classList.remove('hide');
+    const isMeWin = (st.winner === pid);
+    document.getElementById('ot').textContent = isMeWin ? '🏆 Ты выиграл!' : 'Победил ' + (st.names[st.winner] || '?');
+    if (window.JarvisSFX) JarvisSFX.play(isMeWin ? 'win' : 'lose');
+  } else {
+    ov.classList.add('hide');
+    let info = myturn ? '<span class="me">ТВОЙ ХОД</span>' : 'Ходит ' + (st.names[st.turn_pid] || 'соперник');
+    if (myturn) {
+      if (st.must_continue) {
+        info += '<br><span class="badge-cap">⚡ ПРОДОЛЖАЙ СЕРИЮ ПРЫЖКОВ!</span>';
+      } else if (hasCapture) {
+        info += '<br><span class="badge-cap">⚔️ ОБЯЗАТЕЛЬНЫЙ БОЙ — сруби шашку!</span>';
+      }
+    }
+    document.getElementById('turninfo').innerHTML = info;
+  }
+}
+
+function handle(m){
+  if (m.type === 'joined') {
+    pid = m.pid;
+    roomCode = m.code;
+    sessionStorage.setItem('jg_ck_code', roomCode);
+  } else if (m.type === 'lobby') {
+    show('lobby');
+    document.getElementById('lcode').textContent = m.code;
+    document.getElementById('players').innerHTML = m.players.map(p => '<div class="pl">👤 ' + p.name + '</div>').join('');
+  } else if (m.type === 'ck_state') {
+    st = m;
+    show('game');
+    sel = m.must_continue ? [m.must_continue[0], m.must_continue[1]] : (sel || null);
+    render();
+  } else if (m.type === 'error') {
+    alert(m.msg);
+  }
+}
+
+// Авто-реконнект при перезагрузке страницы в активную комнату
+const autoCode = sessionStorage.getItem('jg_ck_code');
+if (autoCode) {
+  document.getElementById('joincode').value = autoCode;
+}
+</script>
+</body>
+</html>

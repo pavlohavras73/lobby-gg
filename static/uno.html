@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🎴 UNO — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #08080c;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; color: #fff;
+  }
+
+  /* Fixed Navigation Top Bar */
+  .top-btn {
+    position: fixed; top: max(10px, var(--sat)); z-index: 99999;
+    background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 6px 14px;
+    color: #fff; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6); cursor: pointer;
+  }
+  .btn-back { left: 10px; }
+  .btn-rules { right: 10px; padding: 6px 12px; font-family: Georgia, serif; font-style: italic; }
+
+  /* Main Layout Container */
+  .game-layout {
+    width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+    padding: max(50px, calc(var(--sat) + 42px)) 12px max(14px, var(--sab));
+    background: radial-gradient(circle at 50% 40%, rgba(220, 30, 60, 0.25), #060609 75%);
+  }
+
+  /* Lobby Card */
+  .lobby-card {
+    background: linear-gradient(180deg, rgba(28,28,34,0.94), rgba(16,16,20,0.98));
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 28px; padding: 28px 24px;
+    max-width: 420px; width: 100%; margin: auto; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.85);
+  }
+  .lobby-title {
+    font-size: 36px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #ffcc00, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 4px;
+  }
+  .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }
+
+  /* Opponents Bar */
+  .opponents-row {
+    display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding-bottom: 4px;
+  }
+  .opp-card {
+    background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5); transition: all 0.25s;
+  }
+  .opp-card.active-turn { border-color: #ff2238; box-shadow: 0 0 16px rgba(255,34,56,0.6); transform: scale(1.05); }
+
+  /* Center Play Area */
+  .center-play-area {
+    display: flex; align-items: center; justify-content: center; gap: 24px; margin: auto 0;
+  }
+
+  .deck-pile {
+    width: 72px; height: 106px; border-radius: 14px; background: linear-gradient(135deg, #1c1c24, #0d0d12);
+    border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer;
+    transition: transform 0.15s; position: relative;
+  }
+  .deck-pile:active { transform: scale(0.94); }
+
+  .current-color-indicator {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 12px currentColor;
+  }
+
+  /* JUICY UNO CARDS STYLING */
+  .uno-card {
+    width: 68px; height: 100px; border-radius: 14px; border: 3px solid #ffffff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 0 10px rgba(255,255,255,0.3);
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 6px 4px; font-weight: 900; font-size: 24px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    cursor: pointer; transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s;
+    user-select: none; position: relative; flex-shrink: 0;
+  }
+  .uno-card:active { transform: scale(0.92); }
+
+  .uno-card.red { background: linear-gradient(135deg, #ff2238, #b80519); box-shadow: 0 8px 24px rgba(255,34,56,0.4); }
+  .uno-card.yellow { background: linear-gradient(135deg, #ffcc00, #c49a00); color: #000; text-shadow: none; box-shadow: 0 8px 24px rgba(255,204,0,0.4); }
+  .uno-card.green { background: linear-gradient(135deg, #22c55e, #148a3e); box-shadow: 0 8px 24px rgba(34,197,94,0.4); }
+  .uno-card.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 8px 24px rgba(59,130,246,0.4); }
+  
+  .uno-card.wild {
+    background: conic-gradient(#ff2238 0 25%, #ffcc00 25% 50%, #22c55e 50% 75%, #3b82f6 75%);
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+  }
+
+  .uno-card.playable { box-shadow: 0 0 18px #fff, 0 10px 25px rgba(0,0,0,0.8); }
+  .uno-card.selected { transform: translateY(-16px) scale(1.08); box-shadow: 0 0 24px #ff2238; }
+
+  /* Hand Container */
+  .hand-container {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-height: 180px; overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  /* Bottom Controls & Log */
+  .action-bar-wrap {
+    background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 12px 16px;
+    max-width: 480px; width: 100%; margin: 0 auto; box-shadow: 0 12px 36px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; gap: 8px; text-align: center;
+  }
+
+  .btn-action-primary {
+    width: 100%; background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
+    border: 0; padding: 12px; border-radius: 16px; font-weight: 900; font-size: 14px;
+    letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,34,56,0.5); transition: transform 0.15s;
+  }
+  .btn-action-primary:active { transform: scale(0.96); }
+
+  /* Color Wheel Picker Modal */
+  .color-picker-overlay {
+    position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  }
+  .color-picker-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .color-wheel {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 220px; height: 220px;
+  }
+  .color-wheel-btn {
+    border-radius: 20px; border: 3px solid #fff; cursor: pointer; transition: transform 0.15s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+  .color-wheel-btn:active { transform: scale(0.92); }
+  .color-wheel-btn.red { background: #ff2238; box-shadow: 0 0 25px rgba(255,34,56,0.6); }
+  .color-wheel-btn.yellow { background: #ffcc00; box-shadow: 0 0 25px rgba(255,204,0,0.6); }
+  .color-wheel-btn.green { background: #22c55e; box-shadow: 0 0 25px rgba(34,197,94,0.6); }
+  .color-wheel-btn.blue { background: #3b82f6; box-shadow: 0 0 25px rgba(59,130,246,0.6); }
+</style>
+</head>
+<body>
+
+  <a href="/games/" class="top-btn btn-back">🎮 Игры</a>
+  <button onclick="document.getElementById('rulesModal').style.display='flex'" class="top-btn btn-rules">i</button>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
+    <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:22px;text-align:left">
+      <div style="font-size:20px;font-weight:900;margin-bottom:10px">🎴 UNO — Правила</div>
+      <div style="font-size:13px;line-height:1.6;color:#d8d8de">Скидывай карту того же цвета или достоинства, что сверху. Спецкарты: +2, +4, смена цвета, пропуск хода, разворот. Остался с 1 картой — жми UNO! Первый без карт — победитель.</div>
+      <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:18px;width:100%;padding:12px;border-radius:14px;border:none;background:#ff2238;color:#fff;font-weight:900;cursor:pointer">Понятно 👍</button>
+    </div>
+  </div>
+
+  <div class="game-layout">
+
+    <!-- Home View -->
+    <div id="home" class="lobby-card">
+      <div class="lobby-title">🎴 UNO</div>
+      <div class="lobby-sub">По цвету или достоинству · 2-10 Игроков</div>
+      <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px">
+      <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px">Создать Комнату 🎴</button>
+      
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="joincode" placeholder="КОД ИГРЫ" maxlength="4" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center">
+        <button onclick="join()" style="padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer">Войти</button>
+      </div>
+    </div>
+
+    <!-- Lobby View -->
+    <div id="lobby" class="lobby-card hide">
+      <div class="lobby-title">КОМНАТА <span id="lcode" style="color:#ff2238"></span></div>
+      <div class="lobby-sub" id="waitmsg">Ждём игроков...</div>
+      <div id="players" style="display:flex;flex-direction:column;gap:6px;margin:16px 0"></div>
+
+      <div id="botrow" class="hide" style="margin-bottom:12px">
+        <button onclick="send({action:'add_bot',diff:'medium'})" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer">+ Добавить Бота 🤖</button>
+      </div>
+
+      <button id="startbtn" class="hide" onclick="send({action:'start'})" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;font-size:15px;cursor:pointer">🚀 Раздать Карты</button>
+    </div>
+
+    <!-- Game View -->
+    <div id="game" class="hide" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between">
+      
+      <!-- Opponents -->
+      <div class="opponents-row" id="opponents"></div>
+
+      <!-- Center Play Area -->
+      <div class="center-play-area">
+        <div class="deck-pile" id="deckpile">🂠</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--muted)">
+            <span>ЦВЕТ:</span>
+            <span class="current-color-indicator" id="curcolor"></span>
+          </div>
+          <div id="topcard"></div>
+        </div>
+      </div>
+
+      <!-- Hand & Actions -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div id="turninfo" style="font-size:14px;font-weight:900;text-align:center;color:#ff2238"></div>
+        <div class="hand-container" id="hand"></div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-bar-wrap">
+        <div id="log" style="font-size:11px;color:var(--muted)"></div>
+        <div id="actions"></div>
+      </div>
+
+    </div>
+
+    <!-- Game Over View -->
+    <div id="over" class="lobby-card hide">
+      <div id="overtext" style="font-size:28px;font-weight:900;color:#ffcc00;margin-bottom:16px"></div>
+      <button class="btn-action-primary" onclick="location.reload()">Новая Партия 🔄</button>
+    </div>
+
+  </div>
+
+  <!-- Color Selector Modal -->
+  <div class="color-picker-overlay" id="picker">
+    <div style="font-size:18px;font-weight:900;color:#fff">Выбери новый цвет:</div>
+    <div class="color-wheel">
+      <div class="color-wheel-btn red" onclick="pickColor(0)"></div>
+      <div class="color-wheel-btn yellow" onclick="pickColor(1)"></div>
+      <div class="color-wheel-btn green" onclick="pickColor(2)"></div>
+      <div class="color-wheel-btn blue" onclick="pickColor(3)"></div>
+    </div>
+  </div>
+
+  <script src="/games/static/sfx.js"></script>
+  <script src="/games/static/reconnect.js"></script>
+  <script>
+    const CLS = ["red", "yellow", "green", "blue"];
+    function vlabel(v) { return v === 'skip' ? '⊘' : v === 'rev' ? '⇄' : v === 'd2' ? '+2' : v === 'wild' ? '★' : v === 'wd4' ? '+4' : v; }
+
+    let ws, pid, st = null, isHost = false, pendingCards = null, selIdx = [];
+
+    function show(id) {
+      for (const s of ['home', 'lobby', 'game', 'over']) document.getElementById(s).classList.add('hide');
+      document.getElementById(id).classList.remove('hide');
+    }
+
+    function send(o) { ws.send(JSON.stringify(o)); }
+
+    function connect(cb) {
+      ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/games/ws');
+      ws.onopen = cb;
+      ws.onmessage = e => handle(JSON.parse(e.data));
+      ws.onclose = () => {
+        const w = document.getElementById('waitmsg');
+        if (w) w.textContent = 'Связь потеряна, обнови.';
+      };
+    }
+
+    function create() {
+      const n = document.getElementById('name').value || 'Игрок';
+      connect(() => send({ action: 'create', name: n, game: 'uno' }));
+    }
+
+    function join() {
+      const n = document.getElementById('name').value || 'Игрок';
+      const c = document.getElementById('joincode').value;
+      if (!c) return alert('Введите код!');
+      connect(() => send({ action: 'join', name: n, code: c }));
+    }
+
+    function cardHTML(c, extra = '') {
+      const cls = c.c === 4 ? 'wild' : CLS[c.c];
+      return `<div class="uno-card ${cls} ${extra}">${vlabel(c.v)}</div>`;
+    }
+
+    function canPlay(c) {
+      if (!st) return false;
+      const top = st.top, cur = st.cur_color;
+      return c.c === 4 || c.c === cur || c.v === top.v;
+    }
+
+    function toggleSel(i) {
+      if (!st || st.turn_pid !== pid) return;
+      const hand = st.hand, c = hand[i];
+      if (selIdx.length === 0) { if (!canPlay(c)) return; selIdx = [i]; }
+      else if (selIdx.includes(i)) { selIdx = selIdx.filter(x => x !== i); }
+      else if (hand[i].v === hand[selIdx[0]].v) { selIdx.push(i); }
+      else { if (!canPlay(c)) return; selIdx = [i]; }
+
+      if (window.sfx) window.sfx.move();
+      renderHandActions();
+    }
+
+    function playSel() {
+      if (!st || selIdx.length === 0) return;
+      const cards = selIdx.map(i => st.hand[i]);
+      if (cards.some(c => c.c === 4)) {
+        pendingCards = cards;
+        document.getElementById('picker').classList.add('open');
+      } else {
+        send({ action: 'uno_play', cards });
+        selIdx = [];
+      }
+      if (window.sfx) window.sfx.click();
+    }
+
+    function pickColor(col) {
+      document.getElementById('picker').classList.remove('open');
+      if (pendingCards) {
+        send({ action: 'uno_play', cards: pendingCards, color: col });
+        pendingCards = null;
+        selIdx = [];
+      }
+      if (window.sfx) window.sfx.click();
+    }
+
+    function renderHandActions() {
+      if (!st) return;
+      const m = st, myturn = (m.turn_pid === pid);
+      document.getElementById('hand').innerHTML = m.hand.map((c, i) => cardHTML(c, (myturn && canPlay(c) ? ' playable' : '') + (selIdx.includes(i) ? ' selected' : ''))).join('');
+      [...document.querySelectorAll('#hand .uno-card')].forEach((el, i) => el.onclick = () => toggleSel(i));
+
+      let btns = '';
+      if (myturn) {
+        if (selIdx.length) btns += `<button class="btn-action-primary" onclick="playSel()">▶ Сыграть (${selIdx.length})</button>`;
+        else btns += `<button class="btn-action-primary" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2)" onclick="send({action:'uno_draw'})">Взять карту 🎴</button>`;
+        if ((m.last_action || '').includes('можно сыграть')) btns += `<button class="btn-action-primary" style="background:#27272a;margin-top:6px" onclick="send({action:'uno_pass'})">Пас</button>`;
+      }
+      document.getElementById('actions').innerHTML = btns;
+    }
+
+    function handle(m) {
+      if (m.type === 'joined') { pid = m.pid; isHost = m.host; }
+      else if (m.type === 'lobby') {
+        show('lobby');
+        document.getElementById('lcode').textContent = m.code;
+        document.getElementById('players').innerHTML = m.players.map(p =>
+          '<div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:12px;font-size:13px;font-weight:700">' +
+          (p.id === m.host ? '👑 ' : '👤 ') + p.name + '</div>'
+        ).join('');
+        isHost = (m.host === pid);
+        document.getElementById('startbtn').classList.toggle('hide', !isHost);
+        document.getElementById('botrow').classList.toggle('hide', !isHost);
+      }
+      else if (m.type === 'uno_state') {
+        st = m;
+        if (m.winner) {
+          show('over');
+          document.getElementById('overtext').textContent = m.winner === pid ? '🏆 ТЫ ВЫИГРАЛ!' : '🏆 Победил: ' + (m.names[m.winner] || '?');
+          if (window.confetti && m.winner === pid) confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          return;
+        }
+        show('game');
+        const myturn = (m.turn_pid === pid);
+        const opps = m.order.filter(p => p !== pid);
+        
+        document.getElementById('opponents').innerHTML = opps.map(p => {
+          const t = p === m.turn_pid ? '▶ ' : '';
+          const uno = m.counts[p] === 1 ? ' <span style="color:#ffcc00;font-weight:900">UNO!</span>' : '';
+          return `<div class="opp-card ${p === m.turn_pid ? 'active-turn' : ''}">
+            <span>${t}${m.names[p] || '?'}</span>
+            <span style="color:#ffcc00">${m.counts[p]} 🎴</span>
+            ${uno}
+          </div>`;
+        }).join('');
+
+        document.getElementById('topcard').innerHTML = cardHTML(m.top);
+        document.getElementById('curcolor').style.backgroundColor = ['#ff2238', '#ffcc00', '#22c55e', '#3b82f6'][m.cur_color];
+        document.getElementById('turninfo').textContent = myturn ? '🟢 ТВОЙ ХОД!' : 'Ходит: ' + (m.names[m.turn_pid] || '?');
+        document.getElementById('log').textContent = m.last_action || '';
+        document.getElementById('deckpile').onclick = () => { if (myturn) send({ action: 'uno_draw' }); };
+
+        selIdx = [];
+        renderHandActions();
+      }
+      else if (m.type === 'error') { alert(m.msg); }
+    }
+  </script>
+</body>
+</html>

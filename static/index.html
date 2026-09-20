@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>RAINAR</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  .hero{text-align:center;padding:30px 0 10px}
+  .brand{display:inline-flex;flex-direction:column;align-items:center;line-height:1;animation:float 5s ease-in-out infinite}
+  .brand-top{font-size:19px;font-weight:800;letter-spacing:10px;padding-left:10px;color:#ff6a7a;
+    text-shadow:0 0 18px rgba(255,34,56,.55);margin-bottom:3px}
+  .brand-main{font-size:58px;font-weight:900;letter-spacing:9px;padding-left:9px;
+    background:linear-gradient(100deg,#fff 18%,#ff2238 46%,#ff8a97 54%,#ff2238 62%,#fff 92%);background-size:230% auto;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 52px rgba(255,34,56,.5);animation:shine 4.5s linear infinite}
+  @keyframes shine{to{background-position:230% center}}
+  .grid{display:grid;gap:14px;width:100%;max-width:460px;margin:18px auto 0}
+  .game{position:relative;display:block;border-radius:20px;padding:22px;text-decoration:none;color:#fff;overflow:hidden;
+    background:linear-gradient(180deg,rgba(28,28,34,.6),rgba(16,16,20,.55));backdrop-filter:blur(14px);
+    border:1px solid var(--border);box-shadow:var(--inner),0 12px 30px rgba(0,0,0,.55);
+    transition:transform .18s,box-shadow .3s,border-color .3s}
+  .game::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,34,56,.16),transparent 70%);transition:opacity .3s;opacity:.5}
+  .game:hover,.game:active{transform:translateY(-4px);border-color:rgba(255,34,56,.5);
+    box-shadow:0 0 30px rgba(255,34,56,.25),0 14px 36px rgba(0,0,0,.6)}
+  .game:hover::after{opacity:1}
+  .game .ico{font-size:36px;filter:drop-shadow(0 0 10px rgba(255,34,56,.4))}
+  .game .nm{font-size:21px;font-weight:800;margin-top:8px;letter-spacing:.5px}
+  .game .ds{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .sect{max-width:460px;margin:24px auto 4px;font-size:14px;font-weight:800;color:#cfcfd6;letter-spacing:.5px;width:100%}
+  .game.soon{opacity:.5;cursor:default}.game.soon:hover{transform:none;border-color:var(--border);box-shadow:var(--inner),0 12px 30px rgba(0,0,0,.55)}
+  .badge2{position:absolute;top:12px;right:12px;font-size:10px;background:#000a;padding:3px 9px;border-radius:20px;color:#ff9aa5}
+  .ftr{color:#4a4a52;font-size:11px;text-align:center;margin-top:26px;letter-spacing:1px}
+  /* большая заметная плашка профиля — сразу видно, что кликабельна */
+  .profile-card{display:flex;align-items:center;gap:14px;max-width:460px;width:100%;margin:18px auto 0;
+    padding:14px 16px;border-radius:16px;text-decoration:none;color:var(--text);
+    background:linear-gradient(135deg,rgba(255,34,56,.14),rgba(255,255,255,.05));
+    border:1px solid rgba(255,34,56,.35);box-shadow:0 4px 18px rgba(0,0,0,.4);
+    transition:transform .15s,box-shadow .3s,border-color .3s}
+  .profile-card:active{transform:scale(.98)}
+  .profile-card:hover{border-color:var(--crimson);box-shadow:0 0 24px rgba(255,34,56,.28)}
+  .pc-av{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    font-size:26px;background:rgba(255,255,255,.08);flex-shrink:0}
+  .pc-mid{flex:1;min-width:0}
+  .pc-name{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-stats{font-size:12px;color:var(--muted);margin-top:2px}
+  .pc-badge{background:var(--crimson);color:#fff;border-radius:11px;padding:2px 8px;font-size:12px;font-weight:800;flex-shrink:0}
+  .pc-arrow{font-size:26px;color:var(--muted);flex-shrink:0;line-height:1}
+  /* переключатель языка */
+  .langbar{display:flex;gap:4px;justify-content:center;margin:0 auto 14px;
+    background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:13px;
+    padding:5px 13px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="langbar" id="langbar" role="group" aria-label="Language">
+      <button type="button" data-lang="uk">УКР</button>
+      <button type="button" data-lang="ru">РУС</button>
+      <button type="button" data-lang="en">ENG</button>
+    </div>
+    <div class="brand"><span class="brand-top">RAINAR</span><span class="brand-main">GAMES</span></div>
+    <div class="sub" data-i18n="sub">пати-игры с друзьями — каждый со своего телефона</div>
+    <a href="/games/profile" class="profile-card">
+      <div class="pc-av" id="hp-av">🙂</div>
+      <div class="pc-mid">
+        <div class="pc-name" id="hp-name" data-i18n="profile">Профиль</div>
+        <div class="pc-stats" id="hp-stats">…</div>
+      </div>
+      <span id="hp-badge" class="pc-badge" style="display:none">0</span>
+      <div class="pc-arrow">›</div>
+    </a>
+    <div id="inviteBanner" style="display:none;max-width:460px;width:100%;margin:12px auto 0"></div>
+  </div>
+  <div class="grid" style="margin-top: 0;">
+    <a class="game" href="/games/learn" style="border-color:rgba(255,34,56,0.65);box-shadow:0 0 22px rgba(255,34,56,0.3);background:linear-gradient(180deg,rgba(36,16,22,.65),rgba(18,18,22,.6));">
+      <div class="ico">⚡</div>
+      <div class="nm">Jarvis Learn <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--crimson);color:#fff;vertical-align:middle;margin-left:6px;letter-spacing:0.5px;">NEW</span></div>
+      <div class="ds">Интерактивный микротренажер: Street English, CS50 & Python, Deutsch. Практика с микрофоном.</div>
+    </a>
+
+    <a class="game" href="/games/geobunker" style="border-color:rgba(34,197,94,0.5);box-shadow:0 0 20px rgba(34,197,94,0.25);"><div class="ico">🌍</div><div class="nm">GeoBunker (GeoGuessr)</div><div class="ds">Угадывай локации на 360° панорамах! Украина, Столицы, Природа, Мир. 100% Free.</div></a>
+    <a class="game" href="/games/space_invaders" style="border-color:rgba(255,34,56,0.5);box-shadow:0 0 20px rgba(255,34,56,0.25);"><div class="ico">🚀</div><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Неоновый шутер с прокачкой пушек и скинов.</div></a>
+  </div>
+    <div class="sect" data-i18n="sect_party">🎉 Компанией (3+)</div>
+  <div class="grid">
+    <a href="/games/variants" class="game">
+      <div class="ico">🎭</div>
+      <div class="nm">Варианты</div>
+      <div class="ds">Аукцион лжи (Fibbage) с ИИ</div>
+    </a>
+    <a class="game" href="/games/bunker"><div class="ico">☢</div><div class="nm" data-i18n="n_bunker">Бункер</div><div class="ds" data-i18n="d_bunker">Кто достоин места. Карты, голосование, ведущий.</div></a>
+    <a class="game" href="/games/mafia"><div class="ico">🔪</div><div class="nm" data-i18n="n_mafia">Мафия</div><div class="ds" data-i18n="d_mafia">Ночь/день, роли, голосование. Доктор, шериф, мафия. От 3 игроков.</div></a>
+    <a class="game" href="/games/spy"><div class="ico">🕵️</div><div class="nm" data-i18n="n_spy">Шпион</div><div class="ds" data-i18n="d_spy">Найди шпиона. Один не знает локацию.</div></a>
+    <a class="game" href="/games/alias"><div class="ico">💬</div><div class="nm" data-i18n="n_alias">Элиас</div><div class="ds" data-i18n="d_alias">Объясни слово команде. Языки, сложности.</div></a>
+    <a class="game" href="/games/durak"><div class="ico">🃏</div><div class="nm" data-i18n="n_durak">Дурак</div><div class="ds" data-i18n="d_durak">Классика: козырь, подкид, бита.</div></a>
+    <a class="game" href="/games/uno"><div class="ico">🎴</div><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">По цвету или числу. Скип, +2, +4, wild.</div></a>
+    <a class="game" href="/games/poker"><div class="ico">🂡</div><div class="nm" data-i18n="n_poker">Покер</div><div class="ds" data-i18n="d_poker">Texas Hold'em. Блайнды, рейзы, олл-ин. Можно vs боты.</div></a>
+  </div>
+
+  <div class="sect" data-i18n="sect_duo">👥 На двоих / 🤖 против бота</div>
+  <div class="grid">
+    <a class="game" href="/games/quoridor" style="border-color:rgba(0,229,255,0.45);box-shadow:0 0 16px rgba(0,229,255,0.18)"><div class="ico">🧱</div><div class="nm" data-i18n="n_quoridor">Коридор</div><div class="ds" data-i18n="d_quoridor">Стратегия лабиринтов. 2, 3 или 4 игрока / vs бот.</div></a>
+    <a class="game" href="/games/c4"><div class="ico">🔴</div><div class="nm" data-i18n="n_c4">4 в ряд</div><div class="ds" data-i18n="d_c4">Собери 4 в линию. Можно vs бот.</div></a>
+<a class="game" href="/games/c4_3d"><div class="ico">🌌</div><div class="nm">4 в ряд 3D</div><div class="ds">Объемный режим 5x5x5 на 3 игроков. Неон и стекло.</div></a>
+    <a class="game" href="/games/battleship"><div class="ico">🚢</div><div class="nm" data-i18n="n_battleship">Морской бой</div><div class="ds" data-i18n="d_battleship">Расставь флот, топи. Можно vs бот.</div></a>
+    <a class="game" href="/games/reversi"><div class="ico">⚫</div><div class="nm" data-i18n="n_reversi">Реверси</div><div class="ds" data-i18n="d_reversi">Переворачивай фишки. Можно vs бот.</div></a>
+    <a class="game" href="/games/checkers"><div class="ico">🏁</div><div class="nm" data-i18n="n_checkers">Шашки</div><div class="ds" data-i18n="d_checkers">Обязательный бой, цепные прыжки, дамки. Можно vs бот.</div></a>
+    <a class="game" href="/games/chess"><div class="ico">♟️</div><div class="nm" data-i18n="n_chess">Шахматы</div><div class="ds" data-i18n="d_chess">Полные правила: рокировка, взятие на проходе, мат. Можно vs бот.</div></a>
+    <a class="game" href="/games/dots"><div class="ico">▦</div><div class="nm" data-i18n="n_dots">Точки</div><div class="ds" data-i18n="d_dots">Замыкай квадраты. Можно vs бот.</div></a>
+    <a class="game" href="/games/bulls"><div class="ico">🐂</div><div class="nm" data-i18n="n_bulls">Быки и коровы</div><div class="ds" data-i18n="d_bulls">Взломай код. Можно vs бот.</div></a>
+    <a class="game" href="/games/guesswho"><div class="ico">🎭</div><div class="nm" data-i18n="n_guesswho">Кто есть кто</div><div class="ds" data-i18n="d_guesswho">Тайтл → 20 персонажей от Gemini. Угадай чужого.</div></a>
+  </div>
+
+  <div class="sect" data-i18n="sect_solo">🕹️ На одного</div>
+  <div class="grid">
+    <a class="game" href="/games/wordle"><div class="ico">🟩</div><div class="nm" data-i18n="n_wordle">5 букв</div><div class="ds" data-i18n="d_wordle">Отгадай слово за 6 попыток. 4 языка (рус/укр/нім/eng), 3 сложности.</div></a>
+    <a class="game" href="/games/arrows"><div class="ico">➡️</div><div class="nm" data-i18n="n_arrows">Стрелки</div><div class="ds" data-i18n="d_arrows">Освободи поле — стрелки улетают, если путь свободен. 100 уровней.</div></a>
+    <a class="game" href="/games/g2048"><div class="ico">🔢</div><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Свайпай, сливай плитки, собери 2048. Классика на реакцию и логику.</div></a>
+    <a class="game" href="/games/snake"><div class="ico">🐍</div><div class="nm" data-i18n="n_snake">Змейка</div><div class="ds" data-i18n="d_snake">Ешь яблоки, расти, не врежься в себя. 3 скорости.</div></a>
+    <a class="game" href="/games/fifteen"><div class="ico">🧩</div><div class="nm" data-i18n="n_fifteen">Пятнашки</div><div class="ds" data-i18n="d_fifteen">Сдвигай плитки, собери по порядку. 3×3, 4×4, 5×5.</div></a>
+    <a class="game" href="/games/mines"><div class="ico">💣</div><div class="nm" data-i18n="n_mines">Сапёр</div><div class="ds" data-i18n="d_mines">Открой все клетки без мин. Флаги, 3 сложности. Первый тап безопасен.</div></a>
+    <a class="game" href="/games/tetris"><div class="ico">🧱</div><div class="nm" data-i18n="n_tetris">Тетрис</div><div class="ds" data-i18n="d_tetris">Классический тетрис с неоновым дизайном и мобильным управлением.</div></a>
+    <a class="game" href="/games/race"><div class="ico">🏎️</div><div class="nm" data-i18n="n_race">Гонки</div><div class="ds" data-i18n="d_race">Обходи препятствия на трассе. Проверь свою реакцию!</div></a>
+  </div>
+
+  <div id="adminlink" class="sect" style="text-align:center"><a href="/games/admin/activity" style="color:var(--crimson);text-decoration:none;font-weight:800" data-i18n="adminlink">⚙️ Админка — мониторинг активности</a></div>
+  <div class="ftr">RAINAR OS</div>
+  <script>
+  // ═══════════ i18n: УКР / РУС / ENG ═══════════
+  const I18N={
+    uk:{
+      sub:"паті-ігри з друзями — кожен зі свого телефону",
+      profile:"Профіль",
+      sect_party:"🎉 Компанією (3+)", sect_duo:"👥 На двох / 🤖 проти бота", sect_solo:"🕹️ Одному",
+      adminlink:"⚙️ Адмінка — моніторинг активності",
+      n_bunker:"Бункер", d_bunker:"Хто гідний місця. Карти, голосування, ведучий.",
+      n_mafia:"Мафія", d_mafia:"Ніч/день, ролі, голосування. Лікар, шериф, мафія. Від 3 гравців.",
+      n_spy:"Шпигун", d_spy:"Знайди шпигуна. Один не знає локацію.",
+      n_alias:"Аліас", d_alias:"Поясни слово команді. Мови, складності.",
+      n_durak:"Дурень", d_durak:"Класика: козир, підкидний, б'єш.",
+      n_uno:"UNO", d_uno:"За кольором або числом. Скіп, +2, +4, wild.",
+      n_poker:"Покер", d_poker:"Texas Hold'em. Блайнди, рейзи, олл-ін. Можна vs боти.",
+      n_quoridor:"Коридор", d_quoridor:"Стратегія лабіринтів. 2, 3 або 4 гравці / vs бот.", n_c4:"4 в ряд", d_c4:"Збери 4 в лінію. Можна vs бот.",
+      n_battleship:"Морський бій", d_battleship:"Розстав флот, топи. Можна vs бот.",
+      n_reversi:"Реверсі", d_reversi:"Перевертай фішки. Можна vs бот.",
+      n_checkers:"Шашки", d_checkers:"Обов'язковий бій, ланцюгові стрибки, дамки. Можна vs бот.",
+      n_chess:"Шахи", d_chess:"Повні правила: рокіровка, взяття на проході, мат. Можна vs бот.",
+      n_dots:"Крапки", d_dots:"Замикай квадрати. Можна vs бот.",
+      n_bulls:"Бики і корови", d_bulls:"Зламай код. Можна vs бот.",
+      n_guesswho:"Хто є хто", d_guesswho:"Тайтл → 20 персонажів від Gemini. Вгадай чужого.",
+      n_wordle:"5 літер", d_wordle:"Вгадай слово за 6 спроб. 4 мови (рос/укр/нім/eng), 3 складності.",
+      n_arrows:"Стрілки", d_arrows:"Звільни поле — стрілки відлітають, якщо шлях вільний. 100 рівнів.",
+      n_g2048:"2048", d_g2048:"Свайпай, зливай плитки, збери 2048. Класика на реакцію та логіку.",
+      n_snake:"Змійка", d_snake:"Їж яблука, рости, не врізайся в себе. 3 швидкості.",
+      n_space_invaders:"Шаттл", d_space_invaders:"Неоновий шутер з прокачуванням гармат та скінів.",
+      n_fifteen:"П'ятнашки", d_fifteen:"Зсувай плитки, збери по порядку. 3×3, 4×4, 5×5.",
+      n_mines:"Сапер", d_mines:"Відкрий усі клітинки без мін. Прапорці, 3 складності. Перший тап безпечний.",
+      n_tetris:"Тетріс", d_tetris:"Класичний тетріс з неоновим дизайном та мобільним керуванням.",
+      n_race:"Перегони", d_race:"Оминай перешкоди на трасі. Перевір свою реакцію!",
+      st_games:"ігор", st_friends:"друзів", req:"заявок", inv_calls:"кличе у гру", inv_tap:"тапни щоб зайти"
+    },
+    ru:{
+      sub:"пати-игры с друзьями — каждый со своего телефона",
+      profile:"Профиль",
+      sect_party:"🎉 Компанией (3+)", sect_duo:"👥 На двоих / 🤖 против бота", sect_solo:"🕹️ На одного",
+      adminlink:"⚙️ Админка — мониторинг активности",
+      n_bunker:"Бункер", d_bunker:"Кто достоин места. Карты, голосование, ведущий.",
+      n_mafia:"Мафия", d_mafia:"Ночь/день, роли, голосование. Доктор, шериф, мафия. От 3 игроков.",
+      n_spy:"Шпион", d_spy:"Найди шпиона. Один не знает локацию.",
+      n_alias:"Элиас", d_alias:"Объясни слово команде. Языки, сложности.",
+      n_durak:"Дурак", d_durak:"Классика: козырь, подкид, бита.",
+      n_uno:"UNO", d_uno:"По цвету или числу. Скип, +2, +4, wild.",
+      n_poker:"Покер", d_poker:"Texas Hold'em. Блайнды, рейзы, олл-ин. Можно vs боты.",
+      n_quoridor:"Коридор", d_quoridor:"Стратегія лабіринтів. 2, 3 або 4 гравці / vs бот.", n_c4:"4 в ряд", d_c4:"Собери 4 в линию. Можно vs бот.",
+      n_battleship:"Морской бой", d_battleship:"Расставь флот, топи. Можно vs бот.",
+      n_reversi:"Реверси", d_reversi:"Переворачивай фишки. Можно vs бот.",
+      n_checkers:"Шашки", d_checkers:"Обязательный бой, цепные прыжки, дамки. Можно vs бот.",
+      n_chess:"Шахматы", d_chess:"Полные правила: рокировка, взятие на проходе, мат. Можно vs бот.",
+      n_dots:"Точки", d_dots:"Замыкай квадраты. Можно vs бот.",
+      n_bulls:"Быки и коровы", d_bulls:"Взломай код. Можно vs бот.",
+      n_guesswho:"Кто есть кто", d_guesswho:"Тайтл → 20 персонажей от Gemini. Угадай чужого.",
+      n_wordle:"5 букв", d_wordle:"Отгадай слово за 6 попыток. 4 языка (рус/укр/нім/eng), 3 сложности.",
+      n_arrows:"Стрелки", d_arrows:"Освободи поле — стрелки улетают, если путь свободен. 100 уровней.",
+      n_g2048:"2048", d_g2048:"Свайпай, сливай плитки, собери 2048. Классика на реакцию и логику.",
+      n_snake:"Змейка", d_snake:"Ешь яблоки, расти, не врежься в себя. 3 скорости.",
+      n_space_invaders:"Шаттл", d_space_invaders:"Неоновый шутер с прокачкой пушек и скинов.",
+      n_fifteen:"Пятнашки", d_fifteen:"Сдвигай плитки, собери по порядку. 3×3, 4×4, 5×5.",
+      n_mines:"Сапёр", d_mines:"Открой все клетки без мин. Флаги, 3 сложности. Первый тап безопасен.",
+      n_tetris:"Тетрис", d_tetris:"Классический тетрис с неоновым дизайном и мобильным управлением.",
+      n_race:"Гонки", d_race:"Обходи препятствия на трассе. Проверь свою реакцию!",
+      st_games:"игр", st_friends:"друзей", req:"заявки", inv_calls:"зовёт в игру", inv_tap:"тапни чтобы зайти"
+    },
+    en:{
+      sub:"party games with friends — each on their own phone",
+      profile:"Profile",
+      sect_party:"🎉 Party (3+)", sect_duo:"👥 Two players / 🤖 vs bot", sect_solo:"🕹️ Single player",
+      adminlink:"⚙️ Admin — activity monitor",
+      n_bunker:"Bunker", d_bunker:"Who deserves a spot. Cards, voting, host.",
+      n_mafia:"Mafia", d_mafia:"Night/day, roles, voting. Doctor, sheriff, mafia. 3+ players.",
+      n_spy:"Spy", d_spy:"Find the spy. One player doesn't know the location.",
+      n_alias:"Alias", d_alias:"Explain the word to your team. Languages, difficulties.",
+      n_durak:"Durak", d_durak:"Classic: trump, attack, beat.",
+      n_uno:"UNO", d_uno:"By color or number. Skip, +2, +4, wild.",
+      n_poker:"Poker", d_poker:"Texas Hold'em. Blinds, raises, all-in. Play vs bots too.",
+      n_c4:"Connect 4", d_c4:"Line up 4 in a row. Play vs bot too.",
+      n_battleship:"Battleship", d_battleship:"Place your fleet, sink them. Play vs bot too.",
+      n_reversi:"Reversi", d_reversi:"Flip the discs. Play vs bot too.",
+      n_checkers:"Checkers", d_checkers:"Forced capture, chain jumps, kings. Play vs bot too.",
+      n_chess:"Chess", d_chess:"Full rules: castling, en passant, mate. Play vs bot too.",
+      n_dots:"Dots & Boxes", d_dots:"Close the boxes. Play vs bot too.",
+      n_bulls:"Bulls & Cows", d_bulls:"Crack the code. Play vs bot too.",
+      n_guesswho:"Guess Who", d_guesswho:"A title → 20 characters from Gemini. Guess your rival's.",
+      n_wordle:"Wordle", d_wordle:"Guess the word in 6 tries. 4 languages (ru/uk/de/en), 3 difficulties.",
+      n_arrows:"Arrows", d_arrows:"Clear the board — arrows fly off when the path is free. 100 levels.",
+      n_g2048:"2048", d_g2048:"Swipe, merge tiles, reach 2048. A classic of logic and reflexes.",
+      n_snake:"Snake", d_snake:"Eat apples, grow, don't hit yourself. 3 speeds.",
+      n_space_invaders:"Shuttle", d_space_invaders:"Neon shooter with weapon and skin upgrades.",
+      n_fifteen:"15 Puzzle", d_fifteen:"Slide tiles into order. 3×3, 4×4, 5×5.",
+      n_mines:"Minesweeper", d_mines:"Open all cells without mines. Flags, 3 difficulties. First tap is safe.",
+      n_tetris:"Tetris", d_tetris:"Classic Tetris with neon design and mobile controls.",
+      n_race:"Race", d_race:"Dodge obstacles on the track. Test your reflexes!",
+      st_games:"games", st_friends:"friends", req:"requests", inv_calls:"invites you to play", inv_tap:"tap to join"
+    }
+  };
+  let LANG = localStorage.getItem('jg_lang');
+  if(!I18N[LANG]) LANG = 'ru';
+  function t(key){ return (I18N[LANG] && I18N[LANG][key]) || (I18N.ru[key] || key); }
+  function applyI18n(){
+    document.documentElement.lang = LANG;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      if(el.dataset.dyn==='1') return;            // не затираем данные, подгруженные с сервера
+      const v = t(el.dataset.i18n);
+      if(v) el.textContent = v;
+    });
+    document.querySelectorAll('#langbar button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.lang===LANG);
+    });
+    renderPcStats();   // обновить динамические строки под язык
+    loadInvites();
+  }
+  document.getElementById('langbar').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    applyI18n();
+  });
+
+  fetch('/games/auth/check').then(r=>r.ok?r.json():null).then(d=>{
+    if(d && d.role==='root') document.getElementById('adminlink').classList.remove('hide');
+  }).catch(()=>{});
+  // плашка профиля: аватар, имя, статистика, счётчик входящих заявок
+  fetch('/games/me',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(d&&d.profile){
+      const p=d.profile;
+      document.getElementById('hp-av').textContent=p.avatar||'🙂';
+      if(p.color)document.querySelector('.pc-av').style.background=p.color;
+      if(p.display_name){
+        const nm=document.getElementById('hp-name');
+        nm.textContent=p.display_name; nm.dataset.dyn='1';   // реальное имя важнее перевода
+      }
+      window._pcPlayed=(p.stats||{}).played||0;
+      renderPcStats();
+    }
+  }).catch(()=>{});
+  fetch('/games/friends',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(d){
+      window._pcFriends=(d.friends||[]).length;
+      renderPcStats();
+      const inc=(d.incoming||[]).length;
+      if(inc){const b=document.getElementById('hp-badge');b.textContent=inc+' '+t('req');b.style.display='inline-block';}
+      else{document.getElementById('hp-badge').style.display='none';}
+    }
+  }).catch(()=>{});
+  function renderPcStats(){
+    const played=window._pcPlayed, friends=window._pcFriends;
+    const parts=[];
+    if(played!==undefined)parts.push('🎮 '+played+' '+t('st_games'));
+    if(friends!==undefined)parts.push('👥 '+friends+' '+t('st_friends'));
+    if(parts.length)document.getElementById('hp-stats').textContent=parts.join('  ·  ');
+  }
+  // входящие приглашения в игру от друзей
+  const GNAME={uno:'🎴 UNO',c4:'🔴 4',quoridor:'🧱 Quoridor',poker:'🂡 Poker',checkers:'🏁',chess:'♟️',bunker:'☢ Bunker',spy:'🕵️ Spy',alias:'💬 Alias',durak:'🃏 Durak',battleship:'🚢',reversi:'⚫ Reversi',dots:'▦ Dots',bulls:'🐂',guesswho:'🎭',mafia:'🔪 Mafia'};
+  function loadInvites(){
+    fetch('/games/invites',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
+      const box=document.getElementById('inviteBanner');
+      const inv=(d&&d.invites)||[];
+      if(!inv.length){box.style.display='none';return;}
+      box.style.display='block';
+      box.innerHTML=inv.map(i=>
+        '<a href="/games/'+i.game+'?code='+i.code+'" style="display:flex;align-items:center;gap:12px;padding:13px 15px;'+
+        'border-radius:14px;text-decoration:none;color:#fff;margin-bottom:8px;'+
+        'background:linear-gradient(135deg,rgba(47,191,95,.2),rgba(255,255,255,.05));border:1px solid rgba(47,191,95,.5);'+
+        'box-shadow:0 0 18px rgba(47,191,95,.2)">'+
+        '<div style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i.color||'#333')+'">'+(i.avatar||'🙂')+'</div>'+
+        '<div style="flex:1"><div style="font-weight:800">'+esc(i.from_name)+' '+t('inv_calls')+'</div>'+
+        '<div style="font-size:13px;color:#9adfb5">'+(GNAME[i.game]||i.game)+' · '+t('inv_tap')+'</div></div>'+
+        '<div style="font-size:22px">▶</div></a>').join('');
+    }).catch(()=>{});
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+  applyI18n();
+  loadInvites(); setInterval(loadInvites,10000);
+  </script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

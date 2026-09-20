@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Кто есть кто — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:420px;margin:10px auto}
+  .ch{background:linear-gradient(180deg,rgba(28,28,34,.7),rgba(16,16,20,.6));border:1px solid var(--border);border-radius:10px;
+      padding:8px 4px;text-align:center;cursor:pointer;transition:transform .12s,opacity .2s;min-height:64px;display:flex;flex-direction:column;justify-content:center}
+  .ch .em{font-size:26px}.ch .nm{font-size:10px;color:#cfcfd6;margin-top:3px;line-height:1.1}
+  .ch.flip{opacity:.25;filter:grayscale(1)}.ch.flip::after{content:"✗";position:absolute}
+  .ch:active{transform:scale(.94)}
+  .ch.guess{border-color:var(--crimson);box-shadow:0 0 14px var(--crimson-glow)}
+  .me{color:var(--crimson)}
+  .secret{text-align:center;background:rgba(255,34,56,.1);border:1px solid rgba(255,34,56,.35);border-radius:12px;padding:10px;margin:8px auto;max-width:420px}
+  .secret .em{font-size:34px}
+  .hint{text-align:center;font-size:12px;color:var(--muted);margin:6px 0}
+</style></head><body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🎭 Кто есть кто — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">У каждого свой персонаж. По очереди задавайте вопросы «да/нет», отсеивайте и вычислите, кто достался сопернику, первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🎭 КТО ЕСТЬ КТО</h1><div class="sub">угадай персонажа соперника · на двоих</div>
+
+<div id="home" class="card" style="max-width:380px;margin:0 auto">
+  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+
+<div id="lobby" class="card hide" style="max-width:380px;margin:0 auto;text-align:center">
+  <div class="sub">Код:</div><div class="code" id="lcode">----</div><div id="players"></div>
+  <div id="hostarea" class="hide">
+    <div class="hint">Введи тайтл — Gemini подберёт 20 персонажей</div>
+    <input id="title" placeholder="напр. Атака титанов / Гарри Поттер" maxlength="50">
+    <button onclick="startGW()">🎭 Начать</button>
+  </div>
+  <div class="sub" id="waitmsg">Ждём второго…</div></div>
+
+<div id="loading" class="card hide" style="max-width:380px;margin:0 auto;text-align:center">
+  <h1 style="font-size:18px">🧠 Gemini подбирает персонажей…</h1><div class="sub" id="ltitle"></div></div>
+
+<div id="game" class="hide">
+  <div class="secret"><div class="sub" style="margin:0">Твой персонаж (его угадывает соперник):</div>
+    <div class="em" id="myem"></div><div id="myname" style="font-weight:700"></div></div>
+  <div class="hint" id="hint">Тапай карты чтобы вычёркивать. Жми «Угадать» когда готов назвать персонажа соперника.</div>
+  <div class="row" style="max-width:420px;margin:0 auto"><button id="guessbtn" class="danger" onclick="toggleGuess()">🎯 Угадать соперника</button></div>
+  <div class="board" id="board"></div>
+  <div id="over" class="card hide" style="max-width:380px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+</div>
+
+<script>
+let ws,pid,st=null,isHost=false,guessMode=false;
+function show(id){for(const s of['home','lobby','loading','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));}
+function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'guesswho'}));}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function startGW(){const t=document.getElementById('title').value||'Знаменитости';send({action:'start',title:t});}
+function toggleGuess(){guessMode=!guessMode;document.getElementById('guessbtn').textContent=guessMode?'✖ Отмена (режим угадывания)':'🎯 Угадать соперника';render();}
+function tap(i){
+  if(guessMode){ if(confirm('Назвать этого персонажа персонажем соперника?')){send({action:'gw_guess',idx:i});guessMode=false;} }
+  else send({action:'gw_flip',idx:i});
+}
+function render(){
+  if(!st)return;
+  document.getElementById('board').innerHTML=st.chars.map((c,i)=>{
+    const fl=st.flipped.includes(i);
+    return '<div class="ch'+(fl?' flip':'')+(guessMode?' guess':'')+'" onclick="tap('+i+')"><div class="em">'+c.emoji+'</div><div class="nm">'+c.name+'</div></div>';
+  }).join('');
+}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');
+    isHost=(m.host===pid);
+    document.getElementById('hostarea').classList.toggle('hide',!(isHost&&m.players.length>=2));
+    document.getElementById('waitmsg').classList.toggle('hide',m.players.length>=2);}
+  else if(m.type==='gw_loading'){show('loading');document.getElementById('ltitle').textContent='«'+m.title+'»';}
+  else if(m.type==='gw_state'){st=m;show('game');
+    const sec=m.chars[m.my_secret];
+    document.getElementById('myem').textContent=sec.emoji;document.getElementById('myname').textContent=sec.name;
+    render();
+    const ov=document.getElementById('over');
+    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?'🏆 Угадал! Ты выиграл!':'😬 Соперник угадал / ты ошибся';}
+    else ov.classList.add('hide');}
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script><script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body></html>

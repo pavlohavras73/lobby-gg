@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — 5 букв</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;align-items:center;min-height:100dvh;max-height:100dvh;
+    padding:8px 12px;overflow:hidden;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  h1{margin:2px 0 0;font-size:1.4em}
+  .sub{margin-bottom:6px;font-size:12px}
+
+  /* стартовый экран */
+  .setup{max-width:400px;width:100%;text-align:center;overflow-y:auto}
+  .grpttl{color:var(--muted);font-size:13px;margin:14px 0 6px;text-align:left}
+  .opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .opt{flex:1;min-width:78px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:14px;transition:.15s}
+  .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
+  .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+
+  /* игровое поле — влезает в экран целиком: сетка гибкая, клавиатура всегда видна */
+  .game{display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;
+    flex:1;min-height:0;justify-content:space-between}
+  /* размер плитки = минимум из ширины и высоты, чтобы всё уместилось на любом телефоне */
+  .grid{--t:min(52px,13.5vw,7.6vh);display:grid;grid-template-rows:repeat(6,var(--t));
+    gap:5px;margin:6px 0;flex-shrink:0}
+  .row{display:grid;grid-template-columns:repeat(5,var(--t));gap:5px}
+  .tile{width:var(--t);height:var(--t);display:flex;align-items:center;justify-content:center;
+    font-size:calc(var(--t)*0.48);font-weight:800;text-transform:uppercase;border:2px solid var(--border);
+    border-radius:8px;transition:transform .25s,background .3s,border-color .3s}
+  .tile.filled{border-color:#6b7280;animation:pop .1s}
+  .tile.correct{background:#2fbf5f;border-color:#2fbf5f;color:#fff}
+  .tile.present{background:#e0a72e;border-color:#e0a72e;color:#fff}
+  .tile.absent{background:#3a3d44;border-color:#3a3d44;color:#cfcfcf}
+  .tile.flip{animation:flip .5s ease forwards}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+  @keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+  .row.shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+  .msg{min-height:22px;font-weight:700;margin:2px 0 6px;color:var(--crimson)}
+
+  /* клавиатура — всегда прижата к низу и видна */
+  .kbd{display:flex;flex-direction:column;gap:5px;width:100%;max-width:480px;margin-top:4px;flex-shrink:0}
+  .krow{display:flex;gap:4px;justify-content:center}
+  .key{flex:1;min-width:0;height:min(46px,6.4vh);border-radius:7px;border:none;background:#4a4e57;color:#fff;
+    font-weight:700;font-size:min(15px,3.6vw);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    padding:0;transition:background .3s;touch-action:manipulation}
+  .key.wide{flex:1.6;font-size:min(12px,3vw)}
+  .key:active{background:#5c616b}
+  .key.correct{background:#2fbf5f}
+  .key.present{background:#e0a72e}
+  .key.absent{background:#141519;color:#44474d;text-decoration:line-through;opacity:.5;pointer-events:none}
+
+  .again{margin-top:14px;display:none}
+  .backlink{margin-top:16px;color:var(--muted);font-size:13px;text-decoration:none}
+  /* во время игры прячем шапку и нижнюю ссылку — вся высота уходит полю + клавиатуре */
+  body.playing h1, body.playing .sub, body.playing .backlink{display:none}
+  body.playing{padding-top:4px}
+</style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🟩 5 букв — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🟩 5 букв</h1><div class="sub">Отгадай слово · Jarvis Games</div>
+
+<!-- SETUP -->
+<div id="setup" class="setup">
+  <div class="grpttl">🌍 Язык</div>
+  <div class="opts" id="langopts">
+    <div class="opt on" data-lang="ru">🇷🇺 Рус</div>
+    <div class="opt" data-lang="uk">🇺🇦 Укр</div>
+    <div class="opt" data-lang="de">🇩🇪 Нім</div>
+    <div class="opt" data-lang="en">🇬🇧 Eng</div>
+  </div>
+  <div class="grpttl">🎚 Сложность</div>
+  <div class="opts" id="diffopts">
+    <div class="opt" data-diff="easy">Лёгкий<span class="d">1 буква открыта</span></div>
+    <div class="opt on" data-diff="normal">Средний<span class="d">классика, 6 попыток</span></div>
+    <div class="opt" data-diff="hard">Сложный<span class="d">обязателен учёт подсказок</span></div>
+  </div>
+  <button style="margin-top:22px" onclick="startGame()">🚀 Играть</button>
+  <div class="grpttl" style="margin-top:20px">Как играть</div>
+  <div style="text-align:left;color:var(--muted);font-size:13px;line-height:1.6">
+    🟩 буква на своём месте · 🟨 буква есть, но не там · ⬛ буквы нет.<br>
+    6 попыток. Тапай буквы на клавиатуре ниже.
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="game">
+  <div class="msg" id="msg"></div>
+  <div class="grid" id="grid"></div>
+  <div class="kbd" id="kbd"></div>
+  <button class="again" id="again" onclick="location.reload()">🔄 Новое слово</button>
+</div>
+<a class="backlink" href="/games/">← Все игры</a>
+
+<script>
+// ── Словари: WORDS = загадываемые (частые), для проверки допустимости берём тот же набор мягко ──
+const WORDS = {"ru": ["книга", "город", "мышка", "зебра", "столб", "водка", "поезд", "банан", "ветер", "лампа", "метро", "школа", "песня", "кошка", "дождь", "огонь", "берег", "мороз", "булка", "весна", "гроза", "дупло", "крыло", "лимон", "магия", "носок", "океан", "парус", "салат", "улица", "хлеба", "чашка", "шапка", "ложка", "вилка", "туман", "рынок", "сумка", "халат", "пенал"], "uk": ["книга", "місто", "мишка", "зебра", "палац", "стовп", "поїзд", "банан", "вітер", "лампа", "камін", "школа", "пісня", "кішка", "дощик", "берег", "мороз", "булка", "весна", "гроза", "дупло", "крило", "лимон", "магія", "носок", "океан", "парус", "салат", "хліба", "чашка", "шапка", "зошит", "квіти", "молот", "річка", "халат", "пенал", "ложка", "вилка", "сумка"], "de": ["hause", "tisch", "stuhl", "apfel", "blume", "pferd", "vogel", "katze", "tiger", "brote", "milch", "musik", "nacht", "regen", "sonne", "stern", "traum", "wagen", "zebra", "angel", "beere", "dosen", "engel", "feuer", "gabel", "hafen", "insel", "jahre", "kerze", "liebe", "monat", "nadel", "optik", "platz", "quark", "ruhig", "salat", "turme", "segel", "wolke"], "en": ["apple", "house", "water", "table", "chair", "mouse", "tiger", "bread", "music", "night", "river", "sunny", "stone", "dream", "cloud", "light", "green", "plant", "brick", "zebra", "candy", "dance", "eagle", "fruit", "grape", "honey", "juice", "knife", "lemon", "money", "ocean", "piano", "queen", "robot", "sugar", "train", "urban", "voice", "whale", "yacht"]};
+const KEYS = {
+  ru:[["й","ц","у","к","е","н","г","ш","щ","з","х"],["ф","ы","в","а","п","р","о","л","д","ж","э"],["⏎","я","ч","с","м","и","т","ь","б","ю","⌫"]],
+  uk:[["й","ц","у","к","е","н","г","ш","щ","з","х","ї"],["ф","і","в","а","п","р","о","л","д","ж","є","ґ"],["⏎","я","ч","с","м","и","т","ь","б","ю","⌫"]],
+  de:[["q","w","e","r","t","z","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["⏎","y","x","c","v","b","n","m","⌫"]],
+  en:[["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["⏎","z","x","c","v","b","n","m","⌫"]]
+};
+
+let lang="ru", diff="normal", answer="", row=0, col=0, guesses=[], over=false, cur="", busy=false;
+const keyState={};  // буква -> лучший статус (correct>present>absent)
+const keyBtns={};   // буква -> кнопка (кэш, чтобы не сканировать всю клаву при подсветке)
+
+// выбор опций
+document.querySelectorAll('#langopts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#langopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');lang=o.dataset.lang;});
+document.querySelectorAll('#diffopts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#diffopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');diff=o.dataset.diff;});
+
+function pool(){ return WORDS[lang].filter(w=>w.length===5); }
+
+function startGame(){
+  const list=pool();
+  answer=list[Math.floor(Math.random()*list.length)];
+  row=0;col=0;guesses=[];over=false;cur="";
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='flex';
+  document.body.classList.add('playing');  // прячем шапку/нижнюю ссылку → клавиатуре больше места
+  buildGrid(); buildKbd();
+  if(diff==='easy'){ // открыть одну случайную букву как подсказку в первой строке-призраке
+    const i=Math.floor(Math.random()*5);
+    msg('Подсказка: буква №'+(i+1)+' — «'+answer[i].toUpperCase()+'»');
+  } else msg('');
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  for(let r=0;r<6;r++){
+    const rd=document.createElement('div');rd.className='row';rd.id='r'+r;
+    for(let c=0;c<5;c++){const t=document.createElement('div');t.className='tile';t.id='t'+r+'_'+c;rd.appendChild(t);}
+    g.appendChild(rd);
+  }
+}
+function buildKbd(){
+  const k=document.getElementById('kbd');k.innerHTML='';
+  KEYS[lang].forEach(krow=>{
+    const rd=document.createElement('div');rd.className='krow';
+    krow.forEach(key=>{
+      const b=document.createElement('button');b.className='key'+(key==='⏎'||key==='⌫'?' wide':'');
+      b.textContent=key; b.dataset.k=key;
+      b.onclick=()=>press(key);
+      keyBtns[key]=b;
+      rd.appendChild(b);
+    });
+    k.appendChild(rd);
+  });
+}
+function msg(t){document.getElementById('msg').textContent=t;}
+
+function press(key){
+  if(over||busy)return;  // блок ввода во время анимации переворота — иначе рассинхрон cur/col/row
+  if(key==='⌫'){ if(col>0){col--;cur=cur.slice(0,-1);setTile(row,col,'');} return; }
+  if(key==='⏎'){ submit(); return; }
+  if(keyState[key]==='absent'){ shake(); return; }  // выбывшую букву ввести нельзя (легче играть; на hard keyState пуст)
+  if(col>=5)return;
+  setTile(row,col,key); cur+=key; col++;
+}
+function setTile(r,c,ch){const t=document.getElementById('t'+r+'_'+c);t.textContent=ch;t.classList.toggle('filled',!!ch);}
+
+function submit(){
+  if(cur.length<5){ shake(); msg('Мало букв'); return; }
+  // hard mode: обязан использовать раскрытые подсказки
+  if(diff==='hard' && guesses.length){
+    const req=hardCheck();
+    if(req){ shake(); msg(req); return; }
+  }
+  busy=true;  // блокируем клаву на время переворота
+  const res=score(cur,answer);
+  // анимация переворота + раскраска
+  for(let c=0;c<5;c++){
+    const t=document.getElementById('t'+row+'_'+c);
+    const ch=cur[c];  // фиксируем букву СЕЙЧАС (cur обнуляется ниже до срабатывания таймера)
+    // на сложном уровне клавиатуру НЕ подсвечиваем — не видно какие буквы вышли
+    setTimeout(()=>{ t.classList.add('flip','filled'); t.classList.add(res[c]); if(diff!=='hard') paintKey(ch,res[c]); }, c*140);
+  }
+  guesses.push({word:cur,res});
+  const won=res.every(x=>x==='correct');
+  const guess=cur; cur=""; col=0;
+  setTimeout(()=>{
+    busy=false;  // анимация закончилась — ввод снова открыт
+    if(won){ over=true; msg('🎉 Отгадал за '+(row+1)+'! Слово: '+answer.toUpperCase()); showAgain(); return; }
+    row++;
+    if(row>=6){ over=true; msg('😔 Не вышло. Слово: '+answer.toUpperCase()); showAgain(); }
+    else msg('');
+  }, 5*140+250);
+}
+
+// корректный Wordle-скоринг с учётом повторов букв
+function score(guess,ans){
+  const res=Array(5).fill('absent');
+  const cnt={};
+  for(const ch of ans) cnt[ch]=(cnt[ch]||0)+1;
+  for(let i=0;i<5;i++){ if(guess[i]===ans[i]){res[i]='correct';cnt[guess[i]]--;} }
+  for(let i=0;i<5;i++){ if(res[i]==='correct')continue; const ch=guess[i]; if(cnt[ch]>0){res[i]='present';cnt[ch]--;} }
+  return res;
+}
+function hardCheck(){
+  // все зелёные позиции и жёлтые буквы прошлых догадок обязаны присутствовать
+  const green={}, must={};
+  for(const g of guesses){ for(let i=0;i<5;i++){ if(g.res[i]==='correct')green[i]=g.word[i]; if(g.res[i]==='present')must[g.word[i]]=true; } }
+  for(const i in green){ if(cur[i]!==green[i]) return 'Позиция '+(+i+1)+' должна быть «'+green[i].toUpperCase()+'»'; }
+  for(const ch in must){ if(!cur.includes(ch)) return 'Используй букву «'+ch.toUpperCase()+'»'; }
+  return null;
+}
+function paintKey(ch,st){
+  const rank={correct:3,present:2,absent:1};
+  if((rank[st]||0) > (rank[keyState[ch]]||0)) keyState[ch]=st;
+  const b=keyBtns[ch]; if(b){ b.classList.remove('correct','present','absent'); b.classList.add(keyState[ch]); }
+}
+function shake(){const r=document.getElementById('r'+row);r.classList.add('shake');setTimeout(()=>r.classList.remove('shake'),400);}
+function showAgain(){document.getElementById('again').style.display='inline-block';}
+
+// физическая клавиатура (desktop)
+window.addEventListener('keydown',e=>{
+  if(document.getElementById('game').style.display==='none')return;
+  if(e.key==='Enter')press('⏎');
+  else if(e.key==='Backspace')press('⌫');
+  else{ const ch=e.key.toLowerCase(); const valid=KEYS[lang].flat(); if(valid.includes(ch))press(ch); }
+});
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

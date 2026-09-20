@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Аукцион лжи (Варианты)</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body { display:flex; flex-direction:column; min-height:100vh; padding:15px; }
+  .screen { display:none; flex-direction:column; gap:15px; width:100%; max-width:480px; margin:0 auto; animation:fadeIn 0.3s; }
+  .screen.active { display:flex; }
+  
+  .card { background:linear-gradient(180deg,rgba(38,38,44,.8),rgba(20,20,26,.8)); padding:20px; border-radius:20px; border:1px solid var(--border); box-shadow:var(--inner), 0 10px 20px rgba(0,0,0,.5); }
+  h2 { font-size:24px; color:#ff6a7a; text-shadow:0 0 15px rgba(255,34,56,.4); text-align:center; margin-bottom:15px; }
+  
+  .cat-btn { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:12px; border-radius:12px; color:#fff; font-size:16px; font-weight:600; text-align:center; transition:.2s; cursor:pointer; }
+  .cat-btn.selected { background:rgba(255,34,56,.2); border-color:#ff6a7a; box-shadow:0 0 15px rgba(255,34,56,.4); }
+  .cats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+  
+  .prompt-box { font-size:20px; line-height:1.5; font-weight:700; text-align:center; background:rgba(0,0,0,.3); padding:20px; border-radius:16px; border:1px solid rgba(255,34,56,.3); margin-bottom:20px; }
+  .prompt-box span.blank { color:#ff6a7a; text-decoration:underline; text-underline-offset:4px; }
+  
+  .input-field { width:100%; background:rgba(0,0,0,.4); border:1px solid var(--border); padding:15px; border-radius:12px; color:#fff; font-size:18px; text-align:center; margin-bottom:15px; outline:none; transition:.2s; }
+  .input-field:focus { border-color:#ff6a7a; box-shadow:0 0 15px rgba(255,34,56,.4); }
+  
+  .ans-btn { background:linear-gradient(180deg,rgba(40,40,48,.8),rgba(25,25,30,.8)); border:1px solid var(--border); padding:16px; border-radius:16px; color:#fff; font-size:18px; font-weight:700; text-align:center; margin-bottom:10px; transition:.2s; cursor:pointer; width:100%; }
+  .ans-btn:active { transform:scale(0.97); }
+  .ans-btn.voted { background:rgba(255,34,56,.3); border-color:#ff6a7a; }
+  
+  .result-item { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:15px; border-radius:16px; margin-bottom:12px; }
+  .result-item.correct { border-color:#2ecc71; box-shadow:0 0 20px rgba(46,204,113,.2); background:rgba(46,204,113,.1); }
+  .result-item .ans-text { font-size:20px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; }
+  .result-item .ans-author { font-size:14px; color:var(--muted); margin-bottom:10px; }
+  .voter-chip { display:inline-block; background:rgba(255,255,255,.1); padding:4px 8px; border-radius:8px; font-size:13px; margin:2px; }
+  .voter-chip.penalty { color:#ff4757; }
+  .voter-chip.bonus { color:#2ecc71; }
+  
+  .leaderboard { margin-top:20px; }
+  .lb-row { display:flex; justify-content:space-between; background:rgba(0,0,0,.3); padding:12px; border-radius:12px; margin-bottom:8px; font-weight:700; }
+  
+  .explanation { font-size:15px; color:#aaa; font-style:italic; text-align:center; margin-top:10px; padding:15px; border-left:3px solid #ff6a7a; background:rgba(255,34,56,.05); }
+</style>
+</head>
+<body>
+<div id="connectionStatus" class="conn-status">Подключение...</div>
+
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen">
+  <div class="card">
+    <h2>Аукцион Лжи</h2>
+    <div style="font-size:14px; color:#aaa; text-align:center; margin-bottom:20px;">Генерируем бредовые факты через Gemini. Выбирайте темы:</div>
+    <div class="cats-grid" id="catsGrid">
+      <div class="cat-btn" onclick="toggleCat(this)">Классика</div>
+      <div class="cat-btn" onclick="toggleCat(this)">История</div>
+      <div class="cat-btn" onclick="toggleCat(this)">Dota 2</div>
+      <div class="cat-btn" onclick="toggleCat(this)">Абсурдные законы</div>
+      <div class="cat-btn" onclick="toggleCat(this)">Кино и сериалы</div>
+      <div class="cat-btn" onclick="toggleCat(this)">Аниме</div>
+    </div>
+    
+    <div id="roundsSelector" style="display:none; margin-bottom:20px; text-align:center;">
+      <label style="color:var(--muted); font-size:14px;">Количество раундов: <span id="roundsDisplay" style="color:#fff;font-weight:bold;">5</span></label><br>
+      <input type="range" id="roundsInput" min="3" max="15" value="5" oninput="updateRounds()" style="width:100%; margin-top:10px;">
+    </div>
+    
+    <button class="btn" id="btnStart" onclick="startRound()" style="display:none;width:100%;">Начать игру</button>
+    <div id="waitHost" style="text-align:center; color:var(--muted);">Ждём хоста...</div>
+  </div>
+  
+  <div class="card">
+    <h3 style="text-align:center;margin-bottom:10px;">Игроки</h3>
+    <div id="lobbyPlayers"></div>
+  </div>
+</div>
+
+<!-- INPUT PHASE -->
+<div id="screen-input" class="screen">
+  <div class="card">
+    <h2>Раунд <span id="roundNum"></span>/<span id="totalRounds"></span></h2>
+    <div class="prompt-box" id="promptText">В 1923 году мэр запретил <span class="blank">_____</span>, чтобы снизить преступность.</div>
+    
+    <div id="inputBox">
+      <div style="text-align:center; margin-bottom:10px; font-size:14px; color:#aaa;">Придумай самую правдоподобную ложь:</div>
+      <input type="text" id="bluffInput" class="input-field" placeholder="Твоя версия...">
+      <button class="btn" onclick="submitBluff()" style="width:100%;">Обмануть всех</button>
+    </div>
+    <div id="waitInput" style="display:none; text-align:center; color:var(--muted); font-size:18px; padding:20px;">
+      Ложь отправлена. Ждем остальных...<br><br>
+      <div id="inputPlayersStatus" style="font-size:14px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VOTING PHASE -->
+<div id="screen-voting" class="screen">
+  <div class="card">
+    <h2>Голосование</h2>
+    <div class="prompt-box" id="promptTextVote" style="font-size:16px;"></div>
+    <div style="text-align:center; margin-bottom:15px; color:#aaa;">Где правда? Найди правильный ответ и не попадись на уловку!</div>
+    
+    <div id="answersList"></div>
+    <div id="waitVote" style="display:none; text-align:center; color:var(--muted); margin-top:20px;">Ждём остальных...</div>
+  </div>
+</div>
+
+<!-- RESULTS PHASE -->
+<div id="screen-results" class="screen">
+  <div class="card">
+    <h2>Итоги раунда</h2>
+    <div id="resultsList"></div>
+    <div class="explanation" id="explanationText"></div>
+    
+    <div class="leaderboard" id="roundScores"></div>
+    
+    <button class="btn" id="btnNext" onclick="nextRound()" style="display:none;width:100%;margin-top:20px;">Следующий раунд</button>
+    <div id="waitNextHost" style="text-align:center; color:var(--muted); margin-top:20px;">Хост изучает результаты...</div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="screen-game_over" class="screen">
+  <div class="card" style="text-align:center;">
+    <h1 style="font-size:40px;margin-bottom:10px;">🏆</h1>
+    <h2>Игра окончена!</h2>
+    <div id="finalLeaderboard"></div>
+    <button class="btn" onclick="location.href='/games/'" style="width:100%;margin-top:20px;background:#444;">В меню</button>
+  </div>
+</div>
+
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script>
+let state = null;
+let myId = null;
+let wsInstance = null;
+
+function connectWS() {
+    let protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let wsUrl = protocol + '//' + window.location.host + '/games/ws';
+    wsInstance = JarvisWS(wsUrl, {
+        onopen: (e) => {
+            let code = new URLSearchParams(window.location.search).get('code');
+            let name = localStorage.getItem('username') || 'Игрок';
+            if(code) wsSend({action: 'join', code: code, name: name});
+            else wsSend({action: 'create', game: 'variants', name: name});
+        },
+        onmessage: (e) => {
+            if(window.onWsMessage) window.onWsMessage(JSON.parse(e.data));
+        }
+    });
+}
+
+function wsSend(data) {
+    if(wsInstance) wsInstance.send(data);
+}
+
+function toggleCat(el) {
+    if(state && state.host !== myId) return;
+    el.classList.toggle('selected');
+    sendCategories();
+}
+
+function sendCategories() {
+    let cats = Array.from(document.querySelectorAll('.cat-btn.selected')).map(el => el.innerText);
+    let rounds = document.getElementById('roundsInput').value;
+    wsSend({action: 'variants_set_cats', categories: cats, total_rounds: parseInt(rounds)});
+}
+
+function updateRounds() {
+    document.getElementById('roundsDisplay').innerText = document.getElementById('roundsInput').value;
+    sendCategories();
+}
+
+function startRound() {
+    wsSend({action: 'variants_next'});
+}
+
+function submitBluff() {
+    let text = document.getElementById('bluffInput').value.trim();
+    if(!text) return;
+    wsSend({action: 'variants_submit', bluff: text});
+}
+
+function voteAnswer(id) {
+    wsSend({action: 'variants_vote', vote_id: id});
+}
+
+function nextRound() {
+    wsSend({action: 'variants_next'});
+}
+
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screenId).classList.add('active');
+}
+
+function updateUI() {
+    if(!state) return;
+    
+    myId = localStorage.getItem("device_id");
+    let isHost = state.host === myId;
+    let me = state.players.find(p => p.id === myId);
+    
+    switchScreen(state.phase);
+    
+    if(state.phase === 'lobby') {
+        document.getElementById('btnStart').style.display = isHost ? 'block' : 'none';
+        document.getElementById('roundsSelector').style.display = isHost ? 'block' : 'none';
+        document.getElementById('waitHost').style.display = isHost ? 'none' : 'block';
+        
+        if(!isHost) {
+            let catsGrid = document.getElementById('catsGrid');
+            Array.from(catsGrid.children).forEach(el => {
+                if(state.categories && state.categories.includes(el.innerText)) el.classList.add('selected');
+                else el.classList.remove('selected');
+            });
+            if(state.total_rounds) {
+                document.getElementById('roundsDisplay').innerText = state.total_rounds;
+                document.getElementById('roundsSelector').style.display = 'block';
+                document.getElementById('roundsInput').style.display = 'none';
+            }
+        }
+        
+        let html = '';
+        state.players.forEach(p => {
+            let hostStar = p.id === state.host ? '👑 ' : '';
+            html += `<div class="lb-row"><div>${hostStar}${p.name}</div></div>`;
+        });
+        document.getElementById('lobbyPlayers').innerHTML = html;
+    }
+    
+    if(state.phase === 'input') {
+        document.getElementById('roundNum').innerText = state.round;
+        document.getElementById('totalRounds').innerText = state.total_rounds;
+        
+        // Highlight prompt text
+        let promptText = state.prompt.replace("_____", "<span class='blank'>_____</span>");
+        document.getElementById('promptText').innerHTML = promptText;
+        document.getElementById('promptTextVote').innerHTML = promptText;
+        
+        if(me && me.has_submitted) {
+            document.getElementById('inputBox').style.display = 'none';
+            document.getElementById('waitInput').style.display = 'block';
+            let statuses = state.players.map(p => `${p.name}: ${p.has_submitted ? '✅' : '⏳'}`).join('<br>');
+            document.getElementById('inputPlayersStatus').innerHTML = statuses;
+        } else {
+            document.getElementById('inputBox').style.display = 'block';
+            document.getElementById('waitInput').style.display = 'none';
+            document.getElementById('bluffInput').value = '';
+        }
+    }
+    
+    if(state.phase === 'voting') {
+        if(me && me.has_voted) {
+            document.getElementById('answersList').style.display = 'none';
+            document.getElementById('waitVote').style.display = 'block';
+            let statuses = state.players.map(p => `${p.name}: ${p.has_voted ? '✅' : '⏳'}`).join('<br>');
+            document.getElementById('waitVote').innerHTML = "Ждём остальных...<br><br>" + statuses;
+        } else {
+            document.getElementById('answersList').style.display = 'block';
+            document.getElementById('waitVote').style.display = 'none';
+            
+            let html = '';
+            state.answers.forEach(ans => {
+                html += `<div class="ans-btn" onclick="voteAnswer('${ans.id}')">${ans.text}</div>`;
+            });
+            document.getElementById('answersList').innerHTML = html;
+        }
+    }
+    
+    if(state.phase === 'results') {
+        document.getElementById('btnNext').style.display = isHost ? 'block' : 'none';
+        document.getElementById('waitNextHost').style.display = isHost ? 'none' : 'block';
+        
+        document.getElementById('explanationText').innerText = state.explanation;
+        
+        let resHtml = '';
+        state.answers.forEach(ans => {
+            let isCorrect = ans.id === state.correct_id;
+            let isSysBluff = ans.id === state.sys_bluff_id;
+            let voters = Object.entries(state.votes || {}).filter(([pid, vid]) => vid === ans.id).map(([pid]) => {
+                let name = state.players.find(p => p.id === pid)?.name || pid;
+                let c = isCorrect ? 'bonus' : '';
+                let s = isCorrect ? '+2' : '0';
+                return `<span class="voter-chip ${c}">${name} (${s})</span>`;
+            });
+            
+            if(voters.length > 0 || isCorrect) {
+                let authorName = isCorrect ? "ПРАВДА" : (isSysBluff ? "ОБМАНКА ИИ" : ("Ложь от: " + (state.players.find(p => p.id === ans.author)?.name || "?")));
+                let authorClass = isCorrect ? "correct" : "";
+                let pts = (!isCorrect && !isSysBluff && voters.length > 0) ? `<span style="color:#ff6a7a">(+${voters.length} за обман)</span>` : '';
+                
+                resHtml += `
+                <div class="result-item ${authorClass}">
+                    <div class="ans-text"><span>${ans.text}</span> ${pts}</div>
+                    <div class="ans-author" style="${isSysBluff ? 'color:#ffb8b8;' : ''}">${authorName}</div>
+                    <div>${voters.join('')}</div>
+                </div>`;
+            }
+        });
+        document.getElementById('resultsList').innerHTML = resHtml;
+        
+        let lbHtml = '<h3 style="text-align:center;margin-bottom:10px;">Лидерборд</h3>';
+        let sorted = [...state.players].sort((a,b) => b.score - a.score);
+        sorted.forEach(p => {
+            let details = state.round_scores && state.round_scores[p.id] ? state.round_scores[p.id].total : 0;
+            let dStr = details > 0 ? `+${details}` : details;
+            lbHtml += `<div class="lb-row">
+                <div>${p.name} <span style="color:var(--muted);font-weight:400;font-size:12px;">(за раунд: ${dStr})</span></div>
+                <div style="color:#ff6a7a">${p.score}</div>
+            </div>`;
+        });
+        document.getElementById('roundScores').innerHTML = lbHtml;
+    }
+    
+    if(state.phase === 'game_over') {
+        let lbHtml = '';
+        let sorted = [...state.players].sort((a,b) => b.score - a.score);
+        sorted.forEach((p, i) => {
+            let medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+            lbHtml += `<div class="lb-row" style="font-size:18px;padding:15px;">
+                <div>${medal} ${p.name}</div>
+                <div style="color:#ff6a7a">${p.score}</div>
+            </div>`;
+        });
+        document.getElementById('finalLeaderboard').innerHTML = lbHtml;
+    }
+}
+
+connectWS();
+window.onWsMessage = (msg) => {
+    if(msg.type === "joined") {
+        myId = msg.pid;
+        document.getElementById('connectionStatus').style.display = 'none';
+    }
+    if(msg.type === "lobby") {
+        document.getElementById('connectionStatus').style.display = 'none';
+        if (!state) {
+            state = {phase: "lobby", players: msg.players, host: msg.host, categories: ["Классика"], total_rounds: 5};
+        } else {
+            state.players = msg.players;
+            state.host = msg.host;
+            state.phase = "lobby";
+        }
+        updateUI();
+    }
+    if(msg.type === "variants_state") {
+        document.getElementById('connectionStatus').style.display = 'none';
+        state = msg;
+        updateUI();
+    }
+};
+</script>
+</body>
+</html>

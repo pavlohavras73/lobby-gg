@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Шахматы — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  .bd{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:12px;padding:6px;max-width:380px;margin:10px auto}
+  .sq{aspect-ratio:1;background:#182838;border-radius:3px;display:flex;align-items:center;justify-content:center;position:relative}
+  .sq.light{background:#2a3c50}
+  .sq.sel{box-shadow:inset 0 0 0 2px var(--crimson)}
+  .sq.dest{cursor:pointer}
+  .sq.dest::after{content:"";width:22%;height:22%;border-radius:50%;background:rgba(255,34,56,.55);position:absolute}
+  .sq.dest.capture::after{width:80%;height:80%;border-radius:50%;background:none;border:3px solid rgba(255,34,56,.6)}
+  .sq.check{box-shadow:inset 0 0 0 3px #ff9500}
+  .sq.lastmove{background:rgba(255,34,56,.16)}
+  .sq.light.lastmove{background:rgba(255,34,56,.22)}
+  .pc{width:82%;height:82%;cursor:pointer;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));user-select:none;-webkit-user-drag:none}
+  .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
+  .cap-row{display:flex;flex-wrap:wrap;gap:2px;min-height:22px;max-width:380px;margin:4px auto;padding:0 6px}
+  .cap-row img{width:18px;height:18px;opacity:.8}
+</style></head><body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">♟️ Шахматы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Классические шахматы: рокировка, взятие на проходе, превращение пешки. Цель — поставить <b>мат</b> королю соперника.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>♟ ШАХМАТЫ</h1><div class="sub">классика · на двоих</div>
+<div id="home" class="card" style="max-width:360px;margin:0 auto">
+  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+<div id="lobby" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
+  <div class="sub">Код:</div><div class="code" id="lcode">----</div><div id="players"></div>
+  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div>
+  <div class="sub" id="waitmsg">Ждём второго…</div></div>
+<div id="game" class="hide">
+  <div class="cap-row" id="capBlack"></div>
+  <div class="turn" id="turninfo"></div><div class="bd" id="bd"></div>
+  <div class="cap-row" id="capWhite"></div>
+  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+</div>
+<script>
+let ws,pid,st=null,sel=null;
+const PIECE_VAL = {P:1,N:3,B:3,R:5,Q:9,K:0};
+function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));}
+function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'chess'}));}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function myColor(){ if(!st) return null; return st.order.indexOf(pid); }
+function myLegal(r,c){ if(!st || st.turn_pid!==pid) return []; return st.legal[r+'_'+c] || []; }
+function img(piece){ return '<img class="pc" draggable="false" src="/games/static/assets/chess/'+piece+'.svg">'; }
+function tap(r,c){
+  if(!st || st.turn_pid!==pid || st.done) return;
+  if(sel){
+    const legal = myLegal(sel[0],sel[1]);
+    if(legal.some(m=>m[0]===r&&m[1]===c)){
+      send({action:'chess_move', fr:sel[0], fc:sel[1], tr:r, tc:c, promo:'Q'});
+      sel=null; render(); return;
+    }
+  }
+  const piece = st.board[r][c];
+  if(piece && myColor()===(piece[0]==='w'?0:1) && myLegal(r,c).length){ sel=[r,c]; } else { sel=null; }
+  render();
+}
+function capturedPieces(board){
+  const full = {P:8,N:2,B:2,R:2,Q:1};
+  const have = {w:{P:0,N:0,B:0,R:0,Q:0}, b:{P:0,N:0,B:0,R:0,Q:0}};
+  for(const row of board) for(const p of row) if(p && p[1]!=='K') have[p[0]][p[1]]++;
+  const missing = (color) => Object.keys(full).flatMap(k => Array(Math.max(0, full[k]-have[color][k])).fill(k));
+  return { w: missing('w'), b: missing('b') }; // фигуры цвета w, которых не хватает = взяты чёрными (и наоборот)
+}
+function render(){
+  if(!st) return;
+  const legal = sel ? myLegal(sel[0],sel[1]) : [];
+  let h='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const light=(r+c)%2===0; const p=st.board[r][c];
+    const isSel = sel && sel[0]===r && sel[1]===c;
+    const isDest = legal.some(m=>m[0]===r&&m[1]===c);
+    const isCapture = isDest && st.board[r][c];
+    const isLast = st.last_move && ((st.last_move[0]===r&&st.last_move[1]===c)||(st.last_move[2]===r&&st.last_move[3]===c));
+    const isCheckSq = st.in_check && p && p[1]==='K' && (p[0]==='w')===(st.turn_pid===st.order[0]);
+    let cls='sq'+(light?' light':'')+(isSel?' sel':'')+(isDest?' dest':'')+(isCapture?' capture':'')+(isLast?' lastmove':'')+(isCheckSq?' check':'');
+    h += '<div class="'+cls+'" onclick="tap('+r+','+c+')">'+(p?img(p):'')+'</div>';
+  }
+  document.getElementById('bd').innerHTML=h;
+  const cap = capturedPieces(st.board);
+  document.getElementById('capBlack').innerHTML = cap.w.map(k=>img('w'+k)).join(''); // белые фигуры съедены чёрными -> над доской чёрного игрока? упростим: показываем обе строки снизу/сверху
+  document.getElementById('capWhite').innerHTML = cap.b.map(k=>img('b'+k)).join('');
+  const myturn = st.turn_pid===pid;
+  const ov=document.getElementById('over');
+  if(st.done){
+    ov.classList.remove('hide');
+    let title = st.result==='checkmate' ? (st.winner===pid?'🏆 Мат! Ты выиграл!':'Мат — победил '+(st.names[st.winner]||'?')) : '🤝 Пат — ничья';
+    document.getElementById('ot').textContent = title;
+  } else {
+    ov.classList.add('hide');
+    let info = myturn ? '<span class="me">ТВОЙ ХОД</span>' : 'Ходит '+(st.names[st.turn_pid]||'?');
+    if(st.in_check && myturn) info += ' — ШАХ!';
+    document.getElementById('turninfo').innerHTML = info;
+  }
+}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;}
+  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
+  else if(m.type==='chess_state'){ st=m; show('game'); render(); }
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script><script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body></html>

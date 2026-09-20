@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Jarvis Learn — Микрообучение</title>
+  <link rel="stylesheet" href="/games/static/theme.css">
+  <style>
+    :root {
+      --green: #00e676;
+      --green-glow: rgba(0, 230, 118, 0.4);
+      --red: #ff2238;
+      --red-glow: rgba(255, 34, 56, 0.4);
+      --amber: #ffb300;
+      --card-bg: rgba(18, 18, 22, 0.7);
+    }
+
+    body {
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      color: var(--text);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── TOP NAV ── */
+    .learn-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(10, 10, 14, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .learn-logo {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #fff 30%, #ff2238);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .learn-logo .dot {
+      color: #ff2238;
+      -webkit-text-fill-color: #ff2238;
+    }
+
+    .user-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .badge-chip.streak { color: #ff9100; border-color: rgba(255, 145, 0, 0.3); }
+    .badge-chip.xp { color: #ffd600; border-color: rgba(255, 214, 0, 0.3); }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* ── MAIN CONTAINER ── */
+    .learn-container {
+      flex: 1;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TRACK TABS ── */
+    .track-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 5px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .track-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .track-tab.active {
+      background: linear-gradient(135deg, rgba(255, 34, 56, 0.2), rgba(196, 15, 35, 0.3));
+      color: #fff;
+      border: 1px solid rgba(255, 34, 56, 0.4);
+      box-shadow: 0 4px 15px rgba(255, 34, 56, 0.25);
+    }
+
+    /* ── COURSE ROADMAP ── */
+    .course-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--inner), 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .course-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .course-icon {
+      font-size: 32px;
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .course-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+
+    .course-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .course-level {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(255, 34, 56, 0.15);
+      color: #ff5263;
+      border: 1px solid rgba(255, 34, 56, 0.3);
+      margin-top: 6px;
+    }
+
+    /* Roadmap Skill Path */
+    .skill-path {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 20px 0;
+    }
+
+    .skill-path::before {
+      content: "";
+      position: absolute;
+      top: 30px;
+      bottom: 30px;
+      width: 3px;
+      background: linear-gradient(180deg, var(--crimson) 0%, rgba(255, 255, 255, 0.08) 100%);
+      z-index: 1;
+    }
+
+    .lesson-node-wrap {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .lesson-node-wrap:hover {
+      transform: scale(1.05);
+    }
+
+    .lesson-node {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #111116;
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .lesson-node.completed {
+      background: linear-gradient(135deg, #1b2e1e, #0e1e12);
+      border-color: var(--green);
+      box-shadow: 0 0 20px var(--green-glow);
+      color: var(--green);
+    }
+
+    .lesson-node.active {
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-deep));
+      border-color: #fff;
+      box-shadow: 0 0 25px var(--crimson-glow);
+      animation: pulse-node 2s infinite;
+      color: #fff;
+    }
+
+    @keyframes pulse-node {
+      0%, 100% { box-shadow: 0 0 20px var(--crimson-glow); }
+      50% { box-shadow: 0 0 32px rgba(255, 34, 56, 0.8); }
+    }
+
+    .lesson-node.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .lesson-label {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      max-width: 180px;
+    }
+
+    .lesson-sublabel {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── LESSON RUNNER ── */
+    .runner-view {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .runner-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--crimson), #ff5263);
+      border-radius: 10px;
+      transition: width 0.35s ease;
+      box-shadow: 0 0 10px var(--crimson-glow);
+    }
+
+    .stage-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--inner), 0 12px 36px rgba(0, 0, 0, 0.6);
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-prompt {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 20px;
+    }
+
+    .step-text {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: #dedee3;
+      white-space: pre-wrap;
+      margin-bottom: 18px;
+    }
+
+    .step-example {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 3px solid var(--crimson);
+      border-radius: 0 12px 12px 0;
+      padding: 14px;
+      font-size: 13.5px;
+      font-family: monospace;
+      color: #fff;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+
+    /* Choice Options */
+    .choice-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .choice-btn {
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .choice-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .choice-btn.selected {
+      background: rgba(255, 34, 56, 0.15);
+      border-color: var(--crimson);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(255, 34, 56, 0.3);
+    }
+
+    .choice-btn.correct {
+      background: rgba(0, 230, 118, 0.15) !important;
+      border-color: var(--green) !important;
+      color: #fff !important;
+    }
+
+    .choice-btn.wrong {
+      background: rgba(255, 34, 56, 0.2) !important;
+      border-color: var(--red) !important;
+      color: #fff !important;
+    }
+
+    /* Scramble Builder */
+    .scramble-slots {
+      min-height: 64px;
+      border-bottom: 2px dashed rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 0;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    .token-chip {
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .token-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .token-chip.in-slot {
+      background: rgba(255, 34, 56, 0.2);
+      border-color: var(--crimson);
+      color: #fff;
+    }
+
+    .scramble-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    /* Matching Pairs */
+    .matching-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .match-chip {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .match-chip.selected {
+      background: rgba(255, 34, 56, 0.2);
+      border-color: var(--crimson);
+      color: #fff;
+    }
+
+    .match-chip.matched {
+      background: rgba(0, 230, 118, 0.15);
+      border-color: var(--green);
+      color: #88ffb8;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Voice Check */
+    .voice-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0;
+      gap: 16px;
+    }
+
+    .voice-phrase {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.4px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      width: 100%;
+    }
+
+    .mic-button {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-deep));
+      border: none;
+      color: #fff;
+      font-size: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px var(--crimson-glow);
+      transition: all 0.25s;
+    }
+
+    .mic-button.recording {
+      background: #ff1744;
+      animation: pulse-mic 1s infinite alternate;
+    }
+
+    @keyframes pulse-mic {
+      from { transform: scale(1); box-shadow: 0 0 20px rgba(255, 23, 68, 0.6); }
+      to { transform: scale(1.1); box-shadow: 0 0 35px rgba(255, 23, 68, 0.9); }
+    }
+
+    .voice-feedback {
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 12px 16px;
+      border-radius: 12px;
+      width: 100%;
+    }
+
+    /* Code Output */
+    .code-box {
+      background: #0a0a0f;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      color: #8be9fd;
+      white-space: pre-wrap;
+      margin-bottom: 16px;
+    }
+
+    /* ── BOTTOM CONTROLS & BOTTOM SHEET ── */
+    .stage-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .primary-btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-deep));
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(255, 34, 56, 0.35);
+      transition: all 0.2s;
+    }
+
+    .primary-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(255, 34, 56, 0.5);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .secondary-btn {
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Bottom Feedback Sheet */
+    .sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 20px 32px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sheet.active {
+      transform: translateY(0);
+    }
+
+    .sheet.correct {
+      background: rgba(14, 28, 18, 0.94);
+      border-top-color: var(--green);
+    }
+
+    .sheet.wrong {
+      background: rgba(32, 12, 16, 0.94);
+      border-top-color: var(--red);
+    }
+
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sheet.correct .sheet-title { color: var(--green); }
+    .sheet.wrong .sheet-title { color: var(--red); }
+
+    .sheet-desc {
+      font-size: 14px;
+      color: #dedee3;
+      line-height: 1.45;
+    }
+
+    /* ── VICTORY SCREEN ── */
+    .victory-box {
+      text-align: center;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .victory-icon {
+      font-size: 64px;
+      animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    .victory-title {
+      font-size: 26px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #fff 30%, #ff2238);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      flex: 1;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 24px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hide { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="learn-header">
+    <div class="learn-logo" onclick="app.showCatalog()">
+      JARVIS<span class="dot">·</span>LEARN
+    </div>
+    <div class="user-badges">
+      <div class="badge-chip streak">
+        🔥 <span id="hdr-streak">0</span>
+      </div>
+      <div class="badge-chip xp">
+        ⚡ <span id="hdr-xp">0</span> XP
+      </div>
+      <button class="nav-btn" onclick="location.href='/games/'" title="В главное меню">✕</button>
+    </div>
+  </header>
+
+  <div class="learn-container">
+
+    <!-- ════ CATALOG VIEW ════ -->
+    <div id="catalog-view">
+      <!-- Track Tabs -->
+      <div class="track-tabs">
+        <button class="track-tab active" onclick="app.switchTrack('english', this)">🇬🇧 English</button>
+        <button class="track-tab" onclick="app.switchTrack('cs', this)">💻 CS50</button>
+        <button class="track-tab" onclick="app.switchTrack('german', this)">🇩🇪 Deutsch</button>
+      </div>
+
+      <!-- Course Content Container -->
+      <div id="course-container"></div>
+    </div>
+
+    <!-- ════ LESSON RUNNER VIEW ════ -->
+    <div id="runner-view" class="runner-view hide">
+      <div class="runner-top">
+        <button class="nav-btn" onclick="app.confirmExitLesson()">✕</button>
+        <div class="progress-track">
+          <div id="lesson-progress-fill" class="progress-fill"></div>
+        </div>
+        <div class="badge-chip" style="font-size: 12px; padding: 4px 8px;">
+          ⚡ <span id="lesson-xp-badge">30</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Step Card -->
+      <div id="step-stage" class="stage-card"></div>
+    </div>
+
+    <!-- ════ VICTORY VIEW ════ -->
+    <div id="victory-view" class="stage-card hide">
+      <div class="victory-box">
+        <div class="victory-icon">🏆</div>
+        <div class="victory-title">Урок пройден!</div>
+        <div class="sub">Ты прокачал свои скиллы и закрепил базу.</div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-lbl">Опыт</div>
+            <div class="stat-val" style="color: #ffd600;">+<span id="vic-xp">40</span> XP</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Ударный режим</div>
+            <div class="stat-val" style="color: #ff9100;">🔥 <span id="vic-streak">1</span></div>
+          </div>
+        </div>
+
+        <button class="primary-btn" style="width: 100%;" onclick="app.finishLessonToCatalog()">
+          Продолжить
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════ BOTTOM SHEET FEEDBACK ════ -->
+  <div id="feedback-sheet" class="sheet">
+    <div class="sheet-title" id="sheet-title">Красава!</div>
+    <div class="sheet-desc" id="sheet-desc">Чистая правда без преувеличений.</div>
+    <button class="primary-btn" id="sheet-next-btn" onclick="app.nextStep()">Дальше</button>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════
+    // STATE MACHINE & CONTROLLER
+    // ══════════════════════════════════════════════════════════════
+
+    const app = {
+      currentTrack: 'english',
+      coursesData: [],
+      activeLesson: null,
+      activeStepIndex: 0,
+      stepsQueue: [],       // Очередь активных шагов (включая работу над ошибками)
+      mistakesCount: 0,
+      userAnswer: null,
+      userStats: { total_xp: 0, streak: 0 },
+      mediaRecorder: null,
+      audioChunks: [],
+      isRecording: false,
+
+      async init() {
+        await this.loadCourses();
+        this.renderCatalog();
+        
+        // Шорткат Enter для перехода дальше
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const sheet = document.getElementById('feedback-sheet');
+            if (sheet.classList.contains('active')) {
+              this.nextStep();
+            }
+          }
+        });
+      },
+
+      async loadCourses() {
+        try {
+          const res = await fetch('/learn/api/courses');
+          const data = await res.json();
+          if (data.ok) {
+            this.coursesData = data.courses;
+            this.userStats = data.stats;
+            document.getElementById('hdr-streak').textContent = this.userStats.streak;
+            document.getElementById('hdr-xp').textContent = this.userStats.total_xp;
+          }
+        } catch (e) {
+          console.error("Failed to load courses:", e);
+        }
+      },
+
+      switchTrack(track, btn) {
+        this.currentTrack = track;
+        document.querySelectorAll('.track-tab').forEach(t => t.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        this.renderCatalog();
+      },
+
+      renderCatalog() {
+        const container = document.getElementById('course-container');
+        container.innerHTML = '';
+
+        const trackCourses = this.coursesData.filter(c => c.track === this.currentTrack);
+        if (trackCourses.length === 0) {
+          container.innerHTML = `<div class="sub">В этом направлении пока нет доступных курсов.</div>`;
+          return;
+        }
+
+        trackCourses.forEach(course => {
+          const card = document.createElement('div');
+          card.className = 'course-card';
+
+          card.innerHTML = `
+            <div class="course-header">
+              <div class="course-icon">${course.icon}</div>
+              <div style="flex:1;">
+                <div class="course-title">${course.title}</div>
+                <div class="course-desc">${course.description}</div>
+                <span class="course-level">${course.level}</span>
+              </div>
+            </div>
+            
+            <div class="progress-track" style="margin-bottom: 20px;">
+              <div class="progress-fill" style="width: ${course.progress_pct}%;"></div>
+            </div>
+
+            <div class="skill-path" id="path-${course.id}"></div>
+          `;
+
+          const pathContainer = card.querySelector(`#path-${course.id}`);
+          let prevCompleted = true;
+
+          course.lessons.forEach((l, idx) => {
+            const isCompleted = l.completed;
+            const isUnlocked = isCompleted || prevCompleted;
+            prevCompleted = isCompleted;
+
+            const nodeWrap = document.createElement('div');
+            nodeWrap.className = 'lesson-node-wrap';
+
+            let nodeClass = 'lesson-node';
+            let iconHtml = '🔒';
+
+            if (isCompleted) {
+              nodeClass += ' completed';
+              iconHtml = '★';
+            } else if (isUnlocked) {
+              nodeClass += ' active';
+              iconHtml = '▶';
+            } else {
+              nodeClass += ' locked';
+            }
+
+            nodeWrap.innerHTML = `
+              <div class="${nodeClass}">${iconHtml}</div>
+              <div class="lesson-label">${l.title}</div>
+              <div class="lesson-sublabel">${l.unit_title} • ⚡ ${l.xp_reward} XP</div>
+            `;
+
+            if (isUnlocked) {
+              nodeWrap.onclick = () => this.startLesson(l.id);
+            }
+
+            pathContainer.appendChild(nodeWrap);
+          });
+
+          container.appendChild(card);
+        });
+      },
+
+      showCatalog() {
+        document.getElementById('catalog-view').classList.remove('hide');
+        document.getElementById('runner-view').classList.add('hide');
+        document.getElementById('victory-view').classList.add('hide');
+        this.closeSheet();
+        this.renderCatalog();
+      },
+
+      async startLesson(lessonId) {
+        try {
+          const res = await fetch(`/learn/api/lesson/${lessonId}`);
+          const data = await res.json();
+          if (!data.ok) return alert('Не удалось загрузить урок.');
+
+          this.activeLesson = data.lesson;
+          this.stepsQueue = [...this.activeLesson.steps];
+          this.activeStepIndex = 0;
+          this.mistakesCount = 0;
+
+          document.getElementById('catalog-view').classList.add('hide');
+          document.getElementById('victory-view').classList.add('hide');
+          document.getElementById('runner-view').classList.remove('hide');
+          document.getElementById('lesson-xp-badge').textContent = this.activeLesson.xp_reward;
+
+          this.renderActiveStep();
+        } catch (e) {
+          console.error("Start lesson error:", e);
+        }
+      },
+
+      confirmExitLesson() {
+        if (confirm("Выйти из урока? Прогресс текущей сессии не сохранится.")) {
+          this.showCatalog();
+        }
+      },
+
+      renderActiveStep() {
+        this.closeSheet();
+        this.userAnswer = null;
+
+        const total = this.activeLesson.steps.length;
+        const progressPct = Math.round((this.activeStepIndex / total) * 100);
+        document.getElementById('lesson-progress-fill').style.width = `${Math.min(progressPct, 100)}%`;
+
+        if (this.stepsQueue.length === 0) {
+          this.finishLesson();
+          return;
+        }
+
+        const step = this.stepsQueue[0];
+        const stage = document.getElementById('step-stage');
+        stage.innerHTML = '';
+
+        if (step.type === 'theory') {
+          this.renderTheory(stage, step);
+        } else if (step.type === 'choice') {
+          this.renderChoice(stage, step);
+        } else if (step.type === 'scramble') {
+          this.renderScramble(stage, step);
+        } else if (step.type === 'matching') {
+          this.renderMatching(stage, step);
+        } else if (step.type === 'fill_blank') {
+          this.renderFillBlank(stage, step);
+        } else if (step.type === 'code_output') {
+          this.renderCodeOutput(stage, step);
+        } else if (step.type === 'voice_check') {
+          this.renderVoiceCheck(stage, step);
+        }
+      },
+
+      // ── RENDERERS ──
+
+      renderTheory(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.title}</div>
+          <div class="step-text">${step.text}</div>
+          ${step.example ? `
+            <div class="step-example">${step.example}</div>
+            <button class="secondary-btn" style="margin-bottom: 16px;" onclick="app.speak('${step.example.replace(/\n/g, ' ').replace(/'/g, "\\'")}')">
+              🔊 Озвучить пример
+            </button>
+          ` : ''}
+          <div class="stage-footer">
+            <button class="primary-btn" onclick="app.submitTheory()">Понял, погнали ▶</button>
+          </div>
+        `;
+      },
+
+      submitTheory() {
+        this.stepsQueue.shift();
+        this.activeStepIndex++;
+        this.renderActiveStep();
+      },
+
+      renderChoice(stage, step) {
+        let html = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="choice-grid">
+        `;
+        step.options.forEach((opt, idx) => {
+          html += `
+            <button class="choice-btn" id="choice-${idx}" onclick="app.selectChoice(${idx})">
+              <span>${opt}</span>
+              <span class="dot" style="font-size: 18px; opacity: 0.3;">●</span>
+            </button>
+          `;
+        });
+        html += `
+          </div>
+          <div class="stage-footer">
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">Проверить</button>
+          </div>
+        `;
+        stage.innerHTML = html;
+      },
+
+      selectChoice(idx) {
+        this.userAnswer = idx;
+        document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+        const btn = document.getElementById(`choice-${idx}`);
+        if (btn) btn.classList.add('selected');
+        document.getElementById('check-btn').disabled = false;
+      },
+
+      verifyChoice() {
+        const step = this.stepsQueue[0];
+        const isCorrect = this.userAnswer === step.correct_idx;
+        const selectedBtn = document.getElementById(`choice-${this.userAnswer}`);
+        const correctBtn = document.getElementById(`choice-${step.correct_idx}`);
+
+        if (isCorrect) {
+          if (selectedBtn) selectedBtn.classList.add('correct');
+          this.showSheet(true, "В яблочко!", step.explanation);
+        } else {
+          if (selectedBtn) selectedBtn.classList.add('wrong');
+          if (correctBtn) correctBtn.classList.add('correct');
+          this.mistakesCount++;
+          // Перемещаем в конец очереди на повтор
+          this.stepsQueue.push(this.stepsQueue[0]);
+          this.showSheet(false, "Не совсем так", step.explanation);
+        }
+      },
+
+      renderScramble(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="sub" style="text-align: left; margin-bottom: 12px;">${step.translation}</div>
+          <div class="scramble-slots" id="slots-area"></div>
+          <div class="scramble-bank" id="bank-area"></div>
+          <div class="stage-footer">
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyScramble()">Проверить</button>
+          </div>
+        `;
+
+        const slotsArea = document.getElementById('slots-area');
+        const bankArea = document.getElementById('bank-area');
+        const allTokens = [...step.tokens, ...(step.distractors || [])].sort(() => Math.random() - 0.5);
+
+        this.userAnswer = [];
+
+        allTokens.forEach((tok, idx) => {
+          const chip = document.createElement('button');
+          chip.className = 'token-chip';
+          chip.textContent = tok;
+          chip.id = `token-${idx}`;
+          chip.onclick = () => {
+            if (chip.classList.contains('in-slot')) {
+              // Вернуть в банк
+              chip.classList.remove('in-slot');
+              bankArea.appendChild(chip);
+              this.userAnswer = this.userAnswer.filter(t => t !== tok);
+            } else {
+              // Добавить в слот
+              chip.classList.add('in-slot');
+              slotsArea.appendChild(chip);
+              this.userAnswer.push(tok);
+            }
+            document.getElementById('check-btn').disabled = (this.userAnswer.length === 0);
+          };
+          bankArea.appendChild(chip);
+        });
+      },
+
+      verifyScramble() {
+        const step = this.stepsQueue[0];
+        const isCorrect = JSON.stringify(this.userAnswer) === JSON.stringify(step.correct_order);
+
+        if (isCorrect) {
+          this.showSheet(true, "Идеально!", step.correct_order.join(" "));
+        } else {
+          this.mistakesCount++;
+          this.stepsQueue.push(this.stepsQueue[0]);
+          this.showSheet(false, "Правильный порядок:", step.correct_order.join(" "));
+        }
+      },
+
+      renderMatching(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="matching-cols">
+            <div id="left-col" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <div id="right-col" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+          <div class="stage-footer">
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyMatching()">Продолжить</button>
+          </div>
+        `;
+
+        const leftCol = document.getElementById('left-col');
+        const rightCol = document.getElementById('right-col');
+
+        const leftItems = step.pairs.map(p => p.left).sort(() => Math.random() - 0.5);
+        const rightItems = step.pairs.map(p => p.right).sort(() => Math.random() - 0.5);
+
+        let selectedLeft = null;
+        let selectedRight = null;
+        let matchesCount = 0;
+
+        leftItems.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'match-chip';
+          btn.textContent = item;
+          btn.onclick = () => {
+            document.querySelectorAll('#left-col .match-chip').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedLeft = item;
+            checkPair();
+          };
+          leftCol.appendChild(btn);
+        });
+
+        rightItems.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'match-chip';
+          btn.textContent = item;
+          btn.onclick = () => {
+            document.querySelectorAll('#right-col .match-chip').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedRight = item;
+            checkPair();
+          };
+          rightCol.appendChild(btn);
+        });
+
+        const checkPair = () => {
+          if (!selectedLeft || !selectedRight) return;
+          const match = step.pairs.find(p => p.left === selectedLeft && p.right === selectedRight);
+          if (match) {
+            document.querySelector('#left-col .match-chip.selected').classList.add('matched');
+            document.querySelector('#right-col .match-chip.selected').classList.add('matched');
+            matchesCount++;
+            selectedLeft = null;
+            selectedRight = null;
+            if (matchesCount === step.pairs.length) {
+              document.getElementById('check-btn').disabled = false;
+            }
+          } else {
+            // Ошибка совпадения
+            this.mistakesCount++;
+            setTimeout(() => {
+              document.querySelectorAll('.match-chip.selected').forEach(b => b.classList.remove('selected'));
+              selectedLeft = null;
+              selectedRight = null;
+            }, 300);
+          }
+        };
+      },
+
+      verifyMatching() {
+        this.showSheet(true, "Отлично!", "Все пары сопоставлены правильно.");
+      },
+
+      renderFillBlank(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="voice-phrase" style="margin-bottom: 24px;">
+            ${step.sentence.replace('___', '<span id="blank-slot" style="color:var(--crimson); text-decoration:underline;">___</span>')}
+          </div>
+          <div class="choice-grid">
+        `;
+        step.options.forEach(opt => {
+          stage.innerHTML += `
+            <button class="choice-btn" onclick="app.selectFillBlank('${opt}')">
+              <span>${opt}</span>
+            </button>
+          `;
+        });
+        stage.innerHTML += `
+          </div>
+          <div class="stage-footer">
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyFillBlank()">Проверить</button>
+          </div>
+        `;
+      },
+
+      selectFillBlank(val) {
+        this.userAnswer = val;
+        document.getElementById('blank-slot').textContent = val;
+        document.getElementById('check-btn').disabled = false;
+      },
+
+      verifyFillBlank() {
+        const step = this.stepsQueue[0];
+        const isCorrect = this.userAnswer.toLowerCase() === step.correct.toLowerCase();
+
+        if (isCorrect) {
+          this.showSheet(true, "Верно!", step.explanation);
+        } else {
+          this.mistakesCount++;
+          this.stepsQueue.push(this.stepsQueue[0]);
+          this.showSheet(false, `Правильный ответ: ${step.correct}`, step.explanation);
+        }
+      },
+
+      renderCodeOutput(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="code-box">${step.code}</div>
+          <div class="choice-grid">
+        `;
+        step.options.forEach((opt, idx) => {
+          stage.innerHTML += `
+            <button class="choice-btn" id="code-opt-${idx}" onclick="app.selectChoice(${idx})">
+              <span>${opt}</span>
+            </button>
+          `;
+        });
+        stage.innerHTML += `
+          </div>
+          <div class="stage-footer">
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">Проверить</button>
+          </div>
+        `;
+      },
+
+      renderVoiceCheck(stage, step) {
+        stage.innerHTML = `
+          <div class="step-prompt">${step.prompt}</div>
+          <div class="voice-box">
+            <div class="voice-phrase">«${step.target_phrase}»</div>
+            <div class="sub">${step.hint || ''}</div>
+            
+            <button class="secondary-btn" style="padding: 8px 16px;" onclick="app.speak('${step.target_phrase.replace(/'/g, "\\'")}')">
+              🔊 Послушать как звучит
+            </button>
+
+            <button class="mic-button" id="mic-btn" onclick="app.toggleRecording()">
+              🎙
+            </button>
+            <div id="mic-status" class="sub">Нажми микрофон и говори</div>
+
+            <div id="voice-eval-box" class="voice-feedback hide"></div>
+          </div>
+          <div class="stage-footer">
+            <button class="secondary-btn" onclick="app.skipVoiceStep()">Пропустить микрофон</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyVoiceStep()">Дальше</button>
+          </div>
+        `;
+      },
+
+      async toggleRecording() {
+        const micBtn = document.getElementById('mic-btn');
+        const status = document.getElementById('mic-status');
+
+        if (this.isRecording) {
+          // Остановка записи
+          if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            this.mediaRecorder.stop();
+          }
+          this.isRecording = false;
+          micBtn.classList.remove('recording');
+          status.textContent = 'Обрабатываем звук через Groq Whisper...';
+          return;
+        }
+
+        // Старт записи
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.audioChunks = [];
+          this.mediaRecorder = new MediaRecorder(stream);
+
+          this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) this.audioChunks.push(e.data);
+          };
+
+          this.mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+            await this.sendAudioForCheck(blob);
+          };
+
+          this.mediaRecorder.start();
+          this.isRecording = true;
+          micBtn.classList.add('recording');
+          status.textContent = 'Слушаю... Нажми ещё раз, когда закончишь';
+        } catch (err) {
+          status.textContent = 'Доступ к микрофону заблокирован в браузере.';
+          console.error("Mic error:", err);
+        }
+      },
+
+      async sendAudioForCheck(blob) {
+        const step = this.stepsQueue[0];
+        const status = document.getElementById('mic-status');
+        const evalBox = document.getElementById('voice-eval-box');
+
+        // Конвертируем blob в base64
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result.split(',')[1];
+          try {
+            const res = await fetch('/learn/api/voice-check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                target_phrase: step.target_phrase,
+                audio_base64: base64Audio,
+                format: 'webm'
+              })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              const resObj = data.result;
+              evalBox.classList.remove('hide');
+              evalBox.innerHTML = `
+                <div style="font-weight:700; color:${resObj.pass ? 'var(--green)' : 'var(--red)'};">
+                  Точность: ${resObj.score}%
+                </div>
+                <div>${resObj.feedback}</div>
+              `;
+              evalBox.style.background = resObj.pass ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 34, 56, 0.1)';
+              status.textContent = resObj.pass ? 'Отлично!' : 'Попробуй ещё раз или нажми Дальше';
+
+              if (resObj.pass) {
+                document.getElementById('check-btn').disabled = false;
+              } else {
+                document.getElementById('check-btn').disabled = false;
+                this.mistakesCount++;
+              }
+            }
+          } catch (e) {
+            status.textContent = 'Ошибка соединения при проверке аудио.';
+            document.getElementById('check-btn').disabled = false;
+          }
+        };
+      },
+
+      verifyVoiceStep() {
+        this.stepsQueue.shift();
+        this.activeStepIndex++;
+        this.renderActiveStep();
+      },
+
+      skipVoiceStep() {
+        this.stepsQueue.shift();
+        this.activeStepIndex++;
+        this.renderActiveStep();
+      },
+
+      // ── BOTTOM SHEET & TRANSITIONS ──
+
+      showSheet(isCorrect, title, desc) {
+        const sheet = document.getElementById('feedback-sheet');
+        const titleEl = document.getElementById('sheet-title');
+        const descEl = document.getElementById('sheet-desc');
+
+        sheet.className = `sheet active ${isCorrect ? 'correct' : 'wrong'}`;
+        titleEl.textContent = title;
+        descEl.textContent = desc || '';
+      },
+
+      closeSheet() {
+        document.getElementById('feedback-sheet').classList.remove('active');
+      },
+
+      nextStep() {
+        this.closeSheet();
+        const curStep = this.stepsQueue[0];
+        // Если это был успешный ответ, снимаем его из очереди
+        this.stepsQueue.shift();
+        this.activeStepIndex++;
+        this.renderActiveStep();
+      },
+
+      // ── SPEECH SYNTHESIS ──
+
+      speak(text) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = this.currentTrack === 'german' ? 'de-DE' : 'en-US';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      },
+
+      // ── COMPLETION ──
+
+      async finishLesson() {
+        document.getElementById('runner-view').classList.add('hide');
+        document.getElementById('victory-view').classList.remove('hide');
+
+        const xp = this.activeLesson.xp_reward || 40;
+        document.getElementById('vic-xp').textContent = xp;
+
+        try {
+          const res = await fetch('/learn/api/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lesson_id: this.activeLesson.id,
+              xp: xp,
+              mistakes: this.mistakesCount
+            })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            document.getElementById('vic-streak').textContent = data.streak;
+            document.getElementById('hdr-streak').textContent = data.streak;
+            document.getElementById('hdr-xp').textContent = data.total_xp;
+            await this.loadCourses();
+          }
+        } catch (e) {
+          console.error("Complete lesson error:", e);
+        }
+      },
+
+      finishLessonToCatalog() {
+        this.showCatalog();
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>

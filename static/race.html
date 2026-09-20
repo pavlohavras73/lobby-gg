@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Неоновые Гонки</title>
+    <link rel="stylesheet" href="/games/static/theme.css">
+    <style>
+        body {
+            background-color: #000000;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 100vh;
+            padding: 12px 16px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 4px;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 0.9em;
+            text-decoration: none;
+            transition: all 0.1s;
+        }
+
+        .back-button:active {
+            transform: scale(0.95);
+            background: rgba(255, 34, 56, 0.2);
+            border-color: var(--crimson);
+        }
+
+        h1 {
+            color: var(--crimson);
+            margin: 0;
+            font-size: 1.6em;
+            text-shadow: 0 0 20px var(--crimson-glow);
+        }
+
+        #score-display {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--text);
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 4px 0;
+            position: relative;
+            min-height: 0;
+        }
+
+        canvas {
+            max-height: 100%;
+            max-width: 92vw;
+            width: auto;
+            height: auto;
+            aspect-ratio: 1 / 2;
+            border: 1px solid rgba(255, 34, 56, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 0 35px rgba(255, 34, 56, 0.25);
+            background: #020204;
+            display: block;
+        }
+
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.93);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(8px);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 420px;
+            padding: 8px 0;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .control-button {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text);
+            border-radius: 20px;
+            padding: 24px 0;
+            font-size: 2.2em;
+            cursor: pointer;
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--inner);
+        }
+
+        .control-button:active {
+            transform: scale(0.9);
+            background: rgba(255, 34, 56, 0.25);
+            border-color: var(--crimson);
+            box-shadow: 0 0 25px var(--crimson-glow);
+        }
+    </style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🏎️ Гонки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+    <div class="header">
+        <a href="/games/static/index.html" class="back-button">◀ Лоби</a>
+        <h1>Гонки</h1>
+        <select id="laneSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" title="Кол-во полос">
+          <option value="3">3 полосы</option><option value="4">4 полосы</option><option value="5">5 полос</option>
+        </select>
+        <div id="score-display">000</div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+    </div>
+
+    <div class="controls">
+        <button class="control-button" id="leftButton"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="control-button" id="rightButton"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+
+    <div id="game-over-screen">
+        <div class="card glass text-center" style="max-width: 320px; border-color: var(--crimson); box-shadow: 0 0 40px var(--crimson-glow);">
+            <h2 class="crimson pulse" style="font-size: 1.8em; margin-bottom: 15px;">КРАШ!</h2>
+            <p class="sub" style="font-size: 1.1em; color: var(--text);" id="final-score">Дистанция: 0м</p>
+            <button id="restartButton" style="margin-top: 15px;">Ехать снова</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restartButton');
+
+        const laneSelect = document.getElementById('laneSelect');
+        let NUM_LANES = parseInt(localStorage.getItem('race-lanes')) || 3;
+        laneSelect.value = String(NUM_LANES);
+        laneSelect.addEventListener('change', () => {
+            NUM_LANES = parseInt(laneSelect.value);
+            localStorage.setItem('race-lanes', NUM_LANES);
+            LANE_WIDTH = canvas.width / NUM_LANES;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            resetGame();  // перезапуск с новым числом полос
+        });
+
+        const CAR_WIDTH = 42;
+        const CAR_HEIGHT = 75;
+        const OBSTACLE_WIDTH = 42;
+        const OBSTACLE_HEIGHT = 42;
+        let LANE_WIDTH = canvas.width / NUM_LANES;
+
+        let carX = LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+        let carTargetX = carX; // For smooth sliding lane changes!
+        let carY = canvas.height - CAR_HEIGHT - 35;
+        let obstacles = [];
+        let particles = [];
+        let score = 0;
+        let gameOver = false;
+        let speedMultiplier = 1;
+        let roadOffset = 0;
+        let animationFrameId;
+
+        // Sound generator
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, volume = 0.1) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        // Generate glowing neon road lines with linear gradient
+        function drawRoad() {
+            roadOffset = (roadOffset + 5 * speedMultiplier) % 60;
+            
+            // Road gradient (dark to crimson-glow)
+            const roadGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            roadGrad.addColorStop(0, '#000000');
+            roadGrad.addColorStop(0.05, 'rgba(255, 34, 56, 0.15)');
+            roadGrad.addColorStop(0.95, 'rgba(255, 34, 56, 0.05)');
+            roadGrad.addColorStop(1, '#000000');
+            ctx.fillStyle = roadGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Lane delimiters with enhanced glow
+            ctx.strokeStyle = '#ff2238';
+            ctx.lineWidth = 1;
+            ctx.shadowColor = '#ff2238';
+            ctx.shadowBlur = 12;
+            for (let i = 1; i < NUM_LANES; i++) {
+                ctx.beginPath();
+                ctx.setLineDash([30, 30]);
+                ctx.lineDashOffset = -roadOffset;
+                ctx.moveTo(i * LANE_WIDTH, 0);
+                ctx.lineTo(i * LANE_WIDTH, canvas.height);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]); // Reset dash
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw Player sports-car with enhanced neon glow
+        let carTrailParticles = [];
+        
+        function drawCarTrail() {
+            for (let i = 0; i < carTrailParticles.length; i++) {
+                const pt = carTrailParticles[i];
+                pt.alpha -= 0.015;
+                if (pt.alpha <= 0) {
+                    carTrailParticles.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = pt.alpha;
+                ctx.shadowColor = '#ff2238';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#ff2238';
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        function addCarTrail() {
+            carTrailParticles.push({
+                x: carX + CAR_WIDTH/2,
+                y: carY + CAR_HEIGHT,
+                alpha: 0.8,
+                size: 8
+            });
+        }
+
+        function drawCar() {
+            // Smoothly slide to target X and add trail
+            carX += (carTargetX - carX) * 0.25;
+
+            ctx.save();
+            
+            // Add motion blur trail
+            addCarTrail();
+            drawCarTrail();
+            
+            // 1. Draw glowing blue tailpipe flame particles (exhaust)
+            if (Math.random() < 0.4) {
+                particles.push({
+                    x: carX + CAR_WIDTH/2 + (Math.random() - 0.5) * 6,
+                    y: carY + CAR_HEIGHT,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: 3 + Math.random() * 2,
+                    color: '#00ffff',
+                    alpha: 0.8,
+                    size: Math.random() * 3 + 1
+                });
+            }
+
+            // 2. Headlight Beams (soft yellow gradient out front)
+            const headlightGrad = ctx.createRadialGradient(carX + CAR_WIDTH/2, carY, 10, carX + CAR_WIDTH/2, carY - 60, 40);
+            headlightGrad.addColorStop(0, 'rgba(255, 255, 180, 0.2)');
+            headlightGrad.addColorStop(1, 'rgba(255, 255, 180, 0)');
+            ctx.fillStyle = headlightGrad;
+            ctx.beginPath();
+            ctx.moveTo(carX - 10, carY - 60);
+            ctx.lineTo(carX + CAR_WIDTH + 10, carY - 60);
+            ctx.lineTo(carX + CAR_WIDTH - 6, carY);
+            ctx.lineTo(carX + 6, carY);
+            ctx.closePath();
+            ctx.fill();
+
+            // 3. Main Car Body with enhanced Crimson glow and gradient
+            ctx.shadowColor = '#ff2238';
+            ctx.shadowBlur = 25;
+            
+            // Aerodynamic nose with angular cuts
+            ctx.beginPath();
+            ctx.moveTo(carX + CAR_WIDTH/2, carY);
+            ctx.lineTo(carX + CAR_WIDTH, carY + 20);
+            ctx.lineTo(carX + CAR_WIDTH, carY + CAR_HEIGHT);
+            ctx.lineTo(carX, carY + CAR_HEIGHT);
+            ctx.lineTo(carX, carY + 20);
+            ctx.closePath();
+            
+            // Enhanced car gradient (crimson to deep crimson-red)
+            const carGrad = ctx.createLinearGradient(carX, carY, carX + CAR_WIDTH, carY + CAR_HEIGHT);
+            carGrad.addColorStop(0, '#ff2238');
+            carGrad.addColorStop(0.3, '#ff4d5a');
+            carGrad.addColorStop(0.7, '#d62639');
+            carGrad.addColorStop(1, '#9b0b18');
+            ctx.fillStyle = carGrad;
+            ctx.fill();
+            
+            // Additional interior light strip
+            const interiorGrad = ctx.createLinearGradient(carX + 5, carY + 35, carX + CAR_WIDTH - 5, carY + 35);
+            interiorGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            interiorGrad.addColorStop(0.5, 'rgba(255, 240, 240, 0.2)');
+            interiorGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = interiorGrad;
+            ctx.fillRect(carX + 5, carY + 35, CAR_WIDTH - 10, 20);
+
+            // Cockpit glass (neon cyan)
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.roundRect(carX + 8, carY + 28, CAR_WIDTH - 16, 20, 4);
+            ctx.fill();
+
+            // Headlight bulbs (Yellow dots)
+            ctx.fillStyle = '#ffeb3b';
+            ctx.beginPath();
+            ctx.arc(carX + 6, carY + 6, 2.5, 0, Math.PI*2);
+            ctx.arc(carX + CAR_WIDTH - 6, carY + 6, 2.5, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Draw Obstacles as Cyber Shield Hazards with warning lines
+        function drawObstacle(x, y) {
+            ctx.save();
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 18;
+
+            // Block body with enhanced gradient (metallic look with crimson accent)
+            const obsGrad = ctx.createLinearGradient(x, y, x + OBSTACLE_WIDTH, y + OBSTACLE_HEIGHT);
+            obsGrad.addColorStop(0, '#0f172a');
+            obsGrad.addColorStop(0.3, '#1e293b');
+            obsGrad.addColorStop(0.7, '#1a2234');
+            obsGrad.addColorStop(1, '#0f172a');
+            
+            ctx.beginPath();
+            ctx.roundRect(x, y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, 8);
+            ctx.fillStyle = obsGrad;
+            ctx.fill();
+
+            // Enhanced neon cyan border with glow
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+
+            // Crimson accent glow on the obstacle
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = '#ff2238';
+            ctx.shadowBlur = 8;
+            ctx.strokeStyle = '#ff2238';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.moveTo(x + 8, y + 8);
+            ctx.lineTo(x + OBSTACLE_WIDTH - 8, y + OBSTACLE_HEIGHT - 8);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Warning Stripe (diagonal orange stripe)
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#ffb700';
+            ctx.shadowColor = '#ffb700';
+            ctx.shadowBlur = 10;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + OBSTACLE_HEIGHT - 10);
+            ctx.lineTo(x + OBSTACLE_WIDTH - 10, y + 10);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function createCrashParticles(x, y, color) {
+            for (let i = 0; i < 25; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    color: color,
+                    alpha: 1,
+                    size: Math.random() * 5 + 2
+                });
+            }
+        }
+
+        function updateAndDrawParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                const pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.alpha -= 0.03;
+                if (pt.alpha <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = pt.alpha;
+                ctx.fillStyle = pt.color;
+                ctx.shadowColor = pt.color;
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function update() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawRoad();
+
+            // Dynamic obstacle generator
+            if (Math.random() < 0.015) {
+                let lane = Math.floor(Math.random() * NUM_LANES);
+                let x = lane * LANE_WIDTH + (LANE_WIDTH / 2) - (OBSTACLE_WIDTH / 2);
+                
+                // Ensure at least one lane is completely clear
+                let activeObstaclesInRow = obstacles.filter(o => o.y < 200);
+                if (activeObstaclesInRow.length < 2) {
+                    obstacles.push({ x: x, y: -OBSTACLE_HEIGHT, speed: (5 + Math.random() * 2) * speedMultiplier });
+                }
+            }
+
+            // Move and draw obstacles
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.y += obs.speed;
+                drawObstacle(obs.x, obs.y);
+
+                // Precise collision box matching
+                if (carX + 4 < obs.x + OBSTACLE_WIDTH &&
+                    carX + CAR_WIDTH - 4 > obs.x &&
+                    carY + 4 < obs.y + OBSTACLE_HEIGHT &&
+                    carY + CAR_HEIGHT - 4 > obs.y) {
+                    
+                    gameOver = true;
+                    createCrashParticles(carX + CAR_WIDTH/2, carY + CAR_HEIGHT/2, '#ff2238');
+                    createCrashParticles(obs.x + OBSTACLE_WIDTH/2, obs.y + OBSTACLE_HEIGHT/2, '#00f0ff');
+                    playTone(100, 'sawtooth', 0.8, 0.25);
+                    showGameOverScreen();
+                    return;
+                }
+
+                if (obs.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    i--;
+                    score++;
+                    scoreDisplay.innerHTML = score.toString().padStart(3, '0');
+                    playTone(600, 'sine', 0.08, 0.04);
+                    
+                    if (score % 5 === 0) {
+                        speedMultiplier += 0.06;
+                    }
+                }
+            }
+
+            drawCar();
+            updateAndDrawParticles();
+            
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        function showGameOverScreen() {
+            finalScoreDisplay.innerHTML = `Дистанция: ${score * 10}м`;
+            gameOverScreen.style.display = 'flex';
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        function resetGame() {
+            carX = LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+            carTargetX = carX;
+            carY = canvas.height - CAR_HEIGHT - 35;
+            obstacles = [];
+            particles = [];
+            score = 0;
+            gameOver = false;
+            speedMultiplier = 1;
+            scoreDisplay.innerHTML = "000";
+            gameOverScreen.style.display = 'none';
+            update();
+        }
+
+        // Keyboard inputs
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+            if (e.key === 'ArrowLeft') {
+                const currentLane = Math.round(carTargetX / LANE_WIDTH);
+                if (currentLane > 0) {
+                    playTone(280, 'triangle', 0.06);
+                    carTargetX = (currentLane - 1) * LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+                }
+            } else if (e.key === 'ArrowRight') {
+                const currentLane = Math.round(carTargetX / LANE_WIDTH);
+                if (currentLane < NUM_LANES - 1) {
+                    playTone(280, 'triangle', 0.06);
+                    carTargetX = (currentLane + 1) * LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+                }
+            }
+        });
+
+        // Left/Right tactile buttons
+        document.getElementById('leftButton').addEventListener('click', () => {
+            if (gameOver) return;
+            const currentLane = Math.round(carTargetX / LANE_WIDTH);
+            if (currentLane > 0) {
+                playTone(280, 'triangle', 0.06);
+                carTargetX = (currentLane - 1) * LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+            }
+        });
+
+        document.getElementById('rightButton').addEventListener('click', () => {
+            if (gameOver) return;
+            const currentLane = Math.round(carTargetX / LANE_WIDTH);
+            if (currentLane < NUM_LANES - 1) {
+                playTone(280, 'triangle', 0.06);
+                carTargetX = (currentLane + 1) * LANE_WIDTH + (LANE_WIDTH / 2) - (CAR_WIDTH / 2);
+            }
+        });
+
+        restartButton.addEventListener('click', () => {
+            audioCtx.resume();
+            resetGame();
+        });
+
+        resetGame();
+    </script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

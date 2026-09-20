@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — Сапёр</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
+  h1{margin:2px 0 0;font-size:1.5em}
+  .bar{display:flex;gap:8px;width:100%;max-width:420px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap}
+  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 12px;text-align:center}
+  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:17px;font-weight:800}
+  select,button{width:auto;padding:7px 10px;margin:0;font-size:13px}
+  .flagbtn{border:1px solid var(--border);border-radius:10px;padding:7px 12px;cursor:pointer;background:rgba(255,255,255,.05)}
+  .flagbtn.on{border-color:var(--crimson);background:rgba(255,34,56,.18);box-shadow:0 0 10px var(--crimson-glow)}
+  .board{display:grid;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:5px;position:relative}
+  .c{display:flex;align-items:center;justify-content:center;font-weight:800;border-radius:4px;
+    background:#3a3d44;cursor:pointer;user-select:none}
+  .c.open{background:rgba(255,255,255,.05);cursor:default}
+  .c.mine{background:#e0102e}
+  .c.flag{background:#2a2d33}
+  .c1{color:#5c9eff}.c2{color:#5cff9e}.c3{color:#ff6b6b}.c4{color:#c77dff}.c5{color:#ffb057}.c6{color:#2fd9d9}.c7{color:#ff8ac4}.c8{color:#cfcfcf}
+  .over{position:absolute;inset:0;background:rgba(0,0,0,.82);border-radius:10px;display:none;
+    flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
+  .over .big{font-size:24px;font-weight:900;margin-bottom:10px}
+  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center;max-width:400px}
+  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
+</head>
+<body>
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💣 Сапёр — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="title">💣 Сапёр</h1>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="bar">
+  <div class="score"><div class="l" data-i18n="mines_label">Мины</div><div class="v" id="minecount">0</div></div>
+  <div class="flagbtn" id="flagbtn" onclick="toggleFlag()">🚩</div>
+  <select id="diff" onchange="newGame()">
+    <option value="easy" data-i18n="d_easy">Легко 9×9</option><option value="med" selected data-i18n="d_med">Средне 12×12</option><option value="hard" data-i18n="d_hard">Сложно 14×16</option>
+  </select>
+  <button class="sec" onclick="newGame()">↻</button>
+</div>
+<div class="board" id="board"><div class="over" id="over"><div class="big" id="overbig"></div><button onclick="newGame()" data-i18n="again">Ещё раз</button></div></div>
+<div class="hint" data-i18n="hint">Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.</div>
+<a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
+
+<script>
+const UI={
+ uk:{rules_title:"💣 Сапер — правила",rules_body:"Відкривай клітинки. Цифра = скільки мін навколо цієї клітинки. Вираховуй за цифрами, де міни, і став на них 🚩 (кнопка «Прапор»). Відкрий усі клітинки без мін. Перший тап завжди безпечний.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"💣 Сапер",mines_label:"Міни",flag:"🚩 Прапор",on:"увімк",off:"вимк",d_easy:"Легко 9×9",d_med:"Середньо 12×12",d_hard:"Складно 14×16",again:"Ще раз",hint:"Тап — відкрити. Кнопка «Прапор» увімк → тап ставить 🚩. Відкрий усі клітинки без мін.",all_games:"← Усі ігри",boom:"💥 Бум! Підірвався",win:"🎉 Розмінував!"},
+ ru:{rules_title:"💣 Сапёр — правила",rules_body:"Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"💣 Сапёр",mines_label:"Мины",flag:"🚩 Флаг",on:"вкл",off:"выкл",d_easy:"Легко 9×9",d_med:"Средне 12×12",d_hard:"Сложно 14×16",again:"Ещё раз",hint:"Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.",all_games:"← Все игры",boom:"💥 Бум! Подорвался",win:"🎉 Разминировал!"},
+ en:{rules_title:"💣 Minesweeper — rules",rules_body:"Open cells. A number = how many mines are around that cell. Work out where the mines are and flag them 🚩 (the «Flag» button). Open all cells without mines. The first tap is always safe.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"💣 Minesweeper",mines_label:"Mines",flag:"🚩 Flag",on:"on",off:"off",d_easy:"Easy 9×9",d_med:"Medium 12×12",d_hard:"Hard 14×16",again:"Again",hint:"Tap — open. «Flag» on → tap places 🚩. Open all cells without mines.",all_games:"← All games",boom:"💥 Boom! You blew up",win:"🎉 Cleared!"}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function setFlagBtn(){document.getElementById('flagbtn').textContent=t('flag')+': '+(flagMode?t('on'):t('off'));}
+function applyUI(){
+ document.documentElement.lang=LANG;
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+ document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+ setFlagBtn();
+}
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+
+let COLS,ROWS,MINES,grid,revealed,flags,over,started,flagMode=false,cellPx;
+const DIFF={easy:[9,9,10],med:[12,12,22],hard:[14,16,40]};
+function newGame(){
+  const [c,r,m]=DIFF[document.getElementById('diff').value];
+  COLS=c;ROWS=r;MINES=m; over=false;started=false;
+  grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+  revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+  flags=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+  document.getElementById('minecount').textContent=MINES;
+  document.getElementById('over').style.display='none';
+  layout(); render();
+}
+function layout(){
+  const b=document.getElementById('board');
+  const W=Math.min(window.innerWidth-24,440,window.innerHeight*0.62*COLS/ROWS);
+  cellPx=Math.floor((W-2*(COLS-1)-10)/COLS);
+  cellPx=Math.max(18,Math.min(cellPx,42));
+  b.style.gridTemplateColumns=`repeat(${COLS},${cellPx}px)`;
+}
+function plant(safeX,safeY){
+  let placed=0;
+  while(placed<MINES){
+    const x=Math.floor(Math.random()*COLS),y=Math.floor(Math.random()*ROWS);
+    if(grid[y][x]===-1)continue;
+    if(Math.abs(x-safeX)<=1&&Math.abs(y-safeY)<=1)continue;
+    grid[y][x]=-1;placed++;
+  }
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    if(grid[y][x]===-1)continue; let n=0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const ny=y+dy,nx=x+dx;
+      if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&grid[ny][nx]===-1)n++;}
+    grid[y][x]=n;
+  }
+  started=true;
+}
+function render(){
+  const b=document.getElementById('board');
+  b.querySelectorAll('.c').forEach(e=>e.remove());
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    const c=document.createElement('div');c.className='c';
+    c.style.width=cellPx+'px';c.style.height=cellPx+'px';c.style.fontSize=(cellPx*0.5)+'px';
+    if(revealed[y][x]){
+      c.classList.add('open');
+      if(grid[y][x]===-1){c.classList.add('mine');c.textContent='💣';}
+      else if(grid[y][x]>0){c.classList.add('c'+grid[y][x]);c.textContent=grid[y][x];}
+    } else if(flags[y][x]){c.classList.add('flag');c.textContent='🚩';}
+    c.onclick=()=>click(x,y);
+    b.appendChild(c);
+  }
+}
+function toggleFlag(){flagMode=!flagMode;document.getElementById('flagbtn').classList.toggle('on',flagMode);setFlagBtn();}
+function click(x,y){
+  if(over||revealed[y][x])return;
+  if(!started)plant(x,y);
+  if(flagMode){flags[y][x]=!flags[y][x];render();updateCount();return;}
+  if(flags[y][x])return;
+  if(grid[y][x]===-1){revealAll();over=true;document.getElementById('overbig').style.color='';document.getElementById('overbig').textContent=t('boom');document.getElementById('over').style.display='flex';return;}
+  flood(x,y); render();
+  if(checkWin()){over=true;document.getElementById('overbig').textContent=t('win');document.getElementById('overbig').style.color='#5cff9e';document.getElementById('over').style.display='flex';}
+}
+function flood(x,y){
+  if(x<0||x>=COLS||y<0||y>=ROWS||revealed[y][x]||flags[y][x])return;
+  revealed[y][x]=true;
+  if(grid[y][x]===0)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy)flood(x+dx,y+dy);
+}
+function revealAll(){for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]===-1)revealed[y][x]=true;render();}
+function checkWin(){let safe=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]!==-1&&revealed[y][x])safe++;
+  return safe===COLS*ROWS-MINES;}
+function updateCount(){let f=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(flags[y][x])f++;
+  document.getElementById('minecount').textContent=MINES-f;}
+window.addEventListener('resize',()=>{layout();render();});
+applyUI();newGame();
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

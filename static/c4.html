@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>4 в ряд — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  /* синяя доска как в настоящей игре — лунки хорошо видны, колонки читаются */
+  .board{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:linear-gradient(160deg,#1b3a6b,#12294d);
+    border:1px solid #2f5a9e;border-radius:14px;padding:8px;max-width:380px;margin:6px auto;
+    box-shadow:0 6px 20px rgba(0,0,0,.5)}
+  .col{display:grid;grid-template-rows:repeat(6,1fr);gap:4px;cursor:pointer;border-radius:8px;
+    padding:3px;transition:background .12s;background:rgba(255,255,255,.02)}
+  .col:nth-child(even){background:rgba(255,255,255,.06)}   /* зебра — видно чередование колонок */
+  .col:hover,.col:active{background:rgba(92,180,255,.28)}   /* подсветка колонки под пальцем */
+  .cell{aspect-ratio:1;border-radius:50%;background:#0c1a33;box-shadow:inset 0 3px 6px rgba(0,0,0,.6),inset 0 -1px 2px rgba(255,255,255,.08)}
+  .cell.p1{background:radial-gradient(circle at 35% 30%,#ff6b7a,#d81030);box-shadow:0 0 12px rgba(255,60,90,.6)}
+  .cell.p2{background:radial-gradient(circle at 35% 30%,#ffe07a,#e8a814);box-shadow:0 0 12px rgba(255,200,60,.6)}
+  .cell.last{outline:3px solid #fff;outline-offset:-1px}
+  /* номера колонок сверху — «о какой колонке речь» */
+  .colnums{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:380px;margin:0 auto;padding:0 11px}
+  .colnums div{text-align:center;font-size:13px;font-weight:800;color:var(--muted)}
+  .turn{text-align:center;font-size:16px;font-weight:700;margin:8px 0}
+  .me{color:var(--crimson)}
+  .dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin:0 4px}
+</style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🔴 4 в ряд — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Собери <b>4 свои фишки в ряд</b> — по горизонтали, вертикали ИЛИ по диагонали (по косой тоже считается!). Тапай колонку сверху (1–7), фишка падает вниз. Ходите по очереди. Кто первый собрал 4 — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🔴 4 В РЯД</h1><div class="sub">собери 4 фишки в линию · на двоих</div>
+
+<div id="home" class="card" style="max-width:380px;margin:0 auto">
+  <input id="name" placeholder="Твоё имя" maxlength="20">
+  <button onclick="create()">Создать игру</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div>
+</div>
+
+<div id="lobby" class="card hide" style="max-width:380px;margin:0 auto;text-align:center">
+  <div class="sub">Код игры:</div><div class="code" id="lcode">----</div>
+  <div id="players"></div>
+  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div>
+  <div class="sub" id="waitmsg">Ждём второго игрока…</div>
+</div>
+
+<div id="game" class="hide">
+  <div class="turn" id="turninfo"></div>
+  <div class="colnums"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div></div>
+  <div class="board" id="board"></div>
+  <div id="overbox" class="card hide" style="max-width:380px;margin:10px auto;text-align:center">
+    <h1 id="overtext"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Новая партия</button>
+  </div>
+</div>
+
+<script>
+let ws,pid,st=null;
+function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent='Связь потеряна, обнови.';};}
+function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'c4'}));}
+function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:n,code:c}));}
+function drop(col){if(st&&st.turn_pid===pid&&!st.winner&&!st.draw)send({action:'c4_drop',col:col});}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;}
+  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');}
+  else if(m.type==='c4_state'){
+    st=m;show('game');
+    const myturn=(m.turn_pid===pid);const myIdx=m.players.indexOf(pid);
+    // доска по колонкам
+    let html='';
+    for(let c=0;c<7;c++){html+='<div class="col" onclick="drop('+c+')">';
+      for(let r=0;r<6;r++){const v=m.board[r][c];const last=m.last&&m.last[0]===r&&m.last[1]===c;
+        html+='<div class="cell '+(v===1?'p1':v===2?'p2':'')+(last?' last':'')+'"></div>';}
+      html+='</div>';}
+    document.getElementById('board').innerHTML=html;
+    // статус
+    const ob=document.getElementById('overbox');
+    if(m.winner){ob.classList.remove('hide');document.getElementById('overtext').textContent=m.winner===pid?'🏆 Ты выиграл!':'Победил: '+(m.names[m.winner]||'?');}
+    else if(m.draw){ob.classList.remove('hide');document.getElementById('overtext').textContent='🤝 Ничья';}
+    else{ob.classList.add('hide');
+      document.getElementById('turninfo').innerHTML=myturn
+        ?'<span class="dot" style="background:'+(myIdx===0?'#c40f23':'#d99a10')+'"></span><span class="me">ТВОЙ ХОД</span> — тапни колонку'
+        :'<span class="dot" style="background:'+(m.players.indexOf(m.turn_pid)===0?'#c40f23':'#d99a10')+'"></span>Ходит '+(m.names[m.turn_pid]||'?');}
+  }
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Дурак — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  /* игровые карты — белые (функционально), остаются */
+  .pcard{display:inline-flex;flex-direction:column;justify-content:space-between;width:52px;height:74px;border-radius:8px;
+        background:#f4f4f6;color:#111;font-weight:800;padding:5px;margin:0 2px;box-shadow:0 3px 8px #000a;
+        font-size:15px;transition:transform .18s;cursor:pointer;flex:0 0 auto}
+  .pcard.red{color:#d22}
+  .pcard .b{align-self:flex-end;transform:rotate(180deg)}
+  .pcard.sel{transform:translateY(-14px);box-shadow:0 0 0 3px var(--crimson),0 0 18px var(--crimson-glow)}
+  .back{background:repeating-linear-gradient(45deg,#3a0a12,#3a0a12 6px,#5a121f 6px,#5a121f 12px);border:1px solid #fff2}
+  .opp{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+  .trumprow{display:flex;align-items:center;gap:10px;justify-content:center;margin:6px 0}
+  .table{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:84px;padding:8px;
+         background:rgba(255,255,255,.03);border-radius:12px;border:1px dashed var(--border);margin:8px 0}
+  .pair{position:relative;width:52px;height:74px}
+  .pair .d{position:absolute;top:14px;left:14px}
+  .hand{display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:8px}
+  .turn{text-align:center;font-size:14px;margin:6px 0;color:var(--crimson);font-weight:700}
+  .log{text-align:center;font-size:12px;color:var(--muted);min-height:16px}
+</style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🃏 Дурак — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🃏 ДУРАК</h1><div class="sub">подкидной · 2-6 игроков</div>
+
+<div id="home" class="card">
+  <input id="name" placeholder="Твоё имя" maxlength="20">
+  <button onclick="create()">Создать стол</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" style="color:#9bbfa9">← все игры</a></div>
+</div>
+
+<div id="lobby" class="card hide">
+  <div class="sub">Код стола:</div><div class="code" id="lcode">----</div>
+  <div id="players"></div>
+  <div id="botrow" class="row hide" style="margin-bottom:6px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 +Бот</button></div>
+  <button id="startbtn" class="hide" onclick="send({action:'start'})">🃏 Раздать карты</button>
+  <div class="sub" id="waitmsg">Ждём ведущего…</div>
+</div>
+
+<div id="game" class="hide">
+  <div id="opponents" class="card"></div>
+  <div class="card">
+    <div class="trumprow"><span class="badge">Козырь:</span><span id="trumpcard"></span><span class="badge">колода: <b id="deckn">0</b></span></div>
+    <div class="turn" id="turninfo"></div>
+    <div class="table" id="table"></div>
+    <div class="log" id="log"></div>
+    <div class="row" id="actions"></div>
+  </div>
+  <div class="card">
+    <div class="badge" style="text-align:center" id="handhint">Твои карты</div>
+    <div class="hand" id="hand"></div>
+  </div>
+</div>
+
+<div id="over" class="card hide" style="text-align:center">
+  <h1 id="overtext"></h1>
+  <button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Новая партия</button>
+</div>
+
+<script>
+const SUITS=["♠","♥","♦","♣"],RANKS={6:"6",7:"7",8:"8",9:"9",10:"10",11:"J",12:"Q",13:"K",14:"A"};
+let ws,pid,isHost=false,sel=null,st=null;
+function show(id){for(const s of['home','lobby','game','over'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent='Связь потеряна, обнови.';};}
+function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'durak'}));}
+function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:n,code:c}));}
+function cardHTML(c,cls){const red=(c.s===1||c.s===2);return '<div class="pcard '+(red?'red':'')+' '+(cls||'')+'"><div>'+RANKS[c.r]+SUITS[c.s]+'</div><div class="b">'+RANKS[c.r]+SUITS[c.s]+'</div></div>';}
+function onHandCard(i){
+  if(!st)return;
+  if(st.you===st.defender){ // защитник: выбрать карту, потом тапнуть по столу
+    sel=(sel===i?null:i); renderHand();
+  } else { // атакующий/подкидывающий: тап = сразу играем (сервер проверит легальность)
+    send({action:'dk_attack',card:st.hand[i]}); sel=null;
+  }
+}
+function onTableClick(idx){ // защитник бьёт выбранной картой
+  if(!st||st.you!==st.defender||sel===null)return;
+  if(st.table[idx]&&!st.table[idx].d)send({action:'dk_defend',idx:idx,card:st.hand[sel]});
+  sel=null;
+}
+function renderHand(){
+  if(!st)return;
+  document.getElementById('hand').innerHTML=st.hand.map((c,i)=>cardHTML(c,sel===i?'sel':'')).join('');
+  [...document.querySelectorAll('#hand .pcard')].forEach((el,i)=>el.onclick=()=>onHandCard(i));
+}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
+    isHost=(m.host===pid);document.getElementById('startbtn').classList.toggle('hide',!isHost);document.getElementById('botrow').classList.toggle('hide',!isHost);
+    document.getElementById('waitmsg').classList.toggle('hide',isHost);}
+  else if(m.type==='durak_state'){
+    st=m;
+    if(m.durak){show('over');document.getElementById('overtext').textContent=m.durak==='draw'?'🤝 Ничья':(m.durak===pid?'😭 Ты ДУРАК!':'🃏 Дурак: '+(m.names[m.durak]||'?'));return;}
+    show('game');
+    // оппоненты
+    const opps=m.order.filter(p=>p!==pid);
+    document.getElementById('opponents').innerHTML=opps.map(p=>{
+      const role=p===m.attacker?'⚔️':p===m.defender?'🛡️':'';
+      const backs='<div class="back mini pcard" style="display:inline-block;width:18px;height:26px;margin:0 -6px 0 0"></div>'.repeat(Math.min(m.counts[p],6));
+      return '<div class="opp"><b>'+role+' '+(m.names[p]||'?')+'</b> <span class="badge">('+m.counts[p]+')</span> '+backs+'</div>';
+    }).join('');
+    // козырь + колода
+    document.getElementById('trumpcard').innerHTML=cardHTML(m.trump_card);
+    document.getElementById('deckn').textContent=m.deck;
+    // роль
+    const role=m.you===m.attacker?'⚔️ Ты атакуешь':m.you===m.defender?'🛡️ Ты защищаешься':'⏳ Можешь подкидывать';
+    document.getElementById('turninfo').textContent=role;
+    // стол
+    document.getElementById('table').innerHTML=m.table.map((pr,idx)=>
+      '<div class="pair" onclick="onTableClick('+idx+')">'+cardHTML(pr.a)+(pr.d?'<div class="d">'+cardHTML(pr.d)+'</div>':'')+'</div>').join('')
+      || '<span class="badge">стол пуст</span>';
+    document.getElementById('log').textContent=m.log||'';
+    // действия
+    const allDef=m.table.length&&m.table.every(p=>p.d);
+    let btns='';
+    if(m.you===m.defender){
+      btns+='<button class="danger" onclick="send({action:\'dk_take\'})">Взять</button>';
+    } else if(allDef){
+      btns+='<button class="sec" onclick="send({action:\'dk_done\'})">Бито ✓</button>';
+    }
+    document.getElementById('actions').innerHTML=btns;
+    document.getElementById('handhint').textContent=m.you===m.defender
+      ?'🛡 Тапни свою карту, потом карту на столе — отбить. Или «Взять».'
+      :'⚔️ Тапни карту чтобы подкинуть. «Бито» когда всё отбито.';
+    renderHand();
+  }
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body>
+</html>

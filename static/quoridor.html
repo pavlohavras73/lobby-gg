@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Коридор — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  :root {
+    --q-board-bg: #0e111a;
+    --q-cell-bg: #181c28;
+    --q-cell-hover: #22283a;
+    --q-cell-valid: rgba(255, 34, 56, 0.3);
+    --q-wall-color: #ffd166;
+  }
+
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Навигация */
+  .top-btn {
+    position: fixed; top: 8px; z-index: 99999;
+    background: rgba(10,10,14,.75); color: #fff;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 20px;
+    padding: 7px 13px; font-size: 13px; font-weight: 700;
+    text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .rules-btn {
+    right: 8px; width: 34px; height: 34px; padding: 0; border-radius: 50%;
+    font-size: 16px; font-style: italic; font-family: Georgia, serif;
+  }
+  .back-btn { left: 8px; }
+
+  /* Карточки игроков в игре */
+  .players-bar {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    max-width: 440px; margin: 10px auto 8px; padding: 0 4px;
+  }
+  .p-card {
+    flex: 1; min-width: 95px; max-width: 140px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 6px 10px; text-align: center;
+    transition: all 0.2s ease; position: relative;
+  }
+  .p-card.active {
+    border-color: var(--crimson, #ff2238);
+    background: rgba(255, 34, 56, 0.1);
+    box-shadow: 0 0 15px rgba(255, 34, 56, 0.3);
+    transform: translateY(-2px);
+  }
+  .p-avatar {
+    width: 20px; height: 20px; border-radius: 50%; display: inline-block;
+    vertical-align: middle; margin-right: 4px; border: 2px solid #fff;
+  }
+  .p-name { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-walls-text { font-size: 11px; font-weight: 700; color: #ffd166; margin-top: 3px; }
+
+  /* Панель переключения режима */
+  .controls-panel {
+    display: flex; justify-content: center; gap: 8px; max-width: 440px; margin: 6px auto 10px;
+  }
+  .ctrl-btn {
+    flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04); color: #fff; font-size: 13px; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.15s ease;
+  }
+  .ctrl-btn.active {
+    background: var(--crimson, #ff2238); color: #fff; border-color: var(--crimson, #ff2238);
+    box-shadow: 0 0 14px rgba(255, 34, 56, 0.45);
+  }
+  .sub-switch {
+    display: flex; gap: 6px;
+  }
+  .sub-btn {
+    padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; font-weight: 900;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .sub-btn.active {
+    background: #ffd166; color: #000; border-color: #ffd166;
+    box-shadow: 0 0 14px rgba(255, 209, 102, 0.5);
+  }
+
+  /* Игровое поле */
+  .board-wrap {
+    position: relative; max-width: 440px; margin: 0 auto;
+    background: var(--q-board-bg); border-radius: 18px; padding: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .q-board {
+    position: relative; width: 100%; aspect-ratio: 1;
+    display: grid;
+    /* 9 клеток и 8 пазов */
+    grid-template-columns: repeat(8, 1fr 10px) 1fr;
+    grid-template-rows: repeat(8, 1fr 10px) 1fr;
+  }
+
+  /* Клетки поля */
+  .q-cell {
+    background: var(--q-cell-bg); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; cursor: pointer; transition: background 0.15s, transform 0.1s;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .q-cell:hover { background: var(--q-cell-hover); }
+  .q-cell.valid-move {
+    background: var(--q-cell-valid);
+    box-shadow: 0 0 12px rgba(255, 34, 56, 0.5), inset 0 0 8px rgba(255, 34, 56, 0.3);
+    cursor: pointer; animation: pulseCell 1.2s infinite alternate ease-in-out;
+  }
+  .q-cell.valid-move::after {
+    content: ''; width: 12px; height: 12px; border-radius: 50%;
+    background: #ff2238; box-shadow: 0 0 8px #ff2238;
+  }
+
+  @keyframes pulseCell {
+    0% { transform: scale(0.96); }
+    100% { transform: scale(1.02); }
+  }
+
+  /* Фишки игроков */
+  .q-pawn {
+    width: 76%; height: 76%; border-radius: 50%;
+    border: 3px solid #ffffff; z-index: 5;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.8), 0 0 10px currentColor;
+    transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 3px #000;
+  }
+
+  /* Пазы для стенок с увеличенным хитбоксом */
+  .q-slot-h {
+    background: rgba(255,255,255,0.03); border-radius: 2px; cursor: pointer;
+    position: relative; z-index: 6;
+  }
+  .q-slot-h::before {
+    content: ''; position: absolute; inset: -7px 0; z-index: 7;
+  }
+  .q-slot-h:hover { background: rgba(255, 209, 102, 0.35); }
+
+  .q-slot-v {
+    background: rgba(255,255,255,0.03); border-radius: 2px; cursor: pointer;
+    position: relative; z-index: 6;
+  }
+  .q-slot-v::before {
+    content: ''; position: absolute; inset: 0 -7px; z-index: 7;
+  }
+  .q-slot-v:hover { background: rgba(255, 209, 102, 0.35); }
+
+  .q-slot-node {
+    background: rgba(255,255,255,0.05); border-radius: 2px; cursor: pointer;
+    position: relative; z-index: 8;
+  }
+  .q-slot-node:hover { background: rgba(255, 209, 102, 0.5); }
+
+  /* СТЕНКА НА ПОЛЕ — ПРАВИЛЬНЫЙ CSS ДЛЯ GRID */
+  .q-wall {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    z-index: 20;
+    background: linear-gradient(135deg, #ffd166, #ff9f1c);
+    box-shadow: 0 0 14px rgba(255, 209, 102, 0.95), 0 2px 6px rgba(0,0,0,0.8);
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+  .q-wall.ghost {
+    background: rgba(0, 229, 255, 0.7);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.95);
+    border: 2px dashed #ffffff;
+    z-index: 25;
+    pointer-events: none;
+  }
+
+  .turn-banner {
+    text-align: center; font-size: 15px; font-weight: 800; margin: 8px 0;
+  }
+  .turn-banner .me { color: var(--crimson, #ff2238); }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+
+  .msg-toast {
+    text-align: center; font-size: 13px; font-weight: 700; color: #ff4d6d;
+    min-height: 20px; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<a class="top-btn back-btn" href="/games/">🎮 Игры</a>
+<button class="top-btn rules-btn" onclick="document.getElementById('rulesModal').style.display='flex'">i</button>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:400px;width:100%;background:#141724;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8)">
+    <div style="font-size:20px;font-weight:800;color:#ffd166;margin-bottom:12px">🧱 Коридор — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#e2e8f0">
+      Цель игры: <b>первым довести свою фишку на противоположную сторону поля</b>.<br><br>
+      В свой ход можно сделать <b>одно из двух действий</b>:<br>
+      • <b>Сделать шаг фишкой</b> на 1 соседнюю клетку (если путь не закрыт стенкой). Через фишку соперника можно перепрыгнуть!<br>
+      • <b>Поставить стенку</b> (длиной в 2 клетки), чтобы заблокировать соперника или направить его в лабиринт.<br><br>
+      ⚠️ <i>Главное правило:</i> <b>запрещено полностью замуровывать путь к финишу</b> — у каждого игрока всегда должен оставаться хотя бы один выход!
+    </div>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#ff2238);color:#fff;font-weight:800;cursor:pointer">Понятно 👍</button>
+  </div>
+</div>
+
+<h1>🧱 КОРИДОР</h1>
+<div class="sub">стратегия лабиринтов · 2, 3 или 4 игрока</div>
+
+<!-- 1. Экран Создания / Входа -->
+<div id="home" class="card" style="max-width:390px;margin:0 auto">
+  <input id="name" placeholder="Твоё имя" maxlength="20">
+  <button onclick="create()">Создать комнату</button>
+  <div style="height:10px"></div>
+  <input id="joincode" placeholder="КОД КОМНАТЫ" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()">Войти по коду</button>
+  <div class="sub" style="margin-top:12px"><a href="/games">← ко всем играм</a></div>
+</div>
+
+<!-- 2. Экран Лобби -->
+<div id="lobby" class="card hide" style="max-width:390px;margin:0 auto;text-align:center">
+  <div class="sub">Код комнаты:</div>
+  <div class="code" id="lcode" onclick="navigator.clipboard.writeText(this.textContent);if(window.SFX)SFX.tap();alert('Код скопирован!')" title="Клик — скопировать">----</div>
+  
+  <div style="margin:14px 0 6px;text-align:left;font-size:13px;font-weight:700;color:var(--muted)">Игроки в комнате:</div>
+  <div id="players" style="margin-bottom:12px"></div>
+
+  <!-- Настройки для хоста -->
+  <div id="host-settings" class="hide" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;margin:12px 0;text-align:left">
+    <div style="font-size:12px;font-weight:800;color:#ffd166;margin-bottom:6px">⚙️ Добавить соперника (Бот):</div>
+    
+    <div class="row" style="margin-top:4px">
+      <div class="opts botdiff" style="margin:0">
+        <div class="opt" data-d="easy" onclick="setDiff(this)">🤖 Лёгкий</div>
+        <div class="opt on" data-d="medium" onclick="setDiff(this)">Средний</div>
+        <div class="opt" data-d="hard" onclick="setDiff(this)">Умный</div>
+      </div>
+      <button class="sec" style="margin:0;padding:7px 14px;font-size:12px" onclick="addBot()">+ Бот</button>
+    </div>
+  </div>
+
+  <div id="waitmsg" class="sub" style="margin:12px 0">Ждём игроков (минимум 2, максимум 4)...</div>
+  <button id="start-btn" class="hide" onclick="startGame()" style="background:var(--crimson,#ff2238);color:#fff;font-weight:800;box-shadow:0 0 15px rgba(255,34,56,0.4)">🚀 НАЧАТЬ ИГРУ</button>
+</div>
+
+<!-- 3. Экран Игры -->
+<div id="game" class="hide">
+  <!-- Панель статуса игроков -->
+  <div class="players-bar" id="p-bar"></div>
+
+  <div class="turn-banner" id="turn-banner"></div>
+
+  <!-- Панель переключения режима хода -->
+  <div class="controls-panel">
+    <button class="ctrl-btn active" id="btn-mode-pawn" onclick="setMode('pawn')">
+      <span>🚶</span> Ходить фишкой
+    </button>
+    <button class="ctrl-btn" id="btn-mode-wall" onclick="setMode('wall')">
+      <span>🧱</span> Ставить стенку
+    </button>
+    <div class="sub-switch" id="wall-dir-switch" style="display:none">
+      <button class="sub-btn active" id="btn-dir-h" onclick="setWallDir('h')" title="Горизонтально">━</button>
+      <button class="sub-btn" id="btn-dir-v" onclick="setWallDir('v')" title="Вертикально">┃</button>
+    </div>
+  </div>
+
+  <!-- Игровое поле -->
+  <div class="board-wrap">
+    <div class="q-board" id="board"></div>
+  </div>
+
+  <div class="msg-toast" id="msg-toast"></div>
+
+  <!-- Окно победы -->
+  <div id="overbox" class="card hide" style="max-width:390px;margin:12px auto;text-align:center">
+    <h1 id="overtext" style="color:#ffd166;font-size:26px;margin-bottom:8px"></h1>
+    <div id="oversub" class="sub" style="margin-bottom:14px"></div>
+    <button class="sec" onclick="restart()">🔄 Новая партия</button>
+  </div>
+</div>
+
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script>
+let ws, pid, myName = "", isHost = false, roomCode = "";
+let state = null;
+let currentMode = 'pawn'; // 'pawn' | 'wall'
+let currentWallDir = 'h';  // 'h' | 'v'
+let hoveredSlot = null;
+
+// Инициализация имени
+const savedName = localStorage.getItem("jg_name") || localStorage.getItem("jg_player_name") || "";
+if (savedName) document.getElementById("name").value = savedName;
+
+function setDiff(el) {
+  el.parentNode.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function showToast(text, isError=true) {
+  const t = document.getElementById("msg-toast");
+  t.textContent = text;
+  t.style.color = isError ? "#ff4d6d" : "#ffd166";
+  if (isError && window.SFX) SFX.err();
+  setTimeout(() => { if (t.textContent === text) t.textContent = ""; }, 3000);
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById("btn-mode-pawn").classList.toggle("active", mode === 'pawn');
+  document.getElementById("btn-mode-wall").classList.toggle("active", mode === 'wall');
+  document.getElementById("wall-dir-switch").style.display = (mode === 'wall') ? 'flex' : 'none';
+  if (window.SFX) SFX.tap();
+  removeGhostWall();
+  renderBoardHighlights();
+}
+
+function setWallDir(wdir) {
+  currentWallDir = wdir;
+  document.getElementById("btn-dir-h").classList.toggle("active", wdir === 'h');
+  document.getElementById("btn-dir-v").classList.toggle("active", wdir === 'v');
+  if (window.SFX) SFX.tap();
+  if (hoveredSlot) showGhostWall(hoveredSlot.r, hoveredSlot.c, wdir);
+}
+
+// ── Подключение и WebSockets ──
+function connectWS(onOpenCb) {
+  if (ws && ws.getSocket && ws.getSocket().readyState === WebSocket.OPEN) {
+    if (onOpenCb) onOpenCb();
+    return;
+  }
+  if (ws && ws.getSocket && ws.getSocket().readyState === WebSocket.CONNECTING) {
+    const timer = setInterval(() => {
+      if (ws.getSocket().readyState === WebSocket.OPEN) {
+        clearInterval(timer);
+        if (onOpenCb) onOpenCb();
+      }
+    }, 40);
+    return;
+  }
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (onOpenCb) onOpenCb();
+    },
+    onmessage: (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === "joined") {
+        pid = msg.pid;
+        roomCode = msg.code;
+        isHost = msg.host;
+        document.getElementById("home").classList.add("hide");
+        document.getElementById("lobby").classList.remove("hide");
+        document.getElementById("lcode").textContent = roomCode;
+      } else if (msg.type === "lobby" || msg.type === "lobby_state") {
+        renderLobby(msg);
+      } else if (msg.type === "quoridor_state") {
+        state = msg;
+        document.getElementById("home").classList.add("hide");
+        document.getElementById("lobby").classList.add("hide");
+        document.getElementById("game").classList.remove("hide");
+        renderGame();
+      } else if (msg.type === "error") {
+        showToast(msg.msg, true);
+      }
+    }
+  });
+}
+
+function create() {
+  myName = document.getElementById("name").value.trim() || "Игрок";
+  localStorage.setItem("jg_name", myName);
+  connectWS(() => {
+    ws.send({ action: "create", game: "quoridor", name: myName });
+  });
+}
+
+function join() {
+  myName = document.getElementById("name").value.trim() || "Игрок";
+  const code = document.getElementById("joincode").value.trim().toUpperCase();
+  if (!code) return alert("Введите код комнаты");
+  localStorage.setItem("jg_name", myName);
+  connectWS(() => {
+    ws.send({ action: "join", code: code, name: myName });
+  });
+}
+
+function addBot() {
+  if (window.SFX) SFX.tap();
+  const diff = document.querySelector(".botdiff .opt.on")?.dataset.d || "medium";
+  ws.send({ action: "add_bot", diff: diff });
+}
+
+function startGame() {
+  if (window.SFX) SFX.tap();
+  ws.send({ action: "start" });
+}
+
+function restart() {
+  if (window.SFX) SFX.tap();
+  ws.send({ action: "restart" });
+}
+
+function renderLobby(st) {
+  const playersDiv = document.getElementById("players");
+  let pList = [];
+  if (Array.isArray(st.players)) {
+    pList = st.players;
+  } else if (st.players && typeof st.players === 'object') {
+    pList = Object.entries(st.players).map(([id, p]) => ({ id, ...p }));
+  }
+  let html = "";
+  pList.forEach((pData, idx) => {
+    const isMe = (pData.id === pid);
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">${pData.bot ? '🤖' : '👤'}</span>
+        <span style="font-weight:700;color:${isMe ? '#ffd166' : '#fff'}">${pData.name} ${isMe ? '(Ты)' : ''}</span>
+      </div>
+      <span style="font-size:11px;font-weight:800;color:var(--muted)">СЛОТ ${idx + 1}</span>
+    </div>`;
+  });
+  playersDiv.innerHTML = html;
+
+  if (isHost) {
+    document.getElementById("host-settings").classList.remove("hide");
+    const startBtn = document.getElementById("start-btn");
+    if (pList.length >= 2 && pList.length <= 4) {
+      startBtn.classList.remove("hide");
+      document.getElementById("waitmsg").textContent = `Готово к старту! Игроков: ${pList.length}/4`;
+    } else {
+      startBtn.classList.add("hide");
+      document.getElementById("waitmsg").textContent = `Нужно 2, 3 или 4 игрока (сейчас ${pList.length})`;
+    }
+  }
+}
+
+// ── Рендеринг игрового процесса ──
+function renderGame() {
+  renderPlayersBar();
+  renderBoard();
+  renderBoardHighlights();
+
+  const isMyTurn = (state && state.turn_pid === pid && !state.winner);
+  const turnBanner = document.getElementById("turn-banner");
+  if (state.winner) {
+    document.getElementById("overbox").classList.remove("hide");
+    const winName = state.names[state.winner] || "Игрок";
+    const isMeWin = (state.winner === pid);
+    document.getElementById("overtext").textContent = isMeWin ? "🏆 Ты выиграл!" : `Победил ${winName}!`;
+    document.getElementById("oversub").textContent = isMeWin ? "Твоя фишка первой достигла края!" : "Соперник первым прошёл лабиринт.";
+    if (isMeWin && window.SFX) SFX.win();
+    turnBanner.innerHTML = `<span style="color:#ffd166">Игра завершена</span>`;
+  } else {
+    document.getElementById("overbox").classList.add("hide");
+    const curP = state.players[state.turn_pid];
+    const curColor = curP ? curP.color : "#fff";
+    const curName = state.names[state.turn_pid] || "Игрок";
+    turnBanner.innerHTML = isMyTurn
+      ? `<span class="dot" style="background:${curColor}"></span><span class="me">ТВОЙ ХОД!</span> — выбери шаг или стенку`
+      : `<span class="dot" style="background:${curColor}"></span>Ходит: <b>${curName}</b>`;
+  }
+}
+
+function renderPlayersBar() {
+  const pBar = document.getElementById("p-bar");
+  pBar.innerHTML = "";
+  if (!state || !state.players) return;
+
+  state.player_order.forEach(p_id => {
+    const pInfo = state.players[p_id];
+    const isMe = (p_id === pid);
+    const isCurrent = (p_id === state.turn_pid && !state.winner);
+
+    const card = document.createElement("div");
+    card.className = "p-card" + (isCurrent ? " active" : "");
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:3px">
+        <span class="p-avatar" style="background:${pInfo.color};box-shadow:0 0 8px ${pInfo.color}"></span>
+        <span class="p-name" style="color:${isMe ? '#ffd166' : '#fff'}">${state.names[p_id] || p_id} ${isMe ? '★' : ''}</span>
+      </div>
+      <div class="p-walls-text">🧱 ${pInfo.walls} шт.</div>
+    `;
+    pBar.appendChild(card);
+  });
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById("board");
+  boardEl.innerHTML = "";
+
+  // 1. Клетки 9х9
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.createElement("div");
+      cell.className = "q-cell";
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.style.gridRow = (2 * r + 1);
+      cell.style.gridColumn = (2 * c + 1);
+      cell.onclick = () => onCellClick(r, c);
+
+      // Фишка на клетке
+      for (const [p_id, pInfo] of Object.entries(state.players)) {
+        if (pInfo.pos[0] === r && pInfo.pos[1] === c) {
+          const pawn = document.createElement("div");
+          pawn.className = "q-pawn";
+          pawn.style.background = pInfo.color;
+          pawn.style.boxShadow = `0 0 12px ${pInfo.color}`;
+          pawn.textContent = pInfo.seat + 1;
+          cell.appendChild(pawn);
+        }
+      }
+      boardEl.appendChild(cell);
+    }
+  }
+
+  // 2. Пазы для стенок 8х8
+  for (let wr = 0; wr < 8; wr++) {
+    for (let wc = 0; wc < 8; wc++) {
+      // Горизонтальный паз
+      const slotH = document.createElement("div");
+      slotH.className = "q-slot-h";
+      slotH.style.gridRow = (2 * wr + 2);
+      slotH.style.gridColumn = (2 * wc + 1) + " / span 3";
+      slotH.onmouseenter = () => onSlotHover(wr, wc, 'h');
+      slotH.onmouseleave = () => removeGhostWall();
+      slotH.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, 'h'); };
+      boardEl.appendChild(slotH);
+
+      // Вертикальный паз
+      const slotV = document.createElement("div");
+      slotV.className = "q-slot-v";
+      slotV.style.gridRow = (2 * wr + 1) + " / span 3";
+      slotV.style.gridColumn = (2 * wc + 2);
+      slotV.onmouseenter = () => onSlotHover(wr, wc, 'v');
+      slotV.onmouseleave = () => removeGhostWall();
+      slotV.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, 'v'); };
+      boardEl.appendChild(slotV);
+
+      // Узел пересечения
+      const node = document.createElement("div");
+      node.className = "q-slot-node";
+      node.style.gridRow = (2 * wr + 2);
+      node.style.gridColumn = (2 * wc + 2);
+      node.onmouseenter = () => onSlotHover(wr, wc, currentWallDir);
+      node.onmouseleave = () => removeGhostWall();
+      node.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, currentWallDir); };
+      boardEl.appendChild(node);
+    }
+  }
+
+  // 3. Установленные стенки (100% ВИДИМЫЕ СТЕНКИ!)
+  (state.walls || []).forEach(w => {
+    const wallEl = document.createElement("div");
+    wallEl.className = "q-wall";
+    if (w.dir === 'h') {
+      wallEl.style.gridRow = (2 * w.r + 2);
+      wallEl.style.gridColumn = (2 * w.c + 1) + " / span 3";
+    } else {
+      wallEl.style.gridRow = (2 * w.r + 1) + " / span 3";
+      wallEl.style.gridColumn = (2 * w.c + 2);
+    }
+    boardEl.appendChild(wallEl);
+  });
+}
+
+function renderBoardHighlights() {
+  const isMyTurn = (state && state.turn_pid === pid && !state.winner);
+  const cells = document.querySelectorAll(".q-cell");
+  cells.forEach(c => c.classList.remove("valid-move"));
+
+  if (isMyTurn && currentMode === 'pawn') {
+    (state.valid_moves || []).forEach(([vr, vc]) => {
+      const target = document.querySelector(`.q-cell[data-r='${vr}'][data-c='${vc}']`);
+      if (target) target.classList.add("valid-move");
+    });
+  }
+}
+
+function onCellClick(r, c) {
+  if (!state || state.turn_pid !== pid || state.winner) return;
+  if (currentMode !== 'pawn') return;
+
+  const isValid = (state.valid_moves || []).some(([vr, vc]) => vr === r && vc === c);
+  if (!isValid) return;
+
+  ws.send({ action: "quoridor_move", r: r, c: c });
+  if (window.SFX) SFX.tap();
+}
+
+function onSlotHover(wr, wc, dir) {
+  if (!state || state.turn_pid !== pid || state.winner) return;
+  if (currentMode !== 'wall') return;
+  hoveredSlot = { r: wr, c: wc, dir: dir };
+  showGhostWall(wr, wc, dir);
+}
+
+function showGhostWall(wr, wc, dir) {
+  removeGhostWall();
+  const boardEl = document.getElementById("board");
+  const ghost = document.createElement("div");
+  ghost.id = "ghost-wall";
+  ghost.className = "q-wall ghost";
+  if (dir === 'h') {
+    ghost.style.gridRow = (2 * wr + 2);
+    ghost.style.gridColumn = (2 * wc + 1) + " / span 3";
+  } else {
+    ghost.style.gridRow = (2 * wr + 1) + " / span 3";
+    ghost.style.gridColumn = (2 * wc + 2);
+  }
+  boardEl.appendChild(ghost);
+}
+
+function removeGhostWall() {
+  const existing = document.getElementById("ghost-wall");
+  if (existing) existing.remove();
+  hoveredSlot = null;
+}
+
+function onWallClick(wr, wc, dir) {
+  if (!state || state.turn_pid !== pid || state.winner) return;
+  if (currentMode !== 'wall') return;
+
+  const myWalls = state.players[pid]?.walls || 0;
+  if (myWalls <= 0) {
+    showToast("У вас не осталось стенок!", true);
+    return;
+  }
+
+  removeGhostWall();
+  ws.send({ action: "quoridor_wall", r: wr, c: wc, dir: dir });
+  if (window.SFX) SFX.tap();
+}
+</script>
+</body>
+</html>

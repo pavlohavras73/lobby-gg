@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Элиас — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  button.ok{background:linear-gradient(135deg,#1fbf4f,#0f7a32)}
+  button.ok:hover{box-shadow:0 0 22px rgba(31,191,79,.5)}
+  button.skip{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
+  .score{display:flex;justify-content:space-around;text-align:center}
+  .score .t{font-size:12px;color:var(--muted)}.score .v{font-size:32px;font-weight:900;color:var(--crimson);text-shadow:0 0 16px var(--crimson-glow)}
+  .word{font-size:40px;font-weight:900;text-align:center;color:#fff;padding:24px 8px;line-height:1.2;text-shadow:0 0 24px var(--crimson-glow)}
+  .timer{font-size:22px;font-weight:800;text-align:center;color:var(--crimson)}
+  .turn{text-align:center;font-size:15px;color:var(--text);margin:6px 0}
+  .me{color:var(--crimson);font-weight:700}
+  /* кнопки-табы как в «5 букв» — приятнее системных select */
+  .opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 6px}
+  .opt{flex:1;min-width:78px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:14px;text-align:center;transition:.15s}
+  .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
+  .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+</style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">💬 Элиас — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Объясни слово команде <b>не называя его</b> и однокоренные. Команда угадывает. Больше угаданных слов за раунд — победа.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>💬 ЭЛИАС</h1><div class="sub">объясни слово команде</div>
+
+<div id="home" class="card">
+  <input id="name" placeholder="Твоё имя" maxlength="20">
+  <button onclick="create()">Создать игру</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
+  <button class="sec" onclick="join()">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" style="color:#9b9170">← все игры</a></div>
+</div>
+
+<div id="lobby" class="card hide">
+  <div class="sub">Код игры:</div><div class="code" id="lcode">----</div>
+  <div id="players"></div>
+  <div id="hostlobby" class="hide">
+    <div class="lbl">Язык слов</div>
+    <div class="opts" id="langopts">
+      <div class="opt on" data-lang="ru">🇷🇺 Рус</div>
+      <div class="opt" data-lang="ua">🇺🇦 Укр</div>
+      <div class="opt" data-lang="en">🇬🇧 Eng</div>
+    </div>
+    <div class="lbl">Сложность</div>
+    <div class="opts" id="diffopts">
+      <div class="opt on" data-diff="easy">Лёгкий<span class="d">простые слова</span></div>
+      <div class="opt" data-diff="medium">Средний<span class="d">обычные</span></div>
+      <div class="opt" data-diff="hard">Сложный<span class="d">редкие, трудные</span></div>
+    </div>
+    <div class="lbl">Режим</div>
+    <div class="opts" id="modeopts">
+      <div class="opt on" data-mode="solo">👤 Каждый сам<span class="d">свой счёт, по очереди</span></div>
+      <div class="opt" data-mode="teams">👥 Команды<span class="d" id="teamsHint">нужно 4+ чётно</span></div>
+    </div>
+    <div class="row">
+      <div><div class="lbl">Время раунда (сек)</div><input id="s_time" type="number" value="60"></div>
+      <div><div class="lbl">До скольки очков</div><input id="s_target" type="number" value="20"></div>
+    </div>
+    <button class="sec" onclick="send({action:'add_bot'})">🤖 Добавить бота</button>
+    <button onclick="startGame()">▶ Начать игру</button>
+  </div>
+  <div class="sub" id="waitmsg">Ждём ведущего…</div>
+</div>
+
+<div id="game" class="hide">
+  <div class="card score">
+    <div><div class="t" id="t0name">Команда 1</div><div class="v" id="sc0">0</div></div>
+    <div style="align-self:center;color:#5a4a1e;font-weight:900">VS</div>
+    <div><div class="t" id="t1name">Команда 2</div><div class="v" id="sc1">0</div></div>
+  </div>
+  <div class="card">
+    <div class="turn" id="turninfo"></div>
+    <div class="timer" id="timer"></div>
+    <div id="explainArea" class="hide">
+      <div class="word" id="word">—</div>
+      <div class="row"><button class="ok" onclick="send({action:'alias_correct'})">✓ Угадали</button>
+        <button class="skip" onclick="send({action:'alias_skip'})">⤼ Пропустить</button></div>
+      <button class="sec" onclick="send({action:'alias_end'})" style="margin-top:6px">Передать ход</button>
+    </div>
+    <div id="beginArea" class="hide"><button onclick="send({action:'alias_begin'})">▶ Начать раунд (ты объясняешь)</button></div>
+    <div id="watchArea" class="hide sub">Слушай и угадывай вслух 🎧</div>
+  </div>
+  <div class="card" id="teamsCard"></div>
+</div>
+
+<div id="win" class="card hide" style="text-align:center">
+  <h1 id="wintext">🏆</h1>
+  <button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" style="margin-top:14px">Новая игра</button>
+</div>
+
+<script>
+let ws,pid,isHost=false,myWord=null,tInt=null;
+function show(id){for(const s of['home','lobby','game','win'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent='Связь потеряна, обнови.';};}
+function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'alias'}));}
+function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:n,code:c}));}
+// кнопки-табы: язык / сложность (как в «5 букв»)
+let aliasLang='ru', aliasDiff='easy';
+document.querySelectorAll('#langopts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#langopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');aliasLang=o.dataset.lang;});
+document.querySelectorAll('#diffopts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#diffopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');aliasDiff=o.dataset.diff;});
+let aliasMode='solo';
+document.querySelectorAll('#modeopts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#modeopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');aliasMode=o.dataset.mode;});
+function startGame(){
+  send({action:'set_alias_settings',lang:aliasLang,diff:aliasDiff,mode:aliasMode,
+        time:parseInt(document.getElementById('s_time').value||60),target:parseInt(document.getElementById('s_target').value||20)});
+  setTimeout(()=>send({action:'start'}),150);
+}
+function runTimer(secs){clearInterval(tInt);let s=secs;const el=document.getElementById('timer');
+  el.textContent='⏱ '+s;tInt=setInterval(()=>{s--;if(s<=0){clearInterval(tInt);el.textContent='⏱ ВРЕМЯ!';}else el.textContent='⏱ '+s;},1000);}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  else if(m.type==='lobby'){
+    show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
+    isHost=(m.host===pid);
+    document.getElementById('hostlobby').classList.toggle('hide',!isHost);
+    document.getElementById('waitmsg').classList.toggle('hide',isHost);
+  }
+  else if(m.type==='alias_word'){myWord=m.word;const w=document.getElementById('word');if(w)w.textContent=m.word;}
+  else if(m.type==='alias_turn'){runTimer(m.secs);}
+  else if(m.type==='alias_state'){
+    isHost=(m.host===pid);
+    const teams=(m.mode==='teams');
+    if(m.winner!=null){clearInterval(tInt);show('win');
+      const who=teams?('🏆 Команда '+(m.winner==0?1:2)):('🏆 '+(m.winner_name||'Игрок'));
+      document.getElementById('wintext').textContent=who+' победил!';return;}
+    show('game');
+    const amExp=(m.explainer===pid);
+    const scoreEl=document.getElementById('game').querySelector('.score');
+    if(teams){
+      scoreEl.style.display='';
+      document.getElementById('sc0').textContent=m.scores['0'];document.getElementById('sc1').textContent=m.scores['1'];
+      document.getElementById('turninfo').innerHTML='Объясняет: <b class="'+(amExp?'me':'')+'">'+m.explainer_name+'</b> (Команда '+(m.turn+1)+')';
+      document.getElementById('teamsCard').innerHTML=
+        '<div class="lbl">Команда 1</div>'+m.teams['0'].map(n=>'<div class="pl">'+n+'</div>').join('')+
+        '<div class="lbl">Команда 2</div>'+m.teams['1'].map(n=>'<div class="pl">'+n+'</div>').join('');
+    } else {
+      scoreEl.style.display='none';
+      document.getElementById('turninfo').innerHTML='Объясняет: <b class="'+(amExp?'me':'')+'">'+m.explainer_name+'</b> — угадывают все';
+      const ps=(m.players_score||[]).slice().sort((a,b)=>b.score-a.score);
+      document.getElementById('teamsCard').innerHTML='<div class="lbl">Счёт</div>'+
+        ps.map(p=>'<div class="pl" style="display:flex;justify-content:space-between"><span>'+p.name+'</span><b style="color:var(--crimson)">'+p.score+'</b></div>').join('');
+    }
+    document.getElementById('explainArea').classList.toggle('hide',!(amExp&&m.round_active));
+    document.getElementById('beginArea').classList.toggle('hide',!(amExp&&!m.round_active));
+    document.getElementById('watchArea').classList.toggle('hide',amExp);
+    if(amExp&&m.round_active&&myWord)document.getElementById('word').textContent=myWord;
+    if(!m.round_active){clearInterval(tInt);document.getElementById('timer').textContent='';}
+  }
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — Змейка</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
+    -webkit-user-select:none;user-select:none;touch-action:none;overflow:hidden}
+  h1{margin:2px 0 0;font-size:1.5em}
+  .bar{display:flex;gap:10px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:8px 0}
+  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 14px;text-align:center}
+  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:18px;font-weight:800}
+  canvas{border:1px solid rgba(255,34,56,.3);border-radius:12px;background:#020204;box-shadow:0 0 30px rgba(255,34,56,.2);touch-action:none}
+  .over{position:absolute;background:rgba(0,0,0,.85);border-radius:12px;display:none;flex-direction:column;
+    align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
+  .over .big{font-size:26px;font-weight:900;margin-bottom:10px}
+  .wrap{position:relative;display:flex}
+  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
+  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
+  button{width:auto;padding:9px 18px}
+  select{width:auto;padding:6px 8px;margin:0}
+  /* D-pad управления */
+  .dpad{display:grid;grid-template-columns:repeat(3,62px);grid-template-rows:repeat(3,62px);gap:8px;margin:14px auto 2px}
+  .dbtn{width:62px;height:62px;padding:0;border:1.5px solid rgba(255,34,56,.45);background:rgba(20,20,26,.9);color:#fff;border-radius:16px;font-size:23px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 14px rgba(255,34,56,.18);touch-action:none;-webkit-tap-highlight-color:transparent}
+  .dbtn:active{background:rgba(255,34,56,.28);transform:scale(.92)}
+  .dbtn.up{grid-column:2;grid-row:1}.dbtn.left{grid-column:1;grid-row:2}.dbtn.right{grid-column:3;grid-row:2}.dbtn.down{grid-column:2;grid-row:3}
+</style>
+</head>
+<body>
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐍 Змейка — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя или стену — конец.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="title">🐍 Змейка</h1>
+<div class="bar">
+  <div class="score"><div class="l" data-i18n="score">Счёт</div><div class="v" id="score">0</div></div>
+  <select id="speed" onchange="restart()">
+    <option value="150" data-i18n="slow">Медленно</option><option value="110" selected data-i18n="med">Средне</option><option value="75" data-i18n="fast">Быстро</option>
+  </select>
+  <div class="score"><div class="l" data-i18n="best">Рекорд</div><div class="v" id="best">0</div></div>
+</div>
+<div class="wrap">
+  <canvas id="cv"></canvas>
+  <div class="over" id="over"><div class="big" id="overbig"></div><button onclick="restart()" data-i18n="again">Ещё раз</button></div>
+</div>
+<div class="dpad">
+  <button class="dbtn up" onpointerdown="turn(0,-1)">▲</button>
+  <button class="dbtn left" onpointerdown="turn(-1,0)">◀</button>
+  <button class="dbtn right" onpointerdown="turn(1,0)">▶</button>
+  <button class="dbtn down" onpointerdown="turn(0,1)">▼</button>
+</div>
+<a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
+
+<script>
+const UI={
+ uk:{rules_title:"🐍 Змійка — правила",rules_body:"Керуй змійкою свайпами. Їж 🍎 — ростеш і набираєш очки. Врізався в себе чи стіну — кінець.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🐍 Змійка",score:"Рахунок",best:"Рекорд",slow:"Повільно",med:"Середньо",fast:"Швидко",again:"Ще раз",hint:"Свайпай, куди повзти. Їж 🍎, не врізайся в себе. (на пк — стрілки)",all_games:"← Усі ігри",over_score:"💀 Рахунок: "},
+ ru:{rules_title:"🐍 Змейка — правила",rules_body:"Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя или стену — конец.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🐍 Змейка",score:"Счёт",best:"Рекорд",slow:"Медленно",med:"Средне",fast:"Быстро",again:"Ещё раз",hint:"Свайпай, куда ползти. Ешь 🍎, не врежься в себя. (на компе — стрелки)",all_games:"← Все игры",over_score:"💀 Счёт: "},
+ en:{rules_title:"🐍 Snake — rules",rules_body:"Control the snake by swiping. Eat 🍎 to grow and score. Hit yourself or a wall — game over.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🐍 Snake",score:"Score",best:"Best",slow:"Slow",med:"Medium",fast:"Fast",again:"Again",hint:"Swipe where to go. Eat 🍎, don't hit yourself. (on PC — arrow keys)",all_games:"← All games",over_score:"💀 Score: "}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function applyUI(){
+ document.documentElement.lang=LANG;
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+ document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+}
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let GRID=17, cell, snake, dir, nextDir, food, score, best=+(localStorage.getItem('snake_best')||0), timer, dead;
+document.getElementById('best').textContent=best;
+function layout(){
+  const W=Math.min(window.innerWidth-24,400,window.innerHeight*0.5);
+  cell=Math.floor(W/GRID); const px=cell*GRID;
+  cv.width=px;cv.height=px; const o=document.getElementById('over');
+  o.style.width=px+'px';o.style.height=px+'px';o.style.left='0';o.style.top='0';
+}
+function restart(){
+  clearInterval(timer);
+  snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}]; dir={x:1,y:0}; nextDir=dir; score=0; dead=false;
+  document.getElementById('score').textContent=0; document.getElementById('over').style.display='none';
+  placeFood();
+  const sp=+document.getElementById('speed').value;
+  timer=setInterval(tick,sp); draw();
+}
+function placeFood(){
+  do{food={x:Math.floor(Math.random()*GRID),y:Math.floor(Math.random()*GRID)};}
+  while(snake.some(s=>s.x===food.x&&s.y===food.y));
+}
+function tick(){
+  dir=nextDir;
+  const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(h.x<0||h.x>=GRID||h.y<0||h.y>=GRID||snake.some(s=>s.x===h.x&&s.y===h.y)){return gameOver();}
+  snake.unshift(h);
+  if(h.x===food.x&&h.y===food.y){score++;document.getElementById('score').textContent=score;
+    if(score>best){best=score;localStorage.setItem('snake_best',best);document.getElementById('best').textContent=best;}
+    placeFood();}
+  else snake.pop();
+  draw();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.font=cell+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🍎',food.x*cell+cell/2,food.y*cell+cell/2+1);
+  snake.forEach((s,i)=>{
+    ctx.fillStyle=i===0?'#ff2238':`hsl(${145-i*2},70%,${55-i*0.6}%)`;
+    const p=1; roundRect(s.x*cell+p,s.y*cell+p,cell-2*p,cell-2*p,4);ctx.fill();
+  });
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function gameOver(){clearInterval(timer);dead=true;document.getElementById('overbig').textContent=t('over_score')+score;document.getElementById('over').style.display='flex';}
+function turn(nx,ny){ if(nx===-dir.x&&ny===-dir.y)return; nextDir={x:nx,y:ny}; }
+let sx,sy;
+cv.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+cv.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<20)return;
+  if(Math.abs(dx)>Math.abs(dy))turn(dx>0?1:-1,0);else turn(0,dy>0?1:-1);sx=sy=null;},{passive:true});
+window.addEventListener('keydown',e=>{const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(m){e.preventDefault();turn(m[0],m[1]);}});
+window.addEventListener('resize',()=>{layout();if(!dead)draw();});
+applyUI();layout();restart();
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

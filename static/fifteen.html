@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Jarvis Games — Пятнашки</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
+  h1{margin:2px 0 0;font-size:1.5em}
+  .bar{display:flex;gap:10px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:8px 0}
+  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 14px;text-align:center}
+  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:18px;font-weight:800}
+  select,button{width:auto;padding:7px 12px;margin:0}
+  .board{position:relative;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:6px}
+  .tile{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:800;
+    border-radius:9px;background:linear-gradient(160deg,#e0102e,#a00d22);color:#fff;cursor:pointer;
+    transition:left .12s,top .12s;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+  .tile:active{filter:brightness(1.15)}
+  .win{position:absolute;inset:0;background:rgba(0,0,0,.85);border-radius:12px;display:none;
+    flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
+  .win .big{font-size:26px;font-weight:900;color:#5cff9e;margin-bottom:10px}
+  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
+  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
+</style>
+</head>
+<body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🔢 Пятнашки</h1>
+<div class="bar">
+  <div class="score"><div class="l">Ходов</div><div class="v" id="moves">0</div></div>
+  <select id="size" onchange="newGame()"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
+  <button class="sec" onclick="newGame()">↻ Мешать</button>
+</div>
+<div class="board" id="board"><div class="win" id="win"><div class="big">🎉 Собрал!</div><button onclick="newGame()">Ещё раз</button></div></div>
+<div class="hint">Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.</div>
+<a class="backlink" href="/games/">← Все игры</a>
+
+<script>
+let N=4, tiles, blank, moves, size, gap=6, cell;
+function idx(x,y){return y*N+x;}
+function layout(){
+  const b=document.getElementById('board');
+  const W=Math.min(window.innerWidth-24,380,window.innerHeight*0.58);
+  size=Math.floor(W); cell=Math.floor((size-gap*(N+1))/N);
+  b.style.width=size+'px';b.style.height=size+'px';
+}
+function solvable(arr){ // проверка чётности инверсий для решаемости
+  const a=arr.filter(v=>v!==0); let inv=0;
+  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i]>a[j])inv++;
+  if(N%2===1)return inv%2===0;
+  const blankRow=N-Math.floor(arr.indexOf(0)/N);
+  return (blankRow%2===0)===(inv%2===1);
+}
+function newGame(){
+  N=+document.getElementById('size').value; moves=0; document.getElementById('moves').textContent=0;
+  document.getElementById('win').style.display='none';
+  do{ tiles=[...Array(N*N).keys()]; for(let i=tiles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tiles[i],tiles[j]]=[tiles[j],tiles[i]];} }
+  while(!solvable(tiles)||isSolved());
+  blank=tiles.indexOf(0); layout(); render();
+}
+function isSolved(){for(let i=0;i<N*N-1;i++)if(tiles[i]!==i+1)return false;return true;}
+function render(){
+  const b=document.getElementById('board');
+  b.querySelectorAll('.tile').forEach(e=>e.remove());
+  for(let i=0;i<N*N;i++){
+    const v=tiles[i]; if(!v)continue;
+    const x=i%N,y=Math.floor(i/N);
+    const t=document.createElement('div');t.className='tile';
+    t.style.width=cell+'px';t.style.height=cell+'px';
+    t.style.left=(gap+x*(cell+gap))+'px';t.style.top=(gap+y*(cell+gap))+'px';
+    t.style.fontSize=(cell*0.4)+'px';t.textContent=v;
+    t.onclick=()=>tap(i);
+    b.appendChild(t);
+  }
+}
+function tap(i){
+  const x=i%N,y=Math.floor(i/N), bx=blank%N,by=Math.floor(blank/N);
+  if(Math.abs(x-bx)+Math.abs(y-by)!==1)return; // не рядом
+  [tiles[i],tiles[blank]]=[tiles[blank],tiles[i]]; blank=i;
+  moves++; document.getElementById('moves').textContent=moves; render();
+  if(isSolved())document.getElementById('win').style.display='flex';
+}
+window.addEventListener('resize',()=>{layout();render();});
+newGame();
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

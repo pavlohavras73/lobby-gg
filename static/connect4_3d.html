@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>4 в ряд 3D — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  :root {
+    --c4-neon: #00f0ff;
+    --c4-dark: #0a0c14;
+  }
+  body {
+    background: radial-gradient(circle at 50% 20%, #151a2e, #07090f);
+    color: #f0f4fc;
+    min-height: 100vh;
+    overflow-x: hidden;
+    touch-action: manipulation;
+  }
+  .top-btn {
+    position: fixed;
+    top: 8px;
+    z-index: 99999;
+    background: rgba(10, 12, 20, 0.75);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-back {
+    left: 8px;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .nav-rules {
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 800;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .title-wrap {
+    text-align: center;
+    margin: 18px 0 10px;
+  }
+  .title-wrap h1 {
+    font-size: 26px;
+    letter-spacing: 1.5px;
+    margin: 0;
+    text-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+  }
+  .title-wrap .sub {
+    font-size: 13px;
+    color: var(--muted, #8b9bb4);
+    margin-top: 4px;
+  }
+
+  /* Lobby / Cards */
+  .card-box {
+    max-width: 420px;
+    margin: 12px auto;
+    background: rgba(18, 22, 38, 0.85);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  .palette-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 14px 0 18px;
+  }
+  .color-dot {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .color-dot:hover {
+    transform: scale(1.12);
+  }
+  .color-dot.active {
+    border-color: #fff;
+    box-shadow: 0 0 15px currentColor;
+    transform: scale(1.15);
+  }
+  .color-dot.taken {
+    opacity: 0.28;
+    cursor: not-allowed;
+    transform: scale(0.9);
+  }
+  .color-dot.taken::after {
+    content: "✕";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .player-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 9px 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .player-pill .tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .player-pill .pdot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  /* 3D Game Area */
+  #game-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 10px;
+  }
+  .hud {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 18, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 10px 18px;
+    margin-bottom: 8px;
+    backdrop-filter: blur(8px);
+  }
+  .hud-turn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .hud-players {
+    display: flex;
+    gap: 8px;
+  }
+  .hud-pchip {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .hud-pchip.active-turn {
+    outline: 2px solid #fff;
+    box-shadow: 0 0 12px currentColor;
+  }
+
+  #canvas-container {
+    width: 100%;
+    height: 520px;
+    background: #000;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  }
+  @media (max-width: 600px) {
+    #canvas-container { height: 440px; }
+  }
+
+  .canvas-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: #cbd5e1;
+    pointer-events: none;
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+
+  /* Win Modal */
+  .win-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 7, 15, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    text-align: center;
+    padding: 20px;
+  }
+  .win-title {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .win-sub {
+    font-size: 16px;
+    color: #94a3b8;
+    margin-bottom: 24px;
+  }
+
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+
+<a class="top-btn nav-back" href="/games/" title="Все игры">🎮 Игры</a>
+<button class="top-btn nav-rules" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила">i</button>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8)">
+    <div style="font-size:20px;font-weight:800;color:var(--c4-neon);margin-bottom:12px">🌌 4 в ряд 3D — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#e2e8f0">
+      Игра в пространственном кубе <b>5 × 5 × 5</b> (125 ячеек) для <b>2–3 игроков</b>.<br><br>
+      • <b>Ход:</b> кликните/тапните по любой из 25 колонок сверху. Ваша фишка под действием гравитации упадёт вниз.<br>
+      • <b>Вращение:</b> зажмите и крутите куб пальцем или мышью, чтобы видеть фишки с любой стороны.<br>
+      • <b>Победа:</b> соберите <b>4 фишки своего цвета в линию</b> в любом направлении пространства:
+      <ul style="padding-left:18px;margin:8px 0">
+        <li>По горизонтали (по осям X или Y)</li>
+        <li>По вертикали (высота Z)</li>
+        <li>По диагоналям плоскостей</li>
+        <li>По пространственным 3D-диагоналям (через весь объём куба)</li>
+      </ul>
+    </div>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(45deg,#00f0ff,#0066ff);color:#fff;font-weight:800;cursor:pointer">Понятно 👍</button>
+  </div>
+</div>
+
+<div class="title-wrap">
+  <h1>🌌 4 В РЯД : 3D</h1>
+  <div class="sub">битва в объёмном кубе 5×5×5 · до 3 игроков</div>
+</div>
+
+<!-- 1. HOME SCREEN -->
+<div id="home" class="card-box">
+  <input id="name" placeholder="Твоё имя" maxlength="20">
+  <button onclick="createGame()">Создать игру</button>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
+    <button class="sec" style="flex:1" onclick="joinGame()">Войти</button>
+  </div>
+</div>
+
+<!-- 2. LOBBY SCREEN -->
+<div id="lobby" class="card-box hide" style="text-align:center">
+  <div class="sub" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8ba2c4">Код комнаты:</div>
+  <div class="code" id="lcode" style="font-size:36px;font-weight:900;letter-spacing:6px;color:var(--c4-neon);margin:4px 0 12px">----</div>
+  
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#cbd5e1">Твой цвет фишки:</div>
+  <div class="palette-row" id="palette-picker"></div>
+
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px;text-align:left;color:#cbd5e1">Игроки в лобби (до 3):</div>
+  <div id="players-list"></div>
+
+  <div id="host-actions" style="margin-top:18px">
+    <button id="start-btn" onclick="startGame()" style="background:linear-gradient(45deg,#00f0ff,#7928ca);display:none">🚀 Начать игру</button>
+    <div id="waitmsg" class="sub" style="margin-top:8px">Ожидаем игроков (минимум 2)…</div>
+  </div>
+</div>
+
+<!-- 3. GAME 3D VIEW -->
+<div id="game-view" class="hide">
+  <div class="hud">
+    <div class="hud-turn" id="turn-info">
+      <div id="turn-dot" style="width:14px;height:14px;border-radius:50%"></div>
+      <span id="turn-text">Ходит: ...</span>
+    </div>
+    <div class="hud-players" id="hud-players"></div>
+  </div>
+
+  <div id="canvas-container">
+    <div class="canvas-hint">🖱️ Зажми и крути обзор · Тап по колонке для броска</div>
+
+    <div id="win-overlay" class="win-overlay hide">
+      <div class="win-title" id="win-heading">🏆 ПОБЕДА!</div>
+      <div class="win-sub" id="win-desc">Игрок собрал 4 в ряд!</div>
+      <button class="sec" onclick="restartGame()" style="padding:12px 28px;font-size:15px;font-weight:800">Играть снова</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+
+<script>
+let ws, pid = null, st = null;
+let scene, camera, renderer, controls, raycaster, mouse;
+let boardGroup, columnHitboxes = [];
+let chipsMap = {};
+let ghostMesh = null;
+let hoveredCol = null;
+
+const GRID_SIZE = 5;
+const SPACING = 2.2;
+const OFFSET = ((GRID_SIZE - 1) * SPACING) / 2;
+
+function show(id) {
+  ['home', 'lobby', 'game-view'].forEach(s => {
+    const el = document.getElementById(s);
+    if(el) el.classList.toggle('hide', s !== id);
+  });
+}
+
+function send(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+function connect(cb) {
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/games/ws');
+  ws.onopen = cb;
+  ws.onmessage = e => handle(JSON.parse(e.data));
+  ws.onclose = () => {
+    const w = document.getElementById('waitmsg');
+    if (w) w.textContent = 'Связь потеряна, обнови страницу.';
+  };
+}
+
+function createGame() {
+  const n = document.getElementById('name').value.trim() || 'Игрок';
+  connect(() => send({action: 'create', name: n, game: 'c4_3d'}));
+}
+
+function joinGame() {
+  const n = document.getElementById('name').value.trim() || 'Игрок';
+  const c = document.getElementById('joincode').value.trim().toUpperCase();
+  if (!c) return alert('Введите код комнаты');
+  connect(() => send({action: 'join', name: n, code: c}));
+}
+
+function selectColor(color) {
+  if (window.SFX) SFX.tap();
+  send({action: 'c4_3d_color', color: color});
+}
+
+function startGame() {
+  if (window.SFX) SFX.tap();
+  send({action: 'c4_3d_start'});
+}
+
+function restartGame() {
+  if (window.SFX) SFX.tap();
+  send({action: 'c4_3d_start'});
+}
+
+function dropChip(x, y) {
+  if (!st || !st.started || st.winner) return;
+  if (st.turn_pid !== pid) {
+    if (window.SFX) SFX.err();
+    return;
+  }
+  if (window.SFX) SFX.tap();
+  send({action: 'c4_3d_drop', x: x, y: y});
+}
+
+function handle(m) {
+  if (m.type === 'joined') {
+    pid = m.pid;
+  } else if (m.type === 'lobby') {
+    show('lobby');
+    document.getElementById('lcode').textContent = m.code;
+    const isHost = (m.host === pid);
+    document.getElementById('start-btn').style.display = (isHost && m.players.length >= 2) ? 'block' : 'none';
+    document.getElementById('waitmsg').style.display = (m.players.length >= 2) ? 'none' : 'block';
+
+    const pDiv = document.getElementById('players-list');
+    pDiv.innerHTML = m.players.map(p => `
+      <div class="player-pill">
+        <div class="tag">
+          <span>${p.id === m.host ? '👑' : '👤'}</span>
+          <span>${p.name} ${p.id === pid ? '<small style="color:var(--c4-neon)">(Ты)</small>' : ''}</span>
+        </div>
+      </div>
+    `).join('');
+  } else if (m.type === 'c4_3d_state') {
+    st = m;
+    if (!st.started && !st.winner) {
+      renderLobbyState();
+    } else {
+      renderGameState();
+    }
+  } else if (m.type === 'error') {
+    alert(m.msg);
+    if (window.SFX) SFX.err();
+  }
+}
+
+function renderLobbyState() {
+  show('lobby');
+  const paletteDiv = document.getElementById('palette-picker');
+  const myColor = st.colors[pid];
+  const usedColors = Object.entries(st.colors)
+    .filter(([p]) => p !== pid && st.players.includes(p))
+    .map(([, c]) => c);
+
+  paletteDiv.innerHTML = st.palette.map(col => {
+    const isTaken = usedColors.includes(col);
+    const isMine = (myColor === col);
+    return `<div class="color-dot ${isMine ? 'active' : ''} ${isTaken ? 'taken' : ''}" 
+                 style="background:${col}; color:${col}" 
+                 onclick="${isTaken ? '' : `selectColor('${col}')`}"></div>`;
+  }).join('');
+
+  const isHost = (st.host === pid);
+  document.getElementById('start-btn').style.display = (isHost && st.players.length >= 2) ? 'block' : 'none';
+  document.getElementById('waitmsg').style.display = (st.players.length >= 2) ? 'none' : 'block';
+
+  const pDiv = document.getElementById('players-list');
+  pDiv.innerHTML = st.players.map(p => {
+    const col = st.colors[p] || '#777';
+    const isHostP = (p === st.host);
+    const isMe = (p === pid);
+    return `
+      <div class="player-pill">
+        <div class="tag">
+          <div class="pdot" style="background:${col}; color:${col}"></div>
+          <span>${isHostP ? '👑' : '👤'} ${st.names[p] || 'Игрок'} ${isMe ? '<small style="color:var(--c4-neon)">(Ты)</small>' : ''}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderGameState() {
+  show('game-view');
+  init3D();
+  sync3DScene();
+
+  // HUD
+  const isMyTurn = (st.turn_pid === pid);
+  const turnCol = st.colors[st.turn_pid] || '#fff';
+  const turnName = isMyTurn ? 'ТВОЙ ХОД!' : `Ходит: ${st.names[st.turn_pid] || 'Игрок'}`;
+
+  const tDot = document.getElementById('turn-dot');
+  tDot.style.background = turnCol;
+  tDot.style.boxShadow = `0 0 10px ${turnCol}`;
+  document.getElementById('turn-text').innerHTML = isMyTurn 
+    ? `<span style="color:${turnCol}; font-weight:800">ТВОЙ ХОД!</span> Выберите колонку`
+    : turnName;
+
+  document.getElementById('hud-players').innerHTML = st.players.map(p => {
+    const col = st.colors[p] || '#fff';
+    const isCur = (p === st.turn_pid && !st.winner);
+    return `<div class="hud-pchip ${isCur ? 'active-turn' : ''}" style="color:${col}">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col}"></span>
+      ${st.names[p] || p}
+    </div>`;
+  }).join('');
+
+  // Winner / GameOver
+  const winOverlay = document.getElementById('win-overlay');
+  if (st.winner) {
+    winOverlay.classList.remove('hide');
+    if (st.winner === 'draw') {
+      document.getElementById('win-heading').textContent = '🤝 НИЧЬЯ!';
+      document.getElementById('win-heading').style.color = '#fff';
+      document.getElementById('win-desc').textContent = 'Куб заполнен полностью.';
+    } else {
+      const isWinner = (st.winner === pid);
+      const wName = st.names[st.winner] || 'Игрок';
+      const wCol = st.colors[st.winner] || '#fff';
+      document.getElementById('win-heading').textContent = isWinner ? '🏆 ТЫ ВЫИГРАЛ!' : `Победил: ${wName}!`;
+      document.getElementById('win-heading').style.color = wCol;
+      document.getElementById('win-desc').textContent = 'Собрано 4 фишки в ряд в 3D пространстве.';
+      if (isWinner && window.SFX) SFX.win();
+    }
+  } else {
+    winOverlay.classList.add('hide');
+  }
+}
+
+/* ═══════════════════ THREE.JS 3D ENGINE ═══════════════════ */
+function init3D() {
+  const container = document.getElementById('canvas-container');
+  if (renderer) return; // already initialized
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x050811, 0.015);
+
+  camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(16, 18, 22);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.target.set(0, 4.5, 0);
+  controls.maxDistance = 45;
+  controls.minDistance = 8;
+  controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambient);
+
+  const dirLight1 = new THREE.DirectionalLight(0x00f0ff, 0.8);
+  dirLight1.position.set(15, 25, 10);
+  scene.add(dirLight1);
+
+  const dirLight2 = new THREE.DirectionalLight(0xa259ff, 0.6);
+  dirLight2.position.set(-15, -10, -15);
+  scene.add(dirLight2);
+
+  boardGroup = new THREE.Group();
+  scene.add(boardGroup);
+
+  build3DBoard();
+
+  // Raycaster & Mouse
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  // Ghost Chip
+  const ghostGeo = new THREE.SphereGeometry(0.85, 24, 24);
+  const ghostMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, wireframe: true });
+  ghostMesh = new THREE.Mesh(ghostGeo, ghostMat);
+  ghostMesh.visible = false;
+  scene.add(ghostMesh);
+
+  container.addEventListener('mousemove', onMouseMove);
+  container.addEventListener('click', onCanvasClick);
+  container.addEventListener('touchmove', onTouchMove, { passive: true });
+  container.addEventListener('touchend', onTouchEnd);
+  window.addEventListener('resize', onResize);
+
+  animate();
+}
+
+function build3DBoard() {
+  // Base Pedestal
+  const baseSize = GRID_SIZE * SPACING + 2;
+  const baseGeo = new THREE.BoxGeometry(baseSize, 0.6, baseSize);
+  const baseMat = new THREE.MeshPhongMaterial({
+    color: 0x0c1020,
+    shininess: 60,
+    specular: 0x00f0ff
+  });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.position.y = -0.3;
+  boardGroup.add(base);
+
+  // Border neon edge
+  const edgeGeo = new THREE.EdgesGeometry(baseGeo);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.6 });
+  const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+  edges.position.y = -0.3;
+  boardGroup.add(edges);
+
+  // Vertical glass rods and column hitboxes
+  const rodMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.25 });
+  const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+
+  for (let x = 0; x < GRID_SIZE; x++) {
+    columnHitboxes[x] = [];
+    for (let y = 0; y < GRID_SIZE; y++) {
+      const px = x * SPACING - OFFSET;
+      const pz = y * SPACING - OFFSET;
+
+      // Vertical thin rod
+      const points = [
+        new THREE.Vector3(px, 0, pz),
+        new THREE.Vector3(px, GRID_SIZE * SPACING, pz)
+      ];
+      const rodGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const rod = new THREE.Line(rodGeo, rodMat);
+      boardGroup.add(rod);
+
+      // Hitbox cylinder for raycasting
+      const hitGeo = new THREE.CylinderGeometry(1.0, 1.0, GRID_SIZE * SPACING + 2, 8);
+      const hitbox = new THREE.Mesh(hitGeo, hitMat);
+      hitbox.position.set(px, (GRID_SIZE * SPACING) / 2, pz);
+      hitbox.userData = { cx: x, cy: y };
+      boardGroup.add(hitbox);
+      columnHitboxes[x][y] = hitbox;
+    }
+  }
+}
+
+function getPos(x, y, z) {
+  return new THREE.Vector3(
+    x * SPACING - OFFSET,
+    z * SPACING + 0.9,
+    y * SPACING - OFFSET
+  );
+}
+
+function sync3DScene() {
+  if (!st || !st.grid) return;
+
+  // Add / update chips
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let y = 0; y < GRID_SIZE; y++) {
+      const col = st.grid[x][y];
+      for (let z = 0; z < col.length; z++) {
+        const key = `${x}_${y}_${z}`;
+        const pidVal = col[z];
+        const hexColor = st.colors[pidVal] || '#ffffff';
+
+        const isWin = st.win_line && st.win_line.some(([wx, wy, wz]) => wx === x && wy === y && wz === z);
+
+        if (!chipsMap[key]) {
+          const geo = new THREE.SphereGeometry(0.85, 32, 32);
+          const mat = new THREE.MeshPhongMaterial({
+            color: new THREE.Color(hexColor),
+            shininess: 90,
+            specular: 0x444444
+          });
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.copy(getPos(x, y, z));
+          scene.add(mesh);
+          chipsMap[key] = mesh;
+
+          // Drop anim if it's the last move
+          if (st.last_move && st.last_move[0] === x && st.last_move[1] === y && st.last_move[2] === z) {
+            animateDrop(mesh, mesh.position.y);
+          }
+        }
+
+        // Highlight win line
+        if (isWin && chipsMap[key]) {
+          chipsMap[key].material.emissive = new THREE.Color(0xffffff);
+          chipsMap[key].material.emissiveIntensity = 0.6;
+        }
+      }
+    }
+  }
+}
+
+function animateDrop(mesh, targetY) {
+  mesh.position.y = targetY + 12;
+  let vy = 0;
+  const g = 0.55;
+  const bounce = 0.3;
+
+  function loop() {
+    vy -= g;
+    mesh.position.y += vy;
+    if (mesh.position.y <= targetY) {
+      mesh.position.y = targetY;
+      vy = -vy * bounce;
+      if (Math.abs(vy) < 0.2) {
+        mesh.position.y = targetY;
+        return;
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function updateHover(clientX, clientY) {
+  if (!st || !st.started || st.winner) {
+    ghostMesh.visible = false;
+    hoveredCol = null;
+    return;
+  }
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(boardGroup.children);
+  const hit = intersects.find(i => i.object.userData && i.object.userData.cx !== undefined);
+
+  if (hit) {
+    const { cx, cy } = hit.object.userData;
+    const colLen = st.grid[cx][cy].length;
+    if (colLen < GRID_SIZE) {
+      hoveredCol = { x: cx, y: cy };
+      ghostMesh.position.copy(getPos(cx, cy, colLen));
+      const myCol = st.colors[pid] || '#00f0ff';
+      ghostMesh.material.color.set(myCol);
+      ghostMesh.visible = true;
+      return;
+    }
+  }
+  ghostMesh.visible = false;
+  hoveredCol = null;
+}
+
+function onMouseMove(e) {
+  updateHover(e.clientX, e.clientY);
+}
+
+function onTouchMove(e) {
+  if (e.touches.length === 1) {
+    updateHover(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}
+
+function onCanvasClick(e) {
+  if (hoveredCol) {
+    dropChip(hoveredCol.x, hoveredCol.y);
+  }
+}
+
+function onTouchEnd(e) {
+  if (hoveredCol) {
+    dropChip(hoveredCol.x, hoveredCol.y);
+  }
+}
+
+function onResize() {
+  if (!camera || !renderer) return;
+  const c = document.getElementById('canvas-container');
+  camera.aspect = c.clientWidth / c.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(c.clientWidth, c.clientHeight);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (controls) controls.update();
+  if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+// Auto-fill player name from localStorage
+const savedName = localStorage.getItem('jg_name');
+if (savedName) document.getElementById('name').value = savedName;
+document.getElementById('name').addEventListener('input', e => localStorage.setItem('jg_name', e.target.value.trim()));
+</script>
+</body>
+</html>

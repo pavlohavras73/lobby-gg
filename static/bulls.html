@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Быки и коровы — Jarvis Games</title>
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  .g{display:flex;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin:4px 0;font-size:15px}
+  .g .num{font-weight:800;letter-spacing:3px;font-size:18px}
+  .bull{color:#ff5566;font-weight:700}.cow{color:#ffd23f;font-weight:700}
+  .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
+  .col{display:flex;gap:10px}.col>div{flex:1}
+  .lbl2{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px}
+</style></head><body>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
+<h1>🐂 БЫКИ И КОРОВЫ</h1><div class="sub">взломай 4-значный код соперника · на двоих</div>
+<div id="home" class="card" style="max-width:360px;margin:0 auto">
+  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
+  <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+<div id="lobby" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
+  <div class="sub">Код комнаты:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div><div class="sub" id="waitmsg">Ждём второго…</div></div>
+<div id="setup" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
+  <div class="sub">Загадай свой секрет — 4 РАЗНЫЕ цифры</div>
+  <input id="secret" placeholder="напр. 4071" maxlength="4" inputmode="numeric" style="font-size:24px;letter-spacing:6px">
+  <button onclick="setCode()">Загадать</button>
+  <div class="sub" id="setupstatus"></div></div>
+<div id="game" class="hide">
+  <div class="turn" id="turninfo"></div>
+  <div id="guessbox" class="card" style="max-width:360px;margin:0 auto">
+    <input id="guess" placeholder="Твоя догадка (4 цифры)" maxlength="4" inputmode="numeric" style="font-size:22px;letter-spacing:6px;text-align:center">
+    <button onclick="makeGuess()">Угадать</button></div>
+  <div class="col" style="max-width:380px;margin:8px auto">
+    <div><div class="lbl2">Твои попытки</div><div id="mine"></div></div>
+    <div><div class="lbl2" id="opname">Соперник</div><div id="theirs"></div></div></div>
+  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+</div>
+<script>
+let ws,pid,st=null;
+function show(id){for(const s of['home','lobby','setup','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
+function send(o){ws.send(JSON.stringify(o));}
+function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));}
+function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'bulls'}));}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function setCode(){const v=document.getElementById('secret').value;if(v.length!==4||new Set(v).size!==4||!/^\d+$/.test(v))return alert('Нужны 4 РАЗНЫЕ цифры');send({action:'bc_set',code:v});}
+function makeGuess(){const v=document.getElementById('guess').value;if(v.length!==4||!/^\d+$/.test(v))return alert('4 цифры');send({action:'bc_guess',guess:v});document.getElementById('guess').value='';}
+function rows(arr){return arr.map(g=>'<div class="g"><span class="num">'+g[0]+'</span><span><span class="bull">🐂'+g[1]+'</span> <span class="cow">🐄'+g[2]+'</span></span></div>').join('')||'<div class="sub">—</div>';}
+function handle(m){
+  if(m.type==='joined'){pid=m.pid;}
+  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
+    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
+  else if(m.type==='bc_state'){st=m;
+    if(m.phase==='setup'){show('setup');
+      const meReady=m.ready[pid];document.getElementById('setupstatus').textContent=meReady?'Ждём соперника…':'';
+      return;}
+    show('game');
+    const opp=m.players.find(p=>p!==pid);
+    document.getElementById('opname').textContent=(m.names[opp]||'Соперник');
+    document.getElementById('mine').innerHTML=rows(m.guesses[pid]||[]);
+    document.getElementById('theirs').innerHTML=rows(m.guesses[opp]||[]);
+    const my=m.turn_pid===pid;
+    document.getElementById('guessbox').style.display=(my&&!m.winner)?'block':'none';
+    const ov=document.getElementById('over');
+    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?'🏆 Ты взломал код!':'Соперник угадал первым';}
+    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">ТВОЙ ХОД</span> — угадай код соперника':'Ходит '+(m.names[m.turn_pid]||'?');}}
+  else if(m.type==='error'){alert(m.msg);}
+}
+</script><script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+</body></html>
