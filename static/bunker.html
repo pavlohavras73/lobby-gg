@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>БУНКЕР — Jarvis Games</title>
+<title>БУНКЕР — Lobby.gg</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
   h1{letter-spacing:3px}
+  body > .card{max-width:560px;margin-left:auto;margin-right:auto}
   .scen{background:rgba(255,34,56,.07);border-left:3px solid var(--crimson);padding:11px;font-size:13px;margin:8px 0;color:#e8d8d8;border-radius:8px}
   .cell{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:11px;margin:5px 0;font-size:13px}
   .cell.open{border-color:var(--crimson);background:rgba(255,34,56,.08);box-shadow:0 0 14px rgba(255,34,56,.15)}
@@ -25,7 +27,7 @@
 <button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">☢ Бункер — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1>☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Jarvis Games · кто достоин места</div>
+<h1>☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Lobby.gg · кто достоин места</div>
 <div class="langbar" id="langbar" role="group" aria-label="Language">
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
@@ -98,7 +100,7 @@ const UI={
   uk:{
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокаліпсис, у бункері мало місць. У кожного свої карти (професія, здоров'я, багаж…). Розкривайте їх, сперечайтеся й голосуйте, кого НЕ пускати в бункер.",
-    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Jarvis Games · хто гідний місця",
+    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Lobby.gg · хто гідний місця",
     ph_name:"Твій позивний", btn_create:"Створити бункер", ph_code:"КОД", btn_join:"Увійти за кодом", link_spy:"→ грати у Шпигуна",
     lobby_code:"Код бункера:", settings:"⚙ НАЛАШТУВАННЯ", set_seats:"Місць у бункері (0=авто)", set_timer:"Таймер раунду, сек (0=вимк)", set_rev:"Розкриттів за раунд (0=∞)",
     btn_bot:"🤖 Додати бота", btn_start:"🚪 Запустити гру", wait_host:"Чекаємо ведучого…",
@@ -112,7 +114,7 @@ const UI={
   ru:{
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.",
-    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Jarvis Games · кто достоин места",
+    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Lobby.gg · кто достоин места",
     ph_name:"Твой позывной", btn_create:"Создать бункер", ph_code:"КОД", btn_join:"Войти по коду", link_spy:"→ играть в Шпиона",
     lobby_code:"Код бункера:", settings:"⚙ НАСТРОЙКИ", set_seats:"Мест в бункере (0=авто)", set_timer:"Таймер раунда, сек (0=выкл)", set_rev:"Вскрытий за раунд (0=∞)",
     btn_bot:"🤖 Добавить бота", btn_start:"🚪 Запустить игру", wait_host:"Ждём ведущего…",
@@ -126,7 +128,7 @@ const UI={
   en:{
     rules_title:"☢ Bunker — rules",
     rules_body:"Apocalypse, and the bunker has few seats. Everyone has their own cards (profession, health, baggage…). Reveal them, argue, and vote on who does NOT get in.",
-    rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Jarvis Games · who deserves a spot",
+    rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Lobby.gg · who deserves a spot",
     ph_name:"Your callsign", btn_create:"Create bunker", ph_code:"CODE", btn_join:"Join by code", link_spy:"→ play Spy",
     lobby_code:"Bunker code:", settings:"⚙ SETTINGS", set_seats:"Seats in bunker (0=auto)", set_timer:"Round timer, sec (0=off)", set_rev:"Reveals per round (0=∞)",
     btn_bot:"🤖 Add bot", btn_start:"🚪 Start game", wait_host:"Waiting for the host…",

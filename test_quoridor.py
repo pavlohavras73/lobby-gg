@@ -1,10 +1,9 @@
-import os
 """
 Unit-тесты для quoridor.py
 """
 import unittest
 import sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 from quoridor import (
     new_quoridor_state, get_valid_pawn_moves, can_place_wall,
     apply_pawn_move, apply_wall_placement, bot_choose_action,

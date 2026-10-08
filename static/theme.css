@@ -1,132 +1,178 @@
-/* Jarvis Games — дизайн-система: true black + crimson, dark glass, glow, smooth-float */
+/* Lobby.gg — design system v3: deep black + crimson, glass, glow, soft motion.
+   Class names (.card .glass .opt .opts .pl .hide .code .row .chip ...) are a stable API for all game pages. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Unbounded:wght@500;600;700;800&display=swap');
+
 :root{
-  --bg:#000000;
+  --bg:#050507;
+  --bg-2:#0b0b10;
   --crimson:#ff2238;
   --crimson-deep:#c40f23;
+  --crimson-soft:#ff6b7a;
   --crimson-glow:rgba(255,34,56,.55);
-  --text:#f2f2f5;
-  --muted:#8a8a93;
-  --glass:rgba(18,18,22,.55);
-  --glass-2:rgba(28,28,34,.6);
-  --border:rgba(255,255,255,.07);
-  --inner:inset 0 1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.03);
+  --ember:#ff7a45;
+  --violet:#8b5cf6;
+  --text:#f4f4f7;
+  --muted:#8d8d98;
+  --faint:#5c5c66;
+  --glass:rgba(16,16,21,.58);
+  --glass-2:rgba(26,26,33,.62);
+  --border:rgba(255,255,255,.075);
+  --border-hi:rgba(255,255,255,.14);
+  --inner:inset 0 1px 0 rgba(255,255,255,.07), inset 0 0 0 1px rgba(255,255,255,.025);
+  --font:'Inter',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  --display:'Unbounded','Inter',system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.7,.3,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
 body{
-  font-family:'Inter',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  font-family:var(--font);font-feature-settings:"cv11","ss01";
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   background:var(--bg);color:var(--text);min-height:100vh;
-  padding:max(46px,6vh) 16px 40px;position:relative;overflow-x:hidden;  /* воздух сверху — контент не лепится к краю */
+  padding:max(46px,6vh) 16px 40px;position:relative;overflow-x:hidden;
 }
-/* crimson light-bloom фон */
+::selection{background:rgba(255,34,56,.35);color:#fff}
+
+/* ── ambient background: drifting crimson/ember/violet light + film grain ── */
 body::before{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  content:"";position:fixed;inset:-25%;z-index:-2;pointer-events:none;
   background:
-    radial-gradient(700px 380px at 50% -8%, rgba(255,34,56,.18), transparent 60%),
-    radial-gradient(500px 500px at 85% 110%, rgba(255,34,56,.07), transparent 60%),
-    #000;
+    radial-gradient(38% 30% at 50% 12%, rgba(255,34,56,.20), transparent 70%),
+    radial-gradient(30% 28% at 82% 70%, rgba(139,92,246,.10), transparent 70%),
+    radial-gradient(28% 26% at 18% 78%, rgba(255,122,69,.08), transparent 70%),
+    var(--bg);
+  animation:ambient 26s ease-in-out infinite alternate;
+  will-change:transform;
 }
-h1{font-size:26px;font-weight:800;letter-spacing:.5px;text-align:center;line-height:1.1}
-.sub{color:var(--muted);font-size:13px;text-align:center;margin:7px 0 24px;letter-spacing:.3px}
-a{color:var(--muted);text-decoration:none}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@keyframes ambient{
+  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+  50%{transform:translate3d(3%,-2%,0) rotate(4deg) scale(1.05)}
+  100%{transform:translate3d(-3%,2%,0) rotate(-3deg) scale(1.02)}
+}
 
-/* dark-glass контейнер */
+h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:.2px;text-align:center;line-height:1.15;
+  text-shadow:0 0 28px rgba(255,34,56,.25)}
+h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.1px}
+.sub{color:var(--muted);font-size:13px;text-align:center;margin:8px 0 24px;letter-spacing:.2px;line-height:1.5}
+a{color:var(--muted);text-decoration:none;transition:color .2s}
+a:hover{color:var(--crimson)}
+
+/* ── glass containers ── */
 .card,.glass{
+  position:relative;
   background:linear-gradient(180deg,var(--glass-2),var(--glass));
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1px solid var(--border);border-radius:18px;padding:16px;margin:10px 0;
-  box-shadow:var(--inner), 0 10px 30px rgba(0,0,0,.5);
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+  border:1px solid var(--border);border-radius:20px;padding:16px;margin:10px 0;
+  box-shadow:var(--inner), 0 18px 40px -12px rgba(0,0,0,.7);
+  transition:border-color .3s, box-shadow .3s;
+  animation:riseIn .45s var(--ease) both;
 }
+.card:hover,.glass:hover{border-color:var(--border-hi);
+  box-shadow:var(--inner), 0 18px 40px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,34,56,.06), 0 0 40px -10px rgba(255,34,56,.25)}
 
-/* поля ввода */
-input,select{
-  font-size:16px;padding:14px;border-radius:12px;width:100%;margin:6px 0;font-family:inherit;
-  background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--border);text-align:center;
-  transition:border-color .2s, box-shadow .2s;
+/* ── inputs ── */
+input,select,textarea{
+  font-size:16px;padding:14px;border-radius:13px;width:100%;margin:6px 0;font-family:inherit;
+  background:rgba(255,255,255,.035);color:var(--text);border:1px solid var(--border);text-align:center;
+  transition:border-color .2s, box-shadow .2s, background .2s, transform .2s;
 }
-/* select: убираем кривую нативную стрелку, рисуем свою — отодвинута от края */
+textarea{text-align:left}
+input:hover,select:hover{border-color:var(--border-hi)}
 select{
   -webkit-appearance:none;-moz-appearance:none;appearance:none;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239a9aa4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
   background-repeat:no-repeat;background-position:right 14px center;
-  padding-right:40px;   /* место под стрелку, текст не налезает */
-  text-align-last:center;
+  padding-right:40px;text-align-last:center;
 }
 select:focus{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ff2238' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");}
-/* пункты списка — хотя бы фон/цвет под тему (где ОС позволяет, напр. Android/десктоп) */
 select option{background:#15151b;color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--crimson);background-color:rgba(255,34,56,.04);
+  box-shadow:0 0 0 4px rgba(255,34,56,.14)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
 
-/* кнопки-табы (сегментированный выбор) — приятнее системных select, единый вид во всех играх */
+/* ── segmented options ── */
 .opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 6px;width:100%}
-.opt{flex:1;min-width:70px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);
-  background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-weight:700;font-size:14px;
-  text-align:center;transition:.15s;user-select:none}
-.opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
+.opt{flex:1;min-width:70px;padding:11px 8px;border-radius:13px;border:1px solid var(--border);
+  background:rgba(255,255,255,.035);color:var(--text);cursor:pointer;font-weight:700;font-size:14px;
+  text-align:center;transition:.18s;user-select:none}
+.opt:hover{border-color:var(--border-hi);background:rgba(255,255,255,.06)}
+.opt.on{border-color:var(--crimson);background:linear-gradient(180deg,rgba(255,34,56,.22),rgba(255,34,56,.10));
+  box-shadow:0 0 18px -2px var(--crimson-glow), inset 0 1px 0 rgba(255,255,255,.08)}
 .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
-.opt-label{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 2px}
-input:focus,select:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px rgba(255,34,56,.18)}
-input::placeholder{color:#5c5c64}
+.opt-label{font-size:11px;color:var(--muted);text-align:center;margin:10px 0 3px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
 
-/* кнопки */
+/* ── buttons ── */
 button{
-  font-size:16px;padding:14px;border-radius:12px;border:none;width:100%;margin:6px 0;font-family:inherit;
-  font-weight:700;letter-spacing:.3px;cursor:pointer;transition:transform .12s, box-shadow .25s, background .25s;
-  /* по умолчанию — crimson CTA */
-  background:linear-gradient(135deg,var(--crimson),var(--crimson-deep));color:#fff;
-  box-shadow:0 2px 14px rgba(255,34,56,.25);
+  font-size:16px;padding:14px;border-radius:13px;border:none;width:100%;margin:6px 0;font-family:inherit;
+  font-weight:700;letter-spacing:.2px;cursor:pointer;transition:transform .15s var(--ease), box-shadow .25s, background .25s, border-color .25s;
+  background:linear-gradient(135deg,#ff3448 0%,var(--crimson) 45%,var(--crimson-deep) 100%);color:#fff;
+  box-shadow:0 6px 20px -6px rgba(255,34,56,.55), inset 0 1px 0 rgba(255,255,255,.22);
+  position:relative;overflow:hidden;
 }
-button:active{transform:scale(.97)}
-/* fade-in-glow при наведении */
-.btn:hover,button:not(.sec):not(.danger):hover{box-shadow:0 0 26px var(--crimson-glow),0 0 8px var(--crimson-glow)}
-button.sec,.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
-button.sec:hover{border-color:var(--crimson);box-shadow:0 0 16px rgba(255,34,56,.2)}
+button:active{transform:scale(.96)}
+.btn:hover,button:not(.sec):not(.danger):hover{box-shadow:0 10px 30px -6px var(--crimson-glow),0 0 10px rgba(255,34,56,.35), inset 0 1px 0 rgba(255,255,255,.25)}
+button.sec,.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);box-shadow:var(--inner)}
+button.sec:hover{border-color:rgba(255,34,56,.6);background:rgba(255,34,56,.07);box-shadow:0 0 20px -4px rgba(255,34,56,.3)}
 button.danger{background:linear-gradient(135deg,#ff2238,#7a0c18);color:#fff}
 button.danger:hover{box-shadow:0 0 22px var(--crimson-glow)}
-button:disabled{opacity:.4;box-shadow:none}
+button:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
+button:focus-visible,a:focus-visible,.opt:focus-visible{outline:2px solid var(--crimson-soft);outline-offset:2px}
+/* sweep highlight + lift */
+button::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);transition:left .6s ease}
+button:hover::after{left:155%}
+button:not(:disabled):hover{transform:translateY(-2px)}
+button:not(:disabled):active{transform:scale(.96)}
 
-.code{font-size:34px;font-weight:900;letter-spacing:8px;text-align:center;
-  background:linear-gradient(90deg,#fff,#ff7a88);-webkit-background-clip:text;background-clip:text;color:transparent}
-.pl{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px;margin:5px 0;font-size:13px}
+.code{font-family:var(--display);font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;
+  background:linear-gradient(90deg,#fff,#ff7a88,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:200% auto;animation:shimmer 3.6s linear infinite}
+.pl{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:5px 0;font-size:13px;
+  animation:slidein .3s ease both;transition:border-color .2s, background .2s}
+.pl:hover{border-color:var(--border-hi)}
 .row{display:flex;gap:8px}.row>*{flex:1}.hide{display:none!important}
 .badge,.lbl{font-size:11px;color:var(--muted)}
+.crimson{color:var(--crimson)}
 
-/* анимации */
+/* ── motion ── */
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .float{animation:floaty 5s ease-in-out infinite}
 @keyframes glowpulse{0%,100%{box-shadow:0 0 10px rgba(255,34,56,.2)}50%{box-shadow:0 0 24px var(--crimson-glow)}}
 .pulse{animation:glowpulse 2.4s ease-in-out infinite}
 @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.crimson{color:var(--crimson)}
-
-/* ─────── polish v2: больше вкусных анимаций ─────── */
 @keyframes popin{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes slidein{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes bgshift{0%,100%{opacity:1}50%{opacity:.6}}
 
-/* фон чуть дышит */
-body::before{animation:bgshift 9s ease-in-out infinite}
-
-/* кнопки — блик-свайп + подъём */
-button{position:relative;overflow:hidden}
-button::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.30),transparent);transform:skewX(-20deg);transition:left .6s ease}
-button:hover::after{left:155%}
-button:not(:disabled):hover{transform:translateY(-2px)}
-button:active{transform:scale(.96)}
-
-/* контейнеры — плавный въезд */
-.card,.glass{animation:riseIn .45s cubic-bezier(.2,.7,.3,1) both}
-
-/* чипы (Шпион и др.) — поп + пульс активного */
 .chip{animation:popin .28s cubic-bezier(.2,1.4,.4,1) both;
   transition:transform .12s,box-shadow .25s,border-color .25s,background .25s}
 .chip:hover{transform:translateY(-2px)}
 .chip.on{animation:popin .28s cubic-bezier(.2,1.4,.4,1) both, glowpulse 2.6s ease-in-out infinite}
-
-/* игроки въезжают, код мерцает, заголовок светится */
-.pl{animation:slidein .3s ease both}
-.code{background-size:200% auto;animation:shimmer 3.6s linear infinite}
-h1{text-shadow:0 0 22px rgba(255,34,56,.22)}
 input:focus,select:focus{transform:translateY(-1px)}
-a{transition:color .2s}a:hover{color:var(--crimson)}
+
+/* ── brand mark (used on landing/login, optional elsewhere) ── */
+.lgg-mark{display:inline-block;width:34px;height:34px;flex-shrink:0;filter:drop-shadow(0 0 14px rgba(255,34,56,.45))}
+.lgg-word{font-family:var(--display);font-weight:700;letter-spacing:-.3px;color:#fff}
+.lgg-word i{font-style:normal;background:linear-gradient(90deg,var(--crimson),var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* scrollbar */
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,34,56,.4);background-clip:padding-box}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* small utility buttons inside pages (language pills, rules "i") — no CTA glow/sweep */
+.langbar button,#rulesBtn{box-shadow:none;margin:0;width:auto}
+.langbar button::after,#rulesBtn::after{display:none}
+.langbar button:not(:disabled):hover,#rulesBtn:hover{transform:none;box-shadow:none}
+.langbar button.active{box-shadow:0 0 14px rgba(255,34,56,.4)}

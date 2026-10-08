@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Коридор — Jarvis Games</title>
+<title>Коридор — Lobby.gg</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
   :root {
@@ -34,6 +35,9 @@
     font-size: 16px; font-style: italic; font-family: Georgia, serif;
   }
   .back-btn { left: 8px; }
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 
   /* Карточки игроков в игре */
   .players-bar {
@@ -134,7 +138,12 @@
     font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 3px #000;
   }
 
-  /* Пазы для стенок с увеличенным хитбоксом */
+  /* Пазы для стенок с увеличенным хитбоксом — активны ТОЛЬКО в режиме стен,
+     иначе их расширенный хитбокс (::before, -7px) перехватывает клики/ховеры
+     по соседним клеткам даже в режиме ходьбы. */
+  .q-slot-h, .q-slot-v, .q-slot-node { pointer-events: none; }
+  #board.wall-mode .q-slot-h, #board.wall-mode .q-slot-v, #board.wall-mode .q-slot-node { pointer-events: auto; }
+
   .q-slot-h {
     background: rgba(255,255,255,0.03); border-radius: 2px; cursor: pointer;
     position: relative; z-index: 6;
@@ -192,60 +201,61 @@
 </head>
 <body>
 
-<a class="top-btn back-btn" href="/games/">🎮 Игры</a>
+<a class="top-btn back-btn" href="/games/" data-i18n="nav_games">🎮 Игры</a>
 <button class="top-btn rules-btn" onclick="document.getElementById('rulesModal').style.display='flex'">i</button>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:400px;width:100%;background:#141724;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8)">
-    <div style="font-size:20px;font-weight:800;color:#ffd166;margin-bottom:12px">🧱 Коридор — правила</div>
-    <div style="font-size:14px;line-height:1.6;color:#e2e8f0">
+    <div style="font-size:20px;font-weight:800;color:#ffd166;margin-bottom:12px" data-i18n="rules_title">🧱 Коридор — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#e2e8f0" data-i18n="rules_body">
       Цель игры: <b>первым довести свою фишку на противоположную сторону поля</b>.<br><br>
       В свой ход можно сделать <b>одно из двух действий</b>:<br>
       • <b>Сделать шаг фишкой</b> на 1 соседнюю клетку (если путь не закрыт стенкой). Через фишку соперника можно перепрыгнуть!<br>
       • <b>Поставить стенку</b> (длиной в 2 клетки), чтобы заблокировать соперника или направить его в лабиринт.<br><br>
       ⚠️ <i>Главное правило:</i> <b>запрещено полностью замуровывать путь к финишу</b> — у каждого игрока всегда должен оставаться хотя бы один выход!
     </div>
-    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#ff2238);color:#fff;font-weight:800;cursor:pointer">Понятно 👍</button>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#ff2238);color:#fff;font-weight:800;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
   </div>
 </div>
 
-<h1>🧱 КОРИДОР</h1>
-<div class="sub">стратегия лабиринтов · 2, 3 или 4 игрока</div>
+<h1 data-i18n="title">🧱 КОРИДОР</h1>
+<div class="sub" data-i18n="subtitle">стратегия лабиринтов · 2, 3 или 4 игрока</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 
 <!-- 1. Экран Создания / Входа -->
 <div id="home" class="card" style="max-width:390px;margin:0 auto">
-  <input id="name" placeholder="Твоё имя" maxlength="20">
-  <button onclick="create()">Создать комнату</button>
+  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="name_ph">
+  <button onclick="create()" data-i18n="create_btn">Создать комнату</button>
   <div style="height:10px"></div>
-  <input id="joincode" placeholder="КОД КОМНАТЫ" maxlength="4" style="text-transform:uppercase">
-  <button class="sec" onclick="join()">Войти по коду</button>
-  <div class="sub" style="margin-top:12px"><a href="/games">← ко всем играм</a></div>
+  <input id="joincode" placeholder="КОД КОМНАТЫ" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph">
+  <button class="sec" onclick="join()" data-i18n="join_btn">Войти по коду</button>
+  <div class="sub" style="margin-top:12px"><a href="/games" data-i18n="all_games">← ко всем играм</a></div>
 </div>
 
 <!-- 2. Экран Лобби -->
 <div id="lobby" class="card hide" style="max-width:390px;margin:0 auto;text-align:center">
-  <div class="sub">Код комнаты:</div>
-  <div class="code" id="lcode" onclick="navigator.clipboard.writeText(this.textContent);if(window.SFX)SFX.tap();alert('Код скопирован!')" title="Клик — скопировать">----</div>
-  
-  <div style="margin:14px 0 6px;text-align:left;font-size:13px;font-weight:700;color:var(--muted)">Игроки в комнате:</div>
+  <div class="sub" data-i18n="room_code">Код комнаты:</div>
+  <div class="code" id="lcode" onclick="navigator.clipboard.writeText(this.textContent);if(window.SFX)SFX.tap();alert(t('code_copied'))" title="" data-i18n-title="click_copy">----</div>
+
+  <div style="margin:14px 0 6px;text-align:left;font-size:13px;font-weight:700;color:var(--muted)" data-i18n="players_in_room">Игроки в комнате:</div>
   <div id="players" style="margin-bottom:12px"></div>
 
   <!-- Настройки для хоста -->
   <div id="host-settings" class="hide" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;margin:12px 0;text-align:left">
-    <div style="font-size:12px;font-weight:800;color:#ffd166;margin-bottom:6px">⚙️ Добавить соперника (Бот):</div>
-    
+    <div style="font-size:12px;font-weight:800;color:#ffd166;margin-bottom:6px" data-i18n="add_bot_title">⚙️ Добавить соперника (Бот):</div>
+
     <div class="row" style="margin-top:4px">
       <div class="opts botdiff" style="margin:0">
-        <div class="opt" data-d="easy" onclick="setDiff(this)">🤖 Лёгкий</div>
-        <div class="opt on" data-d="medium" onclick="setDiff(this)">Средний</div>
-        <div class="opt" data-d="hard" onclick="setDiff(this)">Умный</div>
+        <div class="opt" data-d="easy" onclick="setDiff(this)" data-i18n="diff_easy">🤖 Лёгкий</div>
+        <div class="opt on" data-d="medium" onclick="setDiff(this)" data-i18n="diff_medium">Средний</div>
+        <div class="opt" data-d="hard" onclick="setDiff(this)" data-i18n="diff_hard">Умный</div>
       </div>
-      <button class="sec" style="margin:0;padding:7px 14px;font-size:12px" onclick="addBot()">+ Бот</button>
+      <button class="sec" style="margin:0;padding:7px 14px;font-size:12px" onclick="addBot()" data-i18n="add_bot_btn">+ Бот</button>
     </div>
   </div>
 
-  <div id="waitmsg" class="sub" style="margin:12px 0">Ждём игроков (минимум 2, максимум 4)...</div>
-  <button id="start-btn" class="hide" onclick="startGame()" style="background:var(--crimson,#ff2238);color:#fff;font-weight:800;box-shadow:0 0 15px rgba(255,34,56,0.4)">🚀 НАЧАТЬ ИГРУ</button>
+  <div id="waitmsg" class="sub" style="margin:12px 0" data-i18n="wait_default">Ждём игроков (минимум 2, максимум 4)...</div>
+  <button id="start-btn" class="hide" onclick="startGame()" style="background:var(--crimson,#ff2238);color:#fff;font-weight:800;box-shadow:0 0 15px rgba(255,34,56,0.4)" data-i18n="start_btn">🚀 НАЧАТЬ ИГРУ</button>
 </div>
 
 <!-- 3. Экран Игры -->
@@ -258,14 +268,14 @@
   <!-- Панель переключения режима хода -->
   <div class="controls-panel">
     <button class="ctrl-btn active" id="btn-mode-pawn" onclick="setMode('pawn')">
-      <span>🚶</span> Ходить фишкой
+      <span>🚶</span> <span data-i18n="mode_pawn">Ходить фишкой</span>
     </button>
     <button class="ctrl-btn" id="btn-mode-wall" onclick="setMode('wall')">
-      <span>🧱</span> Ставить стенку
+      <span>🧱</span> <span data-i18n="mode_wall">Ставить стенку</span>
     </button>
     <div class="sub-switch" id="wall-dir-switch" style="display:none">
-      <button class="sub-btn active" id="btn-dir-h" onclick="setWallDir('h')" title="Горизонтально">━</button>
-      <button class="sub-btn" id="btn-dir-v" onclick="setWallDir('v')" title="Вертикально">┃</button>
+      <button class="sub-btn active" id="btn-dir-h" onclick="setWallDir('h')" title="" data-i18n-title="dir_h">━</button>
+      <button class="sub-btn" id="btn-dir-v" onclick="setWallDir('v')" title="" data-i18n-title="dir_v">┃</button>
     </div>
   </div>
 
@@ -280,7 +290,7 @@
   <div id="overbox" class="card hide" style="max-width:390px;margin:12px auto;text-align:center">
     <h1 id="overtext" style="color:#ffd166;font-size:26px;margin-bottom:8px"></h1>
     <div id="oversub" class="sub" style="margin-bottom:14px"></div>
-    <button class="sec" onclick="restart()">🔄 Новая партия</button>
+    <button class="sec" onclick="restart()" data-i18n="restart_btn">🔄 Новая партия</button>
   </div>
 </div>
 
@@ -294,6 +304,37 @@ let currentMode = 'pawn'; // 'pawn' | 'wall'
 let currentWallDir = 'h';  // 'h' | 'v'
 let hoveredSlot = null;
 
+// ── i18n ──
+const UI={
+ uk:{nav_games:"🎮 Ігри",rules_title:"🧱 Коридор — правила",rules_body:"Мета гри: <b>першим довести свою фішку на протилежну сторону поля</b>.<br><br>У свій хід можна зробити <b>одну з двох дій</b>:<br>• <b>Зробити крок фішкою</b> на 1 сусідню клітинку (якщо шлях не закритий стінкою). Через фішку суперника можна перестрибнути!<br>• <b>Поставити стінку</b> (довжиною в 2 клітинки), щоб заблокувати суперника або спрямувати його в лабіринт.<br><br>⚠️ <i>Головне правило:</i> <b>заборонено повністю замуровувати шлях до фінішу</b> — у кожного гравця завжди має лишатись хоча б один вихід!",rules_ok:"Зрозуміло 👍",title:"🧱 КОРИДОР",subtitle:"стратегія лабіринтів · 2, 3 або 4 гравці",name_ph:"Твоє ім'я",create_btn:"Створити кімнату",code_ph:"КОД КІМНАТИ",join_btn:"Увійти за кодом",all_games:"← до всіх ігор",room_code:"Код кімнати:",click_copy:"Клік — скопіювати",code_copied:"Код скопійовано!",players_in_room:"Гравці в кімнаті:",add_bot_title:"⚙️ Додати суперника (Бот):",diff_easy:"🤖 Легкий",diff_medium:"Середній",diff_hard:"Розумний",add_bot_btn:"+ Бот",wait_default:"Чекаємо гравців (мінімум 2, максимум 4)...",start_btn:"🚀 ПОЧАТИ ГРУ",mode_pawn:"Ходити фішкою",mode_wall:"Ставити стінку",dir_h:"Горизонтально",dir_v:"Вертикально",restart_btn:"🔄 Нова партія",enter_code_alert:"Введіть код кімнати",need_players:"Потрібно 2, 3 або 4 гравці (зараз {n})",ready_to_start:"Готово до старту! Гравців: {n}/4",your_turn:"ТВІЙ ХІД!",your_turn_sub:" — обери крок або стінку",turn_of:"Ходить: ",game_over:"Гру завершено",you_won:"🏆 Ти переміг!",someone_won:"Переміг {n}!",you_won_sub:"Твоя фішка першою досягла краю!",you_lost_sub:"Суперник першим пройшов лабіринт.",walls_suffix:"шт.",slot:"СЛОТ {n}",you_label:"(Ти)",default_player:"Гравець",remove_bot:"Прибрати бота"},
+ ru:{nav_games:"🎮 Игры",rules_title:"🧱 Коридор — правила",rules_body:"Цель игры: <b>первым довести свою фишку на противоположную сторону поля</b>.<br><br>В свой ход можно сделать <b>одно из двух действий</b>:<br>• <b>Сделать шаг фишкой</b> на 1 соседнюю клетку (если путь не закрыт стенкой). Через фишку соперника можно перепрыгнуть!<br>• <b>Поставить стенку</b> (длиной в 2 клетки), чтобы заблокировать соперника или направить его в лабиринт.<br><br>⚠️ <i>Главное правило:</i> <b>запрещено полностью замуровывать путь к финишу</b> — у каждого игрока всегда должен оставаться хотя бы один выход!",rules_ok:"Понятно 👍",title:"🧱 КОРИДОР",subtitle:"стратегия лабиринтов · 2, 3 или 4 игрока",name_ph:"Твоё имя",create_btn:"Создать комнату",code_ph:"КОД КОМНАТЫ",join_btn:"Войти по коду",all_games:"← ко всем играм",room_code:"Код комнаты:",click_copy:"Клик — скопировать",code_copied:"Код скопирован!",players_in_room:"Игроки в комнате:",add_bot_title:"⚙️ Добавить соперника (Бот):",diff_easy:"🤖 Лёгкий",diff_medium:"Средний",diff_hard:"Умный",add_bot_btn:"+ Бот",wait_default:"Ждём игроков (минимум 2, максимум 4)...",start_btn:"🚀 НАЧАТЬ ИГРУ",mode_pawn:"Ходить фишкой",mode_wall:"Ставить стенку",dir_h:"Горизонтально",dir_v:"Вертикально",restart_btn:"🔄 Новая партия",enter_code_alert:"Введите код комнаты",need_players:"Нужно 2, 3 или 4 игрока (сейчас {n})",ready_to_start:"Готово к старту! Игроков: {n}/4",your_turn:"ТВОЙ ХОД!",your_turn_sub:" — выбери шаг или стенку",turn_of:"Ходит: ",game_over:"Игра завершена",you_won:"🏆 Ты выиграл!",someone_won:"Победил {n}!",you_won_sub:"Твоя фишка первой достигла края!",you_lost_sub:"Соперник первым прошёл лабиринт.",walls_suffix:"шт.",slot:"СЛОТ {n}",you_label:"(Ты)",default_player:"Игрок",remove_bot:"Убрать бота"},
+ en:{nav_games:"🎮 Games",rules_title:"🧱 Corridor — rules",rules_body:"Goal: <b>be the first to get your pawn to the opposite side of the board</b>.<br><br>On your turn, do <b>one of two things</b>:<br>• <b>Move your pawn</b> 1 cell (if the path isn't blocked by a wall). You can jump over an opponent's pawn!<br>• <b>Place a wall</b> (2 cells long) to block an opponent or steer them into the maze.<br><br>⚠️ <i>Key rule:</i> <b>you may never fully wall off a player's path to their goal</b> — every player must always keep at least one way out!",rules_ok:"Got it 👍",title:"🧱 CORRIDOR",subtitle:"maze strategy · 2, 3 or 4 players",name_ph:"Your name",create_btn:"Create room",code_ph:"ROOM CODE",join_btn:"Join by code",all_games:"← all games",room_code:"Room code:",click_copy:"Click to copy",code_copied:"Code copied!",players_in_room:"Players in room:",add_bot_title:"⚙️ Add opponent (Bot):",diff_easy:"🤖 Easy",diff_medium:"Medium",diff_hard:"Smart",add_bot_btn:"+ Bot",wait_default:"Waiting for players (2 to 4)...",start_btn:"🚀 START GAME",mode_pawn:"Move pawn",mode_wall:"Place wall",dir_h:"Horizontal",dir_v:"Vertical",restart_btn:"🔄 New game",enter_code_alert:"Enter room code",need_players:"Need 2, 3 or 4 players (currently {n})",ready_to_start:"Ready to start! Players: {n}/4",your_turn:"YOUR TURN!",your_turn_sub:" — pick a move or a wall",turn_of:"Turn: ",game_over:"Game over",you_won:"🏆 You won!",someone_won:"{n} won!",you_won_sub:"Your pawn reached the edge first!",you_lost_sub:"Your opponent crossed the maze first.",walls_suffix:"pcs",slot:"SLOT {n}",you_label:"(You)",default_player:"Player",remove_bot:"Remove bot"}
+};
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k,vars){let v=UI[LANG]&&UI[LANG][k];if(v===undefined)v=UI.ru[k]||k;if(vars)for(const key in vars)v=v.replace('{'+key+'}',vars[key]);return v;}
+// GT: канонические русские строки с сервера/движка -> {uk,en}
+const GT={
+ "У вас не осталось стенок.":{uk:"У вас не залишилось стінок.",en:"You have no walls left."},
+ "У вас не осталось стенок!":{uk:"У вас не залишилось стінок!",en:"You have no walls left!"},
+ "Стенка здесь не помещается или пересекается с другой.":{uk:"Стінка тут не вміщається або перетинається з іншою.",en:"The wall doesn't fit here or crosses another one."},
+ "Стенка полностью перекрывает путь игроку!":{uk:"Стінка повністю перекриває шлях гравцю!",en:"That wall would completely block a player's path!"},
+ "Недопустимый ход фишкой.":{uk:"Недопустимий хід фішкою.",en:"Invalid pawn move."}
+};
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function applyUI(){
+ document.documentElement.lang=LANG;
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v!=='string')return;
+   if(el.dataset.i18n==='rules_body')el.innerHTML=v; else el.textContent=v;});
+ document.querySelectorAll('[data-i18n-ph]').forEach(el=>el.placeholder=t(el.dataset.i18nPh));
+ document.querySelectorAll('[data-i18n-title]').forEach(el=>el.title=t(el.dataset.i18nTitle));
+ document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+ if (document.getElementById('game') && !document.getElementById('game').classList.contains('hide') && state) renderGame();
+ if (document.getElementById('lobby') && !document.getElementById('lobby').classList.contains('hide') && lastLobbyMsg) renderLobby(lastLobbyMsg);
+}
+let lastLobbyMsg = null;
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+applyUI();
+
 // Инициализация имени
 const savedName = localStorage.getItem("jg_name") || localStorage.getItem("jg_player_name") || "";
 if (savedName) document.getElementById("name").value = savedName;
@@ -304,11 +345,12 @@ function setDiff(el) {
 }
 
 function showToast(text, isError=true) {
-  const t = document.getElementById("msg-toast");
-  t.textContent = text;
-  t.style.color = isError ? "#ff4d6d" : "#ffd166";
+  const toastEl = document.getElementById("msg-toast");
+  const translated = T(text);
+  toastEl.textContent = translated;
+  toastEl.style.color = isError ? "#ff4d6d" : "#ffd166";
   if (isError && window.SFX) SFX.err();
-  setTimeout(() => { if (t.textContent === text) t.textContent = ""; }, 3000);
+  setTimeout(() => { if (toastEl.textContent === translated) toastEl.textContent = ""; }, 3000);
 }
 
 function setMode(mode) {
@@ -316,6 +358,7 @@ function setMode(mode) {
   document.getElementById("btn-mode-pawn").classList.toggle("active", mode === 'pawn');
   document.getElementById("btn-mode-wall").classList.toggle("active", mode === 'wall');
   document.getElementById("wall-dir-switch").style.display = (mode === 'wall') ? 'flex' : 'none';
+  document.getElementById("board").classList.toggle("wall-mode", mode === 'wall');
   if (window.SFX) SFX.tap();
   removeGhostWall();
   renderBoardHighlights();
@@ -358,6 +401,10 @@ function connectWS(onOpenCb) {
         document.getElementById("lobby").classList.remove("hide");
         document.getElementById("lcode").textContent = roomCode;
       } else if (msg.type === "lobby" || msg.type === "lobby_state") {
+        document.getElementById("home").classList.add("hide");
+        document.getElementById("game").classList.add("hide");
+        document.getElementById("lobby").classList.remove("hide");
+        lastLobbyMsg = msg;
         renderLobby(msg);
       } else if (msg.type === "quoridor_state") {
         state = msg;
@@ -373,7 +420,7 @@ function connectWS(onOpenCb) {
 }
 
 function create() {
-  myName = document.getElementById("name").value.trim() || "Игрок";
+  myName = document.getElementById("name").value.trim() || t('default_player');
   localStorage.setItem("jg_name", myName);
   connectWS(() => {
     ws.send({ action: "create", game: "quoridor", name: myName });
@@ -381,9 +428,9 @@ function create() {
 }
 
 function join() {
-  myName = document.getElementById("name").value.trim() || "Игрок";
+  myName = document.getElementById("name").value.trim() || t('default_player');
   const code = document.getElementById("joincode").value.trim().toUpperCase();
-  if (!code) return alert("Введите код комнаты");
+  if (!code) return alert(t("enter_code_alert"));
   localStorage.setItem("jg_name", myName);
   connectWS(() => {
     ws.send({ action: "join", code: code, name: myName });
@@ -394,6 +441,11 @@ function addBot() {
   if (window.SFX) SFX.tap();
   const diff = document.querySelector(".botdiff .opt.on")?.dataset.d || "medium";
   ws.send({ action: "add_bot", diff: diff });
+}
+
+function removeBot(botPid) {
+  if (window.SFX) SFX.tap();
+  ws.send({ action: "remove_bot", pid: botPid });
 }
 
 function startGame() {
@@ -420,9 +472,12 @@ function renderLobby(st) {
     html += `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:16px">${pData.bot ? '🤖' : '👤'}</span>
-        <span style="font-weight:700;color:${isMe ? '#ffd166' : '#fff'}">${pData.name} ${isMe ? '(Ты)' : ''}</span>
+        <span style="font-weight:700;color:${isMe ? '#ffd166' : '#fff'}">${pData.name} ${isMe ? t('you_label') : ''}</span>
       </div>
-      <span style="font-size:11px;font-weight:800;color:var(--muted)">СЛОТ ${idx + 1}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:800;color:var(--muted)">${t('slot',{n:idx+1})}</span>
+        ${(isHost && pData.bot) ? `<button onclick="removeBot('${pData.id}')" title="" data-i18n-title="remove_bot" style="width:auto;margin:0;padding:3px 9px;font-size:13px;font-weight:900;border-radius:8px;background:rgba(255,34,56,0.15);color:#ff6a7a;border:1px solid rgba(255,34,56,0.3);box-shadow:none">✕</button>` : ''}
+      </div>
     </div>`;
   });
   playersDiv.innerHTML = html;
@@ -432,10 +487,10 @@ function renderLobby(st) {
     const startBtn = document.getElementById("start-btn");
     if (pList.length >= 2 && pList.length <= 4) {
       startBtn.classList.remove("hide");
-      document.getElementById("waitmsg").textContent = `Готово к старту! Игроков: ${pList.length}/4`;
+      document.getElementById("waitmsg").textContent = t('ready_to_start',{n:pList.length});
     } else {
       startBtn.classList.add("hide");
-      document.getElementById("waitmsg").textContent = `Нужно 2, 3 или 4 игрока (сейчас ${pList.length})`;
+      document.getElementById("waitmsg").textContent = t('need_players',{n:pList.length});
     }
   }
 }
@@ -450,20 +505,20 @@ function renderGame() {
   const turnBanner = document.getElementById("turn-banner");
   if (state.winner) {
     document.getElementById("overbox").classList.remove("hide");
-    const winName = state.names[state.winner] || "Игрок";
+    const winName = state.names[state.winner] || t('default_player');
     const isMeWin = (state.winner === pid);
-    document.getElementById("overtext").textContent = isMeWin ? "🏆 Ты выиграл!" : `Победил ${winName}!`;
-    document.getElementById("oversub").textContent = isMeWin ? "Твоя фишка первой достигла края!" : "Соперник первым прошёл лабиринт.";
+    document.getElementById("overtext").textContent = isMeWin ? t('you_won') : t('someone_won',{n:winName});
+    document.getElementById("oversub").textContent = isMeWin ? t('you_won_sub') : t('you_lost_sub');
     if (isMeWin && window.SFX) SFX.win();
-    turnBanner.innerHTML = `<span style="color:#ffd166">Игра завершена</span>`;
+    turnBanner.innerHTML = `<span style="color:#ffd166">${t('game_over')}</span>`;
   } else {
     document.getElementById("overbox").classList.add("hide");
     const curP = state.players[state.turn_pid];
     const curColor = curP ? curP.color : "#fff";
-    const curName = state.names[state.turn_pid] || "Игрок";
+    const curName = state.names[state.turn_pid] || t('default_player');
     turnBanner.innerHTML = isMyTurn
-      ? `<span class="dot" style="background:${curColor}"></span><span class="me">ТВОЙ ХОД!</span> — выбери шаг или стенку`
-      : `<span class="dot" style="background:${curColor}"></span>Ходит: <b>${curName}</b>`;
+      ? `<span class="dot" style="background:${curColor}"></span><span class="me">${t('your_turn')}</span>${t('your_turn_sub')}`
+      : `<span class="dot" style="background:${curColor}"></span>${t('turn_of')}<b>${curName}</b>`;
   }
 }
 
@@ -484,7 +539,7 @@ function renderPlayersBar() {
         <span class="p-avatar" style="background:${pInfo.color};box-shadow:0 0 8px ${pInfo.color}"></span>
         <span class="p-name" style="color:${isMe ? '#ffd166' : '#fff'}">${state.names[p_id] || p_id} ${isMe ? '★' : ''}</span>
       </div>
-      <div class="p-walls-text">🧱 ${pInfo.walls} шт.</div>
+      <div class="p-walls-text">🧱 ${pInfo.walls} ${t('walls_suffix')}</div>
     `;
     pBar.appendChild(card);
   });
@@ -528,9 +583,9 @@ function renderBoard() {
       slotH.className = "q-slot-h";
       slotH.style.gridRow = (2 * wr + 2);
       slotH.style.gridColumn = (2 * wc + 1) + " / span 3";
-      slotH.onmouseenter = () => onSlotHover(wr, wc, 'h');
+      slotH.onmouseenter = () => onSlotHover(wr, wc, currentWallDir);
       slotH.onmouseleave = () => removeGhostWall();
-      slotH.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, 'h'); };
+      slotH.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, currentWallDir); };
       boardEl.appendChild(slotH);
 
       // Вертикальный паз
@@ -538,9 +593,9 @@ function renderBoard() {
       slotV.className = "q-slot-v";
       slotV.style.gridRow = (2 * wr + 1) + " / span 3";
       slotV.style.gridColumn = (2 * wc + 2);
-      slotV.onmouseenter = () => onSlotHover(wr, wc, 'v');
+      slotV.onmouseenter = () => onSlotHover(wr, wc, currentWallDir);
       slotV.onmouseleave = () => removeGhostWall();
-      slotV.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, 'v'); };
+      slotV.onclick = (e) => { e.stopPropagation(); onWallClick(wr, wc, currentWallDir); };
       boardEl.appendChild(slotV);
 
       // Узел пересечения

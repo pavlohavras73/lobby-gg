@@ -1,4 +1,4 @@
-/* Jarvis Games — Web Audio API SFX Engine (Zero external assets) */
+/* Lobby.gg — Web Audio API SFX Engine (Zero external assets) */
 (function() {
   let audioCtx = null;
   let muted = localStorage.getItem('jarvis_sfx_muted') === 'true';

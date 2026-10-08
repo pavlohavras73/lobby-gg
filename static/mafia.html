@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Jarvis Games — Мафия</title>
+<title>Lobby.gg — Мафия</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
   body{display:flex;flex-direction:column;align-items:center;transition:background .8s ease}
@@ -59,7 +60,7 @@
 <button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔪 Мафия — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1>🔪 Мафия</h1><div class="sub" data-i18n="tagline">Jarvis Games · играй с друзьями</div>
+<h1>🔪 Мафия</h1><div class="sub" data-i18n="tagline">Lobby.gg · играй с друзьями</div>
 <div class="langbar" id="langbar" role="group" aria-label="Language">
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
@@ -125,7 +126,7 @@ const UI={
  uk:{
   rules_title:"🔪 Мафія — правила",
   rules_body:"Вночі мафія вбиває, лікар лікує, шериф перевіряє, патрульний охороняє. Удень місто обговорює та голосує, кого стратити. Місто перемагає, прибравши всю мафію; мафія — коли їх стане врівень із містом.",
-  rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Jarvis Games · грай з друзями",
+  rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Lobby.gg · грай з друзями",
   ph_name:"Твоє ім'я", btn_create:"Створити кімнату", ph_code:"КОД кімнати", btn_join:"Увійти за кодом",
   rc_mafia:"🔪 Мафія", rc_doctor:"💉 Лікар", rc_sheriff:"🔎 Шериф", rc_civ:"👤 Мирні",
   home_hint:"Від 3 гравців. Лікар з 4, шериф з 5. Можна добрати ботами.",
@@ -144,7 +145,7 @@ const UI={
  ru:{
   rules_title:"🔪 Мафия — правила",
   rules_body:"Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.",
-  rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Jarvis Games · играй с друзьями",
+  rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Lobby.gg · играй с друзьями",
   ph_name:"Твоё имя", btn_create:"Создать комнату", ph_code:"КОД комнаты", btn_join:"Войти по коду",
   rc_mafia:"🔪 Мафия", rc_doctor:"💉 Доктор", rc_sheriff:"🔎 Шериф", rc_civ:"👤 Мирные",
   home_hint:"От 3 игроков. Доктор с 4, шериф с 5. Можно добрать ботами.",
@@ -163,7 +164,7 @@ const UI={
  en:{
   rules_title:"🔪 Mafia — rules",
   rules_body:"At night the mafia kills, the doctor heals, the sheriff checks, the patrol guards. By day the town discusses and votes on who to execute. Town wins by eliminating all mafia; mafia wins once they equal the town.",
-  rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Jarvis Games · play with friends",
+  rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Lobby.gg · play with friends",
   ph_name:"Your name", btn_create:"Create room", ph_code:"Room CODE", btn_join:"Join by code",
   rc_mafia:"🔪 Mafia", rc_doctor:"💉 Doctor", rc_sheriff:"🔎 Sheriff", rc_civ:"👤 Townsfolk",
   home_hint:"3+ players. Doctor from 4, sheriff from 5. You can fill up with bots.",

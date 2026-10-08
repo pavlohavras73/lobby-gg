@@ -5,3 +5,4 @@ __pycache__/
 *.db
 *.sqlite*
 auth_secret.txt
+data/

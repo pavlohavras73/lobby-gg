@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Jarvis Games — Шпион</title>
+<title>Lobby.gg — Шпион</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
   body{display:flex;flex-direction:column;align-items:center}
@@ -19,107 +20,250 @@
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🕵️ Шпион — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Всем игрокам показана одна локация — всем, кроме <b>шпиона</b>. Задавайте друг другу вопросы. Задача города — вычислить шпиона, задача шпиона — не спалиться и угадать локацию.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>🕵️ Шпион</h1><div class="sub">Jarvis Games · играй с друзьями</div>
+<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🕵️ Шпион — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Всем игрокам показана одна локация — всем, кроме <b>шпиона</b>. Задавайте друг другу вопросы. Задача города — вычислить шпиона, задача шпиона — не спалиться и угадать локацию.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="title">🕵️ Шпион</h1><div class="sub" data-i18n="tagline">Lobby.gg · играй с друзьями</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 
 <div id="home" class="card">
-  <input id="name" placeholder="Твоё имя" maxlength="20">
-  <button onclick="create()">Создать комнату</button>
-  <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase">
-  <button class="sec" onclick="join()">Войти по коду</button>
+  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
+  <button onclick="create()" data-i18n="btn_create">Создать комнату</button>
+  <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase" data-i18n-ph="ph_code">
+  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
 </div>
 
 <div id="lobby" class="card hide">
-  <div class="sub">Код комнаты — скажи друзьям:</div>
+  <div class="sub" data-i18n="lobby_code">Код комнаты — скажи друзьям:</div>
   <div class="code" id="lcode">----</div>
   <div id="players"></div>
-  <button id="botbtn" class="sec hide" onclick="send({action:'add_bot'})">🤖 Добавить бота</button>
+  <button id="botbtn" class="sec hide" onclick="send({action:'add_bot'})" data-i18n="btn_bot">🤖 Добавить бота</button>
   <div id="hostopts" class="hide" style="margin:10px 0">
-    <div class="sub" style="margin-bottom:4px">🎴 Колода — тапни паки (можно несколько):</div>
+    <div class="sub" style="margin-bottom:4px" data-i18n="deck_title">🎴 Колода — тапни паки (можно несколько):</div>
     <div id="presets" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center"></div>
     <div id="customchips" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px"></div>
     <div class="row" style="margin-top:8px">
-      <input id="craft" placeholder="Своя тема (Токийский гуль…)" maxlength="40" style="margin:0">
-      <button class="sec" style="margin:0" onclick="craft()">➕ Крафт</button>
+      <input id="craft" placeholder="Своя тема (Токийский гуль…)" maxlength="40" style="margin:0" data-i18n-ph="ph_craft">
+      <button class="sec" style="margin:0" onclick="craft()" data-i18n="btn_craft">➕ Крафт</button>
     </div>
     <div class="sub" id="craftstatus" style="margin-top:4px"></div>
     <div class="row" style="margin-top:8px;align-items:center">
-      <span class="sub" style="flex:1;text-align:left;margin:0">⏱ Таймер раунда</span>
+      <span class="sub" style="flex:1;text-align:left;margin:0" data-i18n="timer_label">⏱ Таймер раунда</span>
       <select id="spytimer" style="margin:0;flex:1">
-        <option value="3">3 мин</option><option value="5" selected>5 мин</option>
-        <option value="8">8 мин</option><option value="10">10 мин</option><option value="0">Без таймера</option>
+        <option value="3" data-i18n="t_3min">3 мин</option><option value="5" selected data-i18n="t_5min">5 мин</option>
+        <option value="8" data-i18n="t_8min">8 мин</option><option value="10" data-i18n="t_10min">10 мин</option><option value="0" data-i18n="t_notimer">Без таймера</option>
       </select>
     </div>
   </div>
-  <button id="startbtn" class="hide" onclick="startSpy()">🚀 Начать игру</button>
-  <div class="sub" id="waitmsg">Ждём пока хост начнёт…</div>
+  <button id="startbtn" class="hide" onclick="startSpy()" data-i18n="btn_start">🚀 Начать игру</button>
+  <div class="sub" id="waitmsg" data-i18n="wait_host">Ждём пока хост начнёт…</div>
 </div>
 
 <div id="game" class="card hide">
   <div class="role-title" id="rtitle"></div>
   <div class="sub" id="rsub"></div>
   <div id="timer" style="font-size:28px;font-weight:800;margin:12px 0;color:var(--crimson);text-shadow:0 0 16px var(--crimson-glow)"></div>
-  <button id="revealbtn" class="hide" onclick="doReveal()">🕵️ Вскрыть шпиона</button>
-  <button class="sec" onclick="if(confirm('Вернуться в лобби? Текущий раунд прервётся.'))send({action:'back'})">← В лобби</button>
+  <button id="revealbtn" class="hide" onclick="doReveal()" data-i18n="btn_reveal">🕵️ Вскрыть шпиона</button>
+  <button class="sec" onclick="if(confirm(t('confirm_lobby')))send({action:'back'})" data-i18n="btn_lobby">← В лобби</button>
 </div>
 
 <div id="reveal" class="card hide">
-  <div class="role-title">Итог</div>
-  <div class="sub">Шпионом был:</div><div class="role-title spy" id="rvspy"></div>
-  <div class="sub">Загадано было:</div><div class="role-title loc" id="rvloc"></div>
-  <button id="againbtn" class="hide" onclick="send({action:'back'})">Ещё раунд</button>
+  <div class="role-title" data-i18n="reveal_summary">Итог</div>
+  <div class="sub" data-i18n="reveal_spy_was">Шпионом был:</div><div class="role-title spy" id="rvspy"></div>
+  <div class="sub" data-i18n="reveal_loc_was">Загадано было:</div><div class="role-title loc" id="rvloc"></div>
+  <button id="againbtn" class="hide" onclick="send({action:'back'})" data-i18n="btn_again">Ещё раунд</button>
 </div>
 
 <script>
-let ws, pid, isHost=false;
+const UI={
+  uk:{
+    rules_title:"🕵️ Шпигун — правила",
+    rules_body:"Усім гравцям показано одну локацію — усім, окрім <b>шпигуна</b>. Ставте одне одному запитання. Мета міста — викрити шпигуна, мета шпигуна — не спалитися й вгадати локацію.",
+    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", title:"🕵️ Шпигун", tagline:"Lobby.gg · грай з друзями",
+    ph_name:"Твоє ім'я", btn_create:"Створити кімнату", ph_code:"КОД кімнати", btn_join:"Увійти за кодом",
+    lobby_code:"Код кімнати — скажи друзям:", btn_bot:"🤖 Додати бота", deck_title:"🎴 Колода — обери паки (можна кілька):",
+    ph_craft:"Своя тема (Токійський гуль…)", btn_craft:"➕ Крафт", timer_label:"⏱ Таймер раунду",
+    t_3min:"3 хв", t_5min:"5 хв", t_8min:"8 хв", t_10min:"10 хв", t_notimer:"Без таймера",
+    btn_start:"🚀 Почати гру", wait_host:"Чекаємо, поки хост почне…",
+    btn_reveal:"🕵️ Розкрити шпигуна", btn_lobby:"← До лобі", reveal_summary:"Підсумок",
+    reveal_spy_was:"Шпигуном був:", reveal_loc_was:"Загадано було:", btn_again:"Ще раунд",
+    spy_title:"🕵️ ТИ ШПИГУН",
+    spy_sub:c=>"Категорія: «"+c+"». Здогадайся, що загадано, і не викрий себе.",
+    loc_sub_classic:"Знайди шпигуна запитаннями. Не називай локацію прямо.",
+    loc_sub_custom:c=>"Персонаж із «"+c+"». Знайди шпигуна, не називай ім'я прямо.",
+    time_up:"⏰ ЧАС! Голосуйте, хто шпигун",
+    confirm_reveal:"Розкрити шпигуна? Раунд закінчиться для всіх.",
+    confirm_lobby:"Повернутися в лобі? Поточний раунд перерветься.",
+    crafting:t=>"🧠 Gemini крафтить пак «"+t+"»…",
+    enter_code:"Введи код", def_player:"Гравець", conn_lost:"Зв'язок втрачено, онови сторінку."
+  },
+  ru:{
+    rules_title:"🕵️ Шпион — правила",
+    rules_body:"Всем игрокам показана одна локация — всем, кроме <b>шпиона</b>. Задавайте друг другу вопросы. Задача города — вычислить шпиона, задача шпиона — не спалиться и угадать локацию.",
+    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", title:"🕵️ Шпион", tagline:"Lobby.gg · играй с друзьями",
+    ph_name:"Твоё имя", btn_create:"Создать комнату", ph_code:"КОД комнаты", btn_join:"Войти по коду",
+    lobby_code:"Код комнаты — скажи друзьям:", btn_bot:"🤖 Добавить бота", deck_title:"🎴 Колода — тапни паки (можно несколько):",
+    ph_craft:"Своя тема (Токийский гуль…)", btn_craft:"➕ Крафт", timer_label:"⏱ Таймер раунда",
+    t_3min:"3 мин", t_5min:"5 мин", t_8min:"8 мин", t_10min:"10 мин", t_notimer:"Без таймера",
+    btn_start:"🚀 Начать игру", wait_host:"Ждём пока хост начнёт…",
+    btn_reveal:"🕵️ Вскрыть шпиона", btn_lobby:"← В лобби", reveal_summary:"Итог",
+    reveal_spy_was:"Шпионом был:", reveal_loc_was:"Загадано было:", btn_again:"Ещё раунд",
+    spy_title:"🕵️ ТЫ ШПИОН",
+    spy_sub:c=>"Категория: «"+c+"». Вычисли что загадано и не спались.",
+    loc_sub_classic:"Найди шпиона вопросами. Не называй локацию напрямую.",
+    loc_sub_custom:c=>"Персонаж из «"+c+"». Найди шпиона, не называй имя напрямую.",
+    time_up:"⏰ ВРЕМЯ! Голосуйте кто шпион",
+    confirm_reveal:"Вскрыть шпиона? Раунд закончится для всех.",
+    confirm_lobby:"Вернуться в лобби? Текущий раунд прервётся.",
+    crafting:t=>"🧠 Gemini крафтит пак «"+t+"»…",
+    enter_code:"Введи код", def_player:"Игрок", conn_lost:"Соединение потеряно, обнови страницу."
+  },
+  en:{
+    rules_title:"🕵️ Spy — rules",
+    rules_body:"All players see the secret location — everyone except the <b>spy</b>. Ask each other questions. The town's goal is to find the spy; the spy's goal is to stay hidden and guess the location.",
+    rules_ok:"Got it 👍", nav_games:"🎮 Games", title:"🕵️ Spy", tagline:"Lobby.gg · play with friends",
+    ph_name:"Your name", btn_create:"Create room", ph_code:"Room CODE", btn_join:"Join by code",
+    lobby_code:"Room code — share with friends:", btn_bot:"🤖 Add bot", deck_title:"🎴 Deck — tap packs (can select multiple):",
+    ph_craft:"Custom theme (Tokyo Ghoul…)", btn_craft:"➕ Craft", timer_label:"⏱ Round timer",
+    t_3min:"3 min", t_5min:"5 min", t_8min:"8 min", t_10min:"10 min", t_notimer:"No timer",
+    btn_start:"🚀 Start game", wait_host:"Waiting for host to start…",
+    btn_reveal:"🕵️ Reveal spy", btn_lobby:"← To lobby", reveal_summary:"Summary",
+    reveal_spy_was:"The spy was:", reveal_loc_was:"The secret was:", btn_again:"Another round",
+    spy_title:"🕵️ YOU ARE THE SPY",
+    spy_sub:c=>"Category: '"+c+"'. Figure out the secret without blowing your cover.",
+    loc_sub_classic:"Find the spy with questions. Don't name the location directly.",
+    loc_sub_custom:c=>"Character from '"+c+"'. Find the spy, don't say the name directly.",
+    time_up:"⏰ TIME'S UP! Vote for the spy",
+    confirm_reveal:"Reveal the spy? Round will end for everyone.",
+    confirm_lobby:"Return to lobby? Current round will be aborted.",
+    crafting:t=>"🧠 Gemini is crafting pack '"+t+"'…",
+    enter_code:"Enter room code", def_player:"Player", conn_lost:"Connection lost, please refresh."
+  }
+};
+
+const GT={
+  "Классика":{uk:"Класика",en:"Classic"},
+  "Marvel":{uk:"Marvel",en:"Marvel"},
+  "Атака титанов":{uk:"Атака титанів",en:"Attack on Titan"},
+  "Гарри Поттер":{uk:"Гаррі Поттер",en:"Harry Potter"},
+  "Школа":{uk:"Школа",en:"School"},
+  "Больница":{uk:"Лікарня",en:"Hospital"},
+  "Самолёт":{uk:"Літак",en:"Airplane"},
+  "Пляж":{uk:"Пляж",en:"Beach"},
+  "Казино":{uk:"Казино",en:"Casino"},
+  "Банк":{uk:"Банк",en:"Bank"},
+  "Космическая станция":{uk:"Космічна станція",en:"Space Station"},
+  "Подводная лодка":{uk:"Підводний човен",en:"Submarine"},
+  "Цирк":{uk:"Цирк",en:"Circus"},
+  "Ресторан":{uk:"Ресторан",en:"Restaurant"},
+  "Военная база":{uk:"Військова база",en:"Military Base"},
+  "Полицейский участок":{uk:"Поліцейський відділок",en:"Police Station"},
+  "Круизный лайнер":{uk:"Круїзний лайнер",en:"Cruise Ship"},
+  "Театр":{uk:"Театр",en:"Theater"},
+  "Отель":{uk:"Готель",en:"Hotel"},
+  "Супермаркет":{uk:"Супермаркет",en:"Supermarket"},
+  "Метро":{uk:"Метро",en:"Subway"},
+  "Стадион":{uk:"Стадіон",en:"Stadium"},
+  "Локации":{uk:"Локації",en:"Locations"}
+};
+
+let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+
+let ws, pid, isHost=false, lastRole=null, lastReveal=null, lastPacks=null;
+function applyUI(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(typeof v==='string')el.placeholder=v;});
+  document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+  if(lastPacks)renderPacks(lastPacks);
+  if(lastRole)renderRole(lastRole);
+  if(lastReveal)renderReveal(lastReveal);
+}
+document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+
 function show(id){for(const s of ['home','lobby','game','reveal'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){ws.send(JSON.stringify(o));}
 function connect(cb){
   ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
   ws.onopen=cb;
   ws.onmessage=e=>handle(JSON.parse(e.data));
-  ws.onclose=()=>{document.getElementById('waitmsg').textContent='Соединение потеряно, обнови страницу.';};
+  ws.onclose=()=>{document.getElementById('waitmsg').textContent=t('conn_lost');};
 }
-function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'spy'}));}
-function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Введи код');connect(()=>send({action:'join',name:n,code:c}));}
+function create(){const n=document.getElementById('name').value||t('def_player');connect(()=>send({action:'create',name:n,game:'spy'}));}
+function join(){const n=document.getElementById('name').value||t('def_player');const c=document.getElementById('joincode').value;if(!c)return alert(t('enter_code'));connect(()=>send({action:'join',name:n,code:c}));}
 function startSpy(){send({action:'start',timer:parseInt(document.getElementById('spytimer').value)});}
-function doReveal(){if(confirm('Вскрыть шпиона? Раунд закончится для всех.'))send({action:'reveal'});}
+function doReveal(){if(confirm(t('confirm_reveal')))send({action:'reveal'});}
 let tInt=null;
 function startTimer(secs){
   clearInterval(tInt);const el=document.getElementById('timer');el.className='';el.style.color='var(--crimson)';
   if(!secs||secs<=0){el.textContent='';return;}
   let s=secs;
   function tick(){
-    if(s<=0){clearInterval(tInt);el.textContent='⏰ ВРЕМЯ! Голосуйте кто шпион';return;}
+    if(s<=0){clearInterval(tInt);el.textContent=t('time_up');return;}
     const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
     el.textContent='⏱ '+m+':'+ss; if(s<=15)el.style.color='#ff5566'; s--;
   }
   tick();tInt=setInterval(tick,1000);
 }
-function craft(){const el=document.getElementById('craft');const t=el.value.trim();if(!t)return;send({action:'spy_craft',theme:t});el.value='';}
+function craft(){const el=document.getElementById('craft');const val=el.value.trim();if(!val)return;send({action:'spy_craft',theme:val});el.value='';}
 function attr(s){return String(s).replace(/"/g,'&quot;');}
 function chipHTML(p,isCustom){
   const ic=isCustom?'🧩 ':(p.emoji+' ');
+  const nameTr=isCustom?p.name:T(p.name);
   const x=isCustom?'<span class="x" data-act="uncraft" data-name="'+attr(p.name)+'">✕</span>':'';
-  return '<span class="chip'+(p.active?' on':'')+'" data-act="toggle" data-name="'+attr(p.name)+'">'+ic+p.name+' <span class="cnt">'+p.count+'</span>'+x+'</span>';
+  return '<span class="chip'+(p.active?' on':'')+'" data-act="toggle" data-name="'+attr(p.name)+'">'+ic+nameTr+' <span class="cnt">'+p.count+'</span>'+x+'</span>';
 }
 function renderPacks(m){
+  lastPacks=m;
   document.getElementById('presets').innerHTML=(m.presets||[]).map(p=>chipHTML(p,false)).join('');
   document.getElementById('customchips').innerHTML=(m.custom||[]).map(c=>chipHTML(c,true)).join('');
   document.getElementById('craftstatus').textContent='';
 }
-// делегированный клик по чипам — переживает ре-рендеры
 document.getElementById('hostopts').addEventListener('click',function(e){
   const el=e.target.closest('[data-act]'); if(!el)return;
   const act=el.getAttribute('data-act'), name=el.getAttribute('data-name');
   if(act==='uncraft'){ e.stopPropagation(); send({action:'spy_uncraft',name:name}); }
   else if(act==='toggle'){ send({action:'spy_toggle',name:name}); }
 });
+
+function renderRole(m){
+  lastRole=m;
+  show('game');
+  const tEl=document.getElementById('rtitle');
+  const catTr=T(m.cat);
+  if(m.spy){
+    tEl.textContent=t('spy_title');
+    tEl.className='role-title spy';
+    document.getElementById('rsub').textContent=typeof t('spy_sub')==='function'?t('spy_sub')(catTr):m.sub;
+  }else{
+    const rawLoc=m.title?m.title.replace(/^🎴\s*/,''):'';
+    tEl.textContent='🎴 '+T(rawLoc);
+    tEl.className='role-title loc';
+    if(m.cat==='Классика'||!m.cat){
+      document.getElementById('rsub').textContent=t('loc_sub_classic');
+    }else{
+      document.getElementById('rsub').textContent=typeof t('loc_sub_custom')==='function'?t('loc_sub_custom')(catTr):m.sub;
+    }
+  }
+  document.getElementById('revealbtn').classList.remove('hide');
+}
+
+function renderReveal(m){
+  lastReveal=m;
+  clearInterval(tInt);
+  show('reveal');
+  document.getElementById('rvspy').textContent=m.spy;
+  document.getElementById('rvloc').textContent=T(m.location);
+  document.getElementById('againbtn').classList.remove('hide');
+}
+
 function handle(m){
   if(m.type==='joined'){pid=m.pid;isHost=m.host;}
-  else if(m.type==='spy_loading'){document.getElementById('craftstatus').textContent='🧠 Gemini крафтит пак «'+m.theme+'»…';}
+  else if(m.type==='spy_loading'){document.getElementById('craftstatus').textContent=typeof t('crafting')==='function'?t('crafting')(m.theme):m.theme;}
   else if(m.type==='spy_packs'){renderPacks(m);}
   else if(m.type==='lobby'){
     show('lobby');document.getElementById('lcode').textContent=m.code;
@@ -132,19 +276,15 @@ function handle(m){
     if(isHost)send({action:'spy_packs'});
   }
   else if(m.type==='role'){
-    show('game');
-    const t=document.getElementById('rtitle');t.textContent=m.title;t.className='role-title '+(m.spy?'spy':'loc');
-    document.getElementById('rsub').textContent=m.sub;
-    document.getElementById('revealbtn').classList.remove('hide');
+    renderRole(m);
     startTimer(m.timer);
   }
   else if(m.type==='reveal'){
-    clearInterval(tInt);
-    show('reveal');document.getElementById('rvspy').textContent=m.spy;document.getElementById('rvloc').textContent=m.location;
-    document.getElementById('againbtn').classList.remove('hide');
+    renderReveal(m);
   }
   else if(m.type==='error'){alert(m.msg);}
 }
+applyUI();
 </script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>

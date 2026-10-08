@@ -1,4 +1,4 @@
-/* Jarvis Games — Smart WebSocket Auto-Reconnect & Connection Health Monitor */
+/* Lobby.gg — Smart WebSocket Auto-Reconnect & Connection Health Monitor */
 window.JarvisWS = function(url, options = {}) {
   let ws = null;
   let attempts = 0;

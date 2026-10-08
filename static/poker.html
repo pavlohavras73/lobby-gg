@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>🂡 Покер — Discord Poker Night</title>
+<title>Lobby.gg — Покер</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
@@ -20,7 +21,6 @@
     user-select: none; -webkit-user-select: none; color: #fff;
   }
 
-  /* Fixed Header Buttons */
   .top-btn {
     position: fixed; top: max(10px, var(--sat)); z-index: 99999;
     background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -31,14 +31,12 @@
   .btn-back { left: 10px; }
   .btn-rules { right: 10px; padding: 6px 12px; font-family: Georgia, serif; font-style: italic; }
 
-  /* Main Container */
   .game-layout {
     width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
     padding: max(50px, calc(var(--sat) + 42px)) 12px max(14px, var(--sab));
     background: radial-gradient(circle at 50% 40%, rgba(20, 80, 45, 0.35), #060609 75%);
   }
 
-  /* Lobby & Home Screens */
   .lobby-card {
     background: linear-gradient(180deg, rgba(28,28,34,0.94), rgba(16,16,20,0.98));
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -52,7 +50,6 @@
   }
   .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }
 
-  /* Realistic 3D Oval Felt Table */
   .poker-table-wrap {
     flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; max-width: 520px; margin: 0 auto;
   }
@@ -65,7 +62,6 @@
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
   }
 
-  /* Pot Badge */
   .pot-badge {
     background: linear-gradient(135deg, rgba(28,28,34,0.9), rgba(16,16,20,0.95));
     border: 1px solid rgba(255, 215, 0, 0.4); border-radius: 999px; padding: 6px 18px;
@@ -74,19 +70,16 @@
     margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
   }
 
-  /* Community Cards */
   .community-cards {
     display: flex; justify-content: center; gap: 6px; min-height: 74px; margin-bottom: 10px;
   }
 
-  /* Status Banner */
   .table-status {
     font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
     color: rgba(255,255,255,0.7); text-align: center; min-height: 18px;
   }
   .table-status.my-turn { color: #22c55e; text-shadow: 0 0 12px rgba(34,197,94,0.6); font-size: 13px; }
 
-  /* Player Seats Around Oval Table */
   .seats-container {
     position: absolute; inset: -18px; pointer-events: none;
   }
@@ -116,18 +109,16 @@
   .seat-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #8fd0ff; margin-top: 1px; }
   .dealer-btn { position: absolute; top: -6px; right: -6px; background: #ffd700; color: #000; font-size: 9px; font-weight: 900; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px #000; }
 
-  /* My Cards & Hand Display */
   .my-cards-section {
     display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px;
   }
   .my-cards { display: flex; justify-content: center; gap: 8px; }
 
-  /* Custom Vector Playing Cards Style */
   .poker-card {
     width: 58px; height: 82px; border-radius: 8px; background: #ffffff;
     border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 6px 18px rgba(0,0,0,0.5);
     display: flex; flex-direction: column; justify-content: space-between; padding: 4px 6px;
-    font-weight: 900; font-size: 16px; line-height: 1; relative; transition: transform 0.2s;
+    font-weight: 900; font-size: 16px; line-height: 1; position: relative; transition: transform 0.2s;
   }
   .poker-card.red { color: #e0102e; }
   .poker-card.black { color: #121215; }
@@ -137,7 +128,6 @@
     background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 6px, transparent 0, transparent 12px);
   }
 
-  /* Discord-Style Action Bar */
   .action-bar-wrap {
     background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 10px;
@@ -157,13 +147,7 @@
   .action-btn.btn-raise { background: linear-gradient(135deg, #10b981, #059669); }
   .action-btn.btn-allin { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
-  /* Raise Controls */
   .raise-presets { display: flex; gap: 6px; width: 100%; margin-bottom: 4px; }
-  .btn-preset {
-    flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 10px; padding: 6px; font-size: 11px; font-weight: 800; color: #fff; cursor: pointer;
-  }
-  .btn-preset:active { background: rgba(255,255,255,0.2); }
 
   .slider-row { display: flex; align-items: center; gap: 10px; }
   .slider-row input[type=range] {
@@ -174,87 +158,77 @@
 </head>
 <body>
 
-  <a href="/games/" class="top-btn btn-back">🎮 Игры</a>
-  <button onclick="document.getElementById('rulesModal').style.display='flex'" class="top-btn btn-rules">i</button>
+  <a href="/games/" class="top-btn btn-back" data-i18n="nav_games">🎮 Игры</a>
+  <button id="rulesBtn" class="top-btn btn-rules" title="Правила">i</button>
 
-  <!-- Rules Modal -->
   <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
     <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:22px;text-align:left">
-      <div style="font-size:20px;font-weight:900;margin-bottom:10px">🂡 Покер — Правила</div>
-      <div style="font-size:13px;line-height:1.6;color:#d8d8de">Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.</div>
-      <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:18px;width:100%;padding:12px;border-radius:14px;border:none;background:#ff2238;color:#fff;font-weight:900;cursor:pointer">Понятно 👍</button>
+      <div style="font-size:20px;font-weight:900;margin-bottom:10px" data-i18n="rules_title">🂡 Покер — Правила</div>
+      <div style="font-size:13px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.</div>
+      <button id="rulesOk" style="margin-top:18px;width:100%;padding:12px;border-radius:14px;border:none;background:#ff2238;color:#fff;font-weight:900;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
     </div>
   </div>
 
   <div class="game-layout">
     
-    <!-- Home / Connection View -->
     <div id="home" class="lobby-card">
       <div class="lobby-title">🂡 ПОКЕР</div>
-      <div class="lobby-sub">Texas Hold'em · Discord Night Edition</div>
-      <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px">
-      <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px">Создать Стол 🎴</button>
+      <div class="lobby-sub" data-i18n="tagline">Texas Hold'em · Discord Night Edition</div>
+      <div class="langbar" id="langbar" style="margin-bottom:16px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+      <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px" data-i18n-ph="ph_name">
+      <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px" data-i18n="btn_create">Создать Стол 🎴</button>
       
       <div style="display:flex;gap:8px;margin-top:10px">
-        <input id="joincode" placeholder="КОД СТОЛА" maxlength="4" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center">
-        <button onclick="join()" style="padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer">Войти</button>
+        <input id="joincode" placeholder="КОД СТОЛА" maxlength="4" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center" data-i18n-ph="ph_code">
+        <button onclick="join()" style="padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer" data-i18n="btn_join">Войти</button>
       </div>
     </div>
 
-    <!-- Lobby View -->
     <div id="lobby" class="lobby-card hide">
-      <div class="lobby-title">СТОЛ <span id="lcode" style="color:#ff2238"></span></div>
-      <div class="lobby-sub" id="waitmsg">Ожидание игроков...</div>
+      <div class="lobby-title"><span data-i18n="lobby_table">СТОЛ</span> <span id="lcode" style="color:#ff2238"></span></div>
+      <div class="lobby-sub" id="waitmsg" data-i18n="wait_players">Ожидание игроков...</div>
       <div id="players" style="display:flex;flex-direction:column;gap:6px;margin:16px 0"></div>
       
       <div id="pkSettings" class="hide" style="display:flex;gap:8px;margin-bottom:16px">
         <select id="setBlinds" style="flex:1;padding:10px;border-radius:12px;background:#18181c;color:#fff;border:1px solid rgba(255,255,255,0.15)">
-          <option value="10">Блайнды 5/10</option>
-          <option value="20">10/20</option>
-          <option value="50">25/50</option>
+          <option value="10" data-i18n="opt_blinds_10">Блайнды 5/10</option>
+          <option value="20" data-i18n="opt_blinds_20">Блайнды 10/20</option>
+          <option value="50" data-i18n="opt_blinds_50">Блайнды 25/50</option>
         </select>
         <select id="setStack" style="flex:1;padding:10px;border-radius:12px;background:#18181c;color:#fff;border:1px solid rgba(255,255,255,0.15)">
-          <option value="1000">Стек 1000</option>
-          <option value="2500">Стек 2500</option>
-          <option value="5000">Стек 5000</option>
+          <option value="1000" data-i18n="opt_stack_1000">Стек 1000</option>
+          <option value="2500" data-i18n="opt_stack_2500">Стек 2500</option>
+          <option value="5000" data-i18n="opt_stack_5000">Стек 5000</option>
         </select>
       </div>
 
-      <button id="addbotbtn" onclick="send({action:'add_bot'})" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;margin-bottom:10px;cursor:pointer">+ Добавить Бота 🤖</button>
-      <button id="startbtn" class="hide" onclick="send({action:'start',settings:{bb:parseInt(document.getElementById('setBlinds').value),stack:parseInt(document.getElementById('setStack').value)}})" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;font-size:15px;cursor:pointer">🚀 Раздать Карты</button>
+      <button id="addbotbtn" onclick="send({action:'add_bot'})" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;margin-bottom:10px;cursor:pointer" data-i18n="btn_addbot">+ Добавить Бота 🤖</button>
+      <button id="startbtn" class="hide" onclick="send({action:'start',settings:{bb:parseInt(document.getElementById('setBlinds').value),stack:parseInt(document.getElementById('setStack').value)}})" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;font-size:15px;cursor:pointer" data-i18n="btn_start">🚀 Раздать Карты</button>
     </div>
 
-    <!-- Active Game View -->
     <div id="game" class="hide" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between">
       
-      <!-- 3D Table Center -->
       <div class="poker-table-wrap">
         <div class="poker-table">
-          <!-- Dynamic Opponent Seats -->
           <div class="seats-container" id="seatsContainer"></div>
 
-          <!-- Pot -->
           <div class="pot-badge">
-            <span>💰 БАНК:</span>
+            <span data-i18n="lbl_pot">💰 БАНК:</span>
             <span id="pot">0</span>
           </div>
 
-          <!-- Community Cards -->
           <div class="community-cards" id="community"></div>
 
-          <!-- Table Status -->
           <div class="table-status" id="status">Префлоп</div>
           <div id="won" style="font-size:14px;font-weight:900;color:#22c55e;margin-top:4px"></div>
         </div>
       </div>
 
-      <!-- My Hand Cards & Info -->
       <div class="my-cards-section">
         <div class="my-cards" id="mine"></div>
         <div id="meinfo" style="font-size:13px;font-weight:800;color:#fff"></div>
       </div>
 
-      <!-- Action Controls Bar -->
       <div class="action-bar-wrap">
         <div class="raise-presets hide" id="raiseRow">
           <div class="slider-row" style="width:100%">
@@ -264,7 +238,7 @@
         </div>
 
         <div class="action-buttons" id="actions"></div>
-        <button id="nextBtn" class="hide" style="width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;cursor:pointer;margin-top:6px" onclick="send({action:'poker_next'})">🔄 Следующая раздача</button>
+        <button id="nextBtn" class="hide" style="width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;cursor:pointer;margin-top:6px" onclick="send({action:'poker_next'})" data-i18n="btn_nexthand">🔄 Следующая раздача</button>
       </div>
 
     </div>
@@ -274,7 +248,109 @@
   <script src="/games/static/sfx.js"></script>
   <script src="/games/static/reconnect.js"></script>
   <script>
+    const UI={
+      uk:{
+        rules_title:"🂡 Покер — Правила",
+        rules_body:"Texas Hold'em. У тебе 2 карти + 5 спільних на столі. Збери найкращу комбінацію з 5. Ставки по колу: Чек, Кол, Рейз, Фолд, Олл-ін. Забирає банк найкраща рука або останній гравець, що не скинув карти.",
+        rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Texas Hold'em · Discord Night Edition",
+        ph_name:"Твоє ім'я", btn_create:"Створити Стіл 🎴", ph_code:"КОД СТОЛА", btn_join:"Увійти",
+        lobby_table:"СТІЛ", wait_players:"Очікування гравців...",
+        opt_blinds_10:"Блайнди 5/10", opt_blinds_20:"Блайнди 10/20", opt_blinds_50:"Блайнди 25/50",
+        opt_stack_1000:"Стек 1000", opt_stack_2500:"Стек 2500", opt_stack_5000:"Стек 5000",
+        btn_addbot:"+ Додати Бота 🤖", btn_start:"🚀 Роздати Карти",
+        need_2p:"Потрібно 2+ гравці…", host_prompt:"Тисни «Роздати»", wait_host:"Чекаємо ведучого…",
+        lbl_pot:"💰 БАНК:", stage_preflop:"Префлоп", stage_flop:"Флоп", stage_turn:"Терн", stage_river:"Рівер", stage_showdown:"Розкриття",
+        your_turn_banner:" — ТВІЙ ХІД! 🔥", turn_of_banner:name=>" — хід "+name,
+        badge_bet:b=>"Ставка "+b, badge_fold:"ФОЛД", badge_allin:"ОЛЛ-ІН 💥",
+        allin_badge:"💥 ОЛЛ-ІН", your_stack:"Твій стек: ", you_folded:"ти скинув",
+        btn_fold:"Фолд", btn_check:"Чек", btn_call:amt=>"Кол "+amt, btn_raise:"Рейз 🚀", btn_allin:"Олл-ін 💥",
+        btn_back:"← Назад", raise_to:val=>"Рейз до "+val+" 🪙", btn_nexthand:"🔄 Наступна роздача",
+        conn_lost:"Зв'язок втрачено, онови сторінку.", ask_code:"Введіть код!", def_player:"Гравець"
+      },
+      ru:{
+        rules_title:"🂡 Покер — Правила",
+        rules_body:"Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.",
+        rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Texas Hold'em · Discord Night Edition",
+        ph_name:"Твое имя", btn_create:"Создать Стол 🎴", ph_code:"КОД СТОЛА", btn_join:"Войти",
+        lobby_table:"СТОЛ", wait_players:"Ожидание игроков...",
+        opt_blinds_10:"Блайнды 5/10", opt_blinds_20:"Блайнды 10/20", opt_blinds_50:"Блайнды 25/50",
+        opt_stack_1000:"Стек 1000", opt_stack_2500:"Стек 2500", opt_stack_5000:"Стек 5000",
+        btn_addbot:"+ Добавить Бота 🤖", btn_start:"🚀 Раздать Карты",
+        need_2p:"Нужно 2+ игрока…", host_prompt:"Жми «Раздать»", wait_host:"Ждём ведущего…",
+        lbl_pot:"💰 БАНК:", stage_preflop:"Префлоп", stage_flop:"Флоп", stage_turn:"Тёрн", stage_river:"Ривер", stage_showdown:"Вскрытие",
+        your_turn_banner:" — ТВОЙ ХОД! 🔥", turn_of_banner:name=>" — ходит "+name,
+        badge_bet:b=>"Ставка "+b, badge_fold:"ФОЛД", badge_allin:"ОЛЛ-ИН 💥",
+        allin_badge:"💥 ОЛЛ-ИН", your_stack:"Твой стек: ", you_folded:"ты сфолдил",
+        btn_fold:"Фолд", btn_check:"Чек", btn_call:amt=>"Колл "+amt, btn_raise:"Рейз 🚀", btn_allin:"Олл-ин 💥",
+        btn_back:"← Назад", raise_to:val=>"Рейз до "+val+" 🪙", btn_nexthand:"🔄 Следующая раздача",
+        conn_lost:"Связь потеряна, обнови страницу.", ask_code:"Введите код!", def_player:"Игрок"
+      },
+      en:{
+        rules_title:"🂡 Poker — Rules",
+        rules_body:"Texas Hold'em. You have 2 private cards + 5 community cards on the board. Make the best 5-card combination. Betting rounds: Check, Call, Raise, Fold, All-in. The best hand or the last remaining player wins the pot.",
+        rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Texas Hold'em · Discord Night Edition",
+        ph_name:"Your name", btn_create:"Create Table 🎴", ph_code:"TABLE CODE", btn_join:"Join",
+        lobby_table:"TABLE", wait_players:"Waiting for players...",
+        opt_blinds_10:"Blinds 5/10", opt_blinds_20:"Blinds 10/20", opt_blinds_50:"Blinds 25/50",
+        opt_stack_1000:"Stack 1000", opt_stack_2500:"Stack 2500", opt_stack_5000:"Stack 5000",
+        btn_addbot:"+ Add Bot 🤖", btn_start:"🚀 Deal Cards",
+        need_2p:"Need 2+ players…", host_prompt:"Hit 'Deal Cards'", wait_host:"Waiting for host…",
+        lbl_pot:"💰 POT:", stage_preflop:"Preflop", stage_flop:"Flop", stage_turn:"Turn", stage_river:"River", stage_showdown:"Showdown",
+        your_turn_banner:" — YOUR TURN! 🔥", turn_of_banner:name=>" — turn of "+name,
+        badge_bet:b=>"Bet "+b, badge_fold:"FOLD", badge_allin:"ALL-IN 💥",
+        allin_badge:"💥 ALL-IN", your_stack:"Your stack: ", you_folded:"you folded",
+        btn_fold:"Fold", btn_check:"Check", btn_call:amt=>"Call "+amt, btn_raise:"Raise 🚀", btn_allin:"All-in 💥",
+        btn_back:"← Back", raise_to:val=>"Raise to "+val+" 🪙", btn_nexthand:"🔄 Next hand",
+        conn_lost:"Connection lost, refresh page.", ask_code:"Enter code!", def_player:"Player"
+      }
+    };
+
+    const COMB_TR={
+      "Старшая карта":{uk:"Старша карта",en:"High card"},
+      "Пара":{uk:"Пара",en:"Pair"},
+      "Две пары":{uk:"Дві пари",en:"Two pair"},
+      "Тройка":{uk:"Трійка",en:"Three of a kind"},
+      "Стрит":{uk:"Стріт",en:"Straight"},
+      "Флеш":{uk:"Флеш",en:"Flush"},
+      "Фулл-хаус":{uk:"Фул-хаус",en:"Full house"},
+      "Каре":{uk:"Каре",en:"Four of a kind"},
+      "Стрит-флеш":{uk:"Стріт-флеш",en:"Straight flush"},
+      "Флеш-рояль":{uk:"Флеш-рояль",en:"Royal flush"}
+    };
+
+    function trMsg(msg){
+      if(!msg||LANG==='ru')return msg;
+      let res=msg;
+      for(const k of Object.keys(COMB_TR)){
+        if(res.includes(k)){
+          res=res.replace(k,COMB_TR[k][LANG]||k);
+        }
+      }
+      if(LANG==='uk'){
+        res=res.replace(/забирает банк/g,'забирає банк').replace(/забирают банк/g,'забирають банк')
+               .replace(/все сфолдили/g,'всі скинули').replace(/ничья/g,'нічия');
+      } else if(LANG==='en'){
+        res=res.replace(/забирает банк/g,'wins the pot').replace(/забирают банк/g,'split the pot')
+               .replace(/все сфолдили/g,'everyone folded').replace(/ничья/g,'tie');
+      }
+      return res;
+    }
+
+    let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
+    function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+
     let ws, pid, st = null, isHost = false;
+
+    function applyUI(){
+      document.documentElement.lang=LANG;
+      document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+      document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(typeof v==='string')el.placeholder=v;});
+      document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+      if(st)render();
+    }
+    document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
+    document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+    document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
     function show(id) {
       for (const s of ['home', 'lobby', 'game']) document.getElementById(s).classList.add('hide');
@@ -289,18 +365,18 @@
       ws.onmessage = e => handle(JSON.parse(e.data));
       ws.onclose = () => {
         const w = document.getElementById('waitmsg');
-        if (w) w.textContent = 'Связь потеряна, обнови страницу.';
+        if (w) w.textContent = t('conn_lost');
       };
     }
 
     function create() {
-      connect(() => send({ action: 'create', name: document.getElementById('name').value || 'Игрок', game: 'poker' }));
+      connect(() => send({ action: 'create', name: document.getElementById('name').value || t('def_player'), game: 'poker' }));
     }
 
     function join() {
       const c = document.getElementById('joincode').value;
-      if (!c) return alert('Введите код!');
-      connect(() => send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: c }));
+      if (!c) return alert(t('ask_code'));
+      connect(() => send({ action: 'join', name: document.getElementById('name').value || t('def_player'), code: c }));
     }
 
     const RANK_SYMBOLS = { 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
@@ -329,7 +405,6 @@
     function render() {
       if (!st) return;
 
-      // Render Seats around Table
       const container = document.getElementById('seatsContainer');
       container.innerHTML = '';
 
@@ -350,9 +425,9 @@
         node.className = `seat-node ${posClass}`;
         
         let badgeText = '';
-        if (st.bets[p]) badgeText = `Ставка ${st.bets[p]}`;
-        else if (isFolded) badgeText = 'ФОЛД';
-        else if (isAllIn) badgeText = 'ОЛЛ-ИН 💥';
+        if (st.bets[p]) badgeText = typeof t('badge_bet')==='function'?t('badge_bet')(st.bets[p]):('Bet '+st.bets[p]);
+        else if (isFolded) badgeText = t('badge_fold');
+        else if (isAllIn) badgeText = t('badge_allin');
 
         node.innerHTML = `
           <div class="seat-card ${isTurn ? 'active-turn' : ''} ${isFolded ? 'folded' : ''}">
@@ -367,34 +442,37 @@
 
       document.getElementById('pot').textContent = st.pot;
 
-      // Render Community Cards
       const com = document.getElementById('community');
       com.innerHTML = '';
       for (const c of st.community) com.appendChild(createCardElement(c));
 
-      // My Hole Cards
       const mine = document.getElementById('mine');
       mine.innerHTML = '';
       if (st.hole && st.hole.length) {
         for (const c of st.hole) mine.appendChild(createCardElement(c));
       }
 
-      // Table Status & Turn Info
       const status = document.getElementById('status');
-      const stageNames = { preflop: 'Префлоп', flop: 'Флоп', turn: 'Тёрн', river: 'Ривер', showdown: 'Вскрытие' };
+      const stageMap = {
+        preflop: t('stage_preflop'),
+        flop: t('stage_flop'),
+        turn: t('stage_turn'),
+        river: t('stage_river'),
+        showdown: t('stage_showdown')
+      };
       const myturn = st.to_act_pid === pid;
 
       status.className = 'table-status' + (myturn ? ' my-turn' : '');
-      status.textContent = st.done ? '' : (stageNames[st.stage] || st.stage) + (myturn ? ' — ТВОЙ ХОД! 🔥' : (st.to_act_pid ? ' — ходит ' + (st.names[st.to_act_pid] || '?') : ''));
+      const stageLabel = stageMap[st.stage] || st.stage;
+      status.textContent = st.done ? '' : stageLabel + (myturn ? t('your_turn_banner') : (st.to_act_pid ? (typeof t('turn_of_banner')==='function'?t('turn_of_banner')(st.names[st.to_act_pid]||'?'):(' — '+(st.names[st.to_act_pid]||'?'))) : ''));
       
-      document.getElementById('meinfo').innerHTML = st.allin.includes(pid) ? '<b style="color:#8b5cf6">💥 ОЛЛ-ИН</b>' : (`Твой стек: <span style="color:#ffd700">${st.my_stack || 0} 🪙</span>` + (st.folded.includes(pid) ? ' · <span style="color:var(--muted)">ты сфолдил</span>' : ''));
+      document.getElementById('meinfo').innerHTML = st.allin.includes(pid) ? `<b style="color:#8b5cf6">${t('allin_badge')}</b>` : (`${t('your_stack')}<span style="color:#ffd700">${st.my_stack || 0} 🪙</span>` + (st.folded.includes(pid) ? ` · <span style="color:var(--muted)">${t('you_folded')}</span>` : ''));
 
-      // Hand Results
       const won = document.getElementById('won');
       const nextBtn = document.getElementById('nextBtn');
       if (st.done) {
         won.classList.remove('hide');
-        won.textContent = '🏆 ' + st.msg;
+        won.textContent = '🏆 ' + trMsg(st.msg);
         nextBtn.classList.remove('hide');
         if (window.confetti && st.msg.includes(st.names[pid])) {
           confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
@@ -410,14 +488,14 @@
     function buildActions() {
       const toCall = st.to_call || 0, stack = st.my_stack || 0;
       const acts = [];
-      acts.push({ label: 'Фолд', act: 'fold', cls: 'btn-fold' });
-      if (toCall === 0) acts.push({ label: 'Чек', act: 'check', cls: 'btn-call' });
-      else acts.push({ label: 'Колл ' + Math.min(toCall, stack), act: 'call', cls: 'btn-call' });
+      acts.push({ label: t('btn_fold'), act: 'fold', cls: 'btn-fold' });
+      if (toCall === 0) acts.push({ label: t('btn_check'), act: 'check', cls: 'btn-call' });
+      else acts.push({ label: typeof t('btn_call')==='function'?t('btn_call')(Math.min(toCall, stack)):('Call '+Math.min(toCall, stack)), act: 'call', cls: 'btn-call' });
 
       const minRaiseTarget = st.cur_bet + (st.min_raise || st.bb);
       if (stack > toCall) {
-        if (st.bets[pid] + stack >= minRaiseTarget) acts.push({ label: 'Рейз 🚀', act: 'raise_ui', cls: 'btn-raise' });
-        acts.push({ label: 'Олл-ин 💥', act: 'allin', cls: 'btn-allin' });
+        if (st.bets[pid] + stack >= minRaiseTarget) acts.push({ label: t('btn_raise'), act: 'raise_ui', cls: 'btn-raise' });
+        acts.push({ label: t('btn_allin'), act: 'allin', cls: 'btn-allin' });
       }
       return acts;
     }
@@ -458,12 +536,12 @@
 
       const cancel = document.createElement('button');
       cancel.className = 'action-btn btn-fold';
-      cancel.textContent = '← Назад';
+      cancel.textContent = t('btn_back');
       cancel.onclick = render;
 
       const go = document.createElement('button');
       go.className = 'action-btn btn-raise';
-      go.textContent = 'Рейз до ' + sl.value;
+      go.textContent = typeof t('raise_to')==='function'?t('raise_to')(sl.value):('Raise to '+sl.value+' 🪙');
       go.onclick = () => {
         const target = parseInt(sl.value);
         if (target >= maxT) send({ action: 'poker_action', act: 'allin' });
@@ -471,7 +549,7 @@
         if (window.sfx) window.sfx.click();
       };
 
-      const upd = () => go.textContent = 'Рейз до ' + sl.value + ' 🪙';
+      const upd = () => go.textContent = typeof t('raise_to')==='function'?t('raise_to')(sl.value):('Raise to '+sl.value+' 🪙');
       sl.addEventListener('input', upd);
 
       box.appendChild(cancel);
@@ -491,7 +569,7 @@
         isHost = (m.host === pid);
         document.getElementById('startbtn').classList.toggle('hide', !isHost || m.players.length < 2);
         document.getElementById('pkSettings').classList.toggle('hide', !isHost);
-        document.getElementById('waitmsg').textContent = m.players.length < 2 ? 'Нужно 2+ игрока…' : (isHost ? 'Жми «Раздать»' : 'Ждём ведущего…');
+        document.getElementById('waitmsg').textContent = m.players.length < 2 ? t('need_2p') : (isHost ? t('host_prompt') : t('wait_host'));
       }
       else if (m.type === 'poker_state') {
         st = m;
@@ -502,6 +580,7 @@
         alert(m.msg);
       }
     }
+    applyUI();
   </script>
 </body>
 </html>

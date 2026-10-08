@@ -1,142 +1,660 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>RAINAR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lobby.gg — party games with friends</title>
+<meta name="description" content="Lobby.gg — real-time multiplayer party games in the browser. No installs, just share a room code.">
+<meta name="theme-color" content="#050507">
+<meta property="og:title" content="Lobby.gg — party games with friends">
+<meta property="og:description" content="Real-time multiplayer party games in the browser. No installs — just a link.">
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/shell.css">
 <style>
-  .hero{text-align:center;padding:30px 0 10px}
-  .brand{display:inline-flex;flex-direction:column;align-items:center;line-height:1;animation:float 5s ease-in-out infinite}
-  .brand-top{font-size:19px;font-weight:800;letter-spacing:10px;padding-left:10px;color:#ff6a7a;
-    text-shadow:0 0 18px rgba(255,34,56,.55);margin-bottom:3px}
-  .brand-main{font-size:58px;font-weight:900;letter-spacing:9px;padding-left:9px;
-    background:linear-gradient(100deg,#fff 18%,#ff2238 46%,#ff8a97 54%,#ff2238 62%,#fff 92%);background-size:230% auto;
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 0 52px rgba(255,34,56,.5);animation:shine 4.5s linear infinite}
-  @keyframes shine{to{background-position:230% center}}
-  .grid{display:grid;gap:14px;width:100%;max-width:460px;margin:18px auto 0}
-  .game{position:relative;display:block;border-radius:20px;padding:22px;text-decoration:none;color:#fff;overflow:hidden;
-    background:linear-gradient(180deg,rgba(28,28,34,.6),rgba(16,16,20,.55));backdrop-filter:blur(14px);
-    border:1px solid var(--border);box-shadow:var(--inner),0 12px 30px rgba(0,0,0,.55);
-    transition:transform .18s,box-shadow .3s,border-color .3s}
-  .game::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;
-    background:radial-gradient(circle,rgba(255,34,56,.16),transparent 70%);transition:opacity .3s;opacity:.5}
-  .game:hover,.game:active{transform:translateY(-4px);border-color:rgba(255,34,56,.5);
-    box-shadow:0 0 30px rgba(255,34,56,.25),0 14px 36px rgba(0,0,0,.6)}
-  .game:hover::after{opacity:1}
-  .game .ico{font-size:36px;filter:drop-shadow(0 0 10px rgba(255,34,56,.4))}
-  .game .nm{font-size:21px;font-weight:800;margin-top:8px;letter-spacing:.5px}
-  .game .ds{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
-  .sect{max-width:460px;margin:24px auto 4px;font-size:14px;font-weight:800;color:#cfcfd6;letter-spacing:.5px;width:100%}
-  .game.soon{opacity:.5;cursor:default}.game.soon:hover{transform:none;border-color:var(--border);box-shadow:var(--inner),0 12px 30px rgba(0,0,0,.55)}
-  .badge2{position:absolute;top:12px;right:12px;font-size:10px;background:#000a;padding:3px 9px;border-radius:20px;color:#ff9aa5}
-  .ftr{color:#4a4a52;font-size:11px;text-align:center;margin-top:26px;letter-spacing:1px}
-  /* большая заметная плашка профиля — сразу видно, что кликабельна */
-  .profile-card{display:flex;align-items:center;gap:14px;max-width:460px;width:100%;margin:18px auto 0;
-    padding:14px 16px;border-radius:16px;text-decoration:none;color:var(--text);
-    background:linear-gradient(135deg,rgba(255,34,56,.14),rgba(255,255,255,.05));
-    border:1px solid rgba(255,34,56,.35);box-shadow:0 4px 18px rgba(0,0,0,.4);
-    transition:transform .15s,box-shadow .3s,border-color .3s}
-  .profile-card:active{transform:scale(.98)}
-  .profile-card:hover{border-color:var(--crimson);box-shadow:0 0 24px rgba(255,34,56,.28)}
-  .pc-av{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-    font-size:26px;background:rgba(255,255,255,.08);flex-shrink:0}
-  .pc-mid{flex:1;min-width:0}
-  .pc-name{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pc-stats{font-size:12px;color:var(--muted);margin-top:2px}
-  .pc-badge{background:var(--crimson);color:#fff;border-radius:11px;padding:2px 8px;font-size:12px;font-weight:800;flex-shrink:0}
-  .pc-arrow{font-size:26px;color:var(--muted);flex-shrink:0;line-height:1}
-  /* переключатель языка */
-  .langbar{display:flex;gap:4px;justify-content:center;margin:0 auto 14px;
-    background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:13px;
-    padding:5px 13px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  body{padding:0 16px 0;scroll-behavior:smooth}
+  html{scroll-behavior:smooth}
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* ── nav ── */
+  .nav{position:sticky;top:0;z-index:50;margin:0 -16px;padding:12px 16px;
+    background:linear-gradient(180deg,rgba(5,5,7,.85),rgba(5,5,7,.55));
+    backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid rgba(255,255,255,.05)}
+  .nav .wrap{display:flex;align-items:center;gap:12px}
+  .logo{display:flex;align-items:center;gap:10px;color:#fff}
+  .logo:hover{color:#fff}
+  .logo .lgg-word{font-size:20px}
+  .nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .langbar{display:flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:3px}
+  .langbar button{width:auto;margin:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:12px;
+    padding:6px 11px;border-radius:999px;cursor:pointer;letter-spacing:.6px;box-shadow:none;transition:background .18s,color .18s,box-shadow .3s}
+  .langbar button::after{display:none}
+  .langbar button:hover{transform:none;color:#fff;box-shadow:none}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.45)}
+  .profile-card{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;color:var(--text);
+    background:rgba(255,255,255,.045);border:1px solid var(--border);transition:border-color .25s,box-shadow .3s,background .25s;max-width:240px}
+  .profile-card:hover{color:var(--text);border-color:rgba(255,34,56,.55);background:rgba(255,34,56,.07);box-shadow:0 0 22px -4px rgba(255,34,56,.4)}
+  .pc-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,.08);flex-shrink:0}
+  .pc-mid{min-width:0;line-height:1.15}
+  .pc-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-stats{font-size:11px;color:var(--muted);white-space:nowrap}
+  .pc-badge{background:var(--crimson);color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;flex-shrink:0}
+
+  /* ── hero ── */
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding:84px 0 56px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 11px;border-radius:999px;font-size:12.5px;font-weight:600;
+    color:#e9e9ee;background:rgba(255,255,255,.04);border:1px solid var(--border);letter-spacing:.2px;animation:fadein .6s var(--ease) both}
+  .live{width:8px;height:8px;border-radius:50%;background:#2fd86f;box-shadow:0 0 0 0 rgba(47,216,111,.6);animation:ping 1.8s infinite}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(47,216,111,.55)}80%,100%{box-shadow:0 0 0 9px rgba(47,216,111,0)}}
+  .h-title{font-family:var(--display);text-align:left;font-size:clamp(34px,5.4vw,66px);line-height:1.04;font-weight:700;letter-spacing:-1.5px;
+    margin:22px 0 0;text-shadow:none;animation:fadein .7s .05s var(--ease) both}
+  .h-title span{display:block}
+  .grad{background:linear-gradient(92deg,#fff 0%,#ffb3bb 30%,var(--crimson) 62%,var(--ember) 100%);background-size:200% auto;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s ease-in-out infinite alternate}
+  @keyframes shine{to{background-position:100% center}}
+  .lead{color:#a9a9b3;font-size:17px;line-height:1.6;max-width:540px;margin:22px 0 0;animation:fadein .7s .1s var(--ease) both}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px;animation:fadein .7s .15s var(--ease) both}
+  .btn-p,.btn-g{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;border-radius:14px;font-weight:700;font-size:15px;transition:transform .15s var(--ease),box-shadow .3s,border-color .3s,background .3s}
+  .btn-p{color:#fff;background:linear-gradient(135deg,#ff3448,var(--crimson) 45%,var(--crimson-deep));box-shadow:0 10px 30px -8px rgba(255,34,56,.7),inset 0 1px 0 rgba(255,255,255,.25)}
+  .btn-p:hover{color:#fff;transform:translateY(-2px);box-shadow:0 16px 40px -8px rgba(255,34,56,.85),inset 0 1px 0 rgba(255,255,255,.25)}
+  .btn-g{color:var(--text);background:rgba(255,255,255,.045);border:1px solid var(--border)}
+  .btn-g:hover{color:#fff;transform:translateY(-2px);border-color:var(--border-hi);background:rgba(255,255,255,.07)}
+  .btn-p .arr{transition:transform .2s}.btn-p:hover .arr{transform:translateY(2px)}
+  .stats{display:grid;grid-template-columns:repeat(4,auto);justify-content:start;gap:0;margin-top:44px;animation:fadein .7s .2s var(--ease) both}
+  .stat{padding:0 26px;border-left:1px solid rgba(255,255,255,.08)}
+  .stat:first-child{padding-left:0;border-left:0}
+  .stat b{display:block;font-family:var(--display);font-size:28px;font-weight:700;color:#fff;letter-spacing:-.5px}
+  .stat span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px;white-space:nowrap}
+
+  /* room preview card */
+  .room-wrap{position:relative;animation:fadein .8s .2s var(--ease) both}
+  .room-wrap::before{content:"";position:absolute;inset:-12% -8%;z-index:-1;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(255,34,56,.32),transparent);filter:blur(20px)}
+  .room{position:relative;border-radius:26px;padding:22px;background:linear-gradient(180deg,rgba(30,30,38,.75),rgba(14,14,18,.75));
+    border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 40px 80px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,34,56,.08);
+    transform:perspective(1200px) rotateY(-7deg) rotateX(3deg);animation:hover3d 7s ease-in-out infinite}
+  @keyframes hover3d{0%,100%{transform:perspective(1200px) rotateY(-7deg) rotateX(3deg) translateY(0)}50%{transform:perspective(1200px) rotateY(-4deg) rotateX(1deg) translateY(-10px)}}
+  .room-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1.2px}
+  .room-game{margin-left:auto;text-transform:none;letter-spacing:0;color:#fff;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:5px 10px;border-radius:999px;font-size:12.5px}
+  .room-code{font-family:var(--display);font-size:52px;font-weight:700;letter-spacing:12px;margin:14px 0 4px;
+    background:linear-gradient(90deg,#fff,#ff8a97,#fff);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 5s linear infinite}
+  .room-hint{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .rp{display:flex;align-items:center;gap:12px;padding:10px 12px;margin:7px 0;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--border);
+    opacity:0;animation:join .5s var(--ease) forwards}
+  .rp:nth-child(1){animation-delay:.5s}.rp:nth-child(2){animation-delay:1.1s}.rp:nth-child(3){animation-delay:1.7s}.rp:nth-child(4){animation-delay:2.3s}
+  @keyframes join{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+  .rp .av{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .rp .nmx{font-weight:700;font-size:14px}
+  .rp .tg{margin-left:auto;font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;color:#9ff0bd;background:rgba(47,216,111,.12);border:1px solid rgba(47,216,111,.25)}
+  .rp .tg.host{color:#ffb0b8;background:rgba(255,34,56,.12);border-color:rgba(255,34,56,.3)}
+  .rp .tg.wait{color:var(--muted);background:rgba(255,255,255,.05);border-color:var(--border)}
+  .dots i{display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;margin:0 1px;animation:blink 1.2s infinite}
+  .dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+  .room-btn{margin-top:14px;padding:14px;border-radius:14px;text-align:center;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#ff3448,var(--crimson) 45%,var(--crimson-deep));box-shadow:0 10px 26px -8px rgba(255,34,56,.7)}
+  .float-chip{position:absolute;z-index:3;padding:9px 13px;border-radius:14px;font-size:12.5px;font-weight:600;white-space:nowrap;
+    background:rgba(20,20,26,.85);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    box-shadow:0 14px 30px -10px rgba(0,0,0,.8)}
+  .fc1{top:-18px;right:-14px;animation:floaty 5s ease-in-out infinite}
+  .fc2{bottom:46px;left:-34px;animation:floaty 6s 1s ease-in-out infinite}
+
+  #inviteBanner{max-width:1180px;margin:0 auto}
+
+  /* ── featured & filters ── */
+  .section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:24px 0 18px}
+  .kicker{font-size:12px;font-weight:700;color:var(--crimson-soft);text-transform:uppercase;letter-spacing:2px}
+  .section-head h2{font-size:clamp(24px,3vw,34px);margin-top:8px;letter-spacing:-.6px;font-weight:700}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .filters button{width:auto;margin:0;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px solid var(--border);box-shadow:none}
+  .filters button::after{display:none}
+  .filters button:hover{transform:none;color:#fff;border-color:var(--border-hi);box-shadow:none}
+  .filters button.on{color:#fff;background:rgba(255,34,56,.16);border-color:rgba(255,34,56,.6);box-shadow:0 0 18px -4px rgba(255,34,56,.5)}
+  .filters button .n{opacity:.55;margin-left:5px;font-weight:700}
+
+  .featured{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px}
+  .feat{position:relative;display:flex;align-items:center;gap:20px;padding:26px;border-radius:24px;overflow:hidden;color:#fff;min-height:150px;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--c) 22%,transparent),rgba(16,16,21,.6) 60%);
+    border:1px solid color-mix(in srgb,var(--c) 35%,transparent);box-shadow:var(--inner),0 20px 50px -20px rgba(0,0,0,.8);
+    transition:transform .25s var(--ease),box-shadow .3s,border-color .3s}
+  .feat::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;
+    background:radial-gradient(circle,color-mix(in srgb,var(--c) 40%,transparent),transparent 70%);opacity:.6;transition:opacity .3s}
+  .feat:hover{color:#fff;transform:translateY(-4px);border-color:color-mix(in srgb,var(--c) 70%,transparent);
+    box-shadow:var(--inner),0 24px 60px -20px rgba(0,0,0,.9),0 0 50px -12px var(--c)}
+  .feat:hover::after{opacity:1}
+  .feat .ico{font-size:52px;filter:drop-shadow(0 0 18px var(--c));position:relative;z-index:1}
+  .feat .tx{position:relative;z-index:1}
+  .feat .pill{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:4px 9px;border-radius:999px;
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);color:#fff}
+  .feat .nm{font-family:var(--display);font-size:22px;font-weight:700;margin-top:10px;letter-spacing:-.3px}
+  .feat .ds{font-size:14px;color:#c4c4cc;margin-top:6px;line-height:1.5;max-width:420px}
+
+  /* ── game grid ── */
+  .cat{margin-top:34px}
+  .cat-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .cat-h h3{font-size:16px;font-weight:600;letter-spacing:0}
+  .cat-h .cnt{font-size:12px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--border);padding:3px 9px;border-radius:999px}
+  .cat-h .line{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .game{--c:#ff2238;position:relative;display:flex;flex-direction:column;border-radius:20px;padding:20px;color:#fff;overflow:hidden;min-height:168px;
+    background:linear-gradient(180deg,rgba(26,26,33,.62),rgba(14,14,18,.6));
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--border);box-shadow:var(--inner),0 14px 34px -14px rgba(0,0,0,.75);
+    transition:transform .22s var(--ease),box-shadow .3s,border-color .3s;
+    animation:riseIn .5s var(--ease) both}
+  .game::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+    background:radial-gradient(400px circle at var(--mx,50%) var(--my,0%),color-mix(in srgb,var(--c) 16%,transparent),transparent 45%)}
+  .game:hover{color:#fff;transform:translateY(-5px);border-color:color-mix(in srgb,var(--c) 55%,transparent);
+    box-shadow:var(--inner),0 22px 44px -16px rgba(0,0,0,.9),0 0 36px -10px var(--c)}
+  .game:hover::before{opacity:1}
+  .game .ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--c) 30%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
+    border:1px solid color-mix(in srgb,var(--c) 35%,transparent);box-shadow:0 8px 22px -8px var(--c),inset 0 1px 0 rgba(255,255,255,.12)}
+  .game .gt{margin-top:16px;min-width:0}
+  .game .nm{font-size:17px;font-weight:700;letter-spacing:-.1px}
+  .game .ds{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5}
+  .game .go{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:#fff;background:rgba(255,255,255,.05);border:1px solid var(--border);opacity:0;transform:translateX(-6px);transition:.25s var(--ease)}
+  .game:hover .go{opacity:1;transform:none;background:var(--c);border-color:transparent}
+
+  #adminlink{text-align:center;margin-top:36px}
+  #adminlink a{display:inline-block;color:var(--crimson-soft);font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,34,56,.3);background:rgba(255,34,56,.06)}
+
+  /* ── how it works ── */
+  .how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:80px}
+  .step{padding:24px;border-radius:20px;background:linear-gradient(180deg,rgba(26,26,33,.5),rgba(14,14,18,.5));border:1px solid var(--border)}
+  .step .k{font-family:var(--display);font-size:13px;font-weight:700;color:var(--crimson);letter-spacing:1px}
+  .step b{display:block;font-size:17px;margin-top:10px}
+  .step p{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.55}
+
+  /* ── footer ── */
+  .ftr{margin-top:80px;padding:32px 0 36px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .ftr .logo .lgg-word{font-size:17px}
+  .ftr .by{color:var(--muted);font-size:13.5px}
+  .ftr .by b{color:#fff;font-weight:700}
+  .ftr .tech{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .ftr .tech span{font-size:11.5px;color:#a3a3ad;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+
+  /* ── responsive ── */
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr;gap:48px;padding:56px 0 40px}
+    .room-wrap{max-width:440px;width:100%;margin:0 auto}
+    .featured{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .nav{padding:10px 16px}
+    .logo .lgg-word{font-size:17px}
+    .lgg-mark{width:30px;height:30px}
+    .pc-mid,.profile-card .pc-arrow{display:none}
+    .profile-card{padding:3px}
+    .langbar button{padding:5px 8px;font-size:11px}
+    .hero{padding:38px 0 28px;gap:40px}
+    .h-title{letter-spacing:-1px}
+    .lead{font-size:15.5px}
+    .cta a{flex:1;justify-content:center}
+    .stats{grid-template-columns:1fr 1fr;gap:18px 0}
+    .stat{padding:0 16px}
+    .stat:nth-child(3){padding-left:0;border-left:0}
+    .stat b{font-size:24px}
+    .room{padding:18px;transform:none;animation:none}
+    .room-code{font-size:40px;letter-spacing:9px}
+    .fc1{right:6px;top:-16px}.fc2{display:none}
+    .room-wrap::before{inset:-8% 0}
+    .btn-p,.btn-g{padding:14px 16px;white-space:nowrap}
+    main.wrap{overflow-x:clip}
+    .feat{padding:20px;gap:16px;min-height:0}
+    .feat .ico{font-size:40px}
+    .feat .nm{font-size:18px}
+    .grid{grid-template-columns:1fr;gap:10px}
+    .game{flex-direction:row;align-items:center;gap:14px;min-height:0;padding:14px 16px}
+    .game .ico{width:48px;height:48px;font-size:24px;border-radius:14px}
+    .game .gt{margin-top:0}
+    .game .nm{font-size:15.5px}
+    .game .ds{font-size:12.5px;margin-top:3px}
+    .game .go{display:none}
+    .how{grid-template-columns:1fr;margin-top:56px}
+    .ftr .tech{margin-left:0}
+  }
 </style>
 </head>
 <body>
-  <div class="hero">
-    <div class="langbar" id="langbar" role="group" aria-label="Language">
-      <button type="button" data-lang="uk">УКР</button>
-      <button type="button" data-lang="ru">РУС</button>
-      <button type="button" data-lang="en">ENG</button>
-    </div>
-    <div class="brand"><span class="brand-top">RAINAR</span><span class="brand-main">GAMES</span></div>
-    <div class="sub" data-i18n="sub">пати-игры с друзьями — каждый со своего телефона</div>
-    <a href="/games/profile" class="profile-card">
-      <div class="pc-av" id="hp-av">🙂</div>
-      <div class="pc-mid">
-        <div class="pc-name" id="hp-name" data-i18n="profile">Профиль</div>
-        <div class="pc-stats" id="hp-stats">…</div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="lggG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4a5c"/><stop offset=".55" stop-color="#ff2238"/><stop offset="1" stop-color="#a50c1e"/></linearGradient>
+      <linearGradient id="lggS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <symbol id="lggMark" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#lggG)"/><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#lggS)"/><path d="M23 17v25h15" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="46.5" cy="42" r="4.6" fill="#fff"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="/games/" aria-label="Lobby.gg">
+        <svg class="lgg-mark"><use href="#lggMark"/></svg><span class="lgg-word">Lobby<i>.gg</i></span>
+      </a>
+      <div class="nav-r">
+        <div class="langbar" id="langbar" role="group" aria-label="Language">
+          <button type="button" data-lang="uk">UA</button>
+          <button type="button" data-lang="ru">RU</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+        <div id="navIc" role="toolbar" aria-label="Quick navigation">
+          <button type="button" data-tab="account" aria-label="Account" title="Account" id="nav-btn-account" class="nav-btn-av">
+            <span id="nav-av">🙂</span>
+          </button>
+          <button type="button" data-tab="friends" aria-label="Friends" title="Friends">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="nbadge" id="nav-badge-friends">0</span>
+          </button>
+          <button type="button" data-tab="chat" aria-label="Chat" title="Chat">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nbadge" id="nav-badge-chat">0</span>
+          </button>
+          <button type="button" data-tab="settings" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+        <a href="/games/profile" class="profile-card" data-tab="account" title="Profile">
+          <div class="pc-av" id="hp-av">🙂</div>
+          <div class="pc-mid">
+            <div class="pc-name" id="hp-name" data-i18n="profile">Profile</div>
+            <div class="pc-stats" id="hp-stats"></div>
+          </div>
+          <span id="hp-badge" class="pc-badge" style="display:none">0</span>
+        </a>
       </div>
-      <span id="hp-badge" class="pc-badge" style="display:none">0</span>
-      <div class="pc-arrow">›</div>
-    </a>
-    <div id="inviteBanner" style="display:none;max-width:460px;width:100%;margin:12px auto 0"></div>
-  </div>
-  <div class="grid" style="margin-top: 0;">
-    <a class="game" href="/games/learn" style="border-color:rgba(255,34,56,0.65);box-shadow:0 0 22px rgba(255,34,56,0.3);background:linear-gradient(180deg,rgba(36,16,22,.65),rgba(18,18,22,.6));">
-      <div class="ico">⚡</div>
-      <div class="nm">Jarvis Learn <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--crimson);color:#fff;vertical-align:middle;margin-left:6px;letter-spacing:0.5px;">NEW</span></div>
-      <div class="ds">Интерактивный микротренажер: Street English, CS50 & Python, Deutsch. Практика с микрофоном.</div>
-    </a>
+    </div>
+  </header>
 
-    <a class="game" href="/games/geobunker" style="border-color:rgba(34,197,94,0.5);box-shadow:0 0 20px rgba(34,197,94,0.25);"><div class="ico">🌍</div><div class="nm">GeoBunker (GeoGuessr)</div><div class="ds">Угадывай локации на 360° панорамах! Украина, Столицы, Природа, Мир. 100% Free.</div></a>
-    <a class="game" href="/games/space_invaders" style="border-color:rgba(255,34,56,0.5);box-shadow:0 0 20px rgba(255,34,56,0.25);"><div class="ico">🚀</div><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Неоновый шутер с прокачкой пушек и скинов.</div></a>
-  </div>
-    <div class="sect" data-i18n="sect_party">🎉 Компанией (3+)</div>
-  <div class="grid">
-    <a href="/games/variants" class="game">
-      <div class="ico">🎭</div>
-      <div class="nm">Варианты</div>
-      <div class="ds">Аукцион лжи (Fibbage) с ИИ</div>
-    </a>
-    <a class="game" href="/games/bunker"><div class="ico">☢</div><div class="nm" data-i18n="n_bunker">Бункер</div><div class="ds" data-i18n="d_bunker">Кто достоин места. Карты, голосование, ведущий.</div></a>
-    <a class="game" href="/games/mafia"><div class="ico">🔪</div><div class="nm" data-i18n="n_mafia">Мафия</div><div class="ds" data-i18n="d_mafia">Ночь/день, роли, голосование. Доктор, шериф, мафия. От 3 игроков.</div></a>
-    <a class="game" href="/games/spy"><div class="ico">🕵️</div><div class="nm" data-i18n="n_spy">Шпион</div><div class="ds" data-i18n="d_spy">Найди шпиона. Один не знает локацию.</div></a>
-    <a class="game" href="/games/alias"><div class="ico">💬</div><div class="nm" data-i18n="n_alias">Элиас</div><div class="ds" data-i18n="d_alias">Объясни слово команде. Языки, сложности.</div></a>
-    <a class="game" href="/games/durak"><div class="ico">🃏</div><div class="nm" data-i18n="n_durak">Дурак</div><div class="ds" data-i18n="d_durak">Классика: козырь, подкид, бита.</div></a>
-    <a class="game" href="/games/uno"><div class="ico">🎴</div><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">По цвету или числу. Скип, +2, +4, wild.</div></a>
-    <a class="game" href="/games/poker"><div class="ico">🂡</div><div class="nm" data-i18n="n_poker">Покер</div><div class="ds" data-i18n="d_poker">Texas Hold'em. Блайнды, рейзы, олл-ин. Можно vs боты.</div></a>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-l">
+        <div class="eyebrow"><span class="live"></span><span data-i18n="eyebrow">Live multiplayer rooms · in your browser</span></div>
+        <h1 class="h-title"><span data-i18n="h1a">Party games with friends.</span><span class="grad" data-i18n="h1b">No installs — just a link.</span></h1>
+        <p class="lead" data-i18n="sub">Create a room, share the 4-letter code, and everyone joins from their own phone. Mafia, Bunker, UNO, Chess and dozens more — in real time.</p>
+        <div class="cta">
+          <a class="btn-p" href="#games"><span data-i18n="cta_play">Browse games</span><span class="arr">↓</span></a>
+          <a class="btn-g" href="/games/profile"><span data-i18n="cta_friends">Friends &amp; profile</span></a>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="st-games">30+</b><span data-i18n="s_games">games</span></div>
+          <div class="stat"><b>3</b><span data-i18n="s_langs">languages</span></div>
+          <div class="stat"><b data-i18n="s_live_b">Live</b><span data-i18n="s_live">real-time sync</span></div>
+          <div class="stat"><b>0</b><span data-i18n="s_installs">installs</span></div>
+        </div>
+      </div>
+
+      <div class="room-wrap" aria-hidden="true">
+        <div class="float-chip fc1">🤖 <span data-i18n="fc_bot">Bots fill empty seats</span></div>
+        <div class="float-chip fc2">🌐 UA · RU · EN</div>
+        <div class="room">
+          <div class="room-top"><span class="live"></span><span data-i18n="room_lbl">Room code</span><span class="room-game">🔪 <span data-i18n="n_mafia">Mafia</span></span></div>
+          <div class="room-code">K7QX</div>
+          <div class="room-hint" data-i18n="room_hint">Share the code — friends join instantly</div>
+          <div class="rps">
+            <div class="rp"><div class="av" style="background:#ff2238">🦊</div><div class="nmx">Oleh</div><span class="tg host" data-i18n="room_host">Host</span></div>
+            <div class="rp"><div class="av" style="background:#7c3aed">🐼</div><div class="nmx">Mila</div><span class="tg" data-i18n="room_ready">Ready</span></div>
+            <div class="rp"><div class="av" style="background:#0ea5e9">🐙</div><div class="nmx">Max</div><span class="tg" data-i18n="room_ready">Ready</span></div>
+            <div class="rp"><div class="av" style="background:#f59e0b">🦄</div><div class="nmx">Ira</div><span class="tg wait"><span data-i18n="room_join">joining</span> <span class="dots"><i></i><i></i><i></i></span></span></div>
+          </div>
+          <div class="room-btn" data-i18n="room_start">Start game →</div>
+        </div>
+      </div>
+    </section>
+
+    <div id="inviteBanner" style="display:none"></div>
+
+    <section id="games">
+      <div class="section-head">
+        <div><div class="kicker" data-i18n="k_featured">Featured</div><h2 data-i18n="h_featured">Fresh drops</h2></div>
+      </div>
+      <div class="featured">
+        <a class="feat" href="/games/geobunker" style="--c:#22c55e"><div class="ico">🌍</div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_geobunker">GeoBunker</div><div class="ds" data-i18n="d_geobunker">Guess locations on 360° panoramas. Ukraine, capitals, nature, the whole world.</div></div></a>
+        <a class="feat" href="/games/space_invaders" style="--c:#ff2238"><div class="ico">🚀</div><div class="tx"><span class="pill" data-i18n="p_arcade">Arcade</span><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Neon shooter with weapon and skin upgrades.</div></div></a>
+      </div>
+
+      <div class="section-head" style="margin-top:56px">
+        <div><div class="kicker" data-i18n="k_all">Library</div><h2 data-i18n="h_all">Pick a game</h2></div>
+        <div class="filters" id="filters">
+          <button type="button" class="on" data-f="all"><span data-i18n="f_all">All</span><span class="n" data-n="all"></span></button>
+          <button type="button" data-f="party"><span data-i18n="f_party">Party</span><span class="n" data-n="party"></span></button>
+          <button type="button" data-f="duo"><span data-i18n="f_duo">1 vs 1</span><span class="n" data-n="duo"></span></button>
+          <button type="button" data-f="solo"><span data-i18n="f_solo">Solo</span><span class="n" data-n="solo"></span></button>
+        </div>
+      </div>
+
+      <div class="cat" data-cat="party">
+        <div class="cat-h"><h3 data-i18n="sect_party">🎉 Party · 3+ players</h3><span class="cnt"></span><span class="line"></span></div>
+        <div class="grid">
+          <a class="game" href="/games/variants" style="--c:#a855f7"><div class="ico">🎭</div><div class="gt"><div class="nm" data-i18n="n_variants">Variants</div><div class="ds" data-i18n="d_variants">Bluffing auction (Fibbage-style) with an AI host.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/bunker" style="--c:#eab308"><div class="ico">☢</div><div class="gt"><div class="nm" data-i18n="n_bunker">Bunker</div><div class="ds" data-i18n="d_bunker">Who deserves a spot. Cards, voting, host.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/mafia" style="--c:#ff2238"><div class="ico">🔪</div><div class="gt"><div class="nm" data-i18n="n_mafia">Mafia</div><div class="ds" data-i18n="d_mafia">Night/day, roles, voting.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/spy" style="--c:#64748b"><div class="ico">🕵️</div><div class="gt"><div class="nm" data-i18n="n_spy">Spy</div><div class="ds" data-i18n="d_spy">Find the spy.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/alias" style="--c:#38bdf8"><div class="ico">💬</div><div class="gt"><div class="nm" data-i18n="n_alias">Alias</div><div class="ds" data-i18n="d_alias">Explain the word to your team.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/durak" style="--c:#f97316"><div class="ico">🃏</div><div class="gt"><div class="nm" data-i18n="n_durak">Durak</div><div class="ds" data-i18n="d_durak">Classic card game.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/uno" style="--c:#facc15"><div class="ico">🎴</div><div class="gt"><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">By color or number.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/poker" style="--c:#10b981"><div class="ico">🂡</div><div class="gt"><div class="nm" data-i18n="n_poker">Poker</div><div class="ds" data-i18n="d_poker">Texas Hold'em.</div></div><span class="go">→</span></a>
+        </div>
+      </div>
+
+      <div class="cat" data-cat="duo">
+        <div class="cat-h"><h3 data-i18n="sect_duo">👥 Head-to-head · or vs bot</h3><span class="cnt"></span><span class="line"></span></div>
+        <div class="grid">
+          <a class="game" href="/games/quoridor" style="--c:#00e5ff"><div class="ico">🧱</div><div class="gt"><div class="nm" data-i18n="n_quoridor">Quoridor</div><div class="ds" data-i18n="d_quoridor">Maze strategy.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/c4" style="--c:#ef4444"><div class="ico">🔴</div><div class="gt"><div class="nm" data-i18n="n_c4">Connect 4</div><div class="ds" data-i18n="d_c4">Line up 4 in a row.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/c4_3d" style="--c:#8b5cf6"><div class="ico">🌌</div><div class="gt"><div class="nm" data-i18n="n_c4_3d">Connect 4 · 3D</div><div class="ds" data-i18n="d_c4_3d">5×5×5 volumetric mode for 3 players.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/battleship" style="--c:#3b82f6"><div class="ico">🚢</div><div class="gt"><div class="nm" data-i18n="n_battleship">Battleship</div><div class="ds" data-i18n="d_battleship">Place your fleet, sink them.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/reversi" style="--c:#a3a3a3"><div class="ico">⚫</div><div class="gt"><div class="nm" data-i18n="n_reversi">Reversi</div><div class="ds" data-i18n="d_reversi">Flip the discs.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/checkers" style="--c:#f43f5e"><div class="ico">🏁</div><div class="gt"><div class="nm" data-i18n="n_checkers">Checkers</div><div class="ds" data-i18n="d_checkers">Forced capture, chain jumps, kings.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/chess" style="--c:#e5e7eb"><div class="ico">♟️</div><div class="gt"><div class="nm" data-i18n="n_chess">Chess</div><div class="ds" data-i18n="d_chess">Full rules.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/dots" style="--c:#14b8a6"><div class="ico">▦</div><div class="gt"><div class="nm" data-i18n="n_dots">Dots &amp; Boxes</div><div class="ds" data-i18n="d_dots">Close the boxes.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/bulls" style="--c:#d97706"><div class="ico">🐂</div><div class="gt"><div class="nm" data-i18n="n_bulls">Bulls &amp; Cows</div><div class="ds" data-i18n="d_bulls">Crack the code.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/guesswho" style="--c:#ec4899"><div class="ico">🎭</div><div class="gt"><div class="nm" data-i18n="n_guesswho">Guess Who</div><div class="ds" data-i18n="d_guesswho">AI-generated characters.</div></div><span class="go">→</span></a>
+        </div>
+      </div>
+
+      <div class="cat" data-cat="solo">
+        <div class="cat-h"><h3 data-i18n="sect_solo">🕹️ Solo</h3><span class="cnt"></span><span class="line"></span></div>
+        <div class="grid">
+          <a class="game" href="/games/wordle" style="--c:#22c55e"><div class="ico">🟩</div><div class="gt"><div class="nm" data-i18n="n_wordle">Wordle</div><div class="ds" data-i18n="d_wordle">Guess the word in 6 tries.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/arrows" style="--c:#06b6d4"><div class="ico">➡️</div><div class="gt"><div class="nm" data-i18n="n_arrows">Arrows</div><div class="ds" data-i18n="d_arrows">Clear the board.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/g2048" style="--c:#f59e0b"><div class="ico">🔢</div><div class="gt"><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Swipe, merge tiles.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/snake" style="--c:#84cc16"><div class="ico">🐍</div><div class="gt"><div class="nm" data-i18n="n_snake">Snake</div><div class="ds" data-i18n="d_snake">Eat apples, grow.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/fifteen" style="--c:#6366f1"><div class="ico">🧩</div><div class="gt"><div class="nm" data-i18n="n_fifteen">15 Puzzle</div><div class="ds" data-i18n="d_fifteen">Slide tiles into order.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/mines" style="--c:#94a3b8"><div class="ico">💣</div><div class="gt"><div class="nm" data-i18n="n_mines">Minesweeper</div><div class="ds" data-i18n="d_mines">Open all cells without mines.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/tetris" style="--c:#d946ef"><div class="ico">🧱</div><div class="gt"><div class="nm" data-i18n="n_tetris">Tetris</div><div class="ds" data-i18n="d_tetris">Classic Tetris.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/race" style="--c:#fb7185"><div class="ico">🏎️</div><div class="gt"><div class="nm" data-i18n="n_race">Race</div><div class="ds" data-i18n="d_race">Dodge obstacles.</div></div><span class="go">→</span></a>
+        </div>
+      </div>
+
+      <div id="adminlink" class="hide"><a href="/games/admin/activity" data-i18n="adminlink">⚙️ Admin — activity monitor</a></div>
+    </section>
+
+    <section class="how">
+      <div class="step"><div class="k">01</div><b data-i18n="h1t">Create a room</b><p data-i18n="h1p">Pick a game and tap “Create” — you get a 4-letter room code.</p></div>
+      <div class="step"><div class="k">02</div><b data-i18n="h2t">Share the code</b><p data-i18n="h2p">Friends open the site on their phones and enter the code or accept your invite.</p></div>
+      <div class="step"><div class="k">03</div><b data-i18n="h3t">Play in real time</b><p data-i18n="h3p">Every move syncs instantly over WebSockets. Dropped connection? You reconnect right back into the game.</p></div>
+    </section>
+
+    <footer class="ftr">
+      <a class="logo" href="/games/" aria-label="Lobby.gg"><svg class="lgg-mark" style="width:28px;height:28px"><use href="#lggMark"/></svg><span class="lgg-word">Lobby<i>.gg</i></span></a>
+      <div class="by"><span data-i18n="built_by">Built by</span> <b>Pavlo Havras</b> · 2026</div>
+      <div class="tech"><span>FastAPI</span><span>WebSockets</span><span>Vanilla JS</span><span>Docker</span></div>
+    </footer>
+  </main>
+
+  <div id="lgToast" role="status" aria-live="polite"></div>
+
+  <nav id="dock" aria-label="Bottom navigation">
+    <button type="button" data-tab="account">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span data-i18n="sh_account">Account</span>
+    </button>
+    <button type="button" data-tab="friends">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="nbadge" id="dock-badge-friends">0</span>
+      <span data-i18n="sh_friends">Friends</span>
+    </button>
+    <button type="button" data-tab="chat">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="nbadge" id="dock-badge-chat">0</span>
+      <span data-i18n="sh_chat">Chat</span>
+    </button>
+    <button type="button" data-tab="settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span data-i18n="sh_settings">Settings</span>
+    </button>
+  </nav>
+
+  <div id="shell" aria-hidden="true">
+    <div class="sh-bd" aria-hidden="true"></div>
+    <div class="sh-p" role="dialog" aria-modal="true" aria-label="Lobby.gg menu">
+      <div class="sh-grab" aria-label="Drag handle"><span></span></div>
+      <div class="sh-head">
+        <div class="sh-me">
+          <div class="sh-av" id="sh-av">🙂</div>
+          <div style="min-width:0;flex:1">
+            <b id="sh-name">—</b>
+            <small id="sh-role">@username</small>
+          </div>
+        </div>
+        <button type="button" class="sh-x" id="sh-close" aria-label="Close">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="sh-tabs" role="tablist" aria-label="Navigation tabs">
+        <div class="sh-ind" id="sh-ind"></div>
+        <button type="button" class="sh-tab" role="tab" id="tab-btn-account" aria-selected="true" aria-controls="pane-account" data-tab="account">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span data-i18n="sh_account">Account</span>
+        </button>
+        <button type="button" class="sh-tab" role="tab" id="tab-btn-friends" aria-selected="false" aria-controls="pane-friends" data-tab="friends">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span data-i18n="sh_friends">Friends</span>
+          <span class="nbadge" id="badge-friends">0</span>
+        </button>
+        <button type="button" class="sh-tab" role="tab" id="tab-btn-chat" aria-selected="false" aria-controls="pane-chat" data-tab="chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span data-i18n="sh_chat">Chat</span>
+          <span class="nbadge" id="badge-chat">0</span>
+        </button>
+        <button type="button" class="sh-tab" role="tab" id="tab-btn-settings" aria-selected="false" aria-controls="pane-settings" data-tab="settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span data-i18n="sh_settings">Settings</span>
+        </button>
+      </div>
+
+      <div class="sh-vp">
+        <div class="sh-track" id="sh-track">
+          <!-- PANE 1: ACCOUNT -->
+          <div class="sh-pane enter" role="tabpanel" id="pane-account" aria-labelledby="tab-btn-account" tabindex="0">
+            <div class="acc-hero">
+              <div class="acc-av" id="acc-hero-av">🙂</div>
+              <b id="acc-hero-name">—</b>
+              <small id="acc-hero-role">@username</small>
+            </div>
+
+            <div class="stat3">
+              <div><b id="acc-stat-played">0</b><span data-i18n="acc_stat_played">played</span></div>
+              <div><b id="acc-stat-fav">—</b><span data-i18n="acc_stat_fav">favorite</span></div>
+              <div><b id="acc-stat-friends">0</b><span data-i18n="acc_stat_friends">friends</span></div>
+            </div>
+
+            <div class="sec-t"><span data-i18n="acc_edit_profile">Edit profile</span></div>
+            <div class="gcard">
+              <label class="lbl2" for="acc-name-inp" data-i18n="acc_name_lbl">Display name</label>
+              <div class="fld">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="acc-name-inp" maxlength="24" placeholder="Your name">
+              </div>
+
+              <label class="lbl2" style="margin-top:14px" data-i18n="acc_avatar_lbl">Avatar</label>
+              <div class="emo-g" id="acc-emo-grid" role="group" aria-label="Avatar emojis"></div>
+
+              <label class="lbl2" style="margin-top:14px" data-i18n="acc_color_lbl">Accent color</label>
+              <div class="col-g" id="acc-col-grid" role="group" aria-label="Color presets"></div>
+
+              <div class="set-row" style="margin-top:14px;padding-bottom:0">
+                <div class="set-ic">
+                  <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </div>
+                <div class="r-mid">
+                  <b data-i18n="set_sound">Sound effects</b>
+                  <small data-i18n="set_sound_sub">In-game and UI audio</small>
+                </div>
+                <button type="button" class="sw" id="acc-sound-sw" role="switch" aria-checked="true" aria-label="Sound"></button>
+              </div>
+
+              <button type="button" class="b-p w100" id="acc-save-btn" style="margin-top:16px">
+                <span data-i18n="acc_save">Save profile</span>
+              </button>
+            </div>
+
+            <div class="sec-t"><span data-i18n="acc_change_pw">Change password</span></div>
+            <div class="gcard">
+              <details class="pw">
+                <summary>
+                  <span data-i18n="acc_change_pw">Change password</span>
+                  <svg class="r-chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </summary>
+                <div class="pw-b">
+                  <label class="lbl2" for="acc-old-pw" data-i18n="acc_old_pw">Current password</label>
+                  <input type="password" id="acc-old-pw" autocomplete="current-password">
+                  <label class="lbl2" for="acc-new-pw" data-i18n="acc_new_pw">New password (min 6 chars)</label>
+                  <input type="password" id="acc-new-pw" autocomplete="new-password">
+                  <button type="button" class="b-g w100" id="acc-pw-btn" style="margin-top:6px">
+                    <span data-i18n="acc_update_pw">Update password</span>
+                  </button>
+                </div>
+              </details>
+            </div>
+
+            <div style="margin:20px 0 12px">
+              <button type="button" class="b-d w100" id="acc-logout-btn">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span data-i18n="acc_logout">Sign out</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PANE 2: FRIENDS -->
+          <div class="sh-pane" role="tabpanel" id="pane-friends" aria-labelledby="tab-btn-friends" tabindex="0" inert>
+            <div id="fr-incoming-sec" style="display:none">
+              <div class="sec-t">
+                <span data-i18n="fr_incoming">Incoming requests</span>
+                <span class="cnt" id="fr-incoming-cnt">0</span>
+              </div>
+              <div class="gcard" id="fr-incoming-list" style="padding:4px"></div>
+            </div>
+
+            <div class="sec-t">
+              <span data-i18n="fr_my">Friends</span>
+              <span class="cnt" id="fr-friends-cnt">0</span>
+            </div>
+            <div class="gcard" style="padding:4px">
+              <div id="fr-friends-list"></div>
+            </div>
+
+            <div class="sec-t"><span data-i18n="fr_find_player">Find players</span></div>
+            <div class="gcard">
+              <div class="fld">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="fr-search-inp" data-i18n-ph="fr_search_ph" placeholder="friend's username" autocomplete="off">
+              </div>
+              <div id="fr-search-res" style="margin-top:10px"></div>
+            </div>
+          </div>
+
+          <!-- PANE 3: CHAT -->
+          <div class="sh-pane chat" role="tabpanel" id="pane-chat" aria-labelledby="tab-btn-chat" tabindex="0" inert>
+            <div class="ch-top">
+              <b data-i18n="ch_title">Lobby Chat</b>
+              <small><span class="live"></span><span data-i18n="ch_online">Live</span></small>
+            </div>
+            <div class="ch-list" id="ch-list" role="log" aria-live="polite"></div>
+            <button type="button" class="ch-new" id="ch-new-btn">
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <span data-i18n="ch_new">New messages ↓</span>
+            </button>
+            <div class="ch-comp">
+              <div class="ch-row">
+                <textarea id="ch-text-inp" rows="1" maxlength="300" placeholder="Type a message..." data-i18n-ph="ch_ph"></textarea>
+                <button type="button" class="ch-send" id="ch-send-btn" aria-label="Send message">
+                  <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </div>
+              <div class="ch-meta">
+                <span data-i18n="ch_hint">Enter to send</span>
+                <span id="ch-char-cnt">0/300</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 4: SETTINGS -->
+          <div class="sh-pane" role="tabpanel" id="pane-settings" aria-labelledby="tab-btn-settings" tabindex="0" inert>
+            <div class="sec-t"><span data-i18n="set_lang">Interface language</span></div>
+            <div class="opts" id="sh-lang-seg" role="group" aria-label="Language">
+              <button type="button" class="opt" data-lang="uk">UA</button>
+              <button type="button" class="opt" data-lang="ru">RU</button>
+              <button type="button" class="opt" data-lang="en">EN</button>
+            </div>
+
+            <div class="sec-t"><span>Preferences</span></div>
+            <div class="gcard" style="padding:6px 14px">
+              <div class="set-row">
+                <div class="set-ic">
+                  <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </div>
+                <div class="r-mid">
+                  <b data-i18n="set_sound">Sound effects</b>
+                  <small data-i18n="set_sound_sub">In-game and UI audio</small>
+                </div>
+                <button type="button" class="sw" id="set-sound-sw" role="switch" aria-checked="true" aria-label="Sound toggle"></button>
+              </div>
+
+              <div class="set-row">
+                <div class="set-ic">
+                  <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                </div>
+                <div class="r-mid">
+                  <b data-i18n="set_rm">Reduce motion</b>
+                  <small data-i18n="set_rm_sub">Minimize animations and motion</small>
+                </div>
+                <button type="button" class="sw" id="set-rm-sw" role="switch" aria-checked="false" aria-label="Reduce motion toggle"></button>
+              </div>
+            </div>
+
+            <div class="sec-t"><span data-i18n="set_about">About Lobby.gg</span></div>
+            <div class="gcard">
+              <div class="about">
+                <svg class="lgg-mark" viewBox="0 0 64 64">
+                  <use href="#lggMark"></use>
+                </svg>
+                <h4>Lobby.gg</h4>
+                <p data-i18n="set_about_desc">Real-time multiplayer party games in your browser. No installs — just a link.</p>
+                <div class="by">
+                  <span data-i18n="built_by">Built by</span> <b>Pavlo Havras</b> · 2026
+                </div>
+                <div class="tech">
+                  <span>FastAPI</span>
+                  <span>WebSockets</span>
+                  <span>Vanilla JS</span>
+                  <span>Docker</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="sect" data-i18n="sect_duo">👥 На двоих / 🤖 против бота</div>
-  <div class="grid">
-    <a class="game" href="/games/quoridor" style="border-color:rgba(0,229,255,0.45);box-shadow:0 0 16px rgba(0,229,255,0.18)"><div class="ico">🧱</div><div class="nm" data-i18n="n_quoridor">Коридор</div><div class="ds" data-i18n="d_quoridor">Стратегия лабиринтов. 2, 3 или 4 игрока / vs бот.</div></a>
-    <a class="game" href="/games/c4"><div class="ico">🔴</div><div class="nm" data-i18n="n_c4">4 в ряд</div><div class="ds" data-i18n="d_c4">Собери 4 в линию. Можно vs бот.</div></a>
-<a class="game" href="/games/c4_3d"><div class="ico">🌌</div><div class="nm">4 в ряд 3D</div><div class="ds">Объемный режим 5x5x5 на 3 игроков. Неон и стекло.</div></a>
-    <a class="game" href="/games/battleship"><div class="ico">🚢</div><div class="nm" data-i18n="n_battleship">Морской бой</div><div class="ds" data-i18n="d_battleship">Расставь флот, топи. Можно vs бот.</div></a>
-    <a class="game" href="/games/reversi"><div class="ico">⚫</div><div class="nm" data-i18n="n_reversi">Реверси</div><div class="ds" data-i18n="d_reversi">Переворачивай фишки. Можно vs бот.</div></a>
-    <a class="game" href="/games/checkers"><div class="ico">🏁</div><div class="nm" data-i18n="n_checkers">Шашки</div><div class="ds" data-i18n="d_checkers">Обязательный бой, цепные прыжки, дамки. Можно vs бот.</div></a>
-    <a class="game" href="/games/chess"><div class="ico">♟️</div><div class="nm" data-i18n="n_chess">Шахматы</div><div class="ds" data-i18n="d_chess">Полные правила: рокировка, взятие на проходе, мат. Можно vs бот.</div></a>
-    <a class="game" href="/games/dots"><div class="ico">▦</div><div class="nm" data-i18n="n_dots">Точки</div><div class="ds" data-i18n="d_dots">Замыкай квадраты. Можно vs бот.</div></a>
-    <a class="game" href="/games/bulls"><div class="ico">🐂</div><div class="nm" data-i18n="n_bulls">Быки и коровы</div><div class="ds" data-i18n="d_bulls">Взломай код. Можно vs бот.</div></a>
-    <a class="game" href="/games/guesswho"><div class="ico">🎭</div><div class="nm" data-i18n="n_guesswho">Кто есть кто</div><div class="ds" data-i18n="d_guesswho">Тайтл → 20 персонажей от Gemini. Угадай чужого.</div></a>
-  </div>
-
-  <div class="sect" data-i18n="sect_solo">🕹️ На одного</div>
-  <div class="grid">
-    <a class="game" href="/games/wordle"><div class="ico">🟩</div><div class="nm" data-i18n="n_wordle">5 букв</div><div class="ds" data-i18n="d_wordle">Отгадай слово за 6 попыток. 4 языка (рус/укр/нім/eng), 3 сложности.</div></a>
-    <a class="game" href="/games/arrows"><div class="ico">➡️</div><div class="nm" data-i18n="n_arrows">Стрелки</div><div class="ds" data-i18n="d_arrows">Освободи поле — стрелки улетают, если путь свободен. 100 уровней.</div></a>
-    <a class="game" href="/games/g2048"><div class="ico">🔢</div><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Свайпай, сливай плитки, собери 2048. Классика на реакцию и логику.</div></a>
-    <a class="game" href="/games/snake"><div class="ico">🐍</div><div class="nm" data-i18n="n_snake">Змейка</div><div class="ds" data-i18n="d_snake">Ешь яблоки, расти, не врежься в себя. 3 скорости.</div></a>
-    <a class="game" href="/games/fifteen"><div class="ico">🧩</div><div class="nm" data-i18n="n_fifteen">Пятнашки</div><div class="ds" data-i18n="d_fifteen">Сдвигай плитки, собери по порядку. 3×3, 4×4, 5×5.</div></a>
-    <a class="game" href="/games/mines"><div class="ico">💣</div><div class="nm" data-i18n="n_mines">Сапёр</div><div class="ds" data-i18n="d_mines">Открой все клетки без мин. Флаги, 3 сложности. Первый тап безопасен.</div></a>
-    <a class="game" href="/games/tetris"><div class="ico">🧱</div><div class="nm" data-i18n="n_tetris">Тетрис</div><div class="ds" data-i18n="d_tetris">Классический тетрис с неоновым дизайном и мобильным управлением.</div></a>
-    <a class="game" href="/games/race"><div class="ico">🏎️</div><div class="nm" data-i18n="n_race">Гонки</div><div class="ds" data-i18n="d_race">Обходи препятствия на трассе. Проверь свою реакцию!</div></a>
-  </div>
-
-  <div id="adminlink" class="sect" style="text-align:center"><a href="/games/admin/activity" style="color:var(--crimson);text-decoration:none;font-weight:800" data-i18n="adminlink">⚙️ Админка — мониторинг активности</a></div>
-  <div class="ftr">RAINAR OS</div>
   <script>
-  // ═══════════ i18n: УКР / РУС / ENG ═══════════
+  // ═══════════ i18n: UA / RU / EN ═══════════
   const I18N={
     uk:{
-      sub:"паті-ігри з друзями — кожен зі свого телефону",
+      eyebrow:"Мультиплеєр у реальному часі · прямо в браузері",
+      h1a:"Паті-ігри з друзями.", h1b:"Без встановлення — лише посилання.",
+      sub:"Створи кімнату, поділись 4-літерним кодом — і кожен заходить зі свого телефона. Мафія, Бункер, UNO, шахи та ще десятки ігор — у реальному часі.",
+      cta_play:"До ігор", cta_friends:"Друзі та профіль",
+      s_games:"ігор", s_langs:"мови", s_live_b:"Live", s_live:"синхронізація", s_installs:"встановлень",
+      fc_bot:"Боти займуть вільні місця", room_lbl:"Код кімнати", room_hint:"Поділись кодом — друзі заходять миттєво",
+      room_host:"Ведучий", room_ready:"Готовий", room_join:"заходить", room_start:"Почати гру →",
+      k_featured:"Рекомендуємо", h_featured:"Свіжі релізи", p_new:"Нове", p_arcade:"Аркада",
+      k_all:"Бібліотека", h_all:"Обери гру", f_all:"Усі", f_party:"Компанією", f_duo:"1 на 1", f_solo:"Соло",
+      h1t:"Створи кімнату", h1p:"Обери гру й натисни «Створити» — отримаєш 4-літерний код кімнати.",
+      h2t:"Поділись кодом", h2p:"Друзі відкривають сайт на телефонах і вводять код або приймають запрошення.",
+      h3t:"Грайте в реальному часі", h3p:"Кожен хід синхронізується миттєво через WebSockets. Зник зв'язок? Повернешся прямо в гру.",
+      built_by:"Створив",
       profile:"Профіль",
-      sect_party:"🎉 Компанією (3+)", sect_duo:"👥 На двох / 🤖 проти бота", sect_solo:"🕹️ Одному",
+      sect_party:"🎉 Компанією · від 3 гравців", sect_duo:"👥 Один на один · або проти бота", sect_solo:"🕹️ Соло",
       adminlink:"⚙️ Адмінка — моніторинг активності",
+      n_geobunker:"GeoBunker", d_geobunker:"Вгадуй локації на 360° панорамах. Україна, столиці, природа, увесь світ.",
+      n_variants:"Варіанти", d_variants:"Аукціон брехні (як Fibbage) з ІІ-ведучим.",
+      n_c4_3d:"4 в ряд · 3D", d_c4_3d:"Об'ємний режим 5×5×5 на 3 гравців. Неон і скло.",
       n_bunker:"Бункер", d_bunker:"Хто гідний місця. Карти, голосування, ведучий.",
       n_mafia:"Мафія", d_mafia:"Ніч/день, ролі, голосування. Лікар, шериф, мафія. Від 3 гравців.",
       n_spy:"Шпигун", d_spy:"Знайди шпигуна. Один не знає локацію.",
@@ -151,23 +669,49 @@
       n_chess:"Шахи", d_chess:"Повні правила: рокіровка, взяття на проході, мат. Можна vs бот.",
       n_dots:"Крапки", d_dots:"Замикай квадрати. Можна vs бот.",
       n_bulls:"Бики і корови", d_bulls:"Зламай код. Можна vs бот.",
-      n_guesswho:"Хто є хто", d_guesswho:"Тайтл → 20 персонажів від Gemini. Вгадай чужого.",
+      n_guesswho:"Хто є хто", d_guesswho:"Тайтл → 20 персонажів від ІІ. Вгадай чужого.",
       n_wordle:"5 літер", d_wordle:"Вгадай слово за 6 спроб. 4 мови (рос/укр/нім/eng), 3 складності.",
       n_arrows:"Стрілки", d_arrows:"Звільни поле — стрілки відлітають, якщо шлях вільний. 100 рівнів.",
       n_g2048:"2048", d_g2048:"Свайпай, зливай плитки, збери 2048. Класика на реакцію та логіку.",
       n_snake:"Змійка", d_snake:"Їж яблука, рости, не врізайся в себе. 3 швидкості.",
-      n_space_invaders:"Шаттл", d_space_invaders:"Неоновий шутер з прокачуванням гармат та скінів.",
+      n_space_invaders:"Shuttle Cruiser", d_space_invaders:"Неоновий шутер з прокачуванням гармат та скінів.",
       n_fifteen:"П'ятнашки", d_fifteen:"Зсувай плитки, збери по порядку. 3×3, 4×4, 5×5.",
       n_mines:"Сапер", d_mines:"Відкрий усі клітинки без мін. Прапорці, 3 складності. Перший тап безпечний.",
       n_tetris:"Тетріс", d_tetris:"Класичний тетріс з неоновим дизайном та мобільним керуванням.",
       n_race:"Перегони", d_race:"Оминай перешкоди на трасі. Перевір свою реакцію!",
-      st_games:"ігор", st_friends:"друзів", req:"заявок", inv_calls:"кличе у гру", inv_tap:"тапни щоб зайти"
+      st_games:"ігор", st_friends:"друзів", req:"заявок", inv_calls:"кличе у гру", inv_tap:"тапни щоб зайти",
+      sh_account:"Акаунт", sh_friends:"Друзі", sh_chat:"Чат", sh_settings:"Налаштування",
+      acc_stat_played:"зіграно", acc_stat_fav:"улюблена", acc_stat_friends:"друзів",
+      acc_edit_profile:"Редагувати профіль", acc_name_lbl:"Відображуване ім'я", acc_avatar_lbl:"Аватар", acc_color_lbl:"Колір акценту",
+      acc_save:"Зберегти профіль", acc_change_pw:"Секретність і пароль", acc_old_pw:"Старий пароль", acc_new_pw:"Новий пароль (мін. 6 символів)",
+      acc_update_pw:"Оновити пароль", acc_logout:"Вийти з акаунта",
+      fr_incoming:"Вхідні заявки", fr_wants:"хоче в друзі", fr_accept:"Прийняти", fr_decline:"Відхилити",
+      fr_my:"Мої друзі", fr_online:"онлайн", fr_offline:"офлайн", fr_in_game:"у грі", fr_call:"Позвати", fr_choose_game:"Обери гру для запрошення:",
+      fr_remove:"Видалити", fr_empty:"Поки що немає друзів — знайди за ніком нижче 👇", fr_find_player:"Знайти гравця", fr_search_ph:"нікнейм друга",
+      fr_add:"+ Додати", fr_not_found:"Нікого не знайдено",
+      ch_title:"Лобі-чат", ch_online:"Наживо", ch_ph:"Напиши повідомлення...", ch_hint:"Enter — надіслати", ch_send:"Надіслати", ch_new:"Нові повідомлення ↓", ch_empty:"У чаті поки тихо. Напиши першим!",
+      set_lang:"Мова інтерфейсу", set_sound:"Звукові ефекти", set_sound_sub:"Звук у лобі та іграх", set_rm:"Зменшити рух", set_rm_sub:"Мінімізувати анімації", set_about:"Про Lobby.gg", set_about_desc:"Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання."
     },
     ru:{
-      sub:"пати-игры с друзьями — каждый со своего телефона",
+      eyebrow:"Мультиплеер в реальном времени · прямо в браузере",
+      h1a:"Пати-игры с друзьями.", h1b:"Без установки — просто ссылка.",
+      sub:"Создай комнату, поделись 4-буквенным кодом — и каждый заходит со своего телефона. Мафия, Бункер, UNO, шахматы и ещё десятки игр — в реальном времени.",
+      cta_play:"К играм", cta_friends:"Друзья и профиль",
+      s_games:"игр", s_langs:"языка", s_live_b:"Live", s_live:"синхронизация", s_installs:"установок",
+      fc_bot:"Боты займут свободные места", room_lbl:"Код комнаты", room_hint:"Поделись кодом — друзья заходят мгновенно",
+      room_host:"Ведущий", room_ready:"Готов", room_join:"заходит", room_start:"Начать игру →",
+      k_featured:"Рекомендуем", h_featured:"Свежие релизы", p_new:"Новое", p_arcade:"Аркада",
+      k_all:"Библиотека", h_all:"Выбери игру", f_all:"Все", f_party:"Компанией", f_duo:"1 на 1", f_solo:"Соло",
+      h1t:"Создай комнату", h1p:"Выбери игру и нажми «Создать» — получишь 4-буквенный код комнаты.",
+      h2t:"Поделись кодом", h2p:"Друзья открывают сайт на телефонах и вводят код или принимают приглашение.",
+      h3t:"Играйте в реальном времени", h3p:"Каждый ход синхронизируется мгновенно через WebSockets. Пропала связь? Вернёшься прямо в игру.",
+      built_by:"Создал",
       profile:"Профиль",
-      sect_party:"🎉 Компанией (3+)", sect_duo:"👥 На двоих / 🤖 против бота", sect_solo:"🕹️ На одного",
+      sect_party:"🎉 Компанией · от 3 игроков", sect_duo:"👥 Один на один · или против бота", sect_solo:"🕹️ Соло",
       adminlink:"⚙️ Админка — мониторинг активности",
+      n_geobunker:"GeoBunker", d_geobunker:"Угадывай локации на 360° панорамах. Украина, столицы, природа, весь мир.",
+      n_variants:"Варианты", d_variants:"Аукцион лжи (как Fibbage) с ИИ-ведущим.",
+      n_c4_3d:"4 в ряд · 3D", d_c4_3d:"Объёмный режим 5×5×5 на 3 игроков. Неон и стекло.",
       n_bunker:"Бункер", d_bunker:"Кто достоин места. Карты, голосование, ведущий.",
       n_mafia:"Мафия", d_mafia:"Ночь/день, роли, голосование. Доктор, шериф, мафия. От 3 игроков.",
       n_spy:"Шпион", d_spy:"Найди шпиона. Один не знает локацию.",
@@ -175,30 +719,56 @@
       n_durak:"Дурак", d_durak:"Классика: козырь, подкид, бита.",
       n_uno:"UNO", d_uno:"По цвету или числу. Скип, +2, +4, wild.",
       n_poker:"Покер", d_poker:"Texas Hold'em. Блайнды, рейзы, олл-ин. Можно vs боты.",
-      n_quoridor:"Коридор", d_quoridor:"Стратегія лабіринтів. 2, 3 або 4 гравці / vs бот.", n_c4:"4 в ряд", d_c4:"Собери 4 в линию. Можно vs бот.",
+      n_quoridor:"Коридор", d_quoridor:"Стратегия лабиринтов. 2, 3 или 4 игрока / vs бот.", n_c4:"4 в ряд", d_c4:"Собери 4 в линию. Можно vs бот.",
       n_battleship:"Морской бой", d_battleship:"Расставь флот, топи. Можно vs бот.",
       n_reversi:"Реверси", d_reversi:"Переворачивай фишки. Можно vs бот.",
       n_checkers:"Шашки", d_checkers:"Обязательный бой, цепные прыжки, дамки. Можно vs бот.",
       n_chess:"Шахматы", d_chess:"Полные правила: рокировка, взятие на проходе, мат. Можно vs бот.",
       n_dots:"Точки", d_dots:"Замыкай квадраты. Можно vs бот.",
       n_bulls:"Быки и коровы", d_bulls:"Взломай код. Можно vs бот.",
-      n_guesswho:"Кто есть кто", d_guesswho:"Тайтл → 20 персонажей от Gemini. Угадай чужого.",
+      n_guesswho:"Кто есть кто", d_guesswho:"Тайтл → 20 персонажей от ИИ. Угадай чужого.",
       n_wordle:"5 букв", d_wordle:"Отгадай слово за 6 попыток. 4 языка (рус/укр/нім/eng), 3 сложности.",
       n_arrows:"Стрелки", d_arrows:"Освободи поле — стрелки улетают, если путь свободен. 100 уровней.",
       n_g2048:"2048", d_g2048:"Свайпай, сливай плитки, собери 2048. Классика на реакцию и логику.",
       n_snake:"Змейка", d_snake:"Ешь яблоки, расти, не врежься в себя. 3 скорости.",
-      n_space_invaders:"Шаттл", d_space_invaders:"Неоновый шутер с прокачкой пушек и скинов.",
+      n_space_invaders:"Shuttle Cruiser", d_space_invaders:"Неоновый шутер с прокачкой пушек и скинов.",
       n_fifteen:"Пятнашки", d_fifteen:"Сдвигай плитки, собери по порядку. 3×3, 4×4, 5×5.",
       n_mines:"Сапёр", d_mines:"Открой все клетки без мин. Флаги, 3 сложности. Первый тап безопасен.",
       n_tetris:"Тетрис", d_tetris:"Классический тетрис с неоновым дизайном и мобильным управлением.",
       n_race:"Гонки", d_race:"Обходи препятствия на трассе. Проверь свою реакцию!",
-      st_games:"игр", st_friends:"друзей", req:"заявки", inv_calls:"зовёт в игру", inv_tap:"тапни чтобы зайти"
+      st_games:"игр", st_friends:"друзей", req:"заявки", inv_calls:"зовёт в игру", inv_tap:"тапни чтобы зайти",
+      sh_account:"Аккаунт", sh_friends:"Друзья", sh_chat:"Чат", sh_settings:"Настройки",
+      acc_stat_played:"сыграно", acc_stat_fav:"любимая", acc_stat_friends:"друзей",
+      acc_edit_profile:"Редактировать профиль", acc_name_lbl:"Отображаемое имя", acc_avatar_lbl:"Аватар", acc_color_lbl:"Цвет акцента",
+      acc_save:"Сохранить профиль", acc_change_pw:"Смена пароля", acc_old_pw:"Старый пароль", acc_new_pw:"Новый пароль (мин. 6 символов)",
+      acc_update_pw:"Обновить пароль", acc_logout:"Выйти из аккаунта",
+      fr_incoming:"Входящие заявки", fr_wants:"хочет в друзья", fr_accept:"Принять", fr_decline:"Отклонить",
+      fr_my:"Мои друзья", fr_online:"онлайн", fr_offline:"офлайн", fr_in_game:"в игре", fr_call:"Позвать", fr_choose_game:"Выбери игру для приглашения:",
+      fr_remove:"Удалить", fr_empty:"Пока нет друзей — найди по нику ниже 👇", fr_find_player:"Найти игрока", fr_search_ph:"ник друга",
+      fr_add:"+ Добавить", fr_not_found:"Никого не нашлось",
+      ch_title:"Лобби-чат", ch_online:"Прямой эфир", ch_ph:"Напиши сообщение...", ch_hint:"Enter — отправить", ch_send:"Отправить", ch_new:"Новые сообщения ↓", ch_empty:"В чате пока тихо. Напиши первым!",
+      set_lang:"Язык интерфейса", set_sound:"Звуковые эффекты", set_sound_sub:"Звуки в лобби и играх", set_rm:"Уменьшить движение", set_rm_sub:"Минимизировать анимации", set_about:"О проекте", set_about_desc:"Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка."
     },
     en:{
-      sub:"party games with friends — each on their own phone",
+      eyebrow:"Real-time multiplayer · right in your browser",
+      h1a:"Party games with friends.", h1b:"No installs — just a link.",
+      sub:"Create a room, share the 4-letter code, and everyone joins from their own phone. Mafia, Bunker, UNO, Chess and dozens more — in real time.",
+      cta_play:"Browse games", cta_friends:"Friends & profile",
+      s_games:"games", s_langs:"languages", s_live_b:"Live", s_live:"real-time sync", s_installs:"installs",
+      fc_bot:"Bots fill empty seats", room_lbl:"Room code", room_hint:"Share the code — friends join instantly",
+      room_host:"Host", room_ready:"Ready", room_join:"joining", room_start:"Start game →",
+      k_featured:"Featured", h_featured:"Fresh drops", p_new:"New", p_arcade:"Arcade",
+      k_all:"Library", h_all:"Pick a game", f_all:"All", f_party:"Party", f_duo:"1 vs 1", f_solo:"Solo",
+      h1t:"Create a room", h1p:"Pick a game and tap “Create” — you get a 4-letter room code.",
+      h2t:"Share the code", h2p:"Friends open the site on their phones and enter the code or accept your invite.",
+      h3t:"Play in real time", h3p:"Every move syncs instantly over WebSockets. Dropped connection? You reconnect right back into the game.",
+      built_by:"Built by",
       profile:"Profile",
-      sect_party:"🎉 Party (3+)", sect_duo:"👥 Two players / 🤖 vs bot", sect_solo:"🕹️ Single player",
+      sect_party:"🎉 Party · 3+ players", sect_duo:"👥 Head-to-head · or vs bot", sect_solo:"🕹️ Solo",
       adminlink:"⚙️ Admin — activity monitor",
+      n_geobunker:"GeoBunker", d_geobunker:"Guess locations on 360° panoramas. Ukraine, capitals, nature, the whole world.",
+      n_variants:"Variants", d_variants:"Bluffing auction (Fibbage-style) with an AI host.",
+      n_c4_3d:"Connect 4 · 3D", d_c4_3d:"5×5×5 volumetric mode for 3 players. Neon and glass.",
       n_bunker:"Bunker", d_bunker:"Who deserves a spot. Cards, voting, host.",
       n_mafia:"Mafia", d_mafia:"Night/day, roles, voting. Doctor, sheriff, mafia. 3+ players.",
       n_spy:"Spy", d_spy:"Find the spy. One player doesn't know the location.",
@@ -206,6 +776,7 @@
       n_durak:"Durak", d_durak:"Classic: trump, attack, beat.",
       n_uno:"UNO", d_uno:"By color or number. Skip, +2, +4, wild.",
       n_poker:"Poker", d_poker:"Texas Hold'em. Blinds, raises, all-in. Play vs bots too.",
+      n_quoridor:"Quoridor", d_quoridor:"Maze strategy. 2, 3 or 4 players / vs bot.",
       n_c4:"Connect 4", d_c4:"Line up 4 in a row. Play vs bot too.",
       n_battleship:"Battleship", d_battleship:"Place your fleet, sink them. Play vs bot too.",
       n_reversi:"Reversi", d_reversi:"Flip the discs. Play vs bot too.",
@@ -213,41 +784,105 @@
       n_chess:"Chess", d_chess:"Full rules: castling, en passant, mate. Play vs bot too.",
       n_dots:"Dots & Boxes", d_dots:"Close the boxes. Play vs bot too.",
       n_bulls:"Bulls & Cows", d_bulls:"Crack the code. Play vs bot too.",
-      n_guesswho:"Guess Who", d_guesswho:"A title → 20 characters from Gemini. Guess your rival's.",
+      n_guesswho:"Guess Who", d_guesswho:"A title → 20 AI-generated characters. Guess your rival's.",
       n_wordle:"Wordle", d_wordle:"Guess the word in 6 tries. 4 languages (ru/uk/de/en), 3 difficulties.",
       n_arrows:"Arrows", d_arrows:"Clear the board — arrows fly off when the path is free. 100 levels.",
       n_g2048:"2048", d_g2048:"Swipe, merge tiles, reach 2048. A classic of logic and reflexes.",
       n_snake:"Snake", d_snake:"Eat apples, grow, don't hit yourself. 3 speeds.",
-      n_space_invaders:"Shuttle", d_space_invaders:"Neon shooter with weapon and skin upgrades.",
+      n_space_invaders:"Shuttle Cruiser", d_space_invaders:"Neon shooter with weapon and skin upgrades.",
       n_fifteen:"15 Puzzle", d_fifteen:"Slide tiles into order. 3×3, 4×4, 5×5.",
       n_mines:"Minesweeper", d_mines:"Open all cells without mines. Flags, 3 difficulties. First tap is safe.",
       n_tetris:"Tetris", d_tetris:"Classic Tetris with neon design and mobile controls.",
       n_race:"Race", d_race:"Dodge obstacles on the track. Test your reflexes!",
-      st_games:"games", st_friends:"friends", req:"requests", inv_calls:"invites you to play", inv_tap:"tap to join"
+      st_games:"games", st_friends:"friends", req:"requests", inv_calls:"invites you to play", inv_tap:"tap to join",
+      sh_account:"Account", sh_friends:"Friends", sh_chat:"Chat", sh_settings:"Settings",
+      acc_stat_played:"played", acc_stat_fav:"favorite", acc_stat_friends:"friends",
+      acc_edit_profile:"Edit profile", acc_name_lbl:"Display name", acc_avatar_lbl:"Avatar emoji", acc_color_lbl:"Accent color",
+      acc_save:"Save profile", acc_change_pw:"Change password", acc_old_pw:"Current password", acc_new_pw:"New password (min 6 chars)",
+      acc_update_pw:"Update password", acc_logout:"Sign out",
+      fr_incoming:"Friend requests", fr_wants:"wants to be friends", fr_accept:"Accept", fr_decline:"Decline",
+      fr_my:"Friends", fr_online:"online", fr_offline:"offline", fr_in_game:"in game", fr_call:"Invite", fr_choose_game:"Choose a game to invite:",
+      fr_remove:"Remove", fr_empty:"No friends yet — search by username below 👇", fr_find_player:"Find player", fr_search_ph:"friend's username",
+      fr_add:"+ Add", fr_not_found:"Nobody found",
+      ch_title:"Lobby Chat", ch_online:"Live", ch_ph:"Type a message...", ch_hint:"Enter to send", ch_send:"Send", ch_new:"New messages ↓", ch_empty:"Lobby chat is quiet. Say hello!",
+      set_lang:"Interface language", set_sound:"Sound effects", set_sound_sub:"In-game and UI audio", set_rm:"Reduce motion", set_rm_sub:"Minimize animations", set_about:"About Lobby.gg", set_about_desc:"Real-time multiplayer party games in your browser. No installs — just a link."
     }
   };
-  let LANG = localStorage.getItem('jg_lang');
-  if(!I18N[LANG]) LANG = 'ru';
-  function t(key){ return (I18N[LANG] && I18N[LANG][key]) || (I18N.ru[key] || key); }
+  // язык: сохранённый → язык браузера → en
+  let LANG = null;
+  try{ LANG = localStorage.getItem('jg_lang'); }catch(e){}
+  if(!I18N[LANG]){
+    const nl=(navigator.language||'en').slice(0,2).toLowerCase();
+    LANG = nl==='uk'?'uk':(nl==='ru'?'ru':'en');
+  }
+  function t(key){ return (I18N[LANG] && I18N[LANG][key]) || (I18N.en[key] || key); }
   function applyI18n(){
     document.documentElement.lang = LANG;
+    window.LANG = LANG;
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       if(el.dataset.dyn==='1') return;            // не затираем данные, подгруженные с сервера
       const v = t(el.dataset.i18n);
       if(v) el.textContent = v;
     });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+      const v = t(el.dataset.i18nPh);
+      if(v) el.placeholder = v;
+    });
     document.querySelectorAll('#langbar button').forEach(b=>{
       b.classList.toggle('active', b.dataset.lang===LANG);
+    });
+    document.querySelectorAll('#sh-lang-seg button').forEach(b=>{
+      const match = b.dataset.lang===LANG;
+      b.classList.toggle('on', match);
+      b.setAttribute('aria-pressed', match ? 'true' : 'false');
     });
     renderPcStats();   // обновить динамические строки под язык
     loadInvites();
   }
+  window.I18N = I18N;
+  window.LANG = LANG;
+  window.t = t;
+  window.applyI18n = applyI18n;
   document.getElementById('langbar').addEventListener('click', e=>{
     const b = e.target.closest('button'); if(!b) return;
     LANG = b.dataset.lang;
-    localStorage.setItem('jg_lang', LANG);
+    window.LANG = LANG;
+    try{ localStorage.setItem('jg_lang', LANG); }catch(e){}
     applyI18n();
+    if(window.LobbyShell && typeof window.LobbyShell.refreshProfile === 'function') {
+      window.LobbyShell.refreshProfile();
+      window.LobbyShell.refreshFriends();
+    }
   });
+
+  // счётчики игр (герой + фильтры + категории)
+  (function(){
+    const cats=[...document.querySelectorAll('.cat')];
+    let total=document.querySelectorAll('.game, .feat').length;
+    document.getElementById('st-games').textContent=total;
+    let all=0;
+    cats.forEach(c=>{const n=c.querySelectorAll('.game').length;all+=n;
+      c.querySelector('.cnt').textContent=n;
+      const f=document.querySelector('[data-n="'+c.dataset.cat+'"]'); if(f) f.textContent=n;});
+    document.querySelector('[data-n="all"]').textContent=all;
+  })();
+  // фильтр категорий
+  document.getElementById('filters').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));
+    const f=b.dataset.f;
+    document.querySelectorAll('.cat').forEach(c=>{
+      const show=f==='all'||c.dataset.cat===f;
+      c.classList.toggle('hide',!show);
+      if(show) c.querySelectorAll('.game').forEach((g,i)=>{g.style.animation='none';g.offsetWidth;g.style.animation='riseIn .45s '+(i*0.03)+'s var(--ease) both';});
+    });
+  });
+  // подсветка карточки за курсором
+  document.addEventListener('pointermove',e=>{
+    const g=e.target.closest&&e.target.closest('.game'); if(!g) return;
+    const r=g.getBoundingClientRect();
+    g.style.setProperty('--mx',(e.clientX-r.left)+'px'); g.style.setProperty('--my',(e.clientY-r.top)+'px');
+  },{passive:true});
 
   fetch('/games/auth/check').then(r=>r.ok?r.json():null).then(d=>{
     if(d && d.role==='root') document.getElementById('adminlink').classList.remove('hide');
@@ -280,31 +915,61 @@
     const parts=[];
     if(played!==undefined)parts.push('🎮 '+played+' '+t('st_games'));
     if(friends!==undefined)parts.push('👥 '+friends+' '+t('st_friends'));
-    if(parts.length)document.getElementById('hp-stats').textContent=parts.join('  ·  ');
+    if(parts.length)document.getElementById('hp-stats').textContent=parts.join(' · ');
   }
+  window.renderPcStats = renderPcStats;
   // входящие приглашения в игру от друзей
   const GNAME={uno:'🎴 UNO',c4:'🔴 4',quoridor:'🧱 Quoridor',poker:'🂡 Poker',checkers:'🏁',chess:'♟️',bunker:'☢ Bunker',spy:'🕵️ Spy',alias:'💬 Alias',durak:'🃏 Durak',battleship:'🚢',reversi:'⚫ Reversi',dots:'▦ Dots',bulls:'🐂',guesswho:'🎭',mafia:'🔪 Mafia'};
   function loadInvites(){
     fetch('/games/invites',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
       const box=document.getElementById('inviteBanner');
       const inv=(d&&d.invites)||[];
+      box.replaceChildren();
       if(!inv.length){box.style.display='none';return;}
       box.style.display='block';
-      box.innerHTML=inv.map(i=>
-        '<a href="/games/'+i.game+'?code='+i.code+'" style="display:flex;align-items:center;gap:12px;padding:13px 15px;'+
-        'border-radius:14px;text-decoration:none;color:#fff;margin-bottom:8px;'+
-        'background:linear-gradient(135deg,rgba(47,191,95,.2),rgba(255,255,255,.05));border:1px solid rgba(47,191,95,.5);'+
-        'box-shadow:0 0 18px rgba(47,191,95,.2)">'+
-        '<div style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i.color||'#333')+'">'+(i.avatar||'🙂')+'</div>'+
-        '<div style="flex:1"><div style="font-weight:800">'+esc(i.from_name)+' '+t('inv_calls')+'</div>'+
-        '<div style="font-size:13px;color:#9adfb5">'+(GNAME[i.game]||i.game)+' · '+t('inv_tap')+'</div></div>'+
-        '<div style="font-size:22px">▶</div></a>').join('');
+      inv.forEach(i=>{
+        const a=document.createElement('a');
+        const safeGame=encodeURIComponent(i.game||'');
+        const safeCode=encodeURIComponent(i.code||'');
+        a.href='/games/'+safeGame+'?code='+safeCode;
+        a.style.cssText='display:flex;align-items:center;gap:12px;padding:13px 15px;'+
+          'border-radius:16px;text-decoration:none;color:#fff;margin-bottom:8px;'+
+          'background:linear-gradient(135deg,rgba(47,191,95,.2),rgba(255,255,255,.05));border:1px solid rgba(47,191,95,.5);'+
+          'box-shadow:0 0 18px rgba(47,191,95,.2)';
+
+        const av=document.createElement('div');
+        av.style.cssText='width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i.color||'#333');
+        av.textContent=i.avatar||'🙂';
+
+        const mid=document.createElement('div');
+        mid.style.flex='1';
+
+        const title=document.createElement('div');
+        title.style.fontWeight='800';
+        title.textContent=(i.from_name||'')+' '+t('inv_calls');
+
+        const sub=document.createElement('div');
+        sub.style.cssText='font-size:13px;color:#9adfb5';
+        sub.textContent=(GNAME[i.game]||i.game||'')+' · '+t('inv_tap');
+
+        mid.appendChild(title);
+        mid.appendChild(sub);
+
+        const arr=document.createElement('div');
+        arr.style.fontSize='22px';
+        arr.textContent='▶';
+
+        a.appendChild(av);
+        a.appendChild(mid);
+        a.appendChild(arr);
+        box.appendChild(a);
+      });
     }).catch(()=>{});
   }
-  function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
   applyI18n();
-  loadInvites(); setInterval(loadInvites,10000);
+  setInterval(loadInvites,10000);
   </script>
 <script src="/games/static/sfx.js"></script>
+<script src="/games/static/shell.js" defer></script>
 </body>
 </html>

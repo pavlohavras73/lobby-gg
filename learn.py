@@ -18,7 +18,7 @@ from fastapi.responses import JSONResponse, FileResponse
 
 logger = logging.getLogger("jarvis_learn")
 
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "")   # set in the environment, never commit keys
+GROQ_KEY = os.environ.get("GROQ_API_KEY", "")   # set via container environment, never commit keys
 
 def get_db_path():
     # На сервере база в /data/users.db, локально в текущей папке
@@ -452,7 +452,6 @@ def get_current_user(request: Request):
 async def learn_page():
     paths = [
         "/app/static/learn.html",
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "learn.html"),
         os.path.join(os.path.dirname(__file__), "static", "learn.html"),
         os.path.join(os.path.dirname(__file__), "learn.html")
     ]

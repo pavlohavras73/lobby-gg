@@ -1,4 +1,4 @@
-"""Jarvis Games — мультиплеер пати-игры (комнаты по коду, каждый на своём телефоне).
+"""Lobby.gg (ex Jarvis Games) — мультиплеер пати-игры (комнаты по коду, каждый на своём телефоне).
 Фаза 1: Шпион (Spyfall). Структура расширяемая под Бункер и др.
 Stack: FastAPI + WebSocket. Игроки заходят на /games, создают/входят в комнату по коду.
 """
@@ -6,7 +6,7 @@ import asyncio, json, random, string, os, re, urllib.request, logging, threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Response, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # без публичной автодокументации API
 
 app.mount("/games/static", StaticFiles(directory="/app/static"), name="static")
 
@@ -81,43 +81,168 @@ def _check_session(token):
 def current_user(request: Request):
     return _check_session(request.cookies.get("jsession"))
 
-LOGIN_PAGE = """<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Вход — Jarvis Games</title><link rel="stylesheet" href="/games/static/theme.css">
+# ═══════════ ЗАЩИТА: лимиты попыток и очистка пользовательского ввода (2026-10-08) ═══════════
+_RL = {}  # (bucket, ip) -> [timestamps]
+
+def _client_ip(request):
+    # Caddy перезаписывает X-Forwarded-For для недоверенных клиентов — последний элемент = реальный IP
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[-1].strip()
+    return request.client.host if request.client else "?"
+
+def _rate_ok(bucket, key, limit, window):
+    now = time.time()
+    k = (bucket, key)
+    arr = [t for t in _RL.get(k, []) if now - t < window]
+    if len(arr) >= limit:
+        _RL[k] = arr
+        return False
+    arr.append(now)
+    _RL[k] = arr
+    if len(_RL) > 20000:  # не даём словарю расти бесконечно
+        for kk in list(_RL)[:10000]:
+            _RL.pop(kk, None)
+    return True
+
+_UNSAFE = re.compile(r"[<>\"'`&\x00-\x1f]")
+
+def _clean(v, maxlen=300):
+    """Рекурсивно чистит строки из WS-сообщений: никакого HTML/скриптов в общие данные игры."""
+    if isinstance(v, str):
+        return _UNSAFE.sub("", v)[:maxlen]
+    if isinstance(v, list):
+        return [_clean(x, maxlen) for x in v[:200]]
+    if isinstance(v, dict):
+        return {str(k)[:40]: _clean(x, maxlen) for k, x in list(v.items())[:100]}
+    return v
+
+MAX_ROOMS = 400
+
+LOGIN_PAGE = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lobby.gg — sign in</title>
+<meta name="description" content="Lobby.gg — real-time multiplayer party games in the browser. No installs, just a link.">
+<meta name="theme-color" content="#050507">
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
+<link rel="stylesheet" href="/games/static/theme.css">
 <style>
-  .login-hero{text-align:center;padding:26px 0 6px}
-  .logo{font-size:36px;font-weight:900;letter-spacing:3px;
-    background:linear-gradient(90deg,#fff 30%,#ff2238);-webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 0 40px rgba(255,34,56,.25)}
-  .logo .dot{color:#ff2238;-webkit-text-fill-color:#ff2238}
-  .tabs{display:flex;gap:8px;margin-bottom:14px;background:rgba(255,255,255,.04);padding:4px;border-radius:14px}
-  .tabs button{flex:1;margin:0;padding:11px;border-radius:11px;background:transparent;box-shadow:none;font-size:14px}
+  body{padding:0 16px;min-height:100vh;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;justify-content:space-between;max-width:1120px;width:100%;margin:0 auto;padding:18px 0}
+  .brand{display:flex;align-items:center;gap:10px;color:#fff}
+  .brand .lgg-word{font-size:20px}
+  .langbar{display:flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:3px}
+  .langbar button{width:auto;margin:0;border:0;background:transparent;color:var(--muted);font-weight:700;font-size:12px;
+    padding:6px 11px;border-radius:999px;letter-spacing:.6px;box-shadow:none}
+  .langbar button::after{display:none}
+  .langbar button:hover{transform:none;box-shadow:none;color:#fff}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.45)}
+  .split{flex:1;display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:40px 0 60px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 11px;border-radius:999px;font-size:12.5px;font-weight:600;
+    color:#e9e9ee;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+  .live{width:8px;height:8px;border-radius:50%;background:#2fd86f;animation:ping 1.8s infinite}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(47,216,111,.55)}80%,100%{box-shadow:0 0 0 9px rgba(47,216,111,0)}}
+  .h{font-family:var(--display);font-size:clamp(32px,4.6vw,56px);line-height:1.05;font-weight:700;letter-spacing:-1.4px;margin-top:22px}
+  .h span{display:block}
+  .grad{background:linear-gradient(92deg,#fff 0%,#ffb3bb 30%,var(--crimson) 62%,var(--ember) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{color:#a9a9b3;font-size:16.5px;line-height:1.6;max-width:500px;margin-top:20px}
+  .feats{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+  .feats span{font-size:13px;color:#d4d4da;padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+  .auth{max-width:400px;width:100%;justify-self:end;padding:26px;border-radius:24px}
+  .auth h2{font-size:20px;font-weight:700;letter-spacing:-.3px}
+  .auth .sub{text-align:left;margin:6px 0 18px}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;background:rgba(255,255,255,.04);padding:4px;border-radius:14px;border:1px solid var(--border)}
+  .tabs button{flex:1;margin:0;padding:10px;border-radius:11px;background:transparent;box-shadow:none;font-size:14px}
   .tabs button.off{background:transparent;color:var(--muted);box-shadow:none}
   .tabs button:not(.off){background:linear-gradient(135deg,var(--crimson),var(--crimson-deep));box-shadow:0 2px 12px rgba(255,34,56,.3)}
   .tabs button::after{display:none}
-  .hint{font-size:11.5px;color:#5c5c64;text-align:center;margin-top:10px;line-height:1.5}
+  .tabs button:hover{transform:none}
+  .auth input{text-align:left}
+  .hint{font-size:11.5px;color:var(--faint);text-align:center;margin-top:10px;line-height:1.5}
+  #status{color:var(--crimson-soft);text-align:center;margin:8px 0 0}
+  .foot{max-width:1120px;width:100%;margin:0 auto;padding:20px 0 28px;color:var(--faint);font-size:12.5px;border-top:1px solid rgba(255,255,255,.05)}
+  .foot b{color:#c9c9d0;font-weight:600}
+  @media (max-width:860px){
+    .split{grid-template-columns:1fr;gap:32px;padding:20px 0 40px}
+    .auth{justify-self:stretch;max-width:none}
+    .lead{font-size:15.5px}
+    .feats{margin-top:20px}
+  }
 </style></head><body>
-<div class="login-hero">
-  <div class="logo float">JARVIS<span class="dot">·</span>GAMES</div>
-  <div class="sub">войди или зарегистрируйся — играть с друзьями</div>
-</div>
-<div class="card" style="max-width:340px;margin:0 auto">
-  <div class="tabs"><button id="tabLogin" onclick="showTab('login')">Войти</button>
-  <button id="tabReg" class="off" onclick="showTab('reg')">Регистрация</button></div>
-  <div id="loginForm">
-    <input id="lu" placeholder="Имя пользователя" maxlength="20" autocomplete="username">
-    <input id="lp" type="password" placeholder="Пароль" maxlength="40" autocomplete="current-password">
-    <button onclick="doLogin()">Войти →</button>
+<header class="top">
+  <a class="brand" href="/games/login" aria-label="Lobby.gg"><svg class="lgg-mark" viewBox="0 0 64 64"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4a5c"/><stop offset=".55" stop-color="#ff2238"/><stop offset="1" stop-color="#a50c1e"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#lg1)"/><path d="M23 17v25h15" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="46.5" cy="42" r="4.6" fill="#fff"/></svg><span class="lgg-word">Lobby<i>.gg</i></span></a>
+  <div class="langbar" id="langbar"><button type="button" data-lang="uk">UA</button><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button></div>
+</header>
+<main class="split">
+  <section>
+    <div class="eyebrow"><span class="live"></span><span data-i18n="eyebrow">Real-time multiplayer · right in your browser</span></div>
+    <h1 class="h" style="text-align:left;text-shadow:none"><span data-i18n="h1a">Party games with friends.</span><span class="grad" data-i18n="h1b">No installs — just a link.</span></h1>
+    <p class="lead" data-i18n="lead">Create a room, share the 4-letter code, and everyone joins from their own phone.</p>
+    <div class="feats"><span data-i18n="f1">🎮 30+ games</span><span data-i18n="f2">⚡ Live WebSocket rooms</span><span data-i18n="f3">🤖 Bots fill empty seats</span><span>🌐 UA · RU · EN</span></div>
+  </section>
+  <div class="card auth">
+    <h2 data-i18n="welcome">Welcome to the lobby</h2>
+    <div class="sub" data-i18n="sub">Sign in or create an account to play with friends</div>
+    <div class="tabs"><button id="tabLogin" onclick="showTab('login')" data-i18n="t_login">Sign in</button>
+    <button id="tabReg" class="off" onclick="showTab('reg')" data-i18n="t_reg">Sign up</button></div>
+    <div id="loginForm">
+      <input id="lu" placeholder="Username" data-i18n-ph="ph_user" maxlength="20" autocomplete="username">
+      <input id="lp" type="password" placeholder="Password" data-i18n-ph="ph_pass" maxlength="40" autocomplete="current-password">
+      <button onclick="doLogin()" data-i18n="b_login">Sign in →</button>
+    </div>
+    <div id="regForm" class="hide">
+      <input id="ru" placeholder="Pick a username" data-i18n-ph="ph_user2" maxlength="20" autocomplete="username">
+      <input id="rp" type="password" placeholder="Pick a password" data-i18n-ph="ph_pass2" maxlength="40" autocomplete="new-password">
+      <button onclick="doReg()" data-i18n="b_reg">Create account →</button>
+      <div class="hint" data-i18n="hint">Username: 3–20 latin letters, digits or _</div>
+    </div>
+    <div id="status" class="sub" style="min-height:18px"></div>
   </div>
-  <div id="regForm" class="hide">
-    <input id="ru" placeholder="Придумай имя пользователя" maxlength="20" autocomplete="username">
-    <input id="rp" type="password" placeholder="Придумай пароль" maxlength="40" autocomplete="new-password">
-    <button onclick="doReg()">Создать аккаунт →</button>
-    <div class="hint">Пароль решает уровень доступа. Обычным игрокам — просто придумай что-нибудь.</div>
-  </div>
-  <div id="status" class="sub" style="min-height:18px;margin-top:6px"></div>
-</div>
+</main>
+<footer class="foot"><span data-i18n="built_by">Built by</span> <b>Pavlo Havras</b> · Lobby.gg · 2026</footer>
 <script>
+var L10N={
+ uk:{eyebrow:"Мультиплеєр у реальному часі · прямо в браузері",h1a:"Паті-ігри з друзями.",h1b:"Без встановлення — лише посилання.",
+  lead:"Створи кімнату, поділись 4-літерним кодом — і кожен заходить зі свого телефона.",f1:"🎮 30+ ігор",f2:"⚡ Кімнати в реальному часі",f3:"🤖 Боти займуть вільні місця",
+  welcome:"Ласкаво просимо в лобі",sub:"Увійди або створи акаунт, щоб грати з друзями",t_login:"Вхід",t_reg:"Реєстрація",
+  ph_user:"Ім'я користувача",ph_pass:"Пароль",b_login:"Увійти →",ph_user2:"Придумай ім'я користувача",ph_pass2:"Придумай пароль",
+  b_reg:"Створити акаунт →",hint:"Ім'я: 3–20 символів — латиниця, цифри або _",built_by:"Створив",
+  e_login:"Помилка входу",e_reg:"Помилка реєстрації"},
+ ru:{eyebrow:"Мультиплеер в реальном времени · прямо в браузере",h1a:"Пати-игры с друзьями.",h1b:"Без установки — просто ссылка.",
+  lead:"Создай комнату, поделись 4-буквенным кодом — и каждый заходит со своего телефона.",f1:"🎮 30+ игр",f2:"⚡ Комнаты в реальном времени",f3:"🤖 Боты займут свободные места",
+  welcome:"Добро пожаловать в лобби",sub:"Войди или создай аккаунт, чтобы играть с друзьями",t_login:"Вход",t_reg:"Регистрация",
+  ph_user:"Имя пользователя",ph_pass:"Пароль",b_login:"Войти →",ph_user2:"Придумай имя пользователя",ph_pass2:"Придумай пароль",
+  b_reg:"Создать аккаунт →",hint:"Имя: 3–20 символов — латиница, цифры или _",built_by:"Создал",
+  e_login:"Ошибка входа",e_reg:"Ошибка регистрации"},
+ en:{eyebrow:"Real-time multiplayer · right in your browser",h1a:"Party games with friends.",h1b:"No installs — just a link.",
+  lead:"Create a room, share the 4-letter code, and everyone joins from their own phone.",f1:"🎮 30+ games",f2:"⚡ Live WebSocket rooms",f3:"🤖 Bots fill empty seats",
+  welcome:"Welcome to the lobby",sub:"Sign in or create an account to play with friends",t_login:"Sign in",t_reg:"Sign up",
+  ph_user:"Username",ph_pass:"Password",b_login:"Sign in →",ph_user2:"Pick a username",ph_pass2:"Pick a password",
+  b_reg:"Create account →",hint:"Username: 3–20 latin letters, digits or _",built_by:"Built by",
+  e_login:"Sign-in failed",e_reg:"Sign-up failed"}
+};
+/* серверные ошибки приходят по-русски — переводим на лету */
+var SERR={
+ "Неверное имя или пароль":{uk:"Невірне ім'я або пароль",en:"Wrong username or password"},
+ "Это имя уже занято":{uk:"Це ім'я вже зайняте",en:"This username is taken"},
+ "Имя: 3-20 симв., латиница/цифры/_":{uk:"Ім'я: 3-20 симв., латиниця/цифри/_",en:"Username: 3-20 chars, latin/digits/_"},
+ "Пароль минимум 4 символа":{uk:"Пароль мінімум 4 символи",en:"Password must be at least 4 characters"},
+ "Пароль минимум 6 символов":{uk:"Пароль мінімум 6 символів",en:"Password must be at least 6 characters"},
+ "Слишком много попыток, подождите":{uk:"Забагато спроб, зачекайте",en:"Too many attempts, please wait"}
+};
+var LANG=null; try{LANG=localStorage.getItem('jg_lang');}catch(e){}
+if(!L10N[LANG]){var nl=(navigator.language||'en').slice(0,2).toLowerCase();LANG=nl==='uk'?'uk':(nl==='ru'?'ru':'en');}
+function tr(k){return (L10N[LANG]&&L10N[LANG][k])||L10N.en[k]||k;}
+function serr(s,fb){if(!s)return tr(fb);if(LANG==='ru')return s;var m=SERR[s];return (m&&m[LANG])||s;}
+function applyL(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){el.placeholder=tr(el.dataset.i18nPh);});
+  document.querySelectorAll('#langbar button').forEach(function(b){b.classList.toggle('active',b.dataset.lang===LANG);});
+}
+document.getElementById('langbar').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  LANG=b.dataset.lang;try{localStorage.setItem('jg_lang',LANG);}catch(x){}applyL();});
+applyL();
 document.addEventListener('keydown',e=>{if(e.key==='Enter'){
   document.getElementById('loginForm').classList.contains('hide')?doReg():doLogin();}});
 function showTab(t){
@@ -130,13 +255,13 @@ async function doLogin(){
   const r = await fetch('/games/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({username:document.getElementById('lu').value,password:document.getElementById('lp').value})});
   const d = await r.json();
-  if(d.ok) location.href='/games'; else document.getElementById('status').textContent = d.error||'Ошибка входа';
+  if(d.ok) location.href='/games'; else document.getElementById('status').textContent = serr(d.error,'e_login');
 }
 async function doReg(){
   const r = await fetch('/games/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({username:document.getElementById('ru').value,password:document.getElementById('rp').value})});
   const d = await r.json();
-  if(d.ok) location.href='/games'; else document.getElementById('status').textContent = d.error||'Ошибка регистрации';
+  if(d.ok) location.href='/games'; else document.getElementById('status').textContent = serr(d.error,'e_reg');
 }
 </script></body></html>"""
 
@@ -837,7 +962,7 @@ def gemini_chars(title, n=20):
         body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
                            "generationConfig": {"temperature": 0.8, "maxOutputTokens": 1500,
                                                 "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
         try:
             req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=30) as r:
@@ -859,7 +984,7 @@ def gemini_locations(theme, n=15):
     body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
                        "generationConfig": {"temperature": 0.9, "maxOutputTokens": 800,
                                             "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
     try:
         req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as r:
@@ -881,7 +1006,7 @@ def gemini_people(theme, n=15):
     body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
                        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800,
                                             "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
     try:
         req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as r:
@@ -954,13 +1079,15 @@ async def login_page():
 
 @app.post("/auth/register")
 async def auth_register(request: Request, response: Response):
+    if not _rate_ok("register", _client_ip(request), 5, 3600):
+        return JSONResponse({"ok": False, "error": "Слишком много попыток, подождите"})
     body = await request.json()
     username = (body.get("username") or "").strip().lower()[:20]
     password = body.get("password") or ""
     if not re.fullmatch(r"[a-z0-9_]{3,20}", username):
         return JSONResponse({"ok": False, "error": "Имя: 3-20 симв., латиница/цифры/_"})
-    if len(password) < 4:
-        return JSONResponse({"ok": False, "error": "Пароль минимум 4 символа"})
+    if len(password) < 6:
+        return JSONResponse({"ok": False, "error": "Пароль минимум 6 символов"})
     con = _auth_db()
     if con.execute("SELECT 1 FROM users WHERE username=?", (username,)).fetchone():
         con.close(); return JSONResponse({"ok": False, "error": "Это имя уже занято"})
@@ -971,23 +1098,25 @@ async def auth_register(request: Request, response: Response):
     con.commit(); con.close()
     token = _make_session(username, "member")
     resp = JSONResponse({"ok": True})
-    resp.set_cookie("jsession", token, max_age=60*60*24*90, httponly=True, samesite="lax", path="/games")
+    resp.set_cookie("jsession", token, max_age=60*60*24*90, httponly=True, secure=True, samesite="lax", path="/games")
     return resp
 
 
 @app.post("/auth/login")
 async def auth_login(request: Request):
+    if not _rate_ok("login", _client_ip(request), 10, 300):
+        return JSONResponse({"ok": False, "error": "Слишком много попыток, подождите"})
     body = await request.json()
     username = (body.get("username") or "").strip().lower()[:20]
     password = body.get("password") or ""
     con = _auth_db()
     row = con.execute("SELECT salt,pwhash,role FROM users WHERE username=?", (username,)).fetchone()
     con.close()
-    if not row or _hash_pw(password, row[0]) != row[1]:
+    if not row or not hmac.compare_digest(_hash_pw(password, row[0]), row[1]):
         return JSONResponse({"ok": False, "error": "Неверное имя или пароль"})
     token = _make_session(username, row[2])
     resp = JSONResponse({"ok": True, "role": row[2]})
-    resp.set_cookie("jsession", token, max_age=60*60*24*90, httponly=True, samesite="lax", path="/games")
+    resp.set_cookie("jsession", token, max_age=60*60*24*90, httponly=True, secure=True, samesite="lax", path="/games")
     return resp
 
 
@@ -1077,7 +1206,8 @@ def _profile_of(con, username):
                     (username,)).fetchone()
     if not r:
         return {"username": username, "display_name": username, "avatar": "🙂", "color": "#e0102e", "sound": 1}
-    return {"username": r[0], "display_name": r[1] or r[0], "avatar": r[2], "color": r[3], "sound": r[4]}
+    col = r[3] if r[3] and re.fullmatch(r"#[0-9a-fA-F]{3,8}", r[3]) else "#e0102e"
+    return {"username": r[0], "display_name": _clean(r[1] or r[0], 24), "avatar": _clean(r[2] or "🙂", 8), "color": col, "sound": r[4]}
 
 def _user_stats(username):
     """Статистика из журнала: сыграно (create+join), любимые игры."""
@@ -1124,9 +1254,11 @@ async def update_profile(request: Request):
     if not u:
         raise HTTPException(401)
     body = await request.json()
-    dn = str(body.get("display_name", "") or u["username"])[:24].strip() or u["username"]
-    av = str(body.get("avatar", "🙂"))[:8]
-    col = str(body.get("color", "#e0102e"))[:12]
+    dn = _clean(str(body.get("display_name", "") or u["username"]), 24).strip() or u["username"]
+    av = _clean(str(body.get("avatar", "🙂")), 8) or "🙂"
+    col = str(body.get("color", "#e0102e"))
+    if not re.fullmatch(r"#[0-9a-fA-F]{3,8}", col):
+        col = "#e0102e"
     snd = 1 if body.get("sound", True) else 0
     con = _social_db()
     try:
@@ -1149,8 +1281,10 @@ async def change_password(request: Request):
     body = await request.json()
     old = str(body.get("old", ""))
     new = str(body.get("new", ""))
-    if len(new) < 4:
-        return JSONResponse({"ok": False, "error": "Пароль минимум 4 символа"})
+    if not _rate_ok("passwd", u["username"], 10, 300):
+        return JSONResponse({"ok": False, "error": "Слишком много попыток, подождите"})
+    if len(new) < 6:
+        return JSONResponse({"ok": False, "error": "Пароль минимум 6 символов"})
     con = _auth_db()
     try:
         row = con.execute("SELECT salt,pwhash FROM users WHERE username=?", (u["username"],)).fetchone()
@@ -1293,6 +1427,9 @@ async def create_invite(request: Request):
     code = str(body.get("code", "")).strip().upper()[:8]
     if not to or not game or not code:
         return JSONResponse({"ok": False, "error": "нужны to, game, code"})
+    # game/code попадают в ссылку у получателя — только безопасные символы
+    if not re.fullmatch(r"[a-z0-9_]{1,32}", game) or not re.fullmatch(r"[A-Z0-9]{3,8}", code):
+        return JSONResponse({"ok": False, "error": "некорректная игра или код"})
     con = _social_db()
     try:
         # только друзьям
@@ -1354,6 +1491,113 @@ async def clear_invite(request: Request):
         con.commit()
     finally:
         con.close()
+    return JSONResponse({"ok": True})
+
+
+# ══════════ ЛОББИ-ЧАТ (глобальный, только для залогиненных) ══════════
+CHAT_DB = "/data/lobby_chat.db"
+CHAT_KEEP = 200
+_chat_lock = threading.Lock()
+
+def _chat_db():
+    con = sqlite3.connect(CHAT_DB, timeout=5)
+    con.execute("""CREATE TABLE IF NOT EXISTS chat(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, display_name TEXT,
+        avatar TEXT, color TEXT, text TEXT, ts REAL)""")
+    return con
+
+def _chat_row(r):
+    return {"id": r[0], "u": r[1], "n": r[2], "a": r[3], "c": r[4], "t": r[5], "ts": r[6]}
+
+
+@app.get("/chat")
+async def chat_list(request: Request, after: int = 0):
+    """Последние сообщения лобби-чата. ?after=<id> — только новее этого id (для поллинга)."""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    if not _rate_ok("chat_get", u["username"], 120, 60):
+        return JSONResponse({"ok": False, "error": "rate", "messages": []}, status_code=429)
+    after = max(0, min(int(after or 0), 2**53))
+    con = _chat_db()
+    try:
+        if after:
+            rows = con.execute("SELECT id,username,display_name,avatar,color,text,ts FROM chat "
+                               "WHERE id>? ORDER BY id ASC LIMIT 100", (after,)).fetchall()
+        else:
+            rows = con.execute("SELECT id,username,display_name,avatar,color,text,ts FROM chat "
+                               "ORDER BY id DESC LIMIT 60", ()).fetchall()[::-1]
+    finally:
+        con.close()
+    return JSONResponse({"ok": True, "me": u["username"], "messages": [_chat_row(r) for r in rows]})
+
+
+@app.post("/chat")
+async def chat_post(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    try:
+        if int(request.headers.get("content-length") or 0) > 4096:
+            raise HTTPException(413)
+    except ValueError:
+        raise HTTPException(400)
+    me = u["username"]
+    ip = _client_ip(request)
+    if not _rate_ok("chat_u", me, 5, 10) or not _rate_ok("chat_ip", ip, 20, 60):
+        return JSONResponse({"ok": False, "error": "rate"}, status_code=429)
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(400)
+    if not isinstance(body, dict):
+        raise HTTPException(400)
+    text = _clean(str(body.get("text", "")), 300)
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        return JSONResponse({"ok": False, "error": "empty"})
+    con = _social_db()
+    try:
+        prof = _profile_of(con, me)
+    finally:
+        con.close()
+    name = _clean(prof["display_name"], 24) or me
+    with _chat_lock:
+        con = _chat_db()
+        try:
+            last = con.execute("SELECT username,text,ts FROM chat ORDER BY id DESC LIMIT 1").fetchone()
+            if last and last[0] == me and last[1] == text and time.time() - last[2] < 30:
+                return JSONResponse({"ok": False, "error": "dup"})
+            cur = con.execute("INSERT INTO chat(username,display_name,avatar,color,text,ts) VALUES(?,?,?,?,?,?)",
+                              (me, name, _clean(prof["avatar"], 8), prof["color"], text, time.time()))
+            mid = cur.lastrowid
+            con.execute("DELETE FROM chat WHERE id <= ?", (mid - CHAT_KEEP,))
+            con.commit()
+        finally:
+            con.close()
+    return JSONResponse({"ok": True, "id": mid})
+
+
+@app.post("/chat/delete")
+async def chat_delete(request: Request):
+    """Модерация: root удаляет любое сообщение, автор — своё."""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    try:
+        mid = int((await request.json()).get("id", 0))
+    except Exception:
+        raise HTTPException(400)
+    with _chat_lock:
+        con = _chat_db()
+        try:
+            if u["role"] == "root":
+                con.execute("DELETE FROM chat WHERE id=?", (mid,))
+            else:
+                con.execute("DELETE FROM chat WHERE id=? AND username=?", (mid, u["username"]))
+            con.commit()
+        finally:
+            con.close()
     return JSONResponse({"ok": True})
 
 
@@ -2454,7 +2698,7 @@ async def push_game(room):
     pmap = {"spy": push_spy, "al": alias_public, "durak": push_durak, "mafia": mafia_broadcast, "variants": push_variants,
             "bunker": push_bunker, "uno": push_uno, "c4": push_c4, "reversi": push_rv,
             "checkers": push_ck, "chess": push_chess, "dots": push_db,
-            "bulls": push_bc, "battleship": push_bs, "poker": push_poker, "c4_3d": push_c4_3d_resync, "quoridor": push_quoridor, "quoridor": push_quoridor}
+            "bulls": push_bc, "battleship": push_bs, "poker": push_poker, "c4_3d": push_c4_3d_resync, "quoridor": push_quoridor}
     if g in pmap: await pmap[g](room)
 
 
@@ -2492,9 +2736,24 @@ async def ws(websocket: WebSocket):
     pid = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
     room = None
     _presence_add(auth_user["username"])  # онлайн-статус для друзей
+    _msg_times = []
     try:
         while True:
-            msg = json.loads(await websocket.receive_text())
+            raw = await websocket.receive_text()
+            if len(raw) > 16384:
+                continue  # слишком большое сообщение — игнор
+            _now = time.time()
+            _msg_times = [t for t in _msg_times if _now - t < 5][-60:]
+            _msg_times.append(_now)
+            if len(_msg_times) > 50:  # >10 сообщений/сек в среднем — флуд, рвём соединение
+                await websocket.close(code=4429)
+                break
+            try:
+                msg = _clean(json.loads(raw))
+            except Exception:
+                continue
+            if not isinstance(msg, dict):
+                continue
             if msg.get("type") == "ping":
                 try:
                     await websocket.send_json({"type": "pong"})
@@ -2506,6 +2765,9 @@ async def ws(websocket: WebSocket):
                 continue
 
             if act == "create":
+                if len(rooms) >= MAX_ROOMS or not _rate_ok("create", auth_user["username"], 20, 600):
+                    await websocket.send_json({"type": "error", "msg": "Слишком много комнат, попробуйте позже."})
+                    continue
                 code = code4()
                 while code in rooms:
                     code = code4()
@@ -2600,8 +2862,8 @@ async def ws(websocket: WebSocket):
             elif act == "restart" and room and room.get("game"):
                 g = room["game"]
                 # сброс общего игрового стейта, игроки и комната остаются
-                for key in ("c4", "rv", "db", "bc", "bs", "ck", "chess", "gw", "durak", "uno",
-                            "spy", "bunker", "al", "poker", "poker_stacks", "mafia", "c4_3d"):
+                for key in ("c4", "rv", "db", "bc", "bs", "ck", "chess", "gw", "durak", "dk", "uno",
+                            "spy", "bunker", "al", "poker", "poker_stacks", "mafia", "c4_3d", "quoridor"):
                     room.pop(key, None)
                 room["state"] = "lobby"
                 # авто-старт для игр на двоих/с ботом; партийные (spy/bunker/alias/durak/uno/poker) — хост жмёт старт
@@ -2718,6 +2980,18 @@ async def ws(websocket: WebSocket):
                         state["colors"][botid] = next((c for c in c4d.PALETTE if c not in used), "#888888")
                     await broadcast(room, lobby_state(room))
                     await broadcast(room, {"type": "c4_3d_update", "state": state})
+
+            # ── Убрать бота из лобби (до старта) — общий для всех игр ──
+            elif act == "remove_bot" and room and room["host"] == pid and room.get("state") == "lobby":
+                target = msg.get("pid")
+                target_player = room["players"].get(target)
+                if target_player and target_player.get("bot"):
+                    del room["players"][target]
+                    c4s = room.get("c4_3d")
+                    if c4s and target in c4s.get("players", []):
+                        c4s["players"].remove(target)
+                        c4s.get("colors", {}).pop(target, None)
+                    await broadcast(room, lobby_state(room))
 
             # ── Шашки ──
             elif act == "ck_move" and room and room.get("game") == "checkers" and room.get("ck"):
@@ -3112,11 +3386,11 @@ async def ws(websocket: WebSocket):
             # --- Варианты (Аукцион лжи) ---
             elif act == "variants_set_cats" and room and room["host"] == pid and room.get("game") == "variants":
                 gs = room.setdefault("state_data", {})
-                gs["categories"] = d.get("categories", [])
-                gs["total_rounds"] = d.get("total_rounds", 5)
+                gs["categories"] = msg.get("categories", [])
+                gs["total_rounds"] = msg.get("total_rounds", 5)
                 await broadcast(room, vr.variants_public(room))
             elif act == "variants_submit" and room and room.get("game") == "variants":
-                bluff = d.get("bluff", "").strip()
+                bluff = msg.get("bluff", "").strip()
                 if bluff and room["players_data"].get(pid):
                     room["players_data"][pid]["bluff"] = bluff
                     if vr.check_input_phase_complete(room):
@@ -3124,7 +3398,7 @@ async def ws(websocket: WebSocket):
                     else:
                         await push_variants(room)
             elif act == "variants_vote" and room and room.get("game") == "variants":
-                vote_id = d.get("vote_id")
+                vote_id = msg.get("vote_id")
                 if vote_id and room["players_data"].get(pid):
                     room["players_data"][pid]["vote"] = vote_id
                     if vr.check_voting_phase_complete(room):

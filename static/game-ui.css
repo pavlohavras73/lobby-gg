@@ -1,0 +1,379 @@
+/* Lobby.gg — Premium Game UI System (game-ui.css)
+   Consistent headers, board centering, responsive 390px-to-1440px viewport scaling,
+   turn indicator, win/loss modals, language selector, waiting states, and animations. */
+
+/* ── Top Game Header & Navigation ── */
+.game-header {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 2px;
+  position: relative;
+  z-index: 100;
+}
+.game-header.wide {
+  max-width: 760px;
+}
+.game-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  background: rgba(16, 16, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s, border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.game-nav-back:hover {
+  border-color: var(--crimson);
+  background: rgba(255, 34, 56, 0.12);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.game-title-wrap {
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+.game-title-wrap h1 {
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game-title-wrap .sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.game-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Shared Language Selector ── */
+.langbar {
+  display: inline-flex;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  align-items: center;
+}
+.langbar button {
+  width: auto !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: inherit !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  padding: 4px 9px !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  letter-spacing: 0.5px !important;
+  line-height: 1 !important;
+  transition: background 0.18s, color 0.18s, box-shadow 0.25s !important;
+}
+.langbar button::after { display: none !important; }
+.langbar button:hover { color: #fff !important; transform: none !important; }
+.langbar button.active {
+  background: var(--crimson) !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(255, 34, 56, 0.45) !important;
+}
+
+/* ── Rules Button & Modal ── */
+#rulesBtn, .rules-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+  border: 1px solid var(--border) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  font-style: italic !important;
+  font-family: Georgia, serif !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s !important;
+}
+#rulesBtn:hover, .rules-btn:hover {
+  border-color: var(--border-hi) !important;
+  background: rgba(255, 34, 56, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+.rules-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.76);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: riseIn 0.25s var(--ease) both;
+}
+.rules-modal-card {
+  max-width: 400px;
+  width: 100%;
+  background: #14141c;
+  border: 1px solid var(--border-hi);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 34, 56, 0.15);
+  text-align: left;
+}
+.rules-modal-title {
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rules-modal-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d8d8de;
+}
+
+/* ── Container & Centering ── */
+.game-container {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.game-container.wide {
+  max-width: 760px;
+}
+
+/* ── Turn Pill Indicator ── */
+.turn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin: 8px auto 12px;
+  border: 1px solid var(--border);
+  background: rgba(18, 18, 25, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.25s var(--ease);
+}
+.turn-pill.my-turn {
+  border-color: var(--crimson);
+  color: #fff;
+  background: linear-gradient(90deg, rgba(255, 34, 56, 0.22), rgba(18, 18, 25, 0.75));
+  box-shadow: 0 0 20px -3px var(--crimson-glow);
+}
+.turn-pill.opp-turn {
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+.turn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.turn-pill.my-turn .turn-dot {
+  background: var(--crimson);
+  box-shadow: 0 0 10px var(--crimson);
+  animation: pulseDot 1.4s infinite ease-in-out;
+}
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.65; }
+}
+
+/* ── Room Code Chip ── */
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  transition: 0.2s;
+}
+.code-chip:hover {
+  border-color: var(--crimson);
+  background: rgba(255, 34, 56, 0.1);
+  transform: translateY(-1px);
+}
+.code-chip:active {
+  transform: scale(0.96);
+}
+
+/* ── Players Chips List ── */
+.players-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 8px 0;
+  width: 100%;
+}
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: 0.2s;
+}
+.player-chip.host {
+  border-color: rgba(255, 122, 69, 0.35);
+}
+.player-chip.active {
+  border-color: var(--crimson);
+  box-shadow: 0 0 12px rgba(255, 34, 56, 0.25);
+}
+
+/* ── Waiting & Empty States ── */
+.waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  gap: 12px;
+}
+.waiting-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid rgba(255, 34, 56, 0.2);
+  border-top-color: var(--crimson);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Modal / Overlay (Win / Lose / Round Over) ── */
+.game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(4, 4, 8, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: riseIn 0.35s var(--ease) both;
+}
+.game-overlay-card {
+  max-width: 390px;
+  width: 100%;
+  text-align: center;
+  padding: 28px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--border-hi);
+  background: linear-gradient(180deg, rgba(26, 26, 36, 0.92), rgba(14, 14, 20, 0.96));
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85), 0 0 40px -10px var(--crimson-glow);
+  position: relative;
+  overflow: hidden;
+}
+.overlay-icon {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: popin 0.4s var(--ease) both;
+}
+.overlay-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #fff;
+}
+.overlay-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ── Dropdown Select Fix ── */
+/* Prevents custom paddings from causing dropdown arrow overlap with option text */
+select, select.ui-select {
+  padding-right: 38px !important;
+  background-position: right 14px center !important;
+  text-align-last: center;
+}
+
+/* ── Card & Move Animations ── */
+.anim-pop {
+  animation: popin 0.28s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.anim-fade {
+  animation: fadein 0.25s ease both;
+}
+.anim-slide {
+  animation: riseIn 0.3s var(--ease) both;
+}
