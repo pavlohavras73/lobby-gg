@@ -209,6 +209,142 @@ async def test_global_chat(c1, c2):
     check("Общий чат: сообщение сохранено (виден через старый GET /chat)", any((x.get("t") or x.get("text")) == txt for x in msgs))
 
 
+async def _drain_latest(ws, msg_type, duration=0.35):
+    """Читает все пришедшие сообщения за duration сек, возвращая последнее нужного типа и счётчик."""
+    end = asyncio.get_event_loop().time() + duration
+    latest = None
+    cnt = 0
+    while True:
+        left = end - asyncio.get_event_loop().time()
+        if left <= 0:
+            break
+        try:
+            m = json.loads(await asyncio.wait_for(ws.recv(), left))
+            if m.get("type") == msg_type:
+                latest = m
+                cnt += 1
+        except asyncio.TimeoutError:
+            break
+    return latest, cnt
+
+
+async def test_concurrency_durak_and_uno(c1, c2):
+    # 1. Дурак: 2 человека + 2 бота одновременно и повторно шлют ходы (атака/защита/бито/беру)
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a, \
+               websockets.connect(WS, additional_headers={"Cookie": c2}) as b:
+        await a.send(json.dumps({"action": "create", "name": "Игрок1", "game": "durak"}))
+        ja, _ = await recv_until(a, lambda m: m.get("type") == "joined")
+        code = ja["code"]
+        await b.send(json.dumps({"action": "join", "name": "Игрок2", "code": code}))
+        await recv_until(b, lambda m: m.get("type") == "joined")
+        await a.send(json.dumps({"action": "add_bot", "diff": "easy"}))
+        await a.send(json.dumps({"action": "add_bot", "diff": "easy"}))
+        await a.send(json.dumps({"action": "start"}))
+        sa, _ = await recv_until(a, lambda m: m.get("type") == "durak_state")
+        sb, _ = await recv_until(b, lambda m: m.get("type") == "durak_state")
+        states_seen = 2 if (sa and sb) else 0
+
+        async def spam_durak(ws, st):
+            if not st:
+                return
+            hand = st.get("hand") or []
+            card = hand[0] if hand else {"r": 6, "s": 0}
+            # Шлём пачку дублирующихся и конкурирующих действий подряд без ожидания
+            await ws.send(json.dumps({"action": "dk_attack", "card": card}))
+            await ws.send(json.dumps({"action": "dk_attack", "card": card}))
+            await ws.send(json.dumps({"action": "dk_defend", "idx": 0, "card": card}))
+            await ws.send(json.dumps({"action": "dk_done"}))
+            if st.get("defender") == st.get("you") and st.get("table"):
+                await ws.send(json.dumps({"action": "dk_take"}))
+                await ws.send(json.dumps({"action": "dk_take"}))
+
+        for _ in range(5):
+            await asyncio.gather(spam_durak(a, sa), spam_durak(b, sb))
+            (la, ca), (lb, cb) = await asyncio.gather(
+                _drain_latest(a, "durak_state", 0.45),
+                _drain_latest(b, "durak_state", 0.45),
+            )
+            if la:
+                sa = la
+            if lb:
+                sb = lb
+            states_seen += ca + cb
+
+        # Проверяем целостность колоды/рук (в 36-карточной колоде сумма карт на руках/столе/в колоде <= 36) и живость сокетов
+        table_cards = sum((1 + (1 if pr.get("d") else 0)) for pr in (sa or {}).get("table", []))
+        total_cards = (sa or {}).get("deck", 0) + sum((sa or {}).get("counts", {}).values()) + table_cards
+        await a.send(json.dumps({"type": "ping"}))
+        await b.send(json.dumps({"type": "ping"}))
+        pa, _ = await recv_until(a, lambda m: m.get("type") == "pong", timeout=5)
+        pb, _ = await recv_until(b, lambda m: m.get("type") == "pong", timeout=5)
+        check("Конкуренция в Дураке (2 игрока + 2 бота): игра идёт, состояние целостно",
+              pa is not None and pb is not None and states_seen >= 4 and 12 <= total_cards <= 36,
+              f"(состояний: {states_seen}, карт в игре: {total_cards})")
+
+    # 2. UNO: 2 человека + 2 бота одновременно шлют повторные uno_play / uno_draw / uno_pass
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a, \
+               websockets.connect(WS, additional_headers={"Cookie": c2}) as b:
+        await a.send(json.dumps({"action": "create", "name": "Игрок1", "game": "uno"}))
+        ja, _ = await recv_until(a, lambda m: m.get("type") == "joined")
+        code = ja["code"]
+        await b.send(json.dumps({"action": "join", "name": "Игрок2", "code": code}))
+        await recv_until(b, lambda m: m.get("type") == "joined")
+        await a.send(json.dumps({"action": "add_bot", "diff": "easy"}))
+        await a.send(json.dumps({"action": "add_bot", "diff": "easy"}))
+        await a.send(json.dumps({"action": "start"}))
+        sa, _ = await recv_until(a, lambda m: m.get("type") == "uno_state")
+        sb, _ = await recv_until(b, lambda m: m.get("type") == "uno_state")
+        turns_seen = [sa.get("turn_pid")] if sa else []
+
+        async def spam_uno(ws, st):
+            if not st:
+                return
+            hand = st.get("hand") or []
+            if hand:
+                c0 = hand[0]
+                await ws.send(json.dumps({"action": "uno_play", "cards": [c0], "color": 0}))
+                await ws.send(json.dumps({"action": "uno_play", "cards": [c0], "color": 0}))
+            await ws.send(json.dumps({"action": "uno_draw"}))
+            await ws.send(json.dumps({"action": "uno_draw"}))
+            await ws.send(json.dumps({"action": "uno_pass"}))
+            await ws.send(json.dumps({"action": "uno_pass"}))
+
+        for _ in range(5):
+            await asyncio.gather(spam_uno(a, sa), spam_uno(b, sb))
+            (la, _), (lb, _) = await asyncio.gather(
+                _drain_latest(a, "uno_state", 0.55),
+                _drain_latest(b, "uno_state", 0.55),
+            )
+            if la:
+                sa = la
+                if not turns_seen or turns_seen[-1] != sa.get("turn_pid"):
+                    turns_seen.append(sa.get("turn_pid"))
+            if lb:
+                sb = lb
+
+        await a.send(json.dumps({"type": "ping"}))
+        await b.send(json.dumps({"type": "ping"}))
+        pa, _ = await recv_until(a, lambda m: m.get("type") == "pong", timeout=5)
+        pb, _ = await recv_until(b, lambda m: m.get("type") == "pong", timeout=5)
+        check("Конкуренция в UNO (2 игрока + 2 бота): одновременные ходы не ломают очередь",
+              pa is not None and pb is not None and len(turns_seen) >= 2,
+              f"(смен хода: {len(turns_seen)})")
+
+
+def check_server_log():
+    log_path = os.environ.get("LOBBY_SERVER_LOG")
+    if not log_path or not os.path.exists(log_path):
+        return
+    with open(log_path, encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+    action_errs = [l.strip() for l in lines if "ws action" in l and "failed" in l]
+    unexpected = [l for l in action_errs if "ws action 'uno_play' failed" not in l]
+    crashes = [l.strip() for l in lines if "ws loop crashed" in l or "bot loop failed" in l]
+    check("Лог сервера: нет неожиданных исключений ws action ... failed",
+          len(unexpected) == 0 and len(action_errs) <= 1 and len(crashes) == 0,
+          f"(uno_play ожидаемых: {len(action_errs)}, неожиданных: {len(unexpected)}, крашей: {len(crashes)})")
+
+
 async def main():
     u = [register(f"t{random.randint(10000, 99999)}{i}") for i in range(2)]
     c = [u[0]] * 5
@@ -220,6 +356,8 @@ async def main():
     test_learn_forged_cookie(c[4])
     await test_room_chat(u[0], u[1])
     await test_global_chat(u[0], u[1])
+    await test_concurrency_durak_and_uno(u[0], u[1])
+    check_server_log()
     print(f"\nИтого: {sum(ok for _, ok in results)}/{len(results)}")
     sys.exit(0 if all(ok for _, ok in results) else 1)
 

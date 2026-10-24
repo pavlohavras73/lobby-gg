@@ -11,6 +11,9 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # без пуб�
 app.mount("/games/static", StaticFiles(directory="/app/static"), name="static")
 
 USAGE_LOG = "/data/games_usage.jsonl"
+_USER_STATS_CACHE = None
+_usage_log_lock = threading.Lock()
+
 def log_usage(event, name, game, code, ws=None, username=None):
     """Кто/когда/во что играет — лёгкий трекинг, ничего не блокирует."""
     try:
@@ -18,8 +21,18 @@ def log_usage(event, name, game, code, ws=None, username=None):
         ip = ws.client.host if ws and ws.client else "?"
         entry = {"t": datetime.datetime.now(datetime.timezone.utc).isoformat(), "event": event,
                  "name": name[:20], "game": game, "code": code, "ip": ip, "user": username or "?"}
-        with open(USAGE_LOG, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        with _usage_log_lock:
+            with open(USAGE_LOG, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+            if _USER_STATS_CACHE is not None:
+                user = entry.get("user")
+                if user and entry.get("event") in ("create", "join"):
+                    if user not in _USER_STATS_CACHE:
+                        from collections import Counter
+                        _USER_STATS_CACHE[user] = {"played": 0, "games": Counter()}
+                    _USER_STATS_CACHE[user]["played"] += 1
+                    if entry.get("game"):
+                        _USER_STATS_CACHE[user]["games"][entry["game"]] += 1
     except Exception:
         pass
 
@@ -30,17 +43,30 @@ import sqlite3, hashlib, hmac, secrets, time
 AUTH_DB = "/data/users.db"
 AUTH_SECRET_PATH = "/data/auth_secret.txt"
 
+_AUTH_SECRET = None
+
 def _auth_secret():
+    global _AUTH_SECRET
+    if _AUTH_SECRET is not None:
+        return _AUTH_SECRET
     if not os.path.exists(AUTH_SECRET_PATH):
         with open(AUTH_SECRET_PATH, "w") as f:
             f.write(secrets.token_hex(32))
-    return open(AUTH_SECRET_PATH).read().strip()
+    _AUTH_SECRET = open(AUTH_SECRET_PATH).read().strip()
+    return _AUTH_SECRET
+
+_auth_db_initialized = False
 
 def _auth_db():
-    con = sqlite3.connect(AUTH_DB)
-    con.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT, pwhash TEXT, "
-                "role TEXT DEFAULT 'member', created_at TEXT)")
-    con.commit()
+    global _auth_db_initialized
+    con = sqlite3.connect(AUTH_DB, timeout=5)
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=5000")
+    if not _auth_db_initialized:
+        con.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT, pwhash TEXT, "
+                    "role TEXT DEFAULT 'member', created_at TEXT)")
+        con.commit()
+        _auth_db_initialized = True
     return con
 
 def _hash_pw(password, salt):
@@ -289,6 +315,7 @@ import chess as chs
 import poker as pk
 import mafia as mf
 import variants as vr
+import llm
 import connect4_3d as c4d
 from quoridor import new_quoridor_state, get_valid_pawn_moves, can_place_wall, apply_pawn_move, apply_wall_placement, bot_choose_action
 
@@ -387,13 +414,29 @@ rooms = {}  # code -> {"players": {pid: {"name","ws","role","alive"}}, "host": p
 ROOM_RECONNECT_GRACE = 120  # сек: сколько ждать возвращения людей в идущую игру, прежде чем удалить комнату
 
 
+def room_lock(room):
+    """Замок на комнату (создаётся лениво). Не сериализуется в JSON, т.к. room целиком в payload не уходит."""
+    return room.setdefault("_lock", asyncio.Lock())
+
+
+def _cancel_bots(room):
+    """Отменяет активную фоновую задачу ботов комнаты (при сбросе/выходе в лобби/удалении комнаты)."""
+    if not room:
+        return
+    task = room.pop("_bot_task", None)
+    if task is not None and not task.done():
+        task.cancel()
+
+
 async def _drop_room_if_abandoned(room, delay):
     """Удаляет комнату, если за delay секунд ни один человек не вернулся на связь."""
     await asyncio.sleep(delay)
-    if rooms.get(room["code"]) is not room:
-        return  # комнату уже убрали или код занят новой
-    if not any(pl.get("ws") for pl in room["players"].values() if not pl.get("bot")):
-        rooms.pop(room["code"], None)
+    async with room_lock(room):
+        if rooms.get(room["code"]) is not room:
+            return  # комнату уже убрали или код занят новой
+        if not any(pl.get("ws") for pl in room["players"].values() if not pl.get("bot")):
+            _cancel_bots(room)
+            rooms.pop(room["code"], None)
 
 # ── Присутствие (онлайн-статус друзей) ──────────────────────────────────────
 # username -> {"n": число активных соединений, "game": текущая игра или None, "seen": ts}
@@ -937,7 +980,6 @@ async def start_c4_3d(room):
     state["last_move"] = None
     state["started"] = True
     await c4d.push_c4_3d(room)
-    await bot_turn(room)
 
 
 async def push_c4_3d_resync(room):
@@ -988,41 +1030,23 @@ def _openrouter_chars(title, n=20):
         return None
 
 def gemini_chars(title, n=20):
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if key:
-        prompt = (f"Назови ровно {n} разных узнаваемых персонажей из «{title}». "
-                  f"Если не хватает — добавь связанных по теме. Верни СТРОГО JSON-массив "
-                  f'[{{"name":"короткое имя","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
-        body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
-                           "generationConfig": {"temperature": 0.8, "maxOutputTokens": 1500,
-                                                "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
-        try:
-            req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=30) as r:
-                txt = json.load(r)["candidates"][0]["content"]["parts"][0]["text"]
-            res = _parse_chars(txt, n)
-            if res:
-                return res
-        except Exception as e:
-            logging.warning(f"gemini_chars failed ({e}) — fallback to OpenRouter")
-    # Gemini недоступен/квота/парс — пробуем OpenRouter free
-    return _openrouter_chars(title, n)
+    prompt = (f"Назови ровно {n} разных узнаваемых персонажей из «{title}». "
+              f"Если не хватает — добавь связанных по теме. Верни СТРОГО JSON-массив "
+              f'[{{"name":"короткое имя","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
+    txt = llm.ask(prompt, temperature=0.8, max_tokens=1500, timeout=30)   # Gemini → Groq
+    res = _parse_chars(txt, n) if txt else None
+    if res:
+        return res
+    return _openrouter_chars(title, n)   # если в окружении есть OPENROUTER_KEY
+
 
 def gemini_locations(theme, n=15):
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if not key:
-        return None
     prompt = (f"Тема: «{theme}». Придумай ровно {n} разных ЛОКАЦИЙ/мест в этой теме для игры Шпион "
               f'(коротко, 1-3 слова). Верни СТРОГО JSON-массив строк ровно из {n} элементов, без текста.')
-    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
-                       "generationConfig": {"temperature": 0.9, "maxOutputTokens": 800,
-                                            "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
     try:
-        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            txt = json.load(r)["candidates"][0]["content"]["parts"][0]["text"]
+        txt = llm.ask(prompt, temperature=0.9, max_tokens=800, timeout=30)   # Gemini → Groq
+        if not txt:
+            return None
         m = re.search(r"\[.*\]", txt, re.S)
         arr = json.loads(m.group(0))
         out = [str(x)[:30] for x in arr if isinstance(x, str) and x.strip()][:n]
@@ -1032,19 +1056,12 @@ def gemini_locations(theme, n=15):
 
 
 def gemini_people(theme, n=15):
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if not key:
-        return None
     prompt = (f"Назови ровно {n} разных узнаваемых ПЕРСОНАЖЕЙ из «{theme}» (герои, злодеи, ключевые лица). "
               f'Короткие имена по-русски. Верни СТРОГО JSON-массив строк ровно из {n} элементов, без текста.')
-    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}],
-                       "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800,
-                                            "thinkingConfig": {"thinkingBudget": 0}}}).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}"
     try:
-        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            txt = json.load(r)["candidates"][0]["content"]["parts"][0]["text"]
+        txt = llm.ask(prompt, temperature=0.8, max_tokens=800, timeout=30)   # Gemini → Groq
+        if not txt:
+            return None
         m = re.search(r"\[.*\]", txt, re.S)
         arr = json.loads(m.group(0))
         out = [str(x)[:30] for x in arr if isinstance(x, str) and x.strip()][:n]
@@ -1221,18 +1238,25 @@ async def post_progress(request: Request):
 
 
 # ══════════ ПРОФИЛИ и ДРУЗЬЯ ══════════
+_social_db_initialized = False
+
 def _social_db():
+    global _social_db_initialized
     con = sqlite3.connect(AUTH_DB, timeout=5)
-    con.execute("""CREATE TABLE IF NOT EXISTS profiles(
-        username TEXT PRIMARY KEY, display_name TEXT, avatar TEXT DEFAULT '🙂',
-        color TEXT DEFAULT '#e0102e', sound INTEGER DEFAULT 1, updated_at TEXT)""")
-    con.execute("""CREATE TABLE IF NOT EXISTS friendships(
-        from_user TEXT, to_user TEXT, status TEXT DEFAULT 'pending', created_at TEXT,
-        PRIMARY KEY(from_user, to_user))""")
-    con.execute("""CREATE TABLE IF NOT EXISTS invites(
-        from_user TEXT, to_user TEXT, game TEXT, code TEXT, created_at TEXT,
-        PRIMARY KEY(from_user, to_user))""")
-    con.commit()
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=5000")
+    if not _social_db_initialized:
+        con.execute("""CREATE TABLE IF NOT EXISTS profiles(
+            username TEXT PRIMARY KEY, display_name TEXT, avatar TEXT DEFAULT '🙂',
+            color TEXT DEFAULT '#e0102e', sound INTEGER DEFAULT 1, updated_at TEXT)""")
+        con.execute("""CREATE TABLE IF NOT EXISTS friendships(
+            from_user TEXT, to_user TEXT, status TEXT DEFAULT 'pending', created_at TEXT,
+            PRIMARY KEY(from_user, to_user))""")
+        con.execute("""CREATE TABLE IF NOT EXISTS invites(
+            from_user TEXT, to_user TEXT, game TEXT, code TEXT, created_at TEXT,
+            PRIMARY KEY(from_user, to_user))""")
+        con.commit()
+        _social_db_initialized = True
     return con
 
 def _profile_of(con, username):
@@ -1245,26 +1269,38 @@ def _profile_of(con, username):
 
 def _user_stats(username):
     """Статистика из журнала: сыграно (create+join), любимые игры."""
+    global _USER_STATS_CACHE
     from collections import Counter
-    played = 0
-    games = Counter()
-    try:
-        with open(USAGE_LOG, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
+    if _USER_STATS_CACHE is None:
+        with _usage_log_lock:
+            if _USER_STATS_CACHE is None:
+                new_cache = {}
                 try:
-                    e = json.loads(line)
+                    with open(USAGE_LOG, encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                e = json.loads(line)
+                            except Exception:
+                                continue
+                            user = e.get("user")
+                            if user and e.get("event") in ("create", "join"):
+                                if user not in new_cache:
+                                    new_cache[user] = {"played": 0, "games": Counter()}
+                                new_cache[user]["played"] += 1
+                                if e.get("game"):
+                                    new_cache[user]["games"][e["game"]] += 1
                 except Exception:
-                    continue
-                if e.get("user") == username and e.get("event") in ("create", "join"):
-                    played += 1
-                    if e.get("game"):
-                        games[e["game"]] += 1
-    except Exception:
-        pass
-    return {"played": played, "top_games": games.most_common(3)}
+                    pass
+                _USER_STATS_CACHE = new_cache
+
+    with _usage_log_lock:
+        user_data = _USER_STATS_CACHE.get(username)
+        if not user_data:
+            return {"played": 0, "top_games": []}
+        return {"played": user_data["played"], "top_games": user_data["games"].most_common(3)}
 
 
 @app.get("/me")
@@ -1546,11 +1582,18 @@ async def _chat_broadcast(payload: dict):
         CHAT_WS.discard(ws_conn)
 
 
+_chat_db_initialized = False
+
 def _chat_db():
+    global _chat_db_initialized
     con = sqlite3.connect(CHAT_DB, timeout=5)
-    con.execute("""CREATE TABLE IF NOT EXISTS chat(
-        id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, display_name TEXT,
-        avatar TEXT, color TEXT, text TEXT, ts REAL)""")
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=5000")
+    if not _chat_db_initialized:
+        con.execute("""CREATE TABLE IF NOT EXISTS chat(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, display_name TEXT,
+            avatar TEXT, color TEXT, text TEXT, ts REAL)""")
+        _chat_db_initialized = True
     return con
 
 
@@ -2231,21 +2274,8 @@ def poker_bot(s, pid):
 
 
 async def poker_bot_turn(room):
-    """Пока ходить должен бот — он действует (с задержкой), до хода человека или конца раздачи."""
-    for _ in range(60):
-        s = room.get("poker")
-        if not s or s["done"] or s["to_act"] is None:
-            return
-        pid = s["seats"][s["to_act"]]
-        d = room["players"].get(pid)
-        if not d or not d.get("bot"):
-            return  # ход человека
-        await asyncio.sleep(0.8)
-        act, amt = poker_bot(s, pid)
-        if not poker_action(s, pid, act, amt):
-            to_call = s["cur_bet"] - s["bets"][pid]
-            poker_action(s, pid, "check" if to_call == 0 else "call", 0) or poker_action(s, pid, "fold", 0)
-        await push_poker(room)
+    """Планирует фоновый ход бота в покере через единый планировщик."""
+    return schedule_bots(room)
 
 # ═══════════ МАФИЯ ═══════════
 def mafia_public(room):
@@ -2537,218 +2567,392 @@ def bc_bot_guess(s, botid):
         cands = [x for x in cands if bc_eval(x, g) == (bl, co)]
     return random.choice(cands) if cands else "1234"
 
-async def bot_turn(room):
-    """Если в комнате есть бот и сейчас его ход — он ходит (с задержкой)."""
-    bot = next((p for p, d in room["players"].items() if d.get("bot")), None)
-    if not bot: return
-    diff = room["players"][bot]["bot"]; g = room.get("game")
-    for _ in range(40):  # бот может ходить несколько раз подряд (морской бой при попадании)
-        await asyncio.sleep(0.6)
-        if g == "quoridor":
-            s = room.get("quoridor")
-            if not s or s.get("winner") or room.get("state") != "playing": return
-            turn_pid = s["player_order"][s["turn"]]
-            if not room["players"].get(turn_pid, {}).get("bot"): return
-            diff = room["players"][turn_pid].get("bot", "medium")
-            action = bot_choose_action(s, turn_pid, diff)
-            if action:
-                if action["action"] == "move":
-                    apply_pawn_move(s, turn_pid, action["r"], action["c"])
-                elif action["action"] == "wall":
-                    apply_wall_placement(s, turn_pid, action["r"], action["c"], action["dir"])
-                await push_quoridor(room)
-                if s.get("winner"): return
-            else:
-                return
-        elif g == "c4":
-            s = room.get("c4");
-            if not s or s["winner"] or s["draw"] or s["players"][s["turn"]] != bot: return
-            col = c4_bot(s, diff)
-            if col is None: return
-            p = s["turn"]+1
-            for r in range(5,-1,-1):
-                if s["board"][r][col]==0:
-                    s["board"][r][col]=p; s["last"]=[r,col]
-                    if c4_check(s["board"],r,col,p): s["winner"]=bot
-                    elif all(s["board"][0][c] for c in range(7)): s["draw"]=True
-                    else: s["turn"]=1-s["turn"]
-                    break
-            await push_c4(room);
-            if s["winner"] or s["draw"]: return
-        elif g == "checkers":
-            s = room.get("ck")
-            if not s or s["done"] or s["players"][s["turn"]] != bot: return
-            mv = ck_bot(s, diff)
-            if not mv: return
-            ck_apply(s, *mv)
-            await push_ck(room)
-            if s["done"] or not s.get("must_continue"): return
-            continue  # цепной прыжок ботом — тот же бот продолжает без задержки-выхода
-        elif g == "chess":
-            s = room.get("chess")
-            if not s or s["done"] or s["order"][s["turn"]] != bot: return
-            mv = chess_bot(s, diff)
-            if not mv: return
-            chs.apply_move(s, *mv, "Q")
-            await push_chess(room)
-            return
-        elif g == "reversi":
-            s = room.get("rv")
-            if not s or s["done"] or s["players"][s["turn"]] != bot: return
-            mv = rv_bot(s, diff)
-            if not mv: return
-            p=s["turn"]+1; fl=rv_flips(s["board"],mv[0],mv[1],p)
-            s["board"][mv[0]][mv[1]]=p
-            for (rr,cc) in fl: s["board"][rr][cc]=p
-            nxt=1-s["turn"]
-            if rv_legal(s["board"],nxt+1): s["turn"]=nxt
-            elif rv_legal(s["board"],p): pass
-            else:
-                s["done"]=True; f=sum(x.count(1) for x in s["board"]); se=sum(x.count(2) for x in s["board"])
-                s["winner"]=None if f==se else s["players"][0 if f>se else 1]
-            await push_rv(room)
-            if s["done"] or s["players"][s["turn"]]!=bot: return
-        elif g == "dots":
-            s = room.get("db")
-            if not s or s["done"] or s["players"][s["turn"]] != bot: return
-            e = db_bot(s, diff)
-            if not e: return
-            t,r,c=e; arr=s["h"] if t=="h" else s["v"]; arr[r][c]=s["turn"]+1; gained=0
-            for (br,bc) in ([(r-1,c),(r,c)] if t=="h" else [(r,c-1),(r,c)]):
-                if 0<=br<4 and 0<=bc<4 and s["boxes"][br][bc]==0 and s["h"][br][bc] and s["h"][br+1][bc] and s["v"][br][bc] and s["v"][br][bc+1]:
-                    s["boxes"][br][bc]=s["turn"]+1; s["scores"][s["turn"]]+=1; gained+=1
-            if not gained: s["turn"]=1-s["turn"]
-            if sum(s["scores"])==16:
-                s["done"]=True; s["winner"]=None if s["scores"][0]==s["scores"][1] else s["players"][0 if s["scores"][0]>s["scores"][1] else 1]
-            await push_db(room)
-            if s["done"] or s["players"][s["turn"]]!=bot: return
-        elif g == "battleship":
-            s = room.get("bs")
-            if not s: return
-            if s["phase"]=="place":
-                if not s["ready"][bot]:
-                    s["ready"][bot]=True
-                    if all(s["ready"].values()): s["phase"]="battle"
-                    await push_bs(room)
-                return
-            if s["winner"] or s["players"][s["turn"]]!=bot: return
-            mv=bs_bot(s,bot,diff)
-            if not mv: return
-            opp=s["players"][1-s["players"].index(bot)]; s["shots"][bot].add(mv)
-            hit=mv in s["ships"][opp]
-            if s["ships"][opp].issubset(s["shots"][bot]): s["winner"]=bot
-            elif not hit: s["turn"]=1-s["turn"]
-            await push_bs(room)
-            if s["winner"] or s["players"][s["turn"]]!=bot: return
-        elif g == "bulls":
-            s = room.get("bc")
-            if not s: return
-            if s["phase"]=="setup":
-                if not s["codes"].get(bot):
-                    s["codes"][bot]=''.join(random.sample('0123456789',4))
-                    if len(s["codes"])==2: s["phase"]="play"
-                    await push_bc(room)
-                return
-            if s["winner"] or s["players"][s["turn"]]!=bot: return
-            g2=bc_bot_guess(s,bot); opp=s["players"][1-s["players"].index(bot)]
-            bl,co=bc_eval(s["codes"][opp],g2); s["guesses"][bot].append([g2,bl,co])
-            if bl==4: s["winner"]=bot
-            else: s["turn"]=1-s["turn"]
-            await push_bc(room)
-            if s["winner"] or s["players"][s["turn"]]!=bot: return
-        elif g == "uno":
-            s = room.get("uno")
-            if not s or s["winner"]: return
-            # ходит тот бот, чья очередь, а не первый бот в комнате
-            if not room["players"].get(un.cur_player(s), {}).get("bot"): return
-            bot = un.cur_player(s)
-            top = s["discard"][-1]; cur = s["cur_color"]
-            playable = [c for c in s["hands"][bot] if un.can_play(c, top, cur)]
-            if playable:
-                card = sorted(playable, key=lambda c: c["c"] == 4)[0]
-                uno_apply_play(room, bot, [card], random.randint(0,3) if card["c"]==4 else None)
-            else:
-                drawn = un.draw_from(s, 1)
-                if drawn:
-                    s["hands"][bot] += drawn; d = drawn[0]
-                    if un.can_play(d, top, cur):
-                        uno_apply_play(room, bot, [d], random.randint(0,3) if d["c"]==4 else None)
-                    else: un.advance(s, 1)
-                else: un.advance(s, 1)
-            await push_uno(room)
-            if s["winner"] or not room["players"].get(un.cur_player(s), {}).get("bot"): return
-        elif g == "durak":
-            s = room.get("dk")
-            if not s or s["durak"]: return
-            # ходит бот-защитник, если ему есть что отбивать, иначе бот-атакующий
-            if room["players"].get(s["defender"], {}).get("bot") and any(not pr.get("d") for pr in s["table"]):
-                bot = s["defender"]
-            elif room["players"].get(s["attacker"], {}).get("bot"):
-                bot = s["attacker"]
-            if bot == s["defender"]:
-                undef = [i for i, pr in enumerate(s["table"]) if not pr.get("d")]
-                if not undef: return
-                i = undef[0]; atk = s["table"][i]["a"]
-                beats = [c for c in s["hands"][bot] if dk.beats(c, atk, s["trump"])]
-                if beats:
-                    card = min(beats, key=lambda c: (c["s"]==s["trump"], c["r"]))
-                    s["hands"][bot].remove(card); s["table"][i]["d"] = card
-                    durak_try_bito(room); await push_durak(room)
-                    if s["durak"]: return
-                else:
-                    for pr in s["table"]:
-                        s["hands"][bot].append(pr["a"])
-                        if pr.get("d"): s["hands"][bot].append(pr["d"])
-                    s["table"] = []; prev = s["defender"]; dk.refill(s)
-                    na = dk.next_with_cards(s, prev)
-                    if na: s["attacker"] = na; s["defender"] = dk.next_with_cards(s, na) or na
-                    s["passed"] = set(); durak_resolve_end(room); await push_durak(room); return
-            elif bot == s["attacker"]:
-                if not s["table"]:
-                    card = min(s["hands"][bot], key=lambda c: (c["s"]==s["trump"], c["r"]))
-                    s["hands"][bot].remove(card); s["table"].append({"a":card,"d":None}); s["passed"]=set()
-                    await push_durak(room); return
-                elif dk.all_defended(s):
-                    ranks = dk.table_ranks(s)
-                    room_ok = len(s["table"])<6 and sum(1 for p in s["table"] if not p.get("d")) < len(s["hands"][s["defender"]])
-                    throw = [c for c in s["hands"][bot] if c["r"] in ranks] if room_ok else []
-                    if throw:
-                        c = min(throw, key=lambda c: c["r"]); s["hands"][bot].remove(c)
-                        s["table"].append({"a":c,"d":None}); s["passed"]=set(); await push_durak(room); return
-                    else:
-                        s["passed"].add(bot); durak_try_bito(room); await push_durak(room); return
-                else:
-                    return
-            else:
-                if dk.all_defended(s):
-                    s["passed"].add(bot); durak_try_bito(room); await push_durak(room)
-                return
-        elif g == "c4_3d":
-            s = room.get("c4_3d")
-            if not s or not s["started"] or s["winner"]: return
-            # у c4_3d бывает несколько ботов сразу — ищем того, чей сейчас ход, а не первого попавшегося
-            c4_players = list(room["players"])[:3]
-            turn_bot = c4_players[s["turn"] % len(c4_players)]
-            if not room["players"].get(turn_bot, {}).get("bot"): return
-            bot = turn_bot
-            options = [(x, y) for x in range(5) for y in range(5) if len(s["grid"][x][y]) < 5]
-            if not options: return
-            x, y = random.choice(options)
-            col = s["grid"][x][y]
-            col.append(bot)
-            z = len(col) - 1
-            s["last_move"] = [x, y, z]
-            win_line = c4d.check_win(s["grid"], x, y, z, bot)
-            if win_line:
-                s["winner"] = bot; s["win_line"] = win_line; s["started"] = False
-            elif all(len(s["grid"][i][j]) == 5 for i in range(5) for j in range(5)):
-                s["winner"] = "draw"; s["started"] = False
-            else:
-                s["turn"] += 1
-            await c4d.push_c4_3d(room)
-            if s["winner"]: return
+def _durak_next_bot(room):
+    """Определяет, должен ли сейчас действовать какой-либо бот в Дураке: (role, bot_pid) или (None, None)."""
+    s = room.get("dk")
+    if not s or s.get("durak"):
+        return None, None
+    dfn = s["defender"]
+    if room["players"].get(dfn, {}).get("bot") and any(not pr.get("d") for pr in s["table"]):
+        return "defend", dfn
+    atk = s["attacker"]
+    if not s["table"]:
+        if room["players"].get(atk, {}).get("bot") and s["hands"].get(atk):
+            return "attack_lead", atk
+        return None, None
+    if dk.all_defended(s):
+        if room["players"].get(atk, {}).get("bot") and s["hands"].get(atk) and atk not in s["passed"]:
+            return "attack_throw", atk
+        for p in s["order"]:
+            if p != dfn and room["players"].get(p, {}).get("bot") and s["hands"].get(p) and p not in s["passed"]:
+                return "pass", p
+    return None, None
+
+
+def _bot_can_act(room):
+    """Проверяет без мутаций, должен ли сейчас ходить бот в комнате."""
+    if not room or room.get("state") != "playing" or rooms.get(room.get("code")) is not room:
+        return False
+    if not any(d.get("bot") for d in room.get("players", {}).values()):
+        return False
+    g = room.get("game")
+    if g == "poker":
+        s = room.get("poker")
+        return bool(s and not s["done"] and s["to_act"] is not None
+                    and room["players"].get(s["seats"][s["to_act"]], {}).get("bot"))
+    if g == "quoridor":
+        s = room.get("quoridor")
+        return bool(s and not s.get("winner")
+                    and room["players"].get(s["player_order"][s["turn"]], {}).get("bot"))
+    if g == "c4":
+        s = room.get("c4")
+        return bool(s and not s["winner"] and not s["draw"]
+                    and room["players"].get(s["players"][s["turn"]], {}).get("bot"))
+    if g == "checkers":
+        s = room.get("ck")
+        return bool(s and not s["done"]
+                    and room["players"].get(s["players"][s["turn"]], {}).get("bot"))
+    if g == "chess":
+        s = room.get("chess")
+        return bool(s and not s["done"]
+                    and room["players"].get(s["order"][s["turn"]], {}).get("bot"))
+    if g == "reversi":
+        s = room.get("rv")
+        return bool(s and not s["done"]
+                    and room["players"].get(s["players"][s["turn"]], {}).get("bot"))
+    if g == "dots":
+        s = room.get("db")
+        return bool(s and not s["done"]
+                    and room["players"].get(s["players"][s["turn"]], {}).get("bot"))
+    if g == "battleship":
+        s = room.get("bs")
+        if not s:
+            return False
+        bot = next((p for p in s["players"] if room["players"].get(p, {}).get("bot")), None)
+        if not bot:
+            return False
+        if s["phase"] == "place":
+            return not s["ready"].get(bot, False)
+        return not s["winner"] and s["players"][s["turn"]] == bot
+    if g == "bulls":
+        s = room.get("bc")
+        if not s:
+            return False
+        bot = next((p for p in s["players"] if room["players"].get(p, {}).get("bot")), None)
+        if not bot:
+            return False
+        if s["phase"] == "setup":
+            return not s["codes"].get(bot)
+        return not s["winner"] and s["players"][s["turn"]] == bot
+    if g == "uno":
+        s = room.get("uno")
+        return bool(s and not s["winner"] and not s.get("game_over") and not s.get("round_over")
+                    and room["players"].get(un.cur_player(s), {}).get("bot"))
+    if g == "durak":
+        role, _ = _durak_next_bot(room)
+        return role is not None
+    if g == "c4_3d":
+        s = room.get("c4_3d")
+        if not s or not s.get("started") or s.get("winner"):
+            return False
+        c4_players = list(room["players"])[:3]
+        if not c4_players:
+            return False
+        turn_bot = c4_players[s["turn"] % len(c4_players)]
+        return bool(room["players"].get(turn_bot, {}).get("bot"))
+    return False
+
+
+async def _bot_step(room):
+    """Выполняет РОВНО ОДИН ход бота (вызывается ПОД room_lock(room)) и рассылает состояние."""
+    if not _bot_can_act(room):
+        return False
+    g = room.get("game")
+    if g == "poker":
+        s = room.get("poker")
+        pid = s["seats"][s["to_act"]]
+        act, amt = poker_bot(s, pid)
+        if not poker_action(s, pid, act, amt):
+            to_call = s["cur_bet"] - s["bets"][pid]
+            poker_action(s, pid, "check" if to_call == 0 else "call", 0) or poker_action(s, pid, "fold", 0)
+        await push_poker(room)
+        return True
+    elif g == "quoridor":
+        s = room.get("quoridor")
+        turn_pid = s["player_order"][s["turn"]]
+        diff = room["players"][turn_pid].get("bot", "medium")
+        action = bot_choose_action(s, turn_pid, diff)
+        if not action:
+            return False
+        if action["action"] == "move":
+            apply_pawn_move(s, turn_pid, action["r"], action["c"])
+        elif action["action"] == "wall":
+            apply_wall_placement(s, turn_pid, action["r"], action["c"], action["dir"])
+        await push_quoridor(room)
+        return True
+    elif g == "c4":
+        s = room.get("c4")
+        bot = s["players"][s["turn"]]
+        diff = room["players"][bot]["bot"]
+        col = c4_bot(s, diff)
+        if col is None:
+            return False
+        p = s["turn"] + 1
+        for r in range(5, -1, -1):
+            if s["board"][r][col] == 0:
+                s["board"][r][col] = p; s["last"] = [r, col]
+                if c4_check(s["board"], r, col, p): s["winner"] = bot
+                elif all(s["board"][0][c] for c in range(7)): s["draw"] = True
+                else: s["turn"] = 1 - s["turn"]
+                break
+        await push_c4(room)
+        return True
+    elif g == "checkers":
+        s = room.get("ck")
+        bot = s["players"][s["turn"]]
+        diff = room["players"][bot]["bot"]
+        mv = ck_bot(s, diff)
+        if not mv:
+            return False
+        ck_apply(s, *mv)
+        await push_ck(room)
+        return True
+    elif g == "chess":
+        s = room.get("chess")
+        bot = s["order"][s["turn"]]
+        diff = room["players"][bot]["bot"]
+        mv = chess_bot(s, diff)
+        if not mv:
+            return False
+        chs.apply_move(s, *mv, "Q")
+        await push_chess(room)
+        return True
+    elif g == "reversi":
+        s = room.get("rv")
+        bot = s["players"][s["turn"]]
+        diff = room["players"][bot]["bot"]
+        mv = rv_bot(s, diff)
+        if not mv:
+            return False
+        p = s["turn"] + 1; fl = rv_flips(s["board"], mv[0], mv[1], p)
+        s["board"][mv[0]][mv[1]] = p
+        for (rr, cc) in fl: s["board"][rr][cc] = p
+        nxt = 1 - s["turn"]
+        if rv_legal(s["board"], nxt + 1): s["turn"] = nxt
+        elif rv_legal(s["board"], p): pass
         else:
-            return
+            s["done"] = True; f = sum(x.count(1) for x in s["board"]); se = sum(x.count(2) for x in s["board"])
+            s["winner"] = None if f == se else s["players"][0 if f > se else 1]
+        await push_rv(room)
+        return True
+    elif g == "dots":
+        s = room.get("db")
+        bot = s["players"][s["turn"]]
+        diff = room["players"][bot]["bot"]
+        e = db_bot(s, diff)
+        if not e:
+            return False
+        t, r, c = e; arr = s["h"] if t == "h" else s["v"]; arr[r][c] = s["turn"] + 1; gained = 0
+        for (br, bc) in ([(r - 1, c), (r, c)] if t == "h" else [(r, c - 1), (r, c)]):
+            if 0 <= br < 4 and 0 <= bc < 4 and s["boxes"][br][bc] == 0 and s["h"][br][bc] and s["h"][br + 1][bc] and s["v"][br][bc] and s["v"][br][bc + 1]:
+                s["boxes"][br][bc] = s["turn"] + 1; s["scores"][s["turn"]] += 1; gained += 1
+        if not gained: s["turn"] = 1 - s["turn"]
+        if sum(s["scores"]) == 16:
+            s["done"] = True; s["winner"] = None if s["scores"][0] == s["scores"][1] else s["players"][0 if s["scores"][0] > s["scores"][1] else 1]
+        await push_db(room)
+        return True
+    elif g == "battleship":
+        s = room.get("bs")
+        bot = next((p for p in s["players"] if room["players"].get(p, {}).get("bot")), None)
+        if not bot:
+            return False
+        if s["phase"] == "place":
+            if not s["ready"].get(bot):
+                s["ready"][bot] = True
+                if all(s["ready"].values()): s["phase"] = "battle"
+                await push_bs(room)
+                return True
+            return False
+        diff = room["players"][bot]["bot"]
+        mv = bs_bot(s, bot, diff)
+        if not mv:
+            return False
+        opp = s["players"][1 - s["players"].index(bot)]; s["shots"][bot].add(mv)
+        hit = mv in s["ships"][opp]
+        if s["ships"][opp].issubset(s["shots"][bot]): s["winner"] = bot
+        elif not hit: s["turn"] = 1 - s["turn"]
+        await push_bs(room)
+        return True
+    elif g == "bulls":
+        s = room.get("bc")
+        bot = next((p for p in s["players"] if room["players"].get(p, {}).get("bot")), None)
+        if not bot:
+            return False
+        if s["phase"] == "setup":
+            if not s["codes"].get(bot):
+                s["codes"][bot] = ''.join(random.sample('0123456789', 4))
+                if len(s["codes"]) == 2: s["phase"] = "play"
+                await push_bc(room)
+                return True
+            return False
+        g2 = bc_bot_guess(s, bot); opp = s["players"][1 - s["players"].index(bot)]
+        bl, co = bc_eval(s["codes"][opp], g2); s["guesses"][bot].append([g2, bl, co])
+        if bl == 4: s["winner"] = bot
+        else: s["turn"] = 1 - s["turn"]
+        await push_bc(room)
+        return True
+    elif g == "uno":
+        s = room.get("uno")
+        bot = un.cur_player(s)
+        top = s["discard"][-1]; cur = s["cur_color"]
+        pend = s.get("pending_penalty", 0); mode = s.get("mode", "classic")
+        playable = [c for c in s["hands"][bot] if un.can_play(c, top, cur, pend, mode)]
+        if playable:
+            card = sorted(playable, key=lambda c: c["c"] == 4)[0]
+            uno_apply_play(room, bot, [card], random.randint(0, 3) if card["c"] == 4 else None)
+        elif mode == "nomercy" and pend > 0:
+            got = un.draw_from(s, pend)
+            s["hands"][bot] += got
+            s["pending_penalty"] = 0
+            s["no_progress"] = 0 if got else s.get("no_progress", 0) + 1
+            elim = un.check_mercy(s, bot)
+            s["last_action"] = f"{room['players'][bot]['name']} взял +{len(got)}" + (" 💀 ВЫЛЕТЕЛ!" if elim else "")
+            alive = un.alive_order(s)
+            if len(alive) <= 1:
+                s["game_over"] = True; s["winner"] = alive[0] if alive else None
+                s["last_action"] += f" · 🏆 {room['players'].get(s['winner'], {}).get('name', '?')} последний выживший!"
+            elif s["no_progress"] >= max(2, len(alive)):
+                _uno_round_end(room, min(alive, key=lambda p: len(s["hands"][p])))
+            else:
+                un.advance(s, 1)
+        else:
+            drawn = un.draw_from(s, 1)
+            if drawn:
+                s["no_progress"] = 0
+                s["hands"][bot] += drawn; d = drawn[0]
+                un.check_mercy(s, bot)
+                if d in s["hands"][bot] and un.can_play(d, top, cur, 0, mode):
+                    uno_apply_play(room, bot, [d], random.randint(0, 3) if d["c"] == 4 else None)
+                else: un.advance(s, 1)
+            else:
+                s["no_progress"] = s.get("no_progress", 0) + 1
+                un.advance(s, 1)
+                if s["no_progress"] >= max(2, len(un.alive_order(s))):
+                    _uno_round_end(room, min(un.alive_order(s), key=lambda p: len(s["hands"][p])))
+        await push_uno(room)
+        return True
+    elif g == "durak":
+        s = room.get("dk")
+        role, bot = _durak_next_bot(room)
+        if not role or not bot:
+            return False
+        if role == "defend":
+            undef = [i for i, pr in enumerate(s["table"]) if not pr.get("d")]
+            if not undef:
+                return False
+            i = undef[0]; atk = s["table"][i]["a"]
+            beats = [c for c in s["hands"][bot] if dk.beats(c, atk, s["trump"])]
+            if beats:
+                card = min(beats, key=lambda c: (c["s"] == s["trump"], c["r"]))
+                s["hands"][bot].remove(card); s["table"][i]["d"] = card
+                durak_try_bito(room); await push_durak(room)
+                return True
+            else:
+                for pr in s["table"]:
+                    s["hands"][bot].append(pr["a"])
+                    if pr.get("d"): s["hands"][bot].append(pr["d"])
+                s["table"] = []; prev = s["defender"]; dk.refill(s)
+                na = dk.next_with_cards(s, prev)
+                if na: s["attacker"] = na; s["defender"] = dk.next_with_cards(s, na) or na
+                s["passed"] = set(); durak_resolve_end(room); await push_durak(room)
+                return True
+        elif role == "attack_lead":
+            if not s["hands"].get(bot):
+                return False
+            card = min(s["hands"][bot], key=lambda c: (c["s"] == s["trump"], c["r"]))
+            s["hands"][bot].remove(card); s["table"].append({"a": card, "d": None}); s["passed"] = set()
+            await push_durak(room)
+            return True
+        elif role == "attack_throw":
+            ranks = dk.table_ranks(s)
+            room_ok = len(s["table"]) < 6 and sum(1 for p in s["table"] if not p.get("d")) < len(s["hands"][s["defender"]])
+            throw = [c for c in s["hands"][bot] if c["r"] in ranks] if room_ok else []
+            if throw:
+                c = min(throw, key=lambda c: c["r"]); s["hands"][bot].remove(c)
+                s["table"].append({"a": c, "d": None}); s["passed"] = set()
+                await push_durak(room)
+            else:
+                s["passed"].add(bot); durak_try_bito(room); await push_durak(room)
+            return True
+        elif role == "pass":
+            s["passed"].add(bot); durak_try_bito(room); await push_durak(room)
+            return True
+        return False
+    elif g == "c4_3d":
+        s = room.get("c4_3d")
+        c4_players = list(room["players"])[:3]
+        bot = c4_players[s["turn"] % len(c4_players)]
+        options = [(x, y) for x in range(5) for y in range(5) if len(s["grid"][x][y]) < 5]
+        if not options:
+            return False
+        x, y = random.choice(options)
+        col = s["grid"][x][y]
+        col.append(bot)
+        z = len(col) - 1
+        s["last_move"] = [x, y, z]
+        win_line = c4d.check_win(s["grid"], x, y, z, bot)
+        if win_line:
+            s["winner"] = bot; s["win_line"] = win_line; s["started"] = False
+        elif all(len(s["grid"][i][j]) == 5 for i in range(5) for j in range(5)):
+            s["winner"] = "draw"; s["started"] = False
+        else:
+            s["turn"] += 1
+        await c4d.push_c4_3d(room)
+        return True
+    return False
+
+
+async def _bot_loop(room):
+    """Фоновая задача ботов комнаты: спит ВНЕ замка, делает один ход ПОД замком."""
+    task = asyncio.current_task()
+    try:
+        for _ in range(80):
+            delay = 0.8 if room.get("game") == "poker" else 0.6
+            await asyncio.sleep(delay)
+            async with room_lock(room):
+                if rooms.get(room.get("code")) is not room or room.get("state") != "playing":
+                    if room.get("_bot_task") is task:
+                        room["_bot_task"] = None
+                    return
+                acted = await _bot_step(room)
+                if not acted or not _bot_can_act(room):
+                    if room.get("_bot_task") is task:
+                        room["_bot_task"] = None
+                    return
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        logging.exception("bot loop failed (room %s)", room.get("code") if room else None)
+    finally:
+        if room and room.get("_bot_task") is task:
+            room["_bot_task"] = None
+
+
+def schedule_bots(room):
+    """Запускает не более ОДНОЙ фоновой задачи ботов на комнату."""
+    if not _bot_can_act(room):
+        return None
+    task = room.get("_bot_task")
+    if task is not None and not task.done():
+        return task
+    task = asyncio.create_task(_bot_loop(room))
+    room["_bot_task"] = task
+    return task
+
+
+async def bot_turn(room):
+    """Совместимая обёртка над единым планировщиком schedule_bots(room)."""
+    return schedule_bots(room)
 
 
 @app.get("/checkers")
@@ -2917,14 +3121,8 @@ async def ws(websocket: WebSocket):
                         code = code4()
                     room = {"code": code, "players": {}, "host": pid, "state": "lobby", "game": msg.get("game", "spy"),
                             "settings": {"seats": 0, "timer": 0, "reveals_per_round": 0}, "vote": None, "chat": []}
+                    room_lock(room)
                     rooms[code] = room
-                    room["players"][pid] = {"name": msg.get("name", "Игрок")[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
-                    log_usage("create", msg.get("name", "Игрок"), room["game"], code, websocket, auth_user["username"])
-                    _presence_game(auth_user["username"], room["game"])
-                    await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": True})
-                    await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
-                    await broadcast(room, lobby_state(room))
-
                 elif act == "join":
                     code = (msg.get("code", "") or "").upper().strip()
                     room = rooms.get(code)
@@ -2935,528 +3133,551 @@ async def ws(websocket: WebSocket):
                         await websocket.send_json({"type": "error", "msg": "Комната не найдена."})
                         room = None
                         continue
-                    room.setdefault("chat", [])
-                    # ПЕРЕПОДКЛЮЧЕНИЕ: если этот аккаунт уже в комнате (вылетел из браузера),
-                    # занимаем его прежний слот вместо нового — игра для остальных не рвётся
-                    old_pid = next((q for q, pl in room["players"].items()
-                                    if pl.get("user") == auth_user["username"] and not pl.get("ws")), None)
-                    if old_pid:
-                        pid = old_pid
-                        room["players"][pid]["ws"] = websocket
-                        await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
-                        await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
-                        await resync_game(room)   # вернуть игрока в текущее состояние игры
-                        continue
-                    room["players"][pid] = {"name": msg.get("name", "Игрок")[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
-                    await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
-                    await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
-                    await broadcast(room, lobby_state(room))
-                    # игры строго на двоих — авто-старт когда зашли двое (кнопки старта в лобби нет)
-                    TWO_P = {"c4": start_c4, "reversi": start_rv, "dots": start_db,
-                             "bulls": start_bc, "battleship": start_bs, "checkers": start_ck, "chess": start_chess}
-                    g = room.get("game")
-                    if g in TWO_P and room["state"] == "lobby" and len(room["players"]) == 2:
-                        await TWO_P[g](room)
 
-                elif act == "room_chat" and room and pid in room.get("players", {}):
-                    pl = room["players"][pid]
-                    now_ts = time.time()
-                    if now_ts - pl.get("_chat_ts", 0.0) < 1.0 or not _rate_ok("room_chat", f"{room['code']}:{pid}", 1, 1.0):
-                        try:
-                            await websocket.send_json({"type": "room_chat_error", "error": "rate", "msg": "Не чаще 1 сообщения в секунду."})
-                        except Exception:
-                            pass
-                        continue
-                    raw_text = str(raw_obj.get("text", "") if isinstance(raw_obj, dict) else msg.get("text", ""))
-                    raw_text = re.sub(r"[\x00-\x1f]+", " ", raw_text).strip()
-                    if not raw_text:
-                        continue
-                    if len(raw_text) > 300:
-                        raw_text = raw_text[:300]
-                    safe_text = html.escape(raw_text, quote=True)
-                    pl["_chat_ts"] = now_ts
-                    chat_buf = room.setdefault("chat", [])
-                    chat_seq = room.get("_chat_seq", 0) + 1
-                    room["_chat_seq"] = chat_seq
-                    entry = {
-                        "id": chat_seq,
-                        "pid": pid,
-                        "user": auth_user["username"],
-                        "name": html.escape(str(pl.get("name") or "Игрок")[:20], quote=True),
-                        "text": safe_text,
-                        "ts": now_ts,
-                    }
-                    chat_buf.append(entry)
-                    if len(chat_buf) > 50:
-                        del chat_buf[:-50]
-                    await broadcast(room, {"type": "room_chat", "message": entry, **entry})
+                if not room:
                     continue
 
-                elif act == "start" and room and room["host"] == pid:
-                    if room.get("game") == "spy":
-                        await start_spy(room, msg.get("timer", 5))
-                    elif room.get("game") == "bunker":
-                        await start_bunker(room)
-                    elif room.get("game") == "variants":
-                        await start_variants(room)
-                    elif room.get("game") == "alias":
-                        await start_alias(room)
-                    elif room.get("game") == "durak":
-                        await start_durak(room)
-                    elif room.get("game") == "uno":
-                        await start_uno(room)
-                    elif room.get("game") == "quoridor":
-                        await start_quoridor(room)
-                        await bot_turn(room)
-                    elif room.get("game") == "c4":
-                        await start_c4(room)
-                    elif room.get("game") == "reversi":
-                        await start_rv(room)
-                    elif room.get("game") == "dots":
-                        await start_db(room)
-                    elif room.get("game") == "bulls":
-                        await start_bc(room)
-                    elif room.get("game") == "battleship":
-                        await start_bs(room)
-                    elif room.get("game") == "guesswho":
-                        await start_gw(room, msg.get("title", ""))
-                    elif room.get("game") == "chess":
-                        await start_chess(room)
-                    elif room.get("game") == "c4_3d":
-                        await start_c4_3d(room)
-                    elif room.get("game") == "mafia":
-                        await start_mafia(room)
-                    elif room.get("game") == "poker":
-                        # настройки стола (блайнды/стек) — только на самой первой раздаче
-                        if not room.get("poker_stacks"):
-                            st_cfg = msg.get("settings") or {}
-                            room["poker_settings"] = {
-                                "bb": max(2, min(int(st_cfg.get("bb", 20)), 1000)),
-                                "stack": max(50, min(int(st_cfg.get("stack", 1000)), 100000)),
-                            }
-                        if start_poker(room):
-                            await push_poker(room)
-                            await poker_bot_turn(room)
-                        else:
-                            await websocket.send_json({"type": "error", "msg": "Нужно 2+ игрока с фишками."})
-
-                # ── «Ещё раз» — переиграть ту же игру в том же лобби (любой игрок) ──
-                elif act == "restart" and room and room.get("game"):
-                    g = room["game"]
-                    # сброс общего игрового стейта, игроки и комната остаются
-                    for key in ("c4", "rv", "db", "bc", "bs", "ck", "chess", "gw", "durak", "dk", "uno",
-                                "spy", "bunker", "al", "poker", "poker_stacks", "mafia", "c4_3d", "quoridor"):
-                        room.pop(key, None)
-                    room["state"] = "lobby"
-                    # авто-старт для игр на двоих/с ботом; партийные (spy/bunker/alias/durak/uno/poker) — хост жмёт старт
-                    RESTART_TWO = {"c4": start_c4, "reversi": start_rv, "dots": start_db, "bulls": start_bc,
-                                   "battleship": start_bs, "checkers": start_ck, "chess": start_chess}
-                    if g in RESTART_TWO:
-                        await RESTART_TWO[g](room)
-                        await bot_turn(room)
-                    else:
+                async with room_lock(room):
+                    if act == "create":
+                        room["players"][pid] = {"name": msg.get("name", "Игрок")[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
+                        log_usage("create", msg.get("name", "Игрок"), room["game"], code, websocket, auth_user["username"])
+                        _presence_game(auth_user["username"], room["game"])
+                        await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": True})
+                        await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
                         await broadcast(room, lobby_state(room))
 
-                # ── Покер ──
-                elif act == "poker_action" and room and room.get("game") == "poker" and room.get("poker"):
-                    s = room["poker"]
-                    if not s["done"] and s["to_act"] is not None and s["seats"][s["to_act"]] == pid:
-                        if poker_action(s, pid, msg.get("act", ""), msg.get("amount", 0)):
-                            await push_poker(room)
-                            await poker_bot_turn(room)
-
-                elif act == "poker_next" and room and room.get("game") == "poker" and room.get("poker"):
-                    # новая раздача в том же лобби (жмёт любой; только если текущая закончена)
-                    if room["poker"].get("done"):
-                        if start_poker(room):
-                            await push_poker(room)
-                            await poker_bot_turn(room)
+                    elif act == "join":
+                        if rooms.get(code) is not room:
+                            await websocket.send_json({"type": "error", "msg": "Комната не найдена."})
+                            room = None
+                            continue
+                        room.setdefault("chat", [])
+                        # ПЕРЕПОДКЛЮЧЕНИЕ: если этот аккаунт уже в комнате (вылетел из браузера),
+                        # занимаем его прежний слот вместо нового — игра для остальных не рвётся
+                        old_pid = next((q for q, pl in room["players"].items()
+                                        if pl.get("user") == auth_user["username"] and not pl.get("ws")), None)
+                        if old_pid:
+                            pid = old_pid
+                            room["players"][pid]["ws"] = websocket
+                            await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
+                            await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
+                            await resync_game(room)   # вернуть игрока в текущее состояние игры
                         else:
-                            await broadcast(room, {"type": "error", "msg": "Не хватает игроков с фишками для новой раздачи."})
+                            room["players"][pid] = {"name": msg.get("name", "Игрок")[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
+                            await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
+                            await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
+                            await broadcast(room, lobby_state(room))
+                            # игры строго на двоих — авто-старт когда зашли двое (кнопки старта в лобби нет)
+                            TWO_P = {"c4": start_c4, "reversi": start_rv, "dots": start_db,
+                                     "bulls": start_bc, "battleship": start_bs, "checkers": start_ck, "chess": start_chess}
+                            g = room.get("game")
+                            if g in TWO_P and room["state"] == "lobby" and len(room["players"]) == 2:
+                                await TWO_P[g](room)
 
-                # ── Шахматы ──
+                    elif act == "room_chat" and room and pid in room.get("players", {}):
+                        pl = room["players"][pid]
+                        now_ts = time.time()
+                        if now_ts - pl.get("_chat_ts", 0.0) < 1.0 or not _rate_ok("room_chat", f"{room['code']}:{pid}", 1, 1.0):
+                            try:
+                                await websocket.send_json({"type": "room_chat_error", "error": "rate", "msg": "Не чаще 1 сообщения в секунду."})
+                            except Exception:
+                                pass
+                            continue
+                        raw_text = str(raw_obj.get("text", "") if isinstance(raw_obj, dict) else msg.get("text", ""))
+                        raw_text = re.sub(r"[\x00-\x1f]+", " ", raw_text).strip()
+                        if not raw_text:
+                            continue
+                        if len(raw_text) > 300:
+                            raw_text = raw_text[:300]
+                        safe_text = html.escape(raw_text, quote=True)
+                        pl["_chat_ts"] = now_ts
+                        chat_buf = room.setdefault("chat", [])
+                        chat_seq = room.get("_chat_seq", 0) + 1
+                        room["_chat_seq"] = chat_seq
+                        entry = {
+                            "id": chat_seq,
+                            "pid": pid,
+                            "user": auth_user["username"],
+                            "name": html.escape(str(pl.get("name") or "Игрок")[:20], quote=True),
+                            "text": safe_text,
+                            "ts": now_ts,
+                        }
+                        chat_buf.append(entry)
+                        if len(chat_buf) > 50:
+                            del chat_buf[:-50]
+                        await broadcast(room, {"type": "room_chat", "message": entry, **entry})
+                        continue
 
-                # ── Коридор (Quoridor) ──
-                elif act == "quoridor_move" and room and room.get("game") == "quoridor" and room.get("quoridor"):
-                    s = room["quoridor"]
-                    if not s.get("winner") and pid == s["player_order"][s["turn"]]:
-                        r, c = msg.get("r"), msg.get("c")
-                        ok, err = apply_pawn_move(s, pid, r, c)
-                        if ok:
-                            await push_quoridor(room)
-                            await bot_turn(room)
-                        else:
-                            await websocket.send_json({"type": "error", "msg": err})
-
-                elif act == "quoridor_wall" and room and room.get("game") == "quoridor" and room.get("quoridor"):
-                    s = room["quoridor"]
-                    if not s.get("winner") and pid == s["player_order"][s["turn"]]:
-                        r, c, wdir = msg.get("r"), msg.get("c"), msg.get("dir")
-                        ok, err = apply_wall_placement(s, pid, r, c, wdir)
-                        if ok:
-                            await push_quoridor(room)
-                            await bot_turn(room)
-                        else:
-                            await websocket.send_json({"type": "error", "msg": err})
-
-                elif act == "quoridor_settings" and room and room.get("game") == "quoridor" and room.get("host") == pid:
-                    room["quoridor_settings"] = {
-                        "walls": msg.get("walls"),
-                        "timer": msg.get("timer", 0)
-                    }
-                    await broadcast(room, lobby_state(room))
-
-                elif act and act.startswith("c4_3d") and room and room.get("game") == "c4_3d":
-                    msg["pid"] = pid
-                    await c4d.handle_c4_3d_action(room, pid, msg, websocket, broadcast)
-                    if act == "c4_3d_drop":
-                        await bot_turn(room)
-                elif act == "chess_move" and room and room.get("game") == "chess" and room.get("chess"):
-                    s = room["chess"]
-                    if not s["done"] and pid == s["order"][s["turn"]]:
-                        fr, fc, tr, tc = msg.get("fr"), msg.get("fc"), msg.get("tr"), msg.get("tc")
-                        if all(isinstance(x, int) for x in (fr, fc, tr, tc)):
-                            if (tr, tc) in chs.legal_moves(s, fr, fc):
-                                chs.apply_move(s, fr, fc, tr, tc, msg.get("promo", "Q"))
-                                await push_chess(room)
-                                if room.get("state") == "playing" and any(d.get("bot") for d in room.get("players", {}).values()):
-                                    await bot_turn(room)
-
-                # ── Кто есть кто ──
-                elif act == "gw_flip" and room and room.get("game") == "guesswho" and room.get("gw"):
-                    s = room["gw"]; idx = msg.get("idx")
-                    if pid in s["flipped"] and isinstance(idx, int) and 0 <= idx < len(s["chars"]):
-                        s["flipped"][pid].symmetric_difference_update({idx})
-                        await push_gw(room)
-                elif act == "gw_guess" and room and room.get("game") == "guesswho" and room.get("gw"):
-                    s = room["gw"]; idx = msg.get("idx")
-                    if not s["winner"] and pid in s["secret"] and isinstance(idx, int) and 0 <= idx < len(s["chars"]):
-                        opp = s["players"][1 - s["players"].index(pid)]
-                        s["winner"] = pid if idx == s["secret"][opp] else opp
-                        s["reveal"] = True
-                        await push_gw(room)
-
-                # ── Добавить бота (хост, в лобби) — для игр на двоих ──
-                elif act == "add_bot" and room and room["host"] == pid and room.get("state") == "lobby":
-                    g = room.get("game")
-                    two_p = {"c4":start_c4,"reversi":start_rv,"dots":start_db,"bulls":start_bc,"battleship":start_bs,"checkers":start_ck,"chess":start_chess}
-                    party = {"bunker","spy","variants","alias","durak","uno","poker","mafia","quoridor"}
-                    diff = msg.get("diff", "medium")
-                    if g in two_p and len(room["players"]) < 2:
-                        botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
-                        room["players"][botid] = {"name": "🤖 Бот (" + diff + ")", "ws": None, "role": None, "alive": True, "bot": diff}
-                        await broadcast(room, lobby_state(room))
-                        await two_p[g](room)
-                        await bot_turn(room)
-                    elif g in party and len(room["players"]) < 8:
-                        botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
-                        room["players"][botid] = {"name": "🤖 Бот", "ws": None, "role": None, "alive": True, "bot": diff}
-                        await broadcast(room, lobby_state(room))   # старт жмёт хост вручную
-                    elif g == "c4_3d" and len(room["players"]) < 3:
-                        botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
-                        room["players"][botid] = {"name": "🤖 Бот", "ws": None, "role": None, "alive": True, "bot": diff}
-                        state = c4d.get_state(room)
-                        used = set(state["colors"].values())
-                        state["colors"][botid] = next((c for c in c4d.PALETTE if c not in used), "#888888")
-                        await broadcast(room, lobby_state(room))
-                        await c4d.push_c4_3d(room)
-
-                # ── Убрать бота из лобби (до старта) — общий для всех игр ──
-                elif act == "remove_bot" and room and room["host"] == pid and room.get("state") == "lobby":
-                    target = msg.get("pid")
-                    target_player = room["players"].get(target)
-                    if target_player and target_player.get("bot"):
-                        del room["players"][target]
-                        c4s = room.get("c4_3d")
-                        if c4s:
-                            c4s.get("colors", {}).pop(target, None)
-                        await broadcast(room, lobby_state(room))
-
-                # ── Шашки ──
-                elif act == "ck_move" and room and room.get("game") == "checkers" and room.get("ck"):
-                    s = room["ck"]
-                    if s["players"][s["turn"]] == pid and not s["done"]:
-                        fr,fc,tr,tc = msg.get("fr"),msg.get("fc"),msg.get("tr"),msg.get("tc")
-                        legal = ck_legal(s["board"], s["turn"]+1, only_from=s.get("must_continue"))
-                        match = next((m for m in legal if m[0]==fr and m[1]==fc and m[2]==tr and m[3]==tc), None)
-                        if match:
-                            ck_apply(s, *match)
-                            await push_ck(room)
-                            await bot_turn(room)
-
-                # ── Реверси ──
-                elif act == "rv_move" and room and room.get("game") == "reversi" and room.get("rv"):
-                    s = room["rv"]
-                    if s["players"][s["turn"]] == pid and not s["done"]:
-                        r, c = msg.get("r"), msg.get("c"); p = s["turn"]+1
-                        fl = rv_flips(s["board"], r, c, p) if isinstance(r,int) and isinstance(c,int) else []
-                        if fl:
-                            s["board"][r][c] = p
-                            for (rr,cc) in fl: s["board"][rr][cc] = p
-                            nxt = 1 - s["turn"]
-                            if rv_legal(s["board"], nxt+1): s["turn"] = nxt
-                            elif rv_legal(s["board"], p): pass   # соперник пасует
+                    elif act == "start" and room and room["host"] == pid:
+                        _cancel_bots(room)
+                        if room.get("game") == "spy":
+                            await start_spy(room, msg.get("timer", 5))
+                        elif room.get("game") == "bunker":
+                            await start_bunker(room)
+                        elif room.get("game") == "variants":
+                            await start_variants(room)
+                        elif room.get("game") == "alias":
+                            await start_alias(room)
+                        elif room.get("game") == "durak":
+                            await start_durak(room)
+                        elif room.get("game") == "uno":
+                            await start_uno(room)
+                        elif room.get("game") == "quoridor":
+                            await start_quoridor(room)
+                        elif room.get("game") == "c4":
+                            await start_c4(room)
+                        elif room.get("game") == "reversi":
+                            await start_rv(room)
+                        elif room.get("game") == "dots":
+                            await start_db(room)
+                        elif room.get("game") == "bulls":
+                            await start_bc(room)
+                        elif room.get("game") == "battleship":
+                            await start_bs(room)
+                        elif room.get("game") == "guesswho":
+                            await start_gw(room, msg.get("title", ""))
+                        elif room.get("game") == "chess":
+                            await start_chess(room)
+                        elif room.get("game") == "c4_3d":
+                            await start_c4_3d(room)
+                        elif room.get("game") == "mafia":
+                            await start_mafia(room)
+                        elif room.get("game") == "poker":
+                            # настройки стола (блайнды/стек) — только на самой первой раздаче
+                            if not room.get("poker_stacks"):
+                                st_cfg = msg.get("settings") or {}
+                                room["poker_settings"] = {
+                                    "bb": max(2, min(int(st_cfg.get("bb", 20)), 1000)),
+                                    "stack": max(50, min(int(st_cfg.get("stack", 1000)), 100000)),
+                                }
+                            if start_poker(room):
+                                await push_poker(room)
                             else:
-                                s["done"] = True
-                                f = sum(x.count(1) for x in s["board"]); se = sum(x.count(2) for x in s["board"])
-                                s["winner"] = None if f==se else s["players"][0 if f>se else 1]
-                            await push_rv(room)
-                            await bot_turn(room)
+                                await websocket.send_json({"type": "error", "msg": "Нужно 2+ игрока с фишками."})
 
-                # ── Точки ──
-                elif act == "db_edge" and room and room.get("game") == "dots" and room.get("db"):
-                    s = room["db"]
-                    if s["players"][s["turn"]] == pid and not s["done"]:
-                        t, r, c = msg.get("t"), msg.get("r"), msg.get("c"); p = s["turn"]+1
-                        arr = s["h"] if t=="h" else s["v"]
-                        valid = t in ("h","v") and 0<=r<len(arr) and 0<=c<len(arr[0]) and arr[r][c]==0
-                        if valid:
-                            arr[r][c] = p; gained = 0
-                            for (br,bc) in ([(r-1,c),(r,c)] if t=="h" else [(r,c-1),(r,c)]):
-                                if 0<=br<4 and 0<=bc<4 and s["boxes"][br][bc]==0:
-                                    if s["h"][br][bc] and s["h"][br+1][bc] and s["v"][br][bc] and s["v"][br][bc+1]:
-                                        s["boxes"][br][bc] = p; s["scores"][s["turn"]] += 1; gained += 1
-                            if not gained: s["turn"] = 1 - s["turn"]
-                            if sum(s["scores"]) == 16:
-                                s["done"] = True
-                                s["winner"] = None if s["scores"][0]==s["scores"][1] else s["players"][0 if s["scores"][0]>s["scores"][1] else 1]
-                            await push_db(room)
-                            await bot_turn(room)
-
-                # ── Быки и коровы ──
-                elif act == "bc_set" and room and room.get("game") == "bulls" and room.get("bc"):
-                    s = room["bc"]; code = str(msg.get("code",""))
-                    if s["phase"]=="setup" and len(code)==4 and code.isdigit() and len(set(code))==4:
-                        s["codes"][pid] = code
-                        if len(s["codes"]) == 2: s["phase"] = "play"
-                        await push_bc(room)
-                        await bot_turn(room)
-                elif act == "bc_guess" and room and room.get("game") == "bulls" and room.get("bc"):
-                    s = room["bc"]; g = str(msg.get("guess",""))
-                    if s["phase"]=="play" and s["players"][s["turn"]]==pid and not s["winner"] and len(g)==4 and g.isdigit():
-                        opp = s["players"][1-s["players"].index(pid)]
-                        bulls, cows = bc_eval(s["codes"][opp], g)
-                        s["guesses"][pid].append([g, bulls, cows])
-                        if bulls == 4: s["winner"] = pid
-                        else: s["turn"] = 1 - s["turn"]
-                        await push_bc(room)
-                        await bot_turn(room)
-
-                # ── Морской бой ──
-                elif act == "bs_reroll" and room and room.get("game") == "battleship" and room.get("bs"):
-                    s = room["bs"]
-                    if s["phase"]=="place" and not s["ready"][pid]:
-                        s["ships"][pid] = bs_place(); await push_bs(room)
-                elif act == "bs_ready" and room and room.get("game") == "battleship" and room.get("bs"):
-                    s = room["bs"]
-                    if s["phase"]=="place":
-                        s["ready"][pid] = True
-                        if all(s["ready"].values()): s["phase"] = "battle"
-                        await push_bs(room)
-                        await bot_turn(room)
-                elif act == "bs_fire" and room and room.get("game") == "battleship" and room.get("bs"):
-                    s = room["bs"]
-                    if s["phase"]=="battle" and s["players"][s["turn"]]==pid and not s["winner"]:
-                        r, c = msg.get("r"), msg.get("c")
-                        opp = s["players"][1-s["players"].index(pid)]
-                        if isinstance(r,int) and isinstance(c,int) and (r,c) not in s["shots"][pid]:
-                            s["shots"][pid].add((r,c))
-                            hit = (r,c) in s["ships"][opp]
-                            if s["ships"][opp].issubset(s["shots"][pid]): s["winner"] = pid
-                            elif not hit: s["turn"] = 1 - s["turn"]   # промах → ход сопернику; попал → стреляешь ещё
-                            await push_bs(room)
-                            await bot_turn(room)
-
-                # ── 4 в ряд ──
-                elif act == "c4_drop" and room and room.get("game") == "c4" and room.get("c4"):
-                    s = room["c4"]
-                    if s["players"][s["turn"]] == pid and not s["winner"] and not s["draw"]:
-                        col = msg.get("col")
-                        if isinstance(col, int) and 0 <= col < 7:
-                            p = s["turn"] + 1
-                            for r in range(5, -1, -1):       # снизу вверх
-                                if s["board"][r][col] == 0:
-                                    s["board"][r][col] = p
-                                    s["last"] = [r, col]
-                                    if c4_check(s["board"], r, col, p):
-                                        s["winner"] = pid
-                                    elif all(s["board"][0][c] for c in range(7)):
-                                        s["draw"] = True
-                                    else:
-                                        s["turn"] = 1 - s["turn"]
-                                    await push_c4(room)
-                                    await bot_turn(room)
-                                    break
-
-                # ── UNO ──
-                elif act == "uno_play" and room and room.get("game") == "uno" and room.get("uno"):
-                    s = room["uno"]
-                    if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
-                        req = msg.get("cards") or ([msg.get("card")] if msg.get("card") else [])
-                        hand = s["hands"].get(pid, [])
-                        picked, pool = [], list(hand)
-                        for rc in req:
-                            m = next((c for c in pool if c["c"] == rc.get("c") and c["v"] == rc.get("v")), None)
-                            if m: picked.append(m); pool.remove(m)
-                        ok = bool(picked) and all(c["v"] == picked[0]["v"] for c in picked) \
-                             and un.can_play(picked[0], s["discard"][-1], s["cur_color"],
-                                             s.get("pending_penalty", 0), s.get("mode", "classic"))
-                        if ok:
-                            uno_apply_play(room, pid, picked, msg.get("color"))
-                            await push_uno(room)
+                    # ── «Ещё раз» — переиграть ту же игру в том же лобби (любой игрок) ──
+                    elif act == "restart" and room and room.get("game"):
+                        _cancel_bots(room)
+                        g = room["game"]
+                        # сброс общего игрового стейта, игроки и комната остаются
+                        for key in ("c4", "rv", "db", "bc", "bs", "ck", "chess", "gw", "durak", "dk", "uno",
+                                    "spy", "bunker", "al", "poker", "poker_stacks", "mafia", "c4_3d", "quoridor"):
+                            room.pop(key, None)
+                        room["state"] = "lobby"
+                        # авто-старт для игр на двоих/с ботом; партийные (spy/bunker/alias/durak/uno/poker) — хост жмёт старт
+                        RESTART_TWO = {"c4": start_c4, "reversi": start_rv, "dots": start_db, "bulls": start_bc,
+                                       "battleship": start_bs, "checkers": start_ck, "chess": start_chess}
+                        if g in RESTART_TWO:
+                            await RESTART_TWO[g](room)
                         else:
-                            await websocket.send_json({"type": "error", "msg": "Так нельзя. При активном штрафе (No Mercy) крой только картой добора не слабее."})
-                elif act == "uno_draw" and room and room.get("game") == "uno" and room.get("uno"):
-                    s = room["uno"]
-                    if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
-                        pend = s.get("pending_penalty", 0)
-                        if s.get("mode") == "nomercy" and pend > 0:
-                            # не смог/не захотел крыть стак — берёт весь накопленный штраф
-                            got = un.draw_from(s, pend)
-                            s["hands"][pid] += got
-                            s["pending_penalty"] = 0
-                            s["no_progress"] = 0 if got else s.get("no_progress", 0) + 1
-                            elim = un.check_mercy(s, pid)
-                            s["last_action"] = f"{room['players'][pid]['name']} взял +{len(got)}" + (" 💀 ВЫЛЕТЕЛ!" if elim else "")
-                            alive = un.alive_order(s)
-                            if len(alive) <= 1:
-                                s["game_over"] = True; s["winner"] = alive[0] if alive else None
-                                s["last_action"] += f" · 🏆 {s['names'].get(s['winner'],'?')} последний выживший!"
-                            elif s["no_progress"] >= max(2, len(alive)):
-                                _uno_round_end(room, min(alive, key=lambda p: len(s["hands"][p])))
+                            await broadcast(room, lobby_state(room))
+
+                    # ── Покер ──
+                    elif act == "poker_action" and room and room.get("game") == "poker" and room.get("poker"):
+                        s = room["poker"]
+                        if not s["done"] and s["to_act"] is not None and s["seats"][s["to_act"]] == pid:
+                            if poker_action(s, pid, msg.get("act", ""), msg.get("amount", 0)):
+                                await push_poker(room)
+
+                    elif act == "poker_next" and room and room.get("game") == "poker" and room.get("poker"):
+                        # новая раздача в том же лобби (жмёт любой; только если текущая закончена)
+                        if room["poker"].get("done"):
+                            if start_poker(room):
+                                await push_poker(room)
                             else:
-                                un.advance(s, 1)
-                            await push_uno(room)
-                        else:
-                            drawn = un.draw_from(s, 1)
-                            if drawn:
-                                s["no_progress"] = 0
-                                s["hands"][pid] += drawn
-                                d = drawn[0]
-                                un.check_mercy(s, pid)
-                                if un.can_play(d, s["discard"][-1], s["cur_color"], 0, s.get("mode", "classic")):
-                                    s["last_action"] = f"{room['players'][pid]['name']} взял карту (можно сыграть)"
+                                await broadcast(room, {"type": "error", "msg": "Не хватает игроков с фишками для новой раздачи."})
+
+                    # ── Шахматы ──
+
+                    # ── Коридор (Quoridor) ──
+                    elif act == "quoridor_move" and room and room.get("game") == "quoridor" and room.get("quoridor"):
+                        s = room["quoridor"]
+                        if not s.get("winner") and pid == s["player_order"][s["turn"]]:
+                            r, c = msg.get("r"), msg.get("c")
+                            ok, err = apply_pawn_move(s, pid, r, c)
+                            if ok:
+                                await push_quoridor(room)
+                            else:
+                                await websocket.send_json({"type": "error", "msg": err})
+
+                    elif act == "quoridor_wall" and room and room.get("game") == "quoridor" and room.get("quoridor"):
+                        s = room["quoridor"]
+                        if not s.get("winner") and pid == s["player_order"][s["turn"]]:
+                            r, c, wdir = msg.get("r"), msg.get("c"), msg.get("dir")
+                            ok, err = apply_wall_placement(s, pid, r, c, wdir)
+                            if ok:
+                                await push_quoridor(room)
+                            else:
+                                await websocket.send_json({"type": "error", "msg": err})
+
+                    elif act == "quoridor_settings" and room and room.get("game") == "quoridor" and room.get("host") == pid:
+                        room["quoridor_settings"] = {
+                            "walls": msg.get("walls"),
+                            "timer": msg.get("timer", 0)
+                        }
+                        await broadcast(room, lobby_state(room))
+
+                    elif act and act.startswith("c4_3d") and room and room.get("game") == "c4_3d":
+                        msg["pid"] = pid
+                        await c4d.handle_c4_3d_action(room, pid, msg, websocket, broadcast)
+                    elif act == "chess_move" and room and room.get("game") == "chess" and room.get("chess"):
+                        s = room["chess"]
+                        if not s["done"] and pid == s["order"][s["turn"]]:
+                            fr, fc, tr, tc = msg.get("fr"), msg.get("fc"), msg.get("tr"), msg.get("tc")
+                            if all(isinstance(x, int) for x in (fr, fc, tr, tc)):
+                                if (tr, tc) in chs.legal_moves(s, fr, fc):
+                                    chs.apply_move(s, fr, fc, tr, tc, msg.get("promo", "Q"))
+                                    await push_chess(room)
+
+                    # ── Кто есть кто ──
+                    elif act == "gw_flip" and room and room.get("game") == "guesswho" and room.get("gw"):
+                        s = room["gw"]; idx = msg.get("idx")
+                        if pid in s["flipped"] and isinstance(idx, int) and 0 <= idx < len(s["chars"]):
+                            s["flipped"][pid].symmetric_difference_update({idx})
+                            await push_gw(room)
+                    elif act == "gw_guess" and room and room.get("game") == "guesswho" and room.get("gw"):
+                        s = room["gw"]; idx = msg.get("idx")
+                        if not s["winner"] and pid in s["secret"] and isinstance(idx, int) and 0 <= idx < len(s["chars"]):
+                            opp = s["players"][1 - s["players"].index(pid)]
+                            s["winner"] = pid if idx == s["secret"][opp] else opp
+                            s["reveal"] = True
+                            await push_gw(room)
+
+                    # ── Добавить бота (хост, в лобби) — для игр на двоих ──
+                    elif act == "add_bot" and room and room["host"] == pid and room.get("state") == "lobby":
+                        g = room.get("game")
+                        two_p = {"c4":start_c4,"reversi":start_rv,"dots":start_db,"bulls":start_bc,"battleship":start_bs,"checkers":start_ck,"chess":start_chess}
+                        party = {"bunker","spy","variants","alias","durak","uno","poker","mafia","quoridor"}
+                        diff = msg.get("diff", "medium")
+                        if g in two_p and len(room["players"]) < 2:
+                            botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
+                            room["players"][botid] = {"name": "🤖 Бот (" + diff + ")", "ws": None, "role": None, "alive": True, "bot": diff}
+                            await broadcast(room, lobby_state(room))
+                            await two_p[g](room)
+                        elif g in party and len(room["players"]) < 8:
+                            botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
+                            room["players"][botid] = {"name": "🤖 Бот", "ws": None, "role": None, "alive": True, "bot": diff}
+                            await broadcast(room, lobby_state(room))   # старт жмёт хост вручную
+                        elif g == "c4_3d" and len(room["players"]) < 3:
+                            botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
+                            room["players"][botid] = {"name": "🤖 Бот", "ws": None, "role": None, "alive": True, "bot": diff}
+                            state = c4d.get_state(room)
+                            used = set(state["colors"].values())
+                            state["colors"][botid] = next((c for c in c4d.PALETTE if c not in used), "#888888")
+                            await broadcast(room, lobby_state(room))
+                            await c4d.push_c4_3d(room)
+
+                    # ── Убрать бота из лобби (до старта) — общий для всех игр ──
+                    elif act == "remove_bot" and room and room["host"] == pid and room.get("state") == "lobby":
+                        target = msg.get("pid")
+                        target_player = room["players"].get(target)
+                        if target_player and target_player.get("bot"):
+                            del room["players"][target]
+                            c4s = room.get("c4_3d")
+                            if c4s:
+                                c4s.get("colors", {}).pop(target, None)
+                            await broadcast(room, lobby_state(room))
+
+                    # ── Шашки ──
+                    elif act == "ck_move" and room and room.get("game") == "checkers" and room.get("ck"):
+                        s = room["ck"]
+                        if s["players"][s["turn"]] == pid and not s["done"]:
+                            fr,fc,tr,tc = msg.get("fr"),msg.get("fc"),msg.get("tr"),msg.get("tc")
+                            legal = ck_legal(s["board"], s["turn"]+1, only_from=s.get("must_continue"))
+                            match = next((m for m in legal if m[0]==fr and m[1]==fc and m[2]==tr and m[3]==tc), None)
+                            if match:
+                                ck_apply(s, *match)
+                                await push_ck(room)
+
+                    # ── Реверси ──
+                    elif act == "rv_move" and room and room.get("game") == "reversi" and room.get("rv"):
+                        s = room["rv"]
+                        if s["players"][s["turn"]] == pid and not s["done"]:
+                            r, c = msg.get("r"), msg.get("c"); p = s["turn"]+1
+                            fl = rv_flips(s["board"], r, c, p) if isinstance(r,int) and isinstance(c,int) else []
+                            if fl:
+                                s["board"][r][c] = p
+                                for (rr,cc) in fl: s["board"][rr][cc] = p
+                                nxt = 1 - s["turn"]
+                                if rv_legal(s["board"], nxt+1): s["turn"] = nxt
+                                elif rv_legal(s["board"], p): pass   # соперник пасует
                                 else:
-                                    s["last_action"] = f"{room['players'][pid]['name']} взял карту"
-                                    un.advance(s, 1)
+                                    s["done"] = True
+                                    f = sum(x.count(1) for x in s["board"]); se = sum(x.count(2) for x in s["board"])
+                                    s["winner"] = None if f==se else s["players"][0 if f>se else 1]
+                                await push_rv(room)
+
+                    # ── Точки ──
+                    elif act == "db_edge" and room and room.get("game") == "dots" and room.get("db"):
+                        s = room["db"]
+                        if s["players"][s["turn"]] == pid and not s["done"]:
+                            t, r, c = msg.get("t"), msg.get("r"), msg.get("c"); p = s["turn"]+1
+                            arr = s["h"] if t=="h" else s["v"]
+                            valid = t in ("h","v") and 0<=r<len(arr) and 0<=c<len(arr[0]) and arr[r][c]==0
+                            if valid:
+                                arr[r][c] = p; gained = 0
+                                for (br,bc) in ([(r-1,c),(r,c)] if t=="h" else [(r,c-1),(r,c)]):
+                                    if 0<=br<4 and 0<=bc<4 and s["boxes"][br][bc]==0:
+                                        if s["h"][br][bc] and s["h"][br+1][bc] and s["v"][br][bc] and s["v"][br][bc+1]:
+                                            s["boxes"][br][bc] = p; s["scores"][s["turn"]] += 1; gained += 1
+                                if not gained: s["turn"] = 1 - s["turn"]
+                                if sum(s["scores"]) == 16:
+                                    s["done"] = True
+                                    s["winner"] = None if s["scores"][0]==s["scores"][1] else s["players"][0 if s["scores"][0]>s["scores"][1] else 1]
+                                await push_db(room)
+
+                    # ── Быки и коровы ──
+                    elif act == "bc_set" and room and room.get("game") == "bulls" and room.get("bc"):
+                        s = room["bc"]; code = str(msg.get("code",""))
+                        if s["phase"]=="setup" and len(code)==4 and code.isdigit() and len(set(code))==4:
+                            s["codes"][pid] = code
+                            if len(s["codes"]) == 2: s["phase"] = "play"
+                            await push_bc(room)
+                    elif act == "bc_guess" and room and room.get("game") == "bulls" and room.get("bc"):
+                        s = room["bc"]; g = str(msg.get("guess",""))
+                        if s["phase"]=="play" and s["players"][s["turn"]]==pid and not s["winner"] and len(g)==4 and g.isdigit():
+                            opp = s["players"][1-s["players"].index(pid)]
+                            bulls, cows = bc_eval(s["codes"][opp], g)
+                            s["guesses"][pid].append([g, bulls, cows])
+                            if bulls == 4: s["winner"] = pid
+                            else: s["turn"] = 1 - s["turn"]
+                            await push_bc(room)
+
+                    # ── Морской бой ──
+                    elif act == "bs_reroll" and room and room.get("game") == "battleship" and room.get("bs"):
+                        s = room["bs"]
+                        if s["phase"]=="place" and not s["ready"][pid]:
+                            s["ships"][pid] = bs_place(); await push_bs(room)
+                    elif act == "bs_ready" and room and room.get("game") == "battleship" and room.get("bs"):
+                        s = room["bs"]
+                        if s["phase"]=="place":
+                            s["ready"][pid] = True
+                            if all(s["ready"].values()): s["phase"] = "battle"
+                            await push_bs(room)
+                    elif act == "bs_fire" and room and room.get("game") == "battleship" and room.get("bs"):
+                        s = room["bs"]
+                        if s["phase"]=="battle" and s["players"][s["turn"]]==pid and not s["winner"]:
+                            r, c = msg.get("r"), msg.get("c")
+                            opp = s["players"][1-s["players"].index(pid)]
+                            if isinstance(r,int) and isinstance(c,int) and (r,c) not in s["shots"][pid]:
+                                s["shots"][pid].add((r,c))
+                                hit = (r,c) in s["ships"][opp]
+                                if s["ships"][opp].issubset(s["shots"][pid]): s["winner"] = pid
+                                elif not hit: s["turn"] = 1 - s["turn"]   # промах → ход сопернику; попал → стреляешь ещё
+                                await push_bs(room)
+
+                    # ── 4 в ряд ──
+                    elif act == "c4_drop" and room and room.get("game") == "c4" and room.get("c4"):
+                        s = room["c4"]
+                        if s["players"][s["turn"]] == pid and not s["winner"] and not s["draw"]:
+                            col = msg.get("col")
+                            if isinstance(col, int) and 0 <= col < 7:
+                                p = s["turn"] + 1
+                                for r in range(5, -1, -1):       # снизу вверх
+                                    if s["board"][r][col] == 0:
+                                        s["board"][r][col] = p
+                                        s["last"] = [r, col]
+                                        if c4_check(s["board"], r, col, p):
+                                            s["winner"] = pid
+                                        elif all(s["board"][0][c] for c in range(7)):
+                                            s["draw"] = True
+                                        else:
+                                            s["turn"] = 1 - s["turn"]
+                                        await push_c4(room)
+                                        break
+
+                    # ── UNO ──
+                    elif act == "uno_play" and room and room.get("game") == "uno" and room.get("uno"):
+                        s = room["uno"]
+                        if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
+                            req = msg.get("cards") or ([msg.get("card")] if msg.get("card") else [])
+                            hand = s["hands"].get(pid, [])
+                            picked, pool = [], list(hand)
+                            for rc in req:
+                                m = next((c for c in pool if c["c"] == rc.get("c") and c["v"] == rc.get("v")), None)
+                                if m: picked.append(m); pool.remove(m)
+                            ok = bool(picked) and all(c["v"] == picked[0]["v"] for c in picked) \
+                                 and un.can_play(picked[0], s["discard"][-1], s["cur_color"],
+                                                 s.get("pending_penalty", 0), s.get("mode", "classic"))
+                            if ok:
+                                uno_apply_play(room, pid, picked, msg.get("color"))
+                                await push_uno(room)
                             else:
-                                # колода физически пуста — дедлок-страховка: круг без прогресса → раунд по «меньше карт»
-                                s["no_progress"] = s.get("no_progress", 0) + 1
-                                un.advance(s, 1)
-                                if s["no_progress"] >= max(2, len(un.alive_order(s))):
-                                    winner = min(un.alive_order(s), key=lambda p: len(s["hands"][p]))
-                                    _uno_round_end(room, winner)
+                                await websocket.send_json({"type": "error", "msg": "Так нельзя. При активном штрафе (No Mercy) крой только картой добора не слабее."})
+                    elif act == "uno_draw" and room and room.get("game") == "uno" and room.get("uno"):
+                        s = room["uno"]
+                        if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
+                            pend = s.get("pending_penalty", 0)
+                            if s.get("mode") == "nomercy" and pend > 0:
+                                # не смог/не захотел крыть стак — берёт весь накопленный штраф
+                                got = un.draw_from(s, pend)
+                                s["hands"][pid] += got
+                                s["pending_penalty"] = 0
+                                s["no_progress"] = 0 if got else s.get("no_progress", 0) + 1
+                                elim = un.check_mercy(s, pid)
+                                s["last_action"] = f"{room['players'][pid]['name']} взял +{len(got)}" + (" 💀 ВЫЛЕТЕЛ!" if elim else "")
+                                alive = un.alive_order(s)
+                                if len(alive) <= 1:
+                                    s["game_over"] = True; s["winner"] = alive[0] if alive else None
+                                    s["last_action"] += f" · 🏆 {room['players'].get(s['winner'], {}).get('name', '?')} последний выживший!"
+                                elif s["no_progress"] >= max(2, len(alive)):
+                                    _uno_round_end(room, min(alive, key=lambda p: len(s["hands"][p])))
+                                else:
+                                    un.advance(s, 1)
+                                await push_uno(room)
+                            else:
+                                drawn = un.draw_from(s, 1)
+                                if drawn:
+                                    s["no_progress"] = 0
+                                    s["hands"][pid] += drawn
+                                    d = drawn[0]
+                                    un.check_mercy(s, pid)
+                                    if un.can_play(d, s["discard"][-1], s["cur_color"], 0, s.get("mode", "classic")):
+                                        s["last_action"] = f"{room['players'][pid]['name']} взял карту (можно сыграть)"
+                                    else:
+                                        s["last_action"] = f"{room['players'][pid]['name']} взял карту"
+                                        un.advance(s, 1)
+                                else:
+                                    # колода физически пуста — дедлок-страховка: круг без прогресса → раунд по «меньше карт»
+                                    s["no_progress"] = s.get("no_progress", 0) + 1
+                                    un.advance(s, 1)
+                                    if s["no_progress"] >= max(2, len(un.alive_order(s))):
+                                        winner = min(un.alive_order(s), key=lambda p: len(s["hands"][p]))
+                                        _uno_round_end(room, winner)
+                                await push_uno(room)
+                    elif act == "uno_pass" and room and room.get("game") == "uno" and room.get("uno"):
+                        s = room["uno"]
+                        if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
+                            un.advance(s, 1)
+                            s["last_action"] = f"{room['players'][pid]['name']} спасовал"
                             await push_uno(room)
-                elif act == "uno_pass" and room and room.get("game") == "uno" and room.get("uno"):
-                    s = room["uno"]
-                    if un.cur_player(s) == pid and not s.get("game_over") and not s.get("round_over"):
-                        un.advance(s, 1)
-                        s["last_action"] = f"{room['players'][pid]['name']} спасовал"
-                        await push_uno(room)
 
-                # ── Дурак ──
-                elif act == "dk_attack" and room and room.get("game") == "durak" and room.get("dk"):
-                    s = room["dk"]; card = msg.get("card")
-                    hand = s["hands"].get(pid, [])
-                    in_hand = next((c for c in hand if c["r"] == card.get("r") and c["s"] == card.get("s")), None) if card else None
-                    ranks = dk.table_ranks(s)
-                    undef = sum(1 for p in s["table"] if not p.get("d"))
-                    deff_hand = len(s["hands"].get(s["defender"], []))
-                    can = in_hand and pid != s["defender"] and len(s["table"]) < 6 and undef < deff_hand
-                    if can and (not s["table"] and pid == s["attacker"] or s["table"] and in_hand["r"] in ranks):
-                        hand.remove(in_hand)
-                        s["table"].append({"a": in_hand, "d": None})
-                        s["passed"] = set()
-                        s["log"] = f"{room['players'][pid]['name']} подкинул {dk.card_str(in_hand)}"
-                        await push_durak(room)
-                elif act == "dk_defend" and room and room.get("game") == "durak" and room.get("dk"):
-                    s = room["dk"]
-                    if pid == s["defender"]:
-                        idx = msg.get("idx"); card = msg.get("card")
-                        hand = s["hands"].get(pid, [])
-                        in_hand = next((c for c in hand if c["r"] == card.get("r") and c["s"] == card.get("s")), None) if card else None
-                        if in_hand and 0 <= idx < len(s["table"]) and not s["table"][idx].get("d") \
-                           and dk.beats(in_hand, s["table"][idx]["a"], s["trump"]):
-                            hand.remove(in_hand)
-                            s["table"][idx]["d"] = in_hand
-                            s["log"] = f"{room['players'][pid]['name']} отбил {dk.card_str(in_hand)}"
-                            durak_try_bito(room)   # авто-бито если подкидывать больше некому
+                    # ── Дурак ──
+                    elif act == "dk_attack" and room and room.get("game") == "durak" and room.get("dk"):
+                        s = room["dk"]; card = msg.get("card")
+                        if not s.get("durak"):
+                            hand = s["hands"].get(pid, [])
+                            in_hand = next((c for c in hand if c["r"] == card.get("r") and c["s"] == card.get("s")), None) if isinstance(card, dict) else None
+                            ranks = dk.table_ranks(s)
+                            undef = sum(1 for p in s["table"] if not p.get("d"))
+                            deff_hand = len(s["hands"].get(s["defender"], []))
+                            can = in_hand and pid != s["defender"] and len(s["table"]) < 6 and undef < deff_hand
+                            if can and (not s["table"] and pid == s["attacker"] or s["table"] and in_hand["r"] in ranks):
+                                hand.remove(in_hand)
+                                s["table"].append({"a": in_hand, "d": None})
+                                s["passed"] = set()
+                                s["log"] = f"{room['players'][pid]['name']} подкинул {dk.card_str(in_hand)}"
+                                await push_durak(room)
+                    elif act == "dk_defend" and room and room.get("game") == "durak" and room.get("dk"):
+                        s = room["dk"]
+                        if not s.get("durak") and pid == s["defender"]:
+                            idx = msg.get("idx"); card = msg.get("card")
+                            hand = s["hands"].get(pid, [])
+                            in_hand = next((c for c in hand if c["r"] == card.get("r") and c["s"] == card.get("s")), None) if isinstance(card, dict) else None
+                            if in_hand and isinstance(idx, int) and 0 <= idx < len(s["table"]) and not s["table"][idx].get("d") \
+                               and dk.beats(in_hand, s["table"][idx]["a"], s["trump"]):
+                                hand.remove(in_hand)
+                                s["table"][idx]["d"] = in_hand
+                                s["log"] = f"{room['players'][pid]['name']} отбил {dk.card_str(in_hand)}"
+                                durak_try_bito(room)   # авто-бито если подкидывать больше некому
+                                await push_durak(room)
+                    elif act == "dk_take" and room and room.get("game") == "durak" and room.get("dk"):
+                        s = room["dk"]
+                        if not s.get("durak") and pid == s["defender"] and s["table"]:
+                            for pair in s["table"]:
+                                s["hands"][pid].append(pair["a"])
+                                if pair.get("d"): s["hands"][pid].append(pair["d"])
+                            s["table"] = []
+                            s["log"] = f"{room['players'][pid]['name']} забрал карты"
+                            prev_def = s["defender"]
+                            dk.refill(s)                                  # добор по бывшим ролям
+                            na = dk.next_with_cards(s, prev_def)          # ход — следующему С КАРТАМИ (взявший пропускает)
+                            if na:
+                                s["attacker"] = na
+                                s["defender"] = dk.next_with_cards(s, na) or na
+                            s["passed"] = set()
+                            durak_resolve_end(room)
                             await push_durak(room)
-                elif act == "dk_take" and room and room.get("game") == "durak" and room.get("dk"):
-                    s = room["dk"]
-                    if pid == s["defender"]:
-                        for pair in s["table"]:
-                            s["hands"][pid].append(pair["a"])
-                            if pair.get("d"): s["hands"][pid].append(pair["d"])
-                        s["table"] = []
-                        s["log"] = f"{room['players'][pid]['name']} забрал карты"
-                        prev_def = s["defender"]
-                        dk.refill(s)                                  # добор по бывшим ролям
-                        na = dk.next_with_cards(s, prev_def)          # ход — следующему С КАРТАМИ (взявший пропускает)
-                        if na:
-                            s["attacker"] = na
-                            s["defender"] = dk.next_with_cards(s, na) or na
-                        s["passed"] = set()
-                        durak_resolve_end(room)
-                        await push_durak(room)
-                elif act == "dk_done" and room and room.get("game") == "durak" and room.get("dk"):
-                    s = room["dk"]
-                    if pid != s["defender"] and dk.all_defended(s):
-                        s["passed"].add(pid)
-                        durak_try_bito(room)
-                        await push_durak(room)
+                    elif act == "dk_done" and room and room.get("game") == "durak" and room.get("dk"):
+                        s = room["dk"]
+                        if not s.get("durak") and pid != s["defender"] and dk.all_defended(s):
+                            s["passed"].add(pid)
+                            durak_try_bito(room)
+                            await push_durak(room)
 
-                # ── Элиас ──
-                elif act == "set_alias_settings" and room and room["host"] == pid and room.get("game") == "alias":
-                    a = room.setdefault("al", {})
-                    s = a.setdefault("settings", {"lang": "ru", "diff": "easy", "time": 60, "target": 20, "mode": "solo"})
-                    for k in ("lang", "diff", "mode"):
-                        if msg.get(k): s[k] = msg[k]
-                    for k in ("time", "target"):
-                        if k in msg:
-                            try: s[k] = max(5, int(msg[k]))
-                            except Exception: pass
-                    await (broadcast(room, alias_public(room)) if room["state"] == "playing" else broadcast(room, lobby_state(room)))
-                elif act == "alias_begin" and room and room.get("game") == "alias" and not room.get("al", {}).get("round_active"):
-                    if room["al"].get("explainer") == pid or room["host"] == pid:
-                        await alias_begin_turn(room)
-                elif act == "alias_correct" and room and room.get("game") == "alias" and room["al"].get("explainer") == pid:
-                    a = room["al"]
-                    key = a["turn"] if a.get("mode") == "teams" else a["explainer"]  # очко команде или игроку
-                    a["scores"][key] = a["scores"].get(key, 0) + 1
-                    if a["scores"][key] >= a["settings"].get("target", 20):
-                        a["winner"] = key; a["round_active"] = False
-                        await broadcast(room, alias_public(room))
-                    else:
-                        next_word(room); await send_word(room); await broadcast(room, alias_public(room))
-                elif act == "alias_skip" and room and room.get("game") == "alias" and room["al"].get("explainer") == pid:
-                    next_word(room); await send_word(room)
-                elif act == "alias_end" and room and room.get("game") == "alias":
-                    if room["al"].get("explainer") == pid or room["host"] == pid:
-                        await alias_end_turn(room)
+                    # ── Элиас ──
+                    elif act == "set_alias_settings" and room and room["host"] == pid and room.get("game") == "alias":
+                        a = room.setdefault("al", {})
+                        s = a.setdefault("settings", {"lang": "ru", "diff": "easy", "time": 60, "target": 20, "mode": "solo"})
+                        for k in ("lang", "diff", "mode"):
+                            if msg.get(k): s[k] = msg[k]
+                        for k in ("time", "target"):
+                            if k in msg:
+                                try: s[k] = max(5, int(msg[k]))
+                                except Exception: pass
+                        await (broadcast(room, alias_public(room)) if room["state"] == "playing" else broadcast(room, lobby_state(room)))
+                    elif act == "alias_begin" and room and room.get("game") == "alias" and not room.get("al", {}).get("round_active"):
+                        if room["al"].get("explainer") == pid or room["host"] == pid:
+                            await alias_begin_turn(room)
+                    elif act == "alias_correct" and room and room.get("game") == "alias" and room["al"].get("explainer") == pid:
+                        a = room["al"]
+                        key = a["turn"] if a.get("mode") == "teams" else a["explainer"]  # очко команде или игроку
+                        a["scores"][key] = a["scores"].get(key, 0) + 1
+                        if a["scores"][key] >= a["settings"].get("target", 20):
+                            a["winner"] = key; a["round_active"] = False
+                            await broadcast(room, alias_public(room))
+                        else:
+                            next_word(room); await send_word(room); await broadcast(room, alias_public(room))
+                    elif act == "alias_skip" and room and room.get("game") == "alias" and room["al"].get("explainer") == pid:
+                        next_word(room); await send_word(room)
+                    elif act == "alias_end" and room and room.get("game") == "alias":
+                        if room["al"].get("explainer") == pid or room["host"] == pid:
+                            await alias_end_turn(room)
 
-                # ── Мафия: ночное действие (мафия/доктор/шериф выбирают цель) ──
-                elif act == "mafia_night" and room and room.get("game") == "mafia" and room.get("mafia"):
-                    st = room["mafia"]
-                    target = msg.get("target")
-                    ok, res = mf.submit_night(st, pid, target)
-                    if not ok:
-                        await websocket.send_json({"type": "error", "msg": res})
-                    else:
-                        # шерифу сразу вернём результат проверки, остальным — обновим панель
-                        await mafia_send_private(room)
-                        await mafia_bots_night(room)      # добьём ботов и, если все сходили, разрешим ночь
-                        await mafia_after_night_maybe(room)
+                    # ── Мафия: ночное действие (мафия/доктор/шериф выбирают цель) ──
+                    elif act == "mafia_night" and room and room.get("game") == "mafia" and room.get("mafia"):
+                        st = room["mafia"]
+                        target = msg.get("target")
+                        ok, res = mf.submit_night(st, pid, target)
+                        if not ok:
+                            await websocket.send_json({"type": "error", "msg": res})
+                        else:
+                            # шерифу сразу вернём результат проверки, остальным — обновим панель
+                            await mafia_send_private(room)
+                            await mafia_bots_night(room)      # добьём ботов и, если все сходили, разрешим ночь
+                            await mafia_after_night_maybe(room)
 
-                # ── Мафия: дневной голос ──
-                elif act == "mafia_vote" and room and room.get("game") == "mafia" and room.get("mafia"):
-                    st = room["mafia"]
-                    ok, res = mf.submit_vote(st, pid, msg.get("target"))
-                    if not ok:
-                        await websocket.send_json({"type": "error", "msg": res})
-                    else:
-                        await mafia_bots_day(room)
-                        if not mf.day_vote_pending(st):
+                    # ── Мафия: дневной голос ──
+                    elif act == "mafia_vote" and room and room.get("game") == "mafia" and room.get("mafia"):
+                        st = room["mafia"]
+                        ok, res = mf.submit_vote(st, pid, msg.get("target"))
+                        if not ok:
+                            await websocket.send_json({"type": "error", "msg": res})
+                        else:
+                            await mafia_bots_day(room)
+                            if not mf.day_vote_pending(st):
+                                d = mf.resolve_day(st)
+                                if d["executed"]:
+                                    nm = room["players"][d["executed"]]["name"]
+                                    rl = mf.ROLE_META[d["role"]]["title"]
+                                    st["log"].append(f"⚖️ Город казнил: {nm} — это был {rl}.")
+                                else:
+                                    st["log"].append("🤝 Голоса разделились — никого не казнили.")
+                                if st["winner"]:
+                                    st["log"].append(_mafia_win_line(st))
+                                else:
+                                    st["log"].append(f"🌙 Наступает ночь {st['round']}. Город засыпает.")
+                                await mafia_broadcast(room)
+                                if not st["winner"]:
+                                    await mafia_bots_night(room)
+                                    await mafia_after_night_maybe(room)
+                            else:
+                                await mafia_broadcast(room)
+
+                    # ── Мафия: хост форсит конец дня (если кто-то тупит) ──
+                    elif act == "mafia_force_day" and room and room["host"] == pid and room.get("game") == "mafia" and room.get("mafia"):
+                        st = room["mafia"]
+                        if st["phase"] == "day":
                             d = mf.resolve_day(st)
                             if d["executed"]:
                                 nm = room["players"][d["executed"]]["name"]
@@ -3472,191 +3693,169 @@ async def ws(websocket: WebSocket):
                             if not st["winner"]:
                                 await mafia_bots_night(room)
                                 await mafia_after_night_maybe(room)
-                        else:
-                            await mafia_broadcast(room)
 
-                # ── Мафия: хост форсит конец дня (если кто-то тупит) ──
-                elif act == "mafia_force_day" and room and room["host"] == pid and room.get("game") == "mafia" and room.get("mafia"):
-                    st = room["mafia"]
-                    if st["phase"] == "day":
-                        d = mf.resolve_day(st)
-                        if d["executed"]:
-                            nm = room["players"][d["executed"]]["name"]
-                            rl = mf.ROLE_META[d["role"]]["title"]
-                            st["log"].append(f"⚖️ Город казнил: {nm} — это был {rl}.")
-                        else:
-                            st["log"].append("🤝 Голоса разделились — никого не казнили.")
-                        if st["winner"]:
-                            st["log"].append(_mafia_win_line(st))
-                        else:
-                            st["log"].append(f"🌙 Наступает ночь {st['round']}. Город засыпает.")
-                        await mafia_broadcast(room)
-                        if not st["winner"]:
-                            await mafia_bots_night(room)
-                            await mafia_after_night_maybe(room)
+                    # ── Бункер: игрок вскрывает свою ячейку (видно всем) ──
+                    elif act == "reveal_cell" and room and room.get("game") == "bunker":
+                        cat = msg.get("category", "")
+                        p = room["players"].get(pid)
+                        lim = room.get("settings", {}).get("reveals_per_round", 0)
+                        if p and cat in bnk.CATEGORIES and cat not in (p.get("revealed") or set()):
+                            if lim and p.get("reveals_round", 0) >= lim:
+                                await websocket.send_json({"type": "error", "msg": f"Лимит вскрытий за раунд: {lim}. Ждите новый раунд."})
+                            else:
+                                p.setdefault("revealed", set()).add(cat)
+                                p["reveals_round"] = p.get("reveals_round", 0) + 1
+                                await push_bunker(room)
 
-                # ── Бункер: игрок вскрывает свою ячейку (видно всем) ──
-                elif act == "reveal_cell" and room and room.get("game") == "bunker":
-                    cat = msg.get("category", "")
-                    p = room["players"].get(pid)
-                    lim = room.get("settings", {}).get("reveals_per_round", 0)
-                    if p and cat in bnk.CATEGORIES and cat not in (p.get("revealed") or set()):
-                        if lim and p.get("reveals_round", 0) >= lim:
-                            await websocket.send_json({"type": "error", "msg": f"Лимит вскрытий за раунд: {lim}. Ждите новый раунд."})
-                        else:
-                            p.setdefault("revealed", set()).add(cat)
-                            p["reveals_round"] = p.get("reveals_round", 0) + 1
+                    # ── Бункер: настройки (хост, в лобби) ──
+                    elif act == "set_settings" and room and room["host"] == pid and room.get("game") == "bunker":
+                        s = room.setdefault("settings", {})
+                        for k in ("seats", "timer", "reveals_per_round"):
+                            if k in msg:
+                                try: s[k] = max(0, int(msg[k]))
+                                except Exception: pass
+                        await push_bunker(room) if room["state"] == "playing" else await broadcast(room, lobby_state(room))
+
+                    # ── Бункер: ГОЛОСОВАНИЕ за изгнание ──
+                    elif act == "start_vote" and room and room["host"] == pid and room.get("game") == "bunker":
+                        room["vote"] = {"votes": {}}
+                        await broadcast(room, {"type": "vote_started"})
+                        await push_bunker(room)
+                    elif act == "vote" and room and room.get("game") == "bunker" and room.get("vote") is not None:
+                        p = room["players"].get(pid)
+                        tgt = msg.get("target")
+                        if p and p.get("alive", True) and tgt in room["players"]:
+                            room["vote"]["votes"][pid] = tgt
+                            alive = [x for x, pp in room["players"].items() if pp.get("alive", True)]
                             await push_bunker(room)
-
-                # ── Бункер: настройки (хост, в лобби) ──
-                elif act == "set_settings" and room and room["host"] == pid and room.get("game") == "bunker":
-                    s = room.setdefault("settings", {})
-                    for k in ("seats", "timer", "reveals_per_round"):
-                        if k in msg:
-                            try: s[k] = max(0, int(msg[k]))
-                            except Exception: pass
-                    await push_bunker(room) if room["state"] == "playing" else await broadcast(room, lobby_state(room))
-
-                # ── Бункер: ГОЛОСОВАНИЕ за изгнание ──
-                elif act == "start_vote" and room and room["host"] == pid and room.get("game") == "bunker":
-                    room["vote"] = {"votes": {}}
-                    await broadcast(room, {"type": "vote_started"})
-                    await push_bunker(room)
-                elif act == "vote" and room and room.get("game") == "bunker" and room.get("vote") is not None:
-                    p = room["players"].get(pid)
-                    tgt = msg.get("target")
-                    if p and p.get("alive", True) and tgt in room["players"]:
-                        room["vote"]["votes"][pid] = tgt
-                        alive = [x for x, pp in room["players"].items() if pp.get("alive", True)]
+                            if len(room["vote"]["votes"]) >= len(alive):  # все проголосовали → авто-итог
+                                kicked, txt = resolve_vote(room)
+                                await broadcast(room, {"type": "vote_result", "msg": txt, "kicked": kicked})
+                                await push_bunker(room)
+                    elif act == "end_vote" and room and room["host"] == pid and room.get("game") == "bunker":
+                        kicked, txt = resolve_vote(room)
+                        await broadcast(room, {"type": "vote_result", "msg": txt, "kicked": kicked})
                         await push_bunker(room)
-                        if len(room["vote"]["votes"]) >= len(alive):  # все проголосовали → авто-итог
-                            kicked, txt = resolve_vote(room)
-                            await broadcast(room, {"type": "vote_result", "msg": txt, "kicked": kicked})
+
+                    # ── Бункер: таймер раунда (хост) ──
+                    elif act == "start_timer" and room and room["host"] == pid and room.get("game") == "bunker":
+                        secs = room.get("settings", {}).get("timer", 0) or int(msg.get("secs", 60))
+                        if secs > 0:
+                            await broadcast(room, {"type": "timer", "secs": secs})
+
+                    # ── Бункер: пульт ведущего (ручное изгнание остаётся как опция) ──
+                    elif act == "kick" and room and room["host"] == pid and room.get("game") == "bunker":
+                        tgt = room["players"].get(msg.get("target"))
+                        if tgt:
+                            tgt["alive"] = False
                             await push_bunker(room)
-                elif act == "end_vote" and room and room["host"] == pid and room.get("game") == "bunker":
-                    kicked, txt = resolve_vote(room)
-                    await broadcast(room, {"type": "vote_result", "msg": txt, "kicked": kicked})
-                    await push_bunker(room)
-
-                # ── Бункер: таймер раунда (хост) ──
-                elif act == "start_timer" and room and room["host"] == pid and room.get("game") == "bunker":
-                    secs = room.get("settings", {}).get("timer", 0) or int(msg.get("secs", 60))
-                    if secs > 0:
-                        await broadcast(room, {"type": "timer", "secs": secs})
-
-                # ── Бункер: пульт ведущего (ручное изгнание остаётся как опция) ──
-                elif act == "kick" and room and room["host"] == pid and room.get("game") == "bunker":
-                    tgt = room["players"].get(msg.get("target"))
-                    if tgt:
-                        tgt["alive"] = False
+                    elif act == "unkick" and room and room["host"] == pid and room.get("game") == "bunker":
+                        tgt = room["players"].get(msg.get("target"))
+                        if tgt:
+                            tgt["alive"] = True
+                            await push_bunker(room)
+                    elif act == "new_round" and room and room["host"] == pid and room.get("game") == "bunker":
+                        room.setdefault("gs", {})["round"] = room.get("gs", {}).get("round", 1) + 1
+                        for p in room["players"].values():
+                            p["reveals_round"] = 0   # сброс лимита вскрытий
+                        room["vote"] = None
                         await push_bunker(room)
-                elif act == "unkick" and room and room["host"] == pid and room.get("game") == "bunker":
-                    tgt = room["players"].get(msg.get("target"))
-                    if tgt:
-                        tgt["alive"] = True
-                        await push_bunker(room)
-                elif act == "new_round" and room and room["host"] == pid and room.get("game") == "bunker":
-                    room.setdefault("gs", {})["round"] = room.get("gs", {}).get("round", 1) + 1
-                    for p in room["players"].values():
-                        p["reveals_round"] = 0   # сброс лимита вскрытий
-                    room["vote"] = None
-                    await push_bunker(room)
 
-                # --- Варианты (Аукцион лжи) ---
-                elif act == "variants_set_cats" and room and room["host"] == pid and room.get("game") == "variants":
-                    gs = room.setdefault("state_data", {})
-                    gs["categories"] = msg.get("categories", [])
-                    gs["total_rounds"] = msg.get("total_rounds", 5)
-                    await broadcast(room, vr.variants_public(room))
-                elif act == "variants_submit" and room and room.get("game") == "variants":
-                    bluff = msg.get("bluff", "").strip()
-                    if bluff and room.setdefault("players_data", {}).get(pid) is not None \
-                            and room.get("state_data", {}).get("phase") == "input":
-                        room["players_data"][pid]["bluff"] = bluff[:120]
-                        if vr.check_input_phase_complete(room):
-                            await push_variants(room)
+                    # --- Варианты (Аукцион лжи) ---
+                    elif act == "variants_set_cats" and room and room["host"] == pid and room.get("game") == "variants":
+                        gs = room.setdefault("state_data", {})
+                        gs["categories"] = msg.get("categories", [])
+                        gs["total_rounds"] = msg.get("total_rounds", 5)
+                        await broadcast(room, vr.variants_public(room))
+                    elif act == "variants_submit" and room and room.get("game") == "variants":
+                        bluff = msg.get("bluff", "").strip()
+                        if bluff and room.setdefault("players_data", {}).get(pid) is not None \
+                                and room.get("state_data", {}).get("phase") == "input":
+                            room["players_data"][pid]["bluff"] = bluff[:120]
+                            if vr.check_input_phase_complete(room):
+                                await push_variants(room)
+                            else:
+                                await push_variants(room)
+                    elif act == "variants_vote" and room and room.get("game") == "variants":
+                        vote_id = msg.get("vote_id")
+                        if vote_id and room.setdefault("players_data", {}).get(pid) is not None \
+                                and room.get("state_data", {}).get("phase") == "voting":
+                            room["players_data"][pid]["vote"] = vote_id
+                            if vr.check_voting_phase_complete(room):
+                                await push_variants(room)
+                            else:
+                                await push_variants(room)
+                    elif act == "variants_next" and room and room["host"] == pid and room.get("game") == "variants":
+                        gs = room.setdefault("state_data", {})
+                        if gs.get("phase", "lobby") in ("lobby", "game_over"):
+                            # кнопка «Начать» в лобби шлёт variants_next — это старт новой игры, а не 2-й раунд
+                            await start_variants(room)
                         else:
-                            await push_variants(room)
-                elif act == "variants_vote" and room and room.get("game") == "variants":
-                    vote_id = msg.get("vote_id")
-                    if vote_id and room.setdefault("players_data", {}).get(pid) is not None \
-                            and room.get("state_data", {}).get("phase") == "voting":
-                        room["players_data"][pid]["vote"] = vote_id
-                        if vr.check_voting_phase_complete(room):
-                            await push_variants(room)
-                        else:
-                            await push_variants(room)
-                elif act == "variants_next" and room and room["host"] == pid and room.get("game") == "variants":
-                    gs = room.setdefault("state_data", {})
-                    if gs.get("phase", "lobby") in ("lobby", "game_over"):
-                        # кнопка «Начать» в лобби шлёт variants_next — это старт новой игры, а не 2-й раунд
-                        await start_variants(room)
-                        continue
-                    gs["round"] = gs.get("round", 1) + 1
-                    if gs["round"] > gs.get("total_rounds", 5):
-                        gs["phase"] = "game_over"
-                        await push_variants(room)
-                    else:
-                        await variants_new_round(room)
-                        await push_variants(room)
+                            gs["round"] = gs.get("round", 1) + 1
+                            if gs["round"] > gs.get("total_rounds", 5):
+                                gs["phase"] = "game_over"
+                                await push_variants(room)
+                            else:
+                                await variants_new_round(room)
+                                await push_variants(room)
 
+                    elif act == "reveal" and room:
+                        # показать всем: кто был шпион + что загадано (любой игрок может вскрыть)
+                        _cancel_bots(room)
+                        spy_name = next((p["name"] for p in room["players"].values()
+                                         if p.get("role") and p["role"].get("spy")), "?")
+                        loc = next((p["role"]["location"] for p in room["players"].values()
+                                    if p.get("role") and not p["role"].get("spy") and p["role"].get("location")), "?")
+                        await broadcast(room, {"type": "reveal", "spy": spy_name, "location": loc})
+                        room["state"] = "lobby"
 
-                elif act == "reveal" and room:
-                    # показать всем: кто был шпион + что загадано (любой игрок может вскрыть)
-                    spy_name = next((p["name"] for p in room["players"].values()
-                                     if p.get("role") and p["role"].get("spy")), "?")
-                    loc = next((p["role"]["location"] for p in room["players"].values()
-                                if p.get("role") and not p["role"].get("spy") and p["role"].get("location")), "?")
-                    await broadcast(room, {"type": "reveal", "spy": spy_name, "location": loc})
-                    room["state"] = "lobby"
+                    elif act == "back" and room:
+                        _cancel_bots(room)
+                        room["state"] = "lobby"
+                        for p in room["players"].values():
+                            p["role"] = None
+                        await broadcast(room, lobby_state(room))
 
-                elif act == "back" and room:
-                    room["state"] = "lobby"
-                    for p in room["players"].values():
-                        p["role"] = None
-                    await broadcast(room, lobby_state(room))
+                    elif act == "spy_packs" and room:
+                        await broadcast(room, spy_packs_payload(room))
 
-                elif act == "spy_packs" and room:
-                    await broadcast(room, spy_packs_payload(room))
+                    elif act == "spy_toggle" and room and room["host"] == pid:
+                        spy_init(room)
+                        name = msg.get("name")
+                        if name and (name in SPY_PACKS or name in CRAFTED):
+                            if name in room["spy_active"]:
+                                room["spy_active"].remove(name)
+                            else:
+                                room["spy_active"].append(name)
+                        await broadcast(room, spy_packs_payload(room))
 
-                elif act == "spy_toggle" and room and room["host"] == pid:
-                    spy_init(room)
-                    name = msg.get("name")
-                    if name and (name in SPY_PACKS or name in CRAFTED):
+                    elif act == "spy_craft" and room and room["host"] == pid:
+                        spy_init(room)
+                        theme = str(msg.get("theme", "")).strip()[:50]
+                        if theme and theme not in CRAFTED and theme not in SPY_PACKS:
+                            await broadcast(room, {"type": "spy_loading", "theme": theme})
+                            items = await asyncio.get_event_loop().run_in_executor(None, gemini_people, theme, 15)
+                            if items:
+                                CRAFTED[theme] = items
+                                _save_crafted()
+                            else:
+                                await broadcast(room, {"type": "error", "msg": "Не вышло сгенерить пак, попробуй другую тему."})
+                        if (theme in CRAFTED or theme in SPY_PACKS) and theme not in room["spy_active"]:
+                            room["spy_active"].append(theme)   # свежий пак сразу активен
+                        await broadcast(room, spy_packs_payload(room))
+
+                    elif act == "spy_uncraft" and room and room["host"] == pid:
+                        spy_init(room)
+                        name = msg.get("name")
+                        if name in CRAFTED:
+                            del CRAFTED[name]
+                            _save_crafted()
                         if name in room["spy_active"]:
                             room["spy_active"].remove(name)
-                        else:
-                            room["spy_active"].append(name)
-                    await broadcast(room, spy_packs_payload(room))
+                        await broadcast(room, spy_packs_payload(room))
 
-                elif act == "spy_craft" and room and room["host"] == pid:
-                    spy_init(room)
-                    theme = str(msg.get("theme", "")).strip()[:50]
-                    if theme and theme not in CRAFTED and theme not in SPY_PACKS:
-                        await broadcast(room, {"type": "spy_loading", "theme": theme})
-                        items = await asyncio.get_event_loop().run_in_executor(None, gemini_people, theme, 15)
-                        if items:
-                            CRAFTED[theme] = items
-                            _save_crafted()
-                        else:
-                            await broadcast(room, {"type": "error", "msg": "Не вышло сгенерить пак, попробуй другую тему."})
-                    if (theme in CRAFTED or theme in SPY_PACKS) and theme not in room["spy_active"]:
-                        room["spy_active"].append(theme)   # свежий пак сразу активен
-                    await broadcast(room, spy_packs_payload(room))
-
-                elif act == "spy_uncraft" and room and room["host"] == pid:
-                    spy_init(room)
-                    name = msg.get("name")
-                    if name in CRAFTED:
-                        del CRAFTED[name]
-                        _save_crafted()
-                    if name in room["spy_active"]:
-                        room["spy_active"].remove(name)
-                    await broadcast(room, spy_packs_payload(room))
-
-                # авто-ход бота после ЛЮБОГО действия игрока (Дурак/UNO и др. — где боты играют)
-                if room and room.get("state") == "playing" and any(d.get("bot") for d in room.get("players", {}).values()):
-                    await bot_turn(room)
+                    # единый планировщик ботов после любого действия игрока (без двойных вызовов)
+                    schedule_bots(room)
             except WebSocketDisconnect:
                 raise
             except Exception:
@@ -3673,36 +3872,39 @@ async def ws(websocket: WebSocket):
         logging.exception("ws loop crashed")
     finally:
         _presence_remove(auth_user["username"])  # снять онлайн-статус
-        if room and pid in room["players"]:
-            playing = room.get("state") == "playing"
-            if playing:
-                # Игра идёт — НЕ выкидываем игрока из состояния (иначе рвутся индексы/ходы
-                # и всех выбрасывает в лобби). Помечаем offline; может переподключиться.
-                room["players"][pid]["ws"] = None
-                # у ботов ws всегда None — смотрим только на людей. Если людей на связи не осталось,
-                # даём 2 минуты на переподключение (обновил страницу / моргнул интернет), потом убираем комнату
-                if all(not pl.get("ws") for pl in room["players"].values() if not pl.get("bot")):
-                    asyncio.create_task(_drop_room_if_abandoned(room, ROOM_RECONNECT_GRACE))
-                else:
-                    if room["host"] == pid:
-                        room["host"] = next((q for q, pl in room["players"].items() if pl.get("ws")), pid)
-                    # обновим доску оставшимся, БЕЗ переброса в лобби
-                    try:
-                        await resync_game(room)
-                    except Exception:
-                        pass
-            else:
-                # В лобби — обычное удаление
-                room["players"].pop(pid, None)
-                if not any(not pl.get("bot") for pl in room["players"].values()):
-                    rooms.pop(room["code"], None)   # остались одни боты (или никого) — комнату убираем
-                else:
-                    if room["host"] == pid:
-                        room["host"] = next(iter(room["players"]))
-                    try:
-                        await broadcast(room, lobby_state(room))
-                    except Exception:
-                        pass
+        if room and pid in room.get("players", {}):
+            async with room_lock(room):
+                if pid in room["players"]:
+                    playing = room.get("state") == "playing"
+                    if playing:
+                        # Игра идёт — НЕ выкидываем игрока из состояния (иначе рвутся индексы/ходы
+                        # и всех выбрасывает в лобби). Помечаем offline; может переподключиться.
+                        room["players"][pid]["ws"] = None
+                        # у ботов ws всегда None — смотрим только на людей. Если людей на связи не осталось,
+                        # даём 2 минуты на переподключение (обновил страницу / моргнул интернет), потом убираем комнату
+                        if all(not pl.get("ws") for pl in room["players"].values() if not pl.get("bot")):
+                            asyncio.create_task(_drop_room_if_abandoned(room, ROOM_RECONNECT_GRACE))
+                        else:
+                            if room["host"] == pid:
+                                room["host"] = next((q for q, pl in room["players"].items() if pl.get("ws")), pid)
+                            # обновим доску оставшимся, БЕЗ переброса в лобби
+                            try:
+                                await resync_game(room)
+                            except Exception:
+                                pass
+                    else:
+                        # В лобби — обычное удаление
+                        room["players"].pop(pid, None)
+                        if not any(not pl.get("bot") for pl in room["players"].values()):
+                            _cancel_bots(room)
+                            rooms.pop(room["code"], None)   # остались одни боты (или никого) — комнату убираем
+                        else:
+                            if room["host"] == pid:
+                                room["host"] = next(iter(room["players"]))
+                            try:
+                                await broadcast(room, lobby_state(room))
+                            except Exception:
+                                pass
 
 
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")

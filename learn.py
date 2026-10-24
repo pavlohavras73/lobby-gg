@@ -26,10 +26,17 @@ def get_db_path():
         return "/data/users.db"
     return os.path.join(os.path.dirname(__file__), "learn.db")
 
+_learn_db_initialized = False
+
 def get_db_conn():
+    global _learn_db_initialized
     db_path = get_db_path()
     con = sqlite3.connect(db_path, timeout=5)
-    init_tables(con)
+    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=5000")
+    if not _learn_db_initialized:
+        init_tables(con)
+        _learn_db_initialized = True
     return con
 
 def init_tables(con):

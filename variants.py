@@ -5,11 +5,9 @@ import random
 import re
 import traceback
 
+import llm
+
 def generate_prompt(categories):
-    key = os.environ.get('GEMINI_API_KEY', '')
-    if not key:
-        return _get_fallback_prompt(categories)
-    
     cats_str = ", ".join(categories) if categories else "Случайные факты, Абсурд, История"
     
     prompt = f"""
@@ -26,24 +24,14 @@ def generate_prompt(categories):
 В поле 'bluff' напиши один очень правдоподобный ложный ответ, чтобы запутать игроков. Не пиши ничего кроме JSON!
 """
     try:
-        body = json.dumps({
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.8}
-        }).encode()
-        req = urllib.request.Request(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}',
-            data=body, headers={'Content-Type': 'application/json'}
-        )
-        with urllib.request.urlopen(req, timeout=10) as r:
-            d = json.loads(r.read())
-        
-        txt = ''.join(p.get('text', '') for p in d['candidates'][0]['content']['parts'])
-        # Extract JSON
+        txt = llm.ask(prompt, temperature=0.8, max_tokens=1200, timeout=10) or ""
         mt = re.search(r'\{.*\}', txt, re.S)
         if mt:
-            return json.loads(mt.group(0))
+            data = json.loads(mt.group(0))
+            if all(data.get(k) for k in ("text", "correct")):
+                return data
     except Exception as e:
-        print(f"Gemini prompt generation error: {e}")
+        print(f"LLM prompt generation error: {e}")
         traceback.print_exc()
         
     return _get_fallback_prompt(categories)
