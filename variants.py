@@ -31,7 +31,7 @@ def generate_prompt(categories):
             "generationConfig": {"temperature": 0.8}
         }).encode()
         req = urllib.request.Request(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}',
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={key}',
             data=body, headers={'Content-Type': 'application/json'}
         )
         with urllib.request.urlopen(req, timeout=10) as r:
@@ -144,10 +144,25 @@ def _get_fallback_prompt(categories):
     return random.choice(fallbacks)
 
 
+def _sync(room):
+    """room["players_data"] и room["names"] сервер не создаёт — держим их в синхроне с room["players"]."""
+    pd = room.setdefault("players_data", {})
+    for pid in room["players"]:
+        pd.setdefault(pid, {})
+    room["names"] = {pid: d.get("name", pid) for pid, d in room["players"].items()}
+    return pd
+
+
+def _humans(room):
+    """Боты в «Вариантах» не пишут ответы и не голосуют — раунд ждёт только людей."""
+    return [pid for pid, d in room["players"].items() if not d.get("bot")]
+
+
 def variants_public(room):
     """
     State payload to send to clients
     """
+    _sync(room)
     gs = room.setdefault("state_data", {})
     
     # Hide bluffs if we are not in 'voting' or 'results' phase
@@ -207,11 +222,14 @@ def variants_public(room):
 
 import uuid
 
-def start_round(room):
+def start_round(room, prompt_data=None):
+    _sync(room)
+    # prompt_data можно сгенерировать заранее в потоке (server.py), чтобы HTTP к Gemini не блокировал event loop
     gs = room.setdefault("state_data", {})
     gs["phase"] = "input"
     
-    prompt_data = generate_prompt(gs.get("categories", []))
+    if prompt_data is None:
+        prompt_data = generate_prompt(gs.get("categories", []))
     gs["current_prompt"] = prompt_data
     gs["shuffled_answers"] = []
     
@@ -224,11 +242,12 @@ def start_round(room):
     return variants_public(room)
 
 def check_input_phase_complete(room):
+    _sync(room)
     gs = room.setdefault("state_data", {})
     if gs.get("phase") != "input":
         return False
         
-    for pid in room["players"]:
+    for pid in _humans(room):
         if not room["players_data"].get(pid, {}).get("bluff"):
             return False
             
@@ -247,7 +266,7 @@ def check_input_phase_complete(room):
     })
     
     # 2. Player bluffs
-    for pid in room["players"]:
+    for pid in _humans(room):
         bluff_id = str(uuid.uuid4())
         bluff_text = room["players_data"][pid]["bluff"]
         room["players_data"][pid]["bluff_id"] = bluff_id
@@ -273,11 +292,12 @@ def check_input_phase_complete(room):
     return True
 
 def check_voting_phase_complete(room):
+    _sync(room)
     gs = room.setdefault("state_data", {})
     if gs.get("phase") != "voting":
         return False
         
-    for pid in room["players"]:
+    for pid in _humans(room):
         if not room["players_data"].get(pid, {}).get("vote"):
             return False
             
@@ -285,12 +305,12 @@ def check_voting_phase_complete(room):
     gs["phase"] = "results"
     
     round_scores = {}
-    for pid in room["players"]:
+    for pid in _humans(room):
         round_scores[pid] = {"total": 0, "details": []}
         
     # Calculate scores
     correct_id = gs["correct_id"]
-    for pid in room["players"]:
+    for pid in _humans(room):
         vote_id = room["players_data"][pid]["vote"]
         
         if vote_id == correct_id:
@@ -300,7 +320,7 @@ def check_voting_phase_complete(room):
             round_scores[pid]["details"].append("Повелся на обманку ИИ (0)")
         else:
             # Find whose bluff this was
-            for author_pid in room["players"]:
+            for author_pid in _humans(room):
                 if author_pid == pid: continue
                 if room["players_data"][author_pid].get("bluff_id") == vote_id:
                     # author_pid tricked pid
@@ -310,7 +330,7 @@ def check_voting_phase_complete(room):
                     break
                     
     # Apply to global scores
-    for pid in room["players"]:
+    for pid in _humans(room):
         room["players_data"][pid]["score"] = room["players_data"].get(pid, {}).get("score", 0) + round_scores[pid]["total"]
         
     gs["round_scores"] = round_scores

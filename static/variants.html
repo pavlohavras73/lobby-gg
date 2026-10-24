@@ -130,6 +130,7 @@
 
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
 <script>
 let state = null;
 let myId = null;
@@ -198,7 +199,7 @@ function switchScreen(screenId) {
 function updateUI() {
     if(!state) return;
     
-    myId = localStorage.getItem("device_id");
+    // myId приходит в сообщении "joined" (msg.pid); localStorage тут не нужен
     let isHost = state.host === myId;
     let me = state.players.find(p => p.id === myId);
     

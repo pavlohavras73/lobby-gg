@@ -437,21 +437,20 @@ def transcribe_audio_groq(file_path: str) -> str:
 router = APIRouter()
 
 def get_current_user(request: Request):
-    token = request.cookies.get("jsession")
-    if not token:
-        return {"username": "guest", "role": "guest"}
+    # Проверяем подпись и срок той же функцией, что и server.py (раньше cookie разбиралась без проверки HMAC —
+    # любой мог выдать себя за другого пользователя). Импорт ленивый: server.py сам импортирует learn.
+    guest = {"username": "guest", "role": "guest"}
     try:
-        parts = token.split("|")
-        if len(parts) == 4:
-            return {"username": parts[0], "role": parts[1]}
+        from server import _check_session
     except Exception:
-        pass
-    return {"username": "guest", "role": "guest"}
+        return guest
+    return _check_session(request.cookies.get("jsession")) or guest
 
 @router.get("/learn")
 async def learn_page():
     paths = [
         "/app/static/learn.html",
+        "/home/jarvis/obsidian_project/games/static/learn.html",
         os.path.join(os.path.dirname(__file__), "static", "learn.html"),
         os.path.join(os.path.dirname(__file__), "learn.html")
     ]

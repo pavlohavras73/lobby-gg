@@ -304,6 +304,10 @@
     chatMessages: [],
     lastChatId: 0,
     chatPollTimer: null,
+    chatWs: null,
+    chatWsConnected: false,
+    chatWsReconnectTimer: null,
+    chatWsPingTimer: null,
     chatAutoScroll: true,
     lastActiveElement: null
   };
@@ -733,8 +737,11 @@
 
     // 5. Chat lifecycle
     if (tabId === 'chat') {
-      startChatPolling();
-      loadChatMessages(true);
+      connectChatWS();
+      if (!state.chatWsConnected) {
+        startChatPolling();
+        loadChatMessages(true);
+      }
     } else if (prevTab === 'chat') {
       stopChatPolling();
     }
@@ -1543,14 +1550,9 @@
     return msgEl;
   }
 
-  async function loadChatMessages(initial = false) {
-    const query = state.lastChatId ? `?after=${state.lastChatId}` : '';
-    const d = await apiGet('/chat' + query);
-    if (!d || !d.ok) return;
-
-    const myUsername = d.me || state.user.username;
-    const myRole = state.user.role || 'member';
-    const newMsgs = d.messages || [];
+  function appendChatMessages(newMsgs, initial = false, meOverride = null, roleOverride = null) {
+    const myUsername = meOverride || state.user.username;
+    const myRole = roleOverride || state.user.role || 'member';
     const list = document.getElementById('ch-list');
     if (!list) return;
 
@@ -1559,7 +1561,9 @@
       state.chatMessages = [];
     }
 
-    if (!newMsgs.length) {
+    const filtered = (newMsgs || []).filter(m => m && !state.chatMessages.some(existing => existing.id === m.id));
+
+    if (!filtered.length) {
       if (!list.children.length) {
         const empty = document.createElement('div');
         empty.className = 'ch-empty';
@@ -1585,7 +1589,7 @@
     // Check if user is scrolled near bottom
     const isNearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 75;
 
-    newMsgs.forEach(msg => {
+    filtered.forEach(msg => {
       const prevMsg = state.chatMessages[state.chatMessages.length - 1];
       state.chatMessages.push(msg);
       if (msg.id > state.lastChatId) state.lastChatId = msg.id;
@@ -1605,6 +1609,95 @@
     }
   }
 
+  async function loadChatMessages(initial = false) {
+    const query = state.lastChatId ? `?after=${state.lastChatId}` : '';
+    const d = await apiGet('/chat' + query);
+    if (!d || !d.ok) return;
+    if (d.me && !state.user.username) state.user.username = d.me;
+    appendChatMessages(d.messages || [], initial, d.me, state.user.role);
+  }
+
+  function connectChatWS() {
+    if (state.chatWs && (state.chatWs.readyState === WebSocket.OPEN || state.chatWs.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+    if (state.chatWsReconnectTimer) {
+      clearTimeout(state.chatWsReconnectTimer);
+      state.chatWsReconnectTimer = null;
+    }
+
+    let ws;
+    try {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}/games/ws/chat`);
+    } catch (e) {
+      state.chatWsConnected = false;
+      if (state.isOpen && state.activeTab === 'chat') {
+        startChatPolling();
+      }
+      return;
+    }
+
+    state.chatWs = ws;
+
+    ws.onopen = () => {
+      state.chatWsConnected = true;
+      stopChatPolling();
+      if (state.chatWsPingTimer) clearInterval(state.chatWsPingTimer);
+      state.chatWsPingTimer = setInterval(() => {
+        if (state.chatWs && state.chatWs.readyState === WebSocket.OPEN) {
+          try { state.chatWs.send(JSON.stringify({ type: 'ping' })); } catch (_) {}
+        }
+      }, 25000);
+    };
+
+    ws.onmessage = e => {
+      let d;
+      try { d = JSON.parse(e.data); } catch (_) { return; }
+      if (!d || typeof d !== 'object') return;
+
+      if (d.type === 'chat_init') {
+        if (d.me && !state.user.username) state.user.username = d.me;
+        if (d.role) state.user.role = d.role;
+        appendChatMessages(d.messages || [], !state.lastChatId, d.me, d.role);
+      } else if (d.type === 'chat_msg' && d.message) {
+        appendChatMessages([d.message], false);
+      } else if (d.type === 'chat_del' && d.id) {
+        state.chatMessages = state.chatMessages.filter(m => m.id !== d.id);
+        const msgEl = document.querySelector(`.msg[data-id="${d.id}"]`);
+        if (msgEl) msgEl.remove();
+      } else if (d.type === 'chat_error') {
+        showToast(d.error || tr('err_generic'));
+      }
+    };
+
+    ws.onerror = () => {
+      // Fallback handled in onclose
+    };
+
+    ws.onclose = () => {
+      state.chatWsConnected = false;
+      state.chatWs = null;
+      if (state.chatWsPingTimer) {
+        clearInterval(state.chatWsPingTimer);
+        state.chatWsPingTimer = null;
+      }
+      // Фоллбэк на старый HTTP-поллинг, если WS недоступен или оборвался
+      if (state.isOpen && state.activeTab === 'chat') {
+        startChatPolling();
+        loadChatMessages();
+      }
+      if (!state.chatWsReconnectTimer) {
+        state.chatWsReconnectTimer = setTimeout(() => {
+          state.chatWsReconnectTimer = null;
+          if (state.isOpen && state.activeTab === 'chat') {
+            connectChatWS();
+          }
+        }, 5000);
+      }
+    };
+  }
+
   async function sendChatMessage() {
     const inp = document.getElementById('ch-text-inp');
     const sendBtn = document.getElementById('ch-send-btn');
@@ -1612,6 +1705,22 @@
 
     const text = (inp.value || '').trim();
     if (!text) return;
+
+    if (state.chatWsConnected && state.chatWs && state.chatWs.readyState === WebSocket.OPEN) {
+      try {
+        state.chatWs.send(JSON.stringify({ action: 'send', text }));
+        inp.value = '';
+        inp.style.height = '46px';
+        updateCharCounter('');
+        const list = document.getElementById('ch-list');
+        if (list) list.scrollTop = list.scrollHeight;
+        const newBtn = document.getElementById('ch-new-btn');
+        if (newBtn) newBtn.classList.remove('on');
+        return;
+      } catch (_) {
+        // Fallback to HTTP POST below if send throws
+      }
+    }
 
     if (sendBtn) sendBtn.disabled = true;
 
@@ -1633,9 +1742,20 @@
   }
 
   async function deleteChatMessage(id) {
+    if (state.chatWsConnected && state.chatWs && state.chatWs.readyState === WebSocket.OPEN) {
+      try {
+        state.chatWs.send(JSON.stringify({ action: 'delete', id }));
+        showToast(tr('ch_del_ok'));
+        state.chatMessages = state.chatMessages.filter(m => m.id !== id);
+        const msgEl = document.querySelector(`.msg[data-id="${id}"]`);
+        if (msgEl) msgEl.remove();
+        return;
+      } catch (_) {}
+    }
     const res = await apiPost('/chat/delete', { id });
     if (res.ok) {
       showToast(tr('ch_del_ok'));
+      state.chatMessages = state.chatMessages.filter(m => m.id !== id);
       const msgEl = document.querySelector(`.msg[data-id="${id}"]`);
       if (msgEl) msgEl.remove();
     } else {
@@ -1644,9 +1764,10 @@
   }
 
   function startChatPolling() {
+    if (state.chatWsConnected) return;
     stopChatPolling();
     state.chatPollTimer = setInterval(() => {
-      if (state.isOpen && state.activeTab === 'chat') {
+      if (state.isOpen && state.activeTab === 'chat' && !state.chatWsConnected) {
         loadChatMessages();
       }
     }, 3000);
