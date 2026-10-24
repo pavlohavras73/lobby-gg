@@ -10,6 +10,8 @@ from browser_reconnect import BASE, CHROMIUM, register  # тот же вход �
 from playwright.sync_api import sync_playwright
 
 ROUTES = {"g2048": "2048"}  # страницы, у которых маршрут отличается от имени файла
+# языки, кроме русского, которые должны работать; немецкий: LOBBY_LANGS=uk,en,de
+EXTRA = os.environ.get("LOBBY_LANGS", "uk,en").split(",")
 
 
 def texts(page):
@@ -29,22 +31,23 @@ def main(pages):
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)[:120]))
             by_lang = {}
-            for lang in ("ru", "uk", "en"):
+            for lang in ["ru"] + EXTRA:
                 page.goto(f"{BASE}/static/{name}.html")
                 page.evaluate("l => localStorage.setItem('jg_lang', l)", lang)
                 page.reload()
                 page.wait_for_timeout(400)
                 by_lang[lang] = texts(page)
-            ru, uk, en = by_lang["ru"], by_lang["uk"], by_lang["en"]
-            changed_en = sum(1 for k in ru if ru[k] and en.get(k) and en[k] != ru[k])
-            changed_uk = sum(1 for k in ru if ru[k] and uk.get(k) and uk[k] != ru[k])
+            ru = by_lang["ru"]
             total = len(ru)
-            # большинство текстов должно меняться (эмодзи/названия-бренды могут совпадать)
-            ok = not errors and total > 0 and changed_en >= total * 0.6 and changed_uk >= total * 0.4
+            changed = {l: sum(1 for k in ru if ru[k] and by_lang[l].get(k) and by_lang[l][k] != ru[k]) for l in EXTRA}
+            # большинство текстов должно меняться (эмодзи/бренды могут совпадать); украинский ближе к русскому
+            need = {l: (0.4 if l == "uk" else 0.6) for l in EXTRA}
+            ok = not errors and total > 0 and all(changed[l] >= total * need[l] for l in EXTRA)
             ok_all.append(ok)
-            print(("✅" if ok else "❌"), f"{name}: элементов {total}, изменилось en {changed_en}, uk {changed_uk}"
+            last = EXTRA[-1]
+            print(("✅" if ok else "❌"), f"{name}: элементов {total}, изменилось " + ", ".join(f"{l} {changed[l]}" for l in EXTRA)
                   + (f" | JS-ошибки: {errors[:2]}" if errors else "")
-                  + f" | пример en: {next((en[k] for k in en if en[k] != ru.get(k)), '')[:40]!r}")
+                  + f" | пример {last}: {next((by_lang[last][k] for k in by_lang[last] if by_lang[last][k] != ru.get(k)), '')[:40]!r}")
             ctx.close()
         browser.close()
     print(f"\nИтого: {sum(ok_all)}/{len(ok_all)}")

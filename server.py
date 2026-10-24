@@ -65,6 +65,10 @@ def _auth_db():
     if not _auth_db_initialized:
         con.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, salt TEXT, pwhash TEXT, "
                     "role TEXT DEFAULT 'member', created_at TEXT)")
+        # версия сессий: смена пароля увеличивает её и тем самым отзывает все старые cookie аккаунта
+        cols = [r[1] for r in con.execute("PRAGMA table_info(users)")]
+        if "sess_ver" not in cols:
+            con.execute("ALTER TABLE users ADD COLUMN sess_ver INTEGER DEFAULT 0")
         con.commit()
         _auth_db_initialized = True
     return con
@@ -80,28 +84,50 @@ def _seed_root():
     con = _auth_db()
     if not con.execute("SELECT 1 FROM users WHERE username=?", (user,)).fetchone():
         salt = secrets.token_hex(16)
-        con.execute("INSERT INTO users VALUES (?,?,?,?,?)",
+        con.execute("INSERT INTO users (username, salt, pwhash, role, created_at) VALUES (?,?,?,?,?)",
                     (user, salt, _hash_pw(pw, salt), "root",
                      __import__("datetime").datetime.now().isoformat()))
         con.commit()
     con.close()
 _seed_root()
 
+_SESS_VER = {}  # username -> версия сессий (кэш; сервер — один процесс)
+
+def _sess_ver(username):
+    """Версия сессий аккаунта; None — аккаунта нет (удалён)."""
+    if username in _SESS_VER:
+        return _SESS_VER[username]
+    con = _auth_db()
+    try:
+        row = con.execute("SELECT COALESCE(sess_ver, 0) FROM users WHERE username=?", (username,)).fetchone()
+    finally:
+        con.close()
+    ver = row[0] if row else None
+    _SESS_VER[username] = ver
+    return ver
+
+def _sign_session(username, role, exp, ver):
+    # версия 0 подписывается в старом формате — уже выданные cookie остаются действительными
+    payload = f"{username}|{role}|{exp}" + (f"|v{ver}" if ver else "")
+    return hmac.new(_auth_secret().encode(), payload.encode(), hashlib.sha256).hexdigest()
+
 def _make_session(username, role):
     exp = str(int(time.time()) + 60*60*24*90)  # 90 дней
-    payload = f"{username}|{role}|{exp}"
-    sig = hmac.new(_auth_secret().encode(), payload.encode(), hashlib.sha256).hexdigest()
-    return f"{payload}|{sig}"
+    sig = _sign_session(username, role, exp, _sess_ver(username) or 0)
+    return f"{username}|{role}|{exp}|{sig}"
 
 def _check_session(token):
     if not token: return None
     parts = token.split("|")
     if len(parts) != 4: return None
     username, role, exp, sig = parts
-    payload = f"{username}|{role}|{exp}"
-    good = hmac.new(_auth_secret().encode(), payload.encode(), hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(good, sig): return None
-    if int(exp) < time.time(): return None
+    try:
+        if int(exp) < time.time(): return None
+    except ValueError:
+        return None
+    ver = _sess_ver(username)
+    if ver is None: return None  # аккаунт удалён
+    if not hmac.compare_digest(_sign_session(username, role, exp, ver), sig): return None
     return {"username": username, "role": role}
 
 def current_user(request: Request):
@@ -1239,7 +1265,7 @@ async def auth_register(request: Request, response: Response):
     if con.execute("SELECT 1 FROM users WHERE username=?", (username,)).fetchone():
         con.close(); return JSONResponse({"ok": False, "error": "Это имя уже занято"})
     salt = secrets.token_hex(16)
-    con.execute("INSERT INTO users VALUES (?,?,?,?,?)",
+    con.execute("INSERT INTO users (username, salt, pwhash, role, created_at) VALUES (?,?,?,?,?)",
                 (username, salt, _hash_pw(password, salt), "member",
                  __import__("datetime").datetime.now().isoformat()))
     con.commit(); con.close()
@@ -1457,12 +1483,17 @@ async def change_password(request: Request):
         if not row or _hash_pw(old, row[0]) != row[1]:
             return JSONResponse({"ok": False, "error": "Старый пароль неверный"})
         salt = secrets.token_hex(16)
-        con.execute("UPDATE users SET salt=?, pwhash=? WHERE username=?",
+        con.execute("UPDATE users SET salt=?, pwhash=?, sess_ver=COALESCE(sess_ver, 0)+1 WHERE username=?",
                     (salt, _hash_pw(new, salt), u["username"]))
         con.commit()
     finally:
         con.close()
-    return JSONResponse({"ok": True})
+    _SESS_VER.pop(u["username"], None)  # все старые cookie аккаунта перестают действовать
+    resp = JSONResponse({"ok": True})
+    # это устройство остаётся в аккаунте с новой cookie
+    resp.set_cookie("jsession", _make_session(u["username"], u["role"]), max_age=60*60*24*90,
+                    httponly=True, secure=True, samesite="lax", path="/games")
+    return resp
 
 
 @app.get("/users/search")

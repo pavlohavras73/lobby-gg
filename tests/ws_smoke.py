@@ -3,7 +3,7 @@
 Запуск всего набора с временным сервером: bash tests/run_smoke.sh
 Против другого адреса: LOBBY_BASE=http://host:port LOBBY_WS=ws://host:port/ws python tests/ws_smoke.py
 """
-import asyncio, json, os, sys, urllib.request, random
+import asyncio, json, os, sys, urllib.request, urllib.error, random
 
 import websockets
 
@@ -452,6 +452,33 @@ async def test_lobby_grace(c1, c2):
     await a2.close()
 
 
+def test_password_change_revokes_sessions():
+    """Смена пароля выкидывает все старые сессии аккаунта, а это устройство остаётся в аккаунте."""
+    name = f"p{random.randint(10000, 99999)}"
+    def call(path, body=None, cookie=None):
+        req = urllib.request.Request(BASE + path, data=json.dumps(body).encode() if body is not None else None,
+                                     headers={"Content-Type": "application/json", **({"Cookie": cookie} if cookie else {})})
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, r.headers.get("set-cookie", "").split(";")[0], json.loads(r.read() or b"{}")
+        except urllib.error.HTTPError as e:
+            return e.code, "", {}
+    _, dev1, _ = call("/auth/register", {"username": name, "password": "old-pass-1"})
+    _, dev2, _ = call("/auth/login", {"username": name, "password": "old-pass-1"})
+    before = call("/auth/check", cookie=dev2)[0]
+    st, dev1_new, res = call("/me/password", {"old": "old-pass-1", "new": "new-pass-2"}, cookie=dev1)
+    after_dev2 = call("/auth/check", cookie=dev2)[0]
+    after_dev1_old = call("/auth/check", cookie=dev1)[0]
+    after_dev1_new = call("/auth/check", cookie=dev1_new)[0] if dev1_new else None
+    relogin = call("/auth/login", {"username": name, "password": "new-pass-2"})[0]
+    check("Пароль: до смены второе устройство в аккаунте", before == 200, f"({before})")
+    check("Пароль: смена прошла и выдала новую cookie этому устройству", st == 200 and res.get("ok") and dev1_new, f"({st}, {res})")
+    check("Пароль: второе устройство выкинуто (старая cookie недействительна)", after_dev2 == 401, f"({after_dev2})")
+    check("Пароль: старая cookie этого же устройства тоже недействительна", after_dev1_old == 401, f"({after_dev1_old})")
+    check("Пароль: новая cookie работает, вход с новым паролем работает", after_dev1_new == 200 and relogin == 200,
+          f"({after_dev1_new}, {relogin})")
+
+
 async def main():
     u = [register(f"t{random.randint(10000, 99999)}{i}") for i in range(2)]
     c = [u[0]] * 5
@@ -464,6 +491,7 @@ async def main():
     await test_room_chat(u[0], u[1])
     await test_global_chat(u[0], u[1])
     await test_lobby_grace(u[0], u[1])
+    test_password_change_revokes_sessions()
     await test_concurrency_durak_and_uno(u[0], u[1])
     await test_quickplay(u[0], u[1])
     check_server_log()
