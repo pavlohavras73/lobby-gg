@@ -14,7 +14,7 @@ import urllib.request
 from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("LOBBY_BASE", "http://127.0.0.1:18090")
-PARTY = {"quoridor", "durak", "uno", "poker", "mafia", "bunker", "spy", "alias"}
+PARTY = set() if os.environ.get("NO_START") else {"quoridor", "durak", "uno", "poker", "mafia", "bunker", "spy", "alias"}  # NO_START=1 — рвём связь ещё в лобби
 CHROMIUM = os.environ.get("CHROMIUM", "/usr/bin/chromium")
 
 

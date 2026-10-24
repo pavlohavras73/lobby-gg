@@ -17,6 +17,44 @@
     chess: true,
   };
 
+  var QP_I18N = {
+    uk: {
+      btn: "⚡ Швидка гра",
+      searching: "Шукаємо суперника…",
+      cancel: "Скасувати",
+      timeout: "Суперник поки не знайшовся",
+      bot: "🤖 Грати з ботом",
+      retry: "🔄 Шукати далі"
+    },
+    ru: {
+      btn: "⚡ Быстрая игра",
+      searching: "Ищем соперника…",
+      cancel: "Отмена",
+      timeout: "Соперник пока не нашёлся",
+      bot: "🤖 Играть с ботом",
+      retry: "🔄 Искать дальше"
+    },
+    en: {
+      btn: "⚡ Quick play",
+      searching: "Searching for opponent…",
+      cancel: "Cancel",
+      timeout: "No opponent found yet",
+      bot: "🤖 Play with bot",
+      retry: "🔄 Keep searching"
+    }
+  };
+
+  function getLang() {
+    return (window.LobbyI18n && typeof window.LobbyI18n.lang === "function")
+      ? window.LobbyI18n.lang()
+      : (localStorage.getItem("jg_lang") || "ru");
+  }
+
+  function qpT(key) {
+    var l = getLang();
+    return (QP_I18N[l] && QP_I18N[l][key]) || QP_I18N.ru[key] || key;
+  }
+
   var activeSocket = null;
   var hookedSockets = typeof WeakSet !== "undefined" ? new WeakSet() : [];
   var qpState = "idle"; // "idle" | "searching" | "timeout"
@@ -27,6 +65,21 @@
   var qpStatusText = null;
   var qpSearchRow = null;
   var qpTimeoutRow = null;
+
+  function updateQpLabels() {
+    if (qpBtn) qpBtn.textContent = qpT("btn");
+    if (qpStatusText && qpState === "searching") qpStatusText.textContent = qpT("searching");
+    var cancelBtn = document.getElementById("qp-cancel-btn");
+    if (cancelBtn) cancelBtn.textContent = qpT("cancel");
+    if (qpTimeoutRow) {
+      var tTitle = qpTimeoutRow.querySelector(".qp-status-line");
+      if (tTitle) tTitle.textContent = qpT("timeout");
+    }
+    var botBtn = document.getElementById("qp-bot-btn");
+    if (botBtn) botBtn.textContent = qpT("bot");
+    var retryBtn = document.getElementById("qp-retry-btn");
+    if (retryBtn) retryBtn.textContent = qpT("retry");
+  }
 
   function detectGame() {
     var parts = (location.pathname || "").split("/").filter(Boolean);
@@ -48,7 +101,8 @@
       } catch (_) {}
       return val.slice(0, 20);
     }
-    return "Игрок";
+    var l = getLang();
+    return l === "uk" ? "Гравець" : (l === "en" ? "Player" : "Игрок");
   }
 
   function getSelectedBotDiff() {
@@ -143,6 +197,7 @@
   function setUIState(state) {
     qpState = state;
     if (!qpBox) return;
+    updateQpLabels();
     if (state === "idle") {
       qpBox.classList.add("hide");
       if (qpBtn) qpBtn.disabled = false;
@@ -150,7 +205,7 @@
       qpBox.classList.remove("hide");
       qpSearchRow.classList.remove("hide");
       qpTimeoutRow.classList.add("hide");
-      qpStatusText.textContent = "Ищем соперника…";
+      if (qpStatusText) qpStatusText.textContent = qpT("searching");
       if (qpBtn) qpBtn.disabled = true;
     } else if (state === "timeout") {
       qpBox.classList.remove("hide");
@@ -217,7 +272,7 @@
     qpBtn.type = "button";
     qpBtn.id = "qp-btn";
     qpBtn.className = "qp-fast-btn";
-    qpBtn.textContent = "⚡ Быстрая игра";
+    qpBtn.textContent = qpT("btn");
     qpBtn.onclick = startQuickPlay;
     row.appendChild(qpBtn);
 
@@ -235,7 +290,7 @@
     spinner.className = "qp-spinner";
     qpStatusText = document.createElement("span");
     qpStatusText.id = "qp-status-text";
-    qpStatusText.textContent = "Ищем соперника…";
+    qpStatusText.textContent = qpT("searching");
     statusLine.appendChild(spinner);
     statusLine.appendChild(qpStatusText);
 
@@ -243,7 +298,7 @@
     cancelBtn.type = "button";
     cancelBtn.id = "qp-cancel-btn";
     cancelBtn.className = "sec";
-    cancelBtn.textContent = "Отмена";
+    cancelBtn.textContent = qpT("cancel");
     cancelBtn.onclick = cancelQuickPlay;
 
     qpSearchRow.appendChild(statusLine);
@@ -256,7 +311,7 @@
 
     var timeoutTitle = document.createElement("div");
     timeoutTitle.className = "qp-status-line";
-    timeoutTitle.textContent = "Соперник пока не нашёлся";
+    timeoutTitle.textContent = qpT("timeout");
 
     var timeoutActions = document.createElement("div");
     timeoutActions.className = "row qp-timeout-actions";
@@ -264,14 +319,14 @@
     var botBtn = document.createElement("button");
     botBtn.type = "button";
     botBtn.id = "qp-bot-btn";
-    botBtn.textContent = "🤖 Играть с ботом";
+    botBtn.textContent = qpT("bot");
     botBtn.onclick = playWithBotAfterTimeout;
 
     var retryBtn = document.createElement("button");
     retryBtn.type = "button";
     retryBtn.id = "qp-retry-btn";
     retryBtn.className = "sec";
-    retryBtn.textContent = "🔄 Искать дальше";
+    retryBtn.textContent = qpT("retry");
     retryBtn.onclick = startQuickPlay;
 
     timeoutActions.appendChild(botBtn);
@@ -368,6 +423,12 @@
     WrappedWS.CLOSED = OrigWS.CLOSED;
     window.WebSocket = WrappedWS;
   }
+
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.closest && e.target.closest("#langbar, .langbar")) {
+      updateQpLabels();
+    }
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", ensureDOM);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>4 в ряд — Lobby.gg</title>
+<title data-i18n="title">4 в ряд — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -25,27 +25,32 @@
   .turn{text-align:center;font-size:16px;font-weight:700;margin:8px 0}
   .me{color:var(--crimson)}
   .dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin:0 4px}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🔴 4 в ряд — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Собери <b>4 свои фишки в ряд</b> — по горизонтали, вертикали ИЛИ по диагонали (по косой тоже считается!). Тапай колонку сверху (1–7), фишка падает вниз. Ходите по очереди. Кто первый собрал 4 — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>🔴 4 В РЯД</h1><div class="sub">собери 4 фишки в линию · на двоих</div>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔴 4 в ряд — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Собери <b>4 свои фишки в ряд</b> — по горизонтали, вертикали ИЛИ по диагонали (по косой тоже считается!). Тапай колонку сверху (1–7), фишка падает вниз. Ходите по очереди. Кто первый собрал 4 — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">🔴 4 В РЯД</h1><div class="sub" data-i18n="page_sub">собери 4 фишки в линию · на двоих</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 
 <div id="home" class="card" style="max-width:380px;margin:0 auto">
-  <input id="name" placeholder="Твоё имя" maxlength="20">
-  <button onclick="create()">Создать игру</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
-  <button class="sec" onclick="join()">Войти по коду</button>
-  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div>
+  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="name_ph">
+  <button onclick="create()" data-i18n="create_btn">Создать игру</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph">
+  <button class="sec" onclick="join()" data-i18n="join_btn">Войти по коду</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" data-i18n="back_btn">← все игры</a></div>
 </div>
 
 <div id="lobby" class="card hide" style="max-width:380px;margin:0 auto;text-align:center">
-  <div class="sub">Код игры:</div><div class="code" id="lcode">----</div>
+  <div class="sub" data-i18n="room_code">Код игры:</div><div class="code" id="lcode">----</div>
   <div id="players"></div>
-  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div>
-  <div class="sub" id="waitmsg">Ждём второго игрока…</div>
+  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div>
+  <div class="sub" id="waitmsg" data-i18n="wait_msg">Ждём второго игрока…</div>
 </div>
 
 <div id="game" class="hide">
@@ -53,10 +58,11 @@
   <div class="colnums"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div></div>
   <div class="board" id="board"></div>
   <div id="overbox" class="card hide" style="max-width:380px;margin:10px auto;text-align:center">
-    <h1 id="overtext"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Новая партия</button>
+    <h1 id="overtext"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Новая партия</button>
   </div>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -64,6 +70,160 @@
 <script src="/games/static/quickplay.js"></script>
 <script>
 let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
+
+const UI = {
+  uk: {
+    title: "4 в ряд — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🔴 4 в ряд — правила",
+    rules_body: "Збери <b>4 свої фішки в ряд</b> — по горизонталі, вертикалі АБО діагоналі. Тапай колонку зверху (1–7), фішка падає вниз. Ходіть по черзі. Хто першим зібрав 4 — переміг.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "🎮 Ігри",
+    page_title: "🔴 4 В РЯД",
+    page_sub: "збери 4 фішки в лінію · на двох",
+    name_ph: "Твоє ім'я",
+    create_btn: "Створити гру",
+    code_ph: "КОД",
+    join_btn: "Увійти за кодом",
+    back_btn: "← всі ігри",
+    room_code: "Код гри:",
+    diff_easy: "🤖 Легкий",
+    diff_medium: "Середній",
+    diff_hard: "Складний",
+    add_bot_btn: "🤖 Додати",
+    wait_msg: "Чекаємо другого гравця…",
+    restart_btn: "Нова партія",
+    you_won: "🏆 Ти виграв!",
+    someone_won: "Переміг: {n}",
+    draw: "🤝 Нічия",
+    your_turn: "ТВІЙ ХІД",
+    your_turn_hint: " — тапни колонку",
+    turn_of: "Хід: {n}",
+    alert_code: "Код?"
+  },
+  ru: {
+    title: "4 в ряд — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🔴 4 в ряд — правила",
+    rules_body: "Собери <b>4 свои фишки в ряд</b> — по горизонтали, вертикали ИЛИ по диагонали (по косой тоже считается!). Тапай колонку сверху (1–7), фишка падает вниз. Ходите по очереди. Кто первый собрал 4 — победил.",
+    rules_ok: "Понятно 👍",
+    nav_games: "🎮 Игры",
+    page_title: "🔴 4 В РЯД",
+    page_sub: "собери 4 фишки в линию · на двоих",
+    name_ph: "Твоё имя",
+    create_btn: "Создать игру",
+    code_ph: "КОД",
+    join_btn: "Войти по коду",
+    back_btn: "← все игры",
+    room_code: "Код игры:",
+    diff_easy: "🤖 Лёгкий",
+    diff_medium: "Средний",
+    diff_hard: "Сложный",
+    add_bot_btn: "🤖 Добавить",
+    wait_msg: "Ждём второго игрока…",
+    restart_btn: "Новая партия",
+    you_won: "🏆 Ты выиграл!",
+    someone_won: "Победил: {n}",
+    draw: "🤝 Ничья",
+    your_turn: "ТВОЙ ХОД",
+    your_turn_hint: " — тапни колонку",
+    turn_of: "Ходит {n}",
+    alert_code: "Код?"
+  },
+  en: {
+    title: "Connect 4 — Lobby.gg",
+    rules_btn: "Rules",
+    rules_title: "🔴 Connect 4 — rules",
+    rules_body: "Connect <b>4 of your chips in a row</b> — horizontally, vertically OR diagonally. Tap a column from above (1–7), the chip drops down. Take turns. First to connect 4 wins.",
+    rules_ok: "Got it 👍",
+    nav_games: "🎮 Games",
+    page_title: "🔴 4 IN A ROW",
+    page_sub: "connect 4 chips in a row · 2 players",
+    name_ph: "Your name",
+    create_btn: "Create game",
+    code_ph: "CODE",
+    join_btn: "Join by code",
+    back_btn: "← all games",
+    room_code: "Game code:",
+    diff_easy: "🤖 Easy",
+    diff_medium: "Medium",
+    diff_hard: "Hard",
+    add_bot_btn: "🤖 Add",
+    wait_msg: "Waiting for second player…",
+    restart_btn: "New game",
+    you_won: "🏆 You won!",
+    someone_won: "Winner: {n}",
+    draw: "🤝 Draw",
+    your_turn: "YOUR TURN",
+    your_turn_hint: " — tap a column",
+    turn_of: "Turn: {n}",
+    alert_code: "Code?"
+  }
+};
+
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+
+function t(k, vars) {
+  let v = UI[LANG] && UI[LANG][k];
+  if (v === undefined) v = UI.ru[k] || k;
+  if (vars) {
+    for (const key in vars) {
+      v = v.replace('{' + key + '}', vars[key]);
+    }
+  }
+  return v;
+}
+
+const GT = {
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+};
+
+function T(s) {
+  if (s == null) return s;
+  if (LANG === 'ru') return s;
+  const e = GT[s];
+  return e && e[LANG] ? e[LANG] : (window.LobbyI18n ? LobbyI18n.T(s) : s);
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (st) {
+    const ob = document.getElementById('overbox');
+    if (st.winner) {
+      document.getElementById('overtext').textContent = st.winner === pid ? t('you_won') : t('someone_won', { n: st.names[st.winner] || '?' });
+    } else if (st.draw) {
+      document.getElementById('overtext').textContent = t('draw');
+    } else {
+      const myturn = (st.turn_pid === pid);
+      const myIdx = st.players.indexOf(pid);
+      document.getElementById('turninfo').innerHTML = myturn
+        ? '<span class="dot" style="background:' + (myIdx === 0 ? '#c40f23' : '#d99a10') + '"></span><span class="me">' + t('your_turn') + '</span>' + t('your_turn_hint')
+        : '<span class="dot" style="background:' + (st.players.indexOf(st.turn_pid) === 0 ? '#c40f23' : '#d99a10') + '"></span>' + t('turn_of', { n: st.names[st.turn_pid] || '?' });
+    }
+  }
+}
+
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+
+document.addEventListener('DOMContentLoaded', applyUI);
+
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
 function connect(cb){
@@ -78,7 +238,7 @@ function connect(cb){
   });
 }
 function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'c4'}));}
-function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:n,code:c}));}
+function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:n,code:c}));}
 function drop(col){if(st&&st.turn_pid===pid&&!st.winner&&!st.draw)send({action:'c4_drop',col:col});}
 function handle(m){
   if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_c4_code',m.code);}
@@ -96,14 +256,14 @@ function handle(m){
     document.getElementById('board').innerHTML=html;
     // статус
     const ob=document.getElementById('overbox');
-    if(m.winner){ob.classList.remove('hide');document.getElementById('overtext').textContent=m.winner===pid?'🏆 Ты выиграл!':'Победил: '+(m.names[m.winner]||'?');}
-    else if(m.draw){ob.classList.remove('hide');document.getElementById('overtext').textContent='🤝 Ничья';}
+    if(m.winner){ob.classList.remove('hide');document.getElementById('overtext').textContent=m.winner===pid?t('you_won'):t('someone_won',{n:m.names[m.winner]||'?'});}
+    else if(m.draw){ob.classList.remove('hide');document.getElementById('overtext').textContent=t('draw');}
     else{ob.classList.add('hide');
       document.getElementById('turninfo').innerHTML=myturn
-        ?'<span class="dot" style="background:'+(myIdx===0?'#c40f23':'#d99a10')+'"></span><span class="me">ТВОЙ ХОД</span> — тапни колонку'
-        :'<span class="dot" style="background:'+(m.players.indexOf(m.turn_pid)===0?'#c40f23':'#d99a10')+'"></span>Ходит '+(m.names[m.turn_pid]||'?');}
+        ?'<span class="dot" style="background:'+(myIdx===0?'#c40f23':'#d99a10')+'"></span><span class="me">'+t('your_turn')+'</span>'+t('your_turn_hint')
+        :'<span class="dot" style="background:'+(m.players.indexOf(m.turn_pid)===0?'#c40f23':'#d99a10')+'"></span>'+t('turn_of',{n:m.names[m.turn_pid]||'?'});}
   }
-  else if(m.type==='error'){alert(m.msg);}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 const autoCode = sessionStorage.getItem('jg_c4_code');
 if (autoCode) {

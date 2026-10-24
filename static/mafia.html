@@ -120,6 +120,7 @@
   <button class="sec" onclick="send({action:'back'})" data-i18n="btn_back">← В лобби</button>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -197,7 +198,7 @@ const GT={
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 // перевод строк лога по шаблонам
 function logTr(s){
  if(LANG==='ru'||!s)return s;

@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>Lobby.gg Learn — Микрообучение</title>
+  <title data-i18n="title">Lobby.gg Learn — Микрообучение</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
   <link rel="stylesheet" href="/games/static/theme.css">
   <style>
+    .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+    .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+    .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
     :root {
       --green: #00e676;
       --green-glow: rgba(0, 230, 118, 0.4);
@@ -746,19 +749,23 @@
     </div>
   </header>
 
+  <div class="langbar" id="langbar" style="margin-top:12px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+  <div class="sub" style="text-align:center;margin:6px 0 14px;" data-i18n="learn_sub">Короткие уроки каждый день · прокачай навыки</div>
+
   <div class="learn-container">
 
     <!-- ════ CATALOG VIEW ════ -->
     <div id="catalog-view">
       <!-- Track Tabs -->
       <div class="track-tabs">
-        <button class="track-tab active" onclick="app.switchTrack('english', this)">🇬🇧 English</button>
-        <button class="track-tab" onclick="app.switchTrack('cs', this)">💻 CS50</button>
-        <button class="track-tab" onclick="app.switchTrack('german', this)">🇩🇪 Deutsch</button>
+        <button class="track-tab active" onclick="app.switchTrack('english', this)" data-i18n="track_english">🇬🇧 Английский</button>
+        <button class="track-tab" onclick="app.switchTrack('cs', this)" data-i18n="track_cs">💻 Программирование</button>
+        <button class="track-tab" onclick="app.switchTrack('german', this)" data-i18n="track_german">🇩🇪 Немецкий</button>
       </div>
 
       <!-- Course Content Container -->
       <div id="course-container"></div>
+      <div class="sub" style="margin-top:20px;text-align:center;"><a href="/games" data-i18n="back_btn">← все игры</a></div>
     </div>
 
     <!-- ════ LESSON RUNNER VIEW ════ -->
@@ -781,21 +788,21 @@
     <div id="victory-view" class="stage-card hide">
       <div class="victory-box">
         <div class="victory-icon">🏆</div>
-        <div class="victory-title">Урок пройден!</div>
-        <div class="sub">Ты прокачал свои скиллы и закрепил базу.</div>
+        <div class="victory-title" data-i18n="victory_title">Урок пройден!</div>
+        <div class="sub" data-i18n="victory_sub">Ты прокачал свои скиллы и закрепил базу.</div>
 
         <div class="stats-row">
           <div class="stat-card">
-            <div class="stat-lbl">Опыт</div>
+            <div class="stat-lbl" data-i18n="stat_xp">Опыт</div>
             <div class="stat-val" style="color: #ffd600;">+<span id="vic-xp">40</span> XP</div>
           </div>
           <div class="stat-card">
-            <div class="stat-lbl">Ударный режим</div>
+            <div class="stat-lbl" data-i18n="stat_streak">Ударный режим</div>
             <div class="stat-val" style="color: #ff9100;">🔥 <span id="vic-streak">1</span></div>
           </div>
         </div>
 
-        <button class="primary-btn" style="width: 100%;" onclick="app.finishLessonToCatalog()">
+        <button class="primary-btn" style="width: 100%;" onclick="app.finishLessonToCatalog()" data-i18n="victory_continue">
           Продолжить
         </button>
       </div>
@@ -807,10 +814,111 @@
   <div id="feedback-sheet" class="sheet">
     <div class="sheet-title" id="sheet-title">Красава!</div>
     <div class="sheet-desc" id="sheet-desc">Чистая правда без преувеличений.</div>
-    <button class="primary-btn" id="sheet-next-btn" onclick="app.nextStep()">Дальше</button>
+    <button class="primary-btn" id="sheet-next-btn" onclick="app.nextStep()" data-i18n="sheet_next">Дальше</button>
   </div>
 
+  <script src="/games/static/i18n_common.js"></script>
   <script>
+    const UI = {
+      uk: {
+        title: "Lobby.gg Learn — Мікронавчання",
+        learn_sub: "Короткі уроки щодня · прокачай навички",
+        track_english: "🇬🇧 Англійська",
+        track_cs: "💻 Програмування",
+        track_german: "🇩🇪 Німецька",
+        back_btn: "← всі ігри",
+        victory_title: "Урок завершено!",
+        victory_sub: "Ти покращив свої навички та закріпив базу.",
+        stat_xp: "Досвід",
+        stat_streak: "Ударний режим",
+        victory_continue: "Продовжити",
+        sheet_next: "Далі",
+        no_courses: "У цьому напрямку поки немає доступних курсів.",
+        load_lesson_err: "Не вдалося завантажити урок.",
+        confirm_exit: "Вийти з уроку? Прогрес поточної сесії не збережеться."
+      },
+      ru: {
+        title: "Lobby.gg Learn — Микрообучение",
+        learn_sub: "Короткие уроки каждый день · прокачай навыки",
+        track_english: "🇬🇧 Английский",
+        track_cs: "💻 Программирование",
+        track_german: "🇩🇪 Немецкий",
+        back_btn: "← все игры",
+        victory_title: "Урок пройден!",
+        victory_sub: "Ты прокачал свои скиллы и закрепил базу.",
+        stat_xp: "Опыт",
+        stat_streak: "Ударный режим",
+        victory_continue: "Продолжить",
+        sheet_next: "Дальше",
+        no_courses: "В этом направлении пока нет доступных курсов.",
+        load_lesson_err: "Не удалось загрузить урок.",
+        confirm_exit: "Выйти из урока? Прогресс текущей сессии не сохранится."
+      },
+      en: {
+        title: "Lobby.gg Learn — Microlearning",
+        learn_sub: "Bite-sized daily lessons · level up your skills",
+        track_english: "🇬🇧 English",
+        track_cs: "💻 Computer Science",
+        track_german: "🇩🇪 German",
+        back_btn: "← all games",
+        victory_title: "Lesson completed!",
+        victory_sub: "You boosted your skills and locked in the basics.",
+        stat_xp: "Experience",
+        stat_streak: "Streak",
+        victory_continue: "Continue",
+        sheet_next: "Next",
+        no_courses: "No courses available in this track yet.",
+        load_lesson_err: "Failed to load lesson.",
+        confirm_exit: "Exit lesson? Progress for this session will not be saved."
+      }
+    };
+
+    let LANG = localStorage.getItem('jg_lang') || 'ru';
+    if (!UI[LANG]) LANG = 'ru';
+
+    function t(k, vars) {
+      let v = UI[LANG] && UI[LANG][k];
+      if (v === undefined) v = UI.ru[k] || k;
+      if (vars) {
+        for (const key in vars) {
+          v = v.replace('{' + key + '}', vars[key]);
+        }
+      }
+      return v;
+    }
+
+    const GT = {};
+
+    function T(s) {
+      if (s == null) return s;
+      if (LANG === 'ru') return s;
+      const e = GT[s];
+      return e && e[LANG] ? e[LANG] : (window.LobbyI18n ? LobbyI18n.T(s) : s);
+    }
+
+    function applyUI() {
+      document.documentElement.lang = LANG;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = t(el.dataset.i18n);
+        if (typeof v !== 'string') return;
+        if (el.tagName.toLowerCase() === 'title') document.title = v;
+        else el.textContent = v;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+      document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+      document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+    }
+
+    document.getElementById('langbar').addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      LANG = b.dataset.lang;
+      localStorage.setItem('jg_lang', LANG);
+      applyUI();
+    });
+
+    document.addEventListener('DOMContentLoaded', applyUI);
+
     // ══════════════════════════════════════════════════════════════
     // STATE MACHINE & CONTROLLER
     // ══════════════════════════════════════════════════════════════
@@ -871,7 +979,7 @@
 
         const trackCourses = this.coursesData.filter(c => c.track === this.currentTrack);
         if (trackCourses.length === 0) {
-          container.innerHTML = `<div class="sub">В этом направлении пока нет доступных курсов.</div>`;
+          container.innerHTML = `<div class="sub">${t('no_courses')}</div>`;
           return;
         }
 
@@ -949,7 +1057,7 @@
         try {
           const res = await fetch(`/learn/api/lesson/${lessonId}`);
           const data = await res.json();
-          if (!data.ok) return alert('Не удалось загрузить урок.');
+          if (!data.ok) return alert(t('load_lesson_err'));
 
           this.activeLesson = data.lesson;
           this.stepsQueue = [...this.activeLesson.steps];
@@ -968,7 +1076,7 @@
       },
 
       confirmExitLesson() {
-        if (confirm("Выйти из урока? Прогресс текущей сессии не сохранится.")) {
+        if (confirm(t('confirm_exit'))) {
           this.showCatalog();
         }
       },

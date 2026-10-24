@@ -412,6 +412,7 @@ def spy_packs_payload(room):
 rooms = {}  # code -> {"players": {pid: {"name","ws","role","alive"}}, "host": pid, "state": "lobby", "game": "spy"}
 
 ROOM_RECONNECT_GRACE = 120  # сек: сколько ждать возвращения людей в идущую игру, прежде чем удалить комнату
+LOBBY_RECONNECT_GRACE = int(os.environ.get("LOBBY_RECONNECT_GRACE", "60"))  # сек: держим место в лобби после обрыва связи
 
 
 def room_lock(room):
@@ -426,6 +427,29 @@ def _cancel_bots(room):
     task = room.pop("_bot_task", None)
     if task is not None and not task.done():
         task.cancel()
+
+
+async def _drop_lobby_player_if_gone(room, pid, delay):
+    """Лобби: если игрок не вернулся за delay секунд — освобождаем место, передаём хозяина, при необходимости убираем комнату."""
+    await asyncio.sleep(delay)
+    async with room_lock(room):
+        if rooms.get(room["code"]) is not room or room.get("state") == "playing":
+            return  # комнату убрали, код занят новой, или игра уже идёт (там своя логика)
+        p = room["players"].get(pid)
+        if not p or p.get("ws"):
+            return  # вернулся или уже удалён
+        room["players"].pop(pid, None)
+        humans = [q for q, pl in room["players"].items() if not pl.get("bot")]
+        if not humans:
+            _cancel_bots(room)
+            rooms.pop(room["code"], None)
+            return
+        if room["host"] == pid or room["host"] not in room["players"]:
+            room["host"] = next((q for q in humans if room["players"][q].get("ws")), humans[0])
+        try:
+            await broadcast(room, lobby_state(room))
+        except Exception:
+            pass
 
 
 async def _drop_room_if_abandoned(room, delay):
@@ -565,7 +589,8 @@ async def broadcast(room, payload):
 
 def lobby_state(room):
     return {"type": "lobby", "code": room["code"], "host": room["host"],
-            "players": [{"id": pid, "name": p["name"], "bot": bool(p.get("bot"))} for pid, p in room["players"].items()],
+            "players": [{"id": pid, "name": p["name"], "bot": bool(p.get("bot")),
+                         "online": bool(p.get("bot") or p.get("ws"))} for pid, p in room["players"].items()],
             "game": room.get("game", "spy")}
 
 
@@ -3436,6 +3461,9 @@ async def ws(websocket: WebSocket):
 
                     elif act == "start" and room and room["host"] == pid:
                         _cancel_bots(room)
+                        # игроки, отвалившиеся в лобби и не вернувшиеся, в игру не попадают
+                        for q in [q for q, pl in room["players"].items() if not pl.get("bot") and not pl.get("ws")]:
+                            room["players"].pop(q, None)
                         if room.get("game") == "spy":
                             await start_spy(room, msg.get("timer", 5))
                         elif room.get("game") == "bunker":
@@ -4123,18 +4151,14 @@ async def ws(websocket: WebSocket):
                             except Exception:
                                 pass
                     else:
-                        # В лобби — обычное удаление
-                        room["players"].pop(pid, None)
-                        if not any(not pl.get("bot") for pl in room["players"].values()):
-                            _cancel_bots(room)
-                            rooms.pop(room["code"], None)   # остались одни боты (или никого) — комнату убираем
-                        else:
-                            if room["host"] == pid:
-                                room["host"] = next(iter(room["players"]))
-                            try:
-                                await broadcast(room, lobby_state(room))
-                            except Exception:
-                                pass
+                        # В лобби: не выкидываем сразу — держим место LOBBY_RECONNECT_GRACE секунд
+                        # (моргнул интернет / обновил страницу). Вернётся тем же аккаунтом — сядет на своё место.
+                        room["players"][pid]["ws"] = None
+                        asyncio.create_task(_drop_lobby_player_if_gone(room, pid, LOBBY_RECONNECT_GRACE))
+                        try:
+                            await broadcast(room, lobby_state(room))
+                        except Exception:
+                            pass
 
 
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")

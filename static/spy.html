@@ -74,6 +74,7 @@
   <button id="againbtn" class="hide" onclick="send({action:'back'})" data-i18n="btn_again">Ещё раунд</button>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -173,7 +174,7 @@ const GT={
 
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 
 let ws = null, pid = null, isHost = false, lastRole = null, lastReveal = null, lastPacks = null, roomCode = null, firstOpenCb = null, opened = false;
 function applyUI(){

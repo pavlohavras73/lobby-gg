@@ -417,6 +417,41 @@ def check_server_log():
           f"(uno_play ожидаемых: {len(action_errs)}, неожиданных: {len(unexpected)}, крашей: {len(crashes)})")
 
 
+async def test_lobby_grace(c1, c2):
+    """Обрыв связи в лобби: место держится, вернулся — на прежнее место; хозяин остаётся хозяином."""
+    grace = float(os.environ.get("LOBBY_RECONNECT_GRACE", "60"))
+    a = await websockets.connect(WS, additional_headers={"Cookie": c1})
+    await a.send(json.dumps({"action": "create", "name": "Хозяин", "game": "durak"}))
+    ja, _ = await recv_until(a, lambda m: m.get("type") == "joined")
+    code = ja["code"]
+    b = await websockets.connect(WS, additional_headers={"Cookie": c2})
+    await b.send(json.dumps({"action": "join", "name": "Гость", "code": code}))
+    jb, _ = await recv_until(b, lambda m: m.get("type") == "joined")
+    await b.close()                                          # у гостя моргнул интернет
+    lob, _ = await recv_until(a, lambda m: m.get("type") == "lobby" and any(p["id"] == jb["pid"] and not p.get("online") for p in m["players"]), timeout=5)
+    check("Лобби: гость отвалился — остаётся в списке «не в сети»", lob is not None)
+    b2 = await websockets.connect(WS, additional_headers={"Cookie": c2})
+    await b2.send(json.dumps({"action": "join", "name": "Гость", "code": code}))
+    jb2, last = await recv_until(b2, lambda m: m.get("type") in ("joined", "error"))
+    check("Лобби: гость вернулся на прежнее место", jb2 and jb2.get("type") == "joined" and jb2["pid"] == jb["pid"],
+          f"(было {jb['pid']}, стало {jb2 and jb2.get('pid')})")
+    await a.close()                                          # теперь моргнул хозяин
+    await asyncio.sleep(0.5)
+    a2 = await websockets.connect(WS, additional_headers={"Cookie": c1})
+    await a2.send(json.dumps({"action": "join", "name": "Хозяин", "code": code}))
+    ja2, _ = await recv_until(a2, lambda m: m.get("type") == "joined")
+    lob2, _ = await recv_until(a2, lambda m: m.get("type") == "lobby", timeout=5)
+    check("Лобби: хозяин вернулся — по-прежнему хозяин", ja2 and ja2["pid"] == ja["pid"] and lob2 and lob2.get("host") == ja["pid"],
+          f"(host={lob2 and lob2.get('host')}, хозяин={ja['pid']})")
+    if grace <= 10:                                          # быстрый режим тестов: проверяем освобождение места
+        await b2.close()
+        gone, _ = await recv_until(a2, lambda m: m.get("type") == "lobby" and all(p["id"] != jb["pid"] for p in m["players"]), timeout=grace + 5)
+        check(f"Лобби: не вернулся за {grace:.0f} с — место освобождено", gone is not None)
+    else:
+        await b2.close()
+    await a2.close()
+
+
 async def main():
     u = [register(f"t{random.randint(10000, 99999)}{i}") for i in range(2)]
     c = [u[0]] * 5
@@ -428,6 +463,7 @@ async def main():
     test_learn_forged_cookie(c[4])
     await test_room_chat(u[0], u[1])
     await test_global_chat(u[0], u[1])
+    await test_lobby_grace(u[0], u[1])
     await test_concurrency_durak_and_uno(u[0], u[1])
     await test_quickplay(u[0], u[1])
     check_server_log()

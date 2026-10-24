@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Шахматы — Lobby.gg</title>
+<title data-i18n="title">Шахматы — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -20,25 +20,30 @@
   .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
   .cap-row{display:flex;flex-wrap:wrap;gap:2px;min-height:22px;max-width:380px;margin:4px auto;padding:0 6px}
   .cap-row img{width:18px;height:18px;opacity:.8}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style></head><body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">♟️ Шахматы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Классические шахматы: рокировка, взятие на проходе, превращение пешки. Цель — поставить <b>мат</b> королю соперника.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>♟ ШАХМАТЫ</h1><div class="sub">классика · на двоих</div>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">♟️ Шахматы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Классические шахматы: рокировка, взятие на проходе, превращение пешки. Цель — поставить <b>мат</b> королю соперника.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">♟ ШАХМАТЫ</h1><div class="sub" data-i18n="page_sub">классика · на двоих</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 <div id="home" class="card" style="max-width:360px;margin:0 auto">
-  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
-  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+  <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph"><button onclick="create()" data-i18n="create_btn">Создать</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph"><button class="sec" onclick="join()" data-i18n="join_btn">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" data-i18n="back_btn">← все игры</a></div></div>
 <div id="lobby" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
-  <div class="sub">Код:</div><div class="code" id="lcode">----</div><div id="players"></div>
-  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div>
-  <div class="sub" id="waitmsg">Ждём второго…</div></div>
+  <div class="sub" data-i18n="room_code">Код:</div><div class="code" id="lcode">----</div><div id="players"></div>
+  <div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div>
+  <div class="sub" id="waitmsg" data-i18n="wait_msg">Ждём второго…</div></div>
 <div id="game" class="hide">
   <div class="cap-row" id="capBlack"></div>
   <div class="turn" id="turninfo"></div><div class="bd" id="bd"></div>
   <div class="cap-row" id="capWhite"></div>
-  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Заново</button></div>
 </div>
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -47,6 +52,147 @@
 <script>
 let ws = null, pid = null, st = null, sel = null, roomCode = null, firstOpenCb = null, opened = false;
 const PIECE_VAL = {P:1,N:3,B:3,R:5,Q:9,K:0};
+
+const UI = {
+  uk: {
+    title: "Шахи — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "♟️ Шахи — правила",
+    rules_body: "Класичні шахи: рокіровка, взяття на проході, перетворення пішака. Мета — поставити <b>мат</b> королю суперника.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "🎮 Ігри",
+    page_title: "♟ ШАХИ",
+    page_sub: "класика · на двох",
+    name_ph: "Ім'я",
+    create_btn: "Створити",
+    code_ph: "КОД",
+    join_btn: "Увійти",
+    back_btn: "← всі ігри",
+    room_code: "Код:",
+    diff_easy: "🤖 Легкий",
+    diff_medium: "Середній",
+    diff_hard: "Складний",
+    add_bot_btn: "🤖 Додати",
+    wait_msg: "Чекаємо другого…",
+    restart_btn: "Заново",
+    your_turn: "ТВІЙ ХІД",
+    turn_of: "Хід: {n}",
+    check_excl: "ШАХ!",
+    mate_win: "🏆 Мат! Ти виграв!",
+    mate_loss: "Мат — переміг {n}",
+    draw_stalemate: "🤝 Пат — нічия",
+    alert_code: "Код?"
+  },
+  ru: {
+    title: "Шахматы — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "♟️ Шахматы — правила",
+    rules_body: "Классические шахматы: рокировка, взятие на проходе, превращение пешки. Цель — поставить <b>мат</b> королю соперника.",
+    rules_ok: "Понятно 👍",
+    nav_games: "🎮 Игры",
+    page_title: "♟ ШАХМАТЫ",
+    page_sub: "классика · на двоих",
+    name_ph: "Имя",
+    create_btn: "Создать",
+    code_ph: "КОД",
+    join_btn: "Войти",
+    back_btn: "← все игры",
+    room_code: "Код:",
+    diff_easy: "🤖 Лёгкий",
+    diff_medium: "Средний",
+    diff_hard: "Сложный",
+    add_bot_btn: "🤖 Добавить",
+    wait_msg: "Ждём второго…",
+    restart_btn: "Заново",
+    your_turn: "ТВОЙ ХОД",
+    turn_of: "Ходит {n}",
+    check_excl: "ШАХ!",
+    mate_win: "🏆 Мат! Ты выиграл!",
+    mate_loss: "Мат — победил {n}",
+    draw_stalemate: "🤝 Пат — ничья",
+    alert_code: "Код?"
+  },
+  en: {
+    title: "Chess — Lobby.gg",
+    rules_btn: "Rules",
+    rules_title: "♟️ Chess — rules",
+    rules_body: "Classic chess: castling, en passant, pawn promotion. The goal is to <b>checkmate</b> the opponent's king.",
+    rules_ok: "Got it 👍",
+    nav_games: "🎮 Games",
+    page_title: "♟ CHESS",
+    page_sub: "classic · 2 players",
+    name_ph: "Name",
+    create_btn: "Create",
+    code_ph: "CODE",
+    join_btn: "Join",
+    back_btn: "← all games",
+    room_code: "Code:",
+    diff_easy: "🤖 Easy",
+    diff_medium: "Medium",
+    diff_hard: "Hard",
+    add_bot_btn: "🤖 Add",
+    wait_msg: "Waiting for opponent…",
+    restart_btn: "Restart",
+    your_turn: "YOUR TURN",
+    turn_of: "Turn: {n}",
+    check_excl: "CHECK!",
+    mate_win: "🏆 Checkmate! You won!",
+    mate_loss: "Checkmate — {n} won",
+    draw_stalemate: "🤝 Stalemate — draw",
+    alert_code: "Code?"
+  }
+};
+
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+
+function t(k, vars) {
+  let v = UI[LANG] && UI[LANG][k];
+  if (v === undefined) v = UI.ru[k] || k;
+  if (vars) {
+    for (const key in vars) {
+      v = v.replace('{' + key + '}', vars[key]);
+    }
+  }
+  return v;
+}
+
+const GT = {
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+};
+
+function T(s) {
+  if (s == null) return s;
+  if (LANG === 'ru') return s;
+  const e = GT[s];
+  return e && e[LANG] ? e[LANG] : (window.LobbyI18n ? LobbyI18n.T(s) : s);
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (st) render();
+}
+
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+
+document.addEventListener('DOMContentLoaded', applyUI);
+
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
 function connect(cb){
@@ -61,7 +207,7 @@ function connect(cb){
   });
 }
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'chess'}));}
-function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function myColor(){ if(!st) return null; return st.order.indexOf(pid); }
 function myLegal(r,c){ if(!st || st.turn_pid!==pid) return []; return st.legal[r+'_'+c] || []; }
 function img(piece){ return '<img class="pc" draggable="false" src="/games/static/assets/chess/'+piece+'.svg">'; }
@@ -83,7 +229,7 @@ function capturedPieces(board){
   const have = {w:{P:0,N:0,B:0,R:0,Q:0}, b:{P:0,N:0,B:0,R:0,Q:0}};
   for(const row of board) for(const p of row) if(p && p[1]!=='K') have[p[0]][p[1]]++;
   const missing = (color) => Object.keys(full).flatMap(k => Array(Math.max(0, full[k]-have[color][k])).fill(k));
-  return { w: missing('w'), b: missing('b') }; // фигуры цвета w, которых не хватает = взяты чёрными (и наоборот)
+  return { w: missing('w'), b: missing('b') };
 }
 function render(){
   if(!st) return;
@@ -101,18 +247,18 @@ function render(){
   }
   document.getElementById('bd').innerHTML=h;
   const cap = capturedPieces(st.board);
-  document.getElementById('capBlack').innerHTML = cap.w.map(k=>img('w'+k)).join(''); // белые фигуры съедены чёрными -> над доской чёрного игрока? упростим: показываем обе строки снизу/сверху
+  document.getElementById('capBlack').innerHTML = cap.w.map(k=>img('w'+k)).join('');
   document.getElementById('capWhite').innerHTML = cap.b.map(k=>img('b'+k)).join('');
   const myturn = st.turn_pid===pid;
   const ov=document.getElementById('over');
   if(st.done){
     ov.classList.remove('hide');
-    let title = st.result==='checkmate' ? (st.winner===pid?'🏆 Мат! Ты выиграл!':'Мат — победил '+(st.names[st.winner]||'?')) : '🤝 Пат — ничья';
+    let title = st.result==='checkmate' ? (st.winner===pid ? t('mate_win') : t('mate_loss', {n: st.names[st.winner]||'?'})) : t('draw_stalemate');
     document.getElementById('ot').textContent = title;
   } else {
     ov.classList.add('hide');
-    let info = myturn ? '<span class="me">ТВОЙ ХОД</span>' : 'Ходит '+(st.names[st.turn_pid]||'?');
-    if(st.in_check && myturn) info += ' — ШАХ!';
+    let info = myturn ? '<span class="me">'+t('your_turn')+'</span>' : t('turn_of', {n: st.names[st.turn_pid]||'?'});
+    if(st.in_check && myturn) info += ' — ' + t('check_excl');
     document.getElementById('turninfo').innerHTML = info;
   }
 }
@@ -121,7 +267,7 @@ function handle(m){
   else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
   else if(m.type==='chess_state'){ st=m; show('game'); render(); }
-  else if(m.type==='error'){alert(m.msg);}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 const autoCode = sessionStorage.getItem('jg_chess_code');
 if (autoCode) {

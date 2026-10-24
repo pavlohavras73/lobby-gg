@@ -94,6 +94,7 @@
   </div>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -256,7 +257,7 @@ const GT={
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 function msgTr(s){ // серверные строки итога голосования — перевод по шаблону
   if(LANG==='ru'||!s)return s;
   const P={uk:{ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},

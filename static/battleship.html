@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Морской бой — Lobby.gg</title>
+<title data-i18n="title">Морской бой — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -12,27 +12,33 @@
   .c.fire{cursor:pointer}.c.fire:active{background:#1c3550}
   .lbl2{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
   .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style></head><body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🚢 Морской бой — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Расставь корабли на своём поле. По очереди стреляй по полю соперника. Попал — стреляешь ещё раз. Кто первым потопит весь флот врага — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>🚢 МОРСКОЙ БОЙ</h1><div class="sub">потопи весь флот соперника · на двоих</div>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🚢 Морской бой — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Расставь корабли на своём поле. По очереди стреляй по полю соперника. Попал — стреляешь ещё раз. Кто первым потопит весь флот врага — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">🚢 МОРСКОЙ БОЙ</h1><div class="sub" data-i18n="page_sub">потопи весь флот соперника · на двоих</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 <div id="home" class="card" style="max-width:340px;margin:0 auto">
-  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
-  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+  <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph"><button onclick="create()" data-i18n="create_btn">Создать</button>
+  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph"><button class="sec" onclick="join()" data-i18n="join_btn">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" data-i18n="back_btn">← все игры</a></div></div>
 <div id="lobby" class="card hide" style="max-width:340px;margin:0 auto;text-align:center">
-  <div class="sub">Код:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div><div class="sub" id="waitmsg">Ждём второго…</div></div>
+  <div class="sub" data-i18n="room_code">Код:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div><div class="sub" id="waitmsg" data-i18n="wait_msg">Ждём второго…</div></div>
 <div id="place" class="hide">
-  <div class="lbl2">Твоё поле (расстановка авто)</div><div class="bd" id="ownplace"></div>
-  <div class="row" style="max-width:300px;margin:8px auto"><button class="sec" onclick="send({action:'bs_reroll'})">🎲 Перерасставить</button><button onclick="send({action:'bs_ready'})">✅ Готов</button></div>
+  <div class="lbl2" data-i18n="place_own_lbl">Твоё поле (расстановка авто)</div><div class="bd" id="ownplace"></div>
+  <div class="row" style="max-width:300px;margin:8px auto"><button class="sec" onclick="send({action:'bs_reroll'})" data-i18n="reroll_btn">🎲 Перерасставить</button><button onclick="send({action:'bs_ready'})" data-i18n="ready_btn">✅ Готов</button></div>
   <div class="sub" id="placestatus"></div></div>
 <div id="game" class="hide">
   <div class="turn" id="turninfo"></div>
-  <div class="lbl2">🎯 Поле соперника — тапни чтобы стрелять</div><div class="bd" id="enemy"></div>
-  <div class="lbl2">🛡 Твоё поле</div><div class="bd" id="own"></div>
-  <div id="over" class="card hide" style="max-width:340px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+  <div class="lbl2" data-i18n="enemy_field_lbl">🎯 Поле соперника — тапни чтобы стрелять</div><div class="bd" id="enemy"></div>
+  <div class="lbl2" data-i18n="own_field_lbl">🛡 Твоё поле</div><div class="bd" id="own"></div>
+  <div id="over" class="card hide" style="max-width:340px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Заново</button></div>
 </div>
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -40,6 +46,180 @@
 <script src="/games/static/quickplay.js"></script>
 <script>
 let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
+
+const UI = {
+  uk: {
+    title: "Морський бій — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🚢 Морський бій — правила",
+    rules_body: "Розстав кораблі на своєму полі. По черзі стріляй по полю суперника. Влучив — стріляєш ще раз. Хто першим потопить увесь флот ворога — переміг.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "🎮 Ігри",
+    page_title: "🚢 МОРСЬКИЙ БІЙ",
+    page_sub: "потопи весь флот суперника · на двох",
+    name_ph: "Ім'я",
+    create_btn: "Створити",
+    code_ph: "КОД",
+    join_btn: "Увійти",
+    back_btn: "← всі ігри",
+    room_code: "Код:",
+    diff_easy: "🤖 Легкий",
+    diff_medium: "Середній",
+    diff_hard: "Складний",
+    add_bot_btn: "🤖 Додати",
+    wait_msg: "Чекаємо другого…",
+    place_own_lbl: "Твоє поле (авторозстановка)",
+    reroll_btn: "🎲 Перерозставити",
+    ready_btn: "✅ Готовий",
+    wait_enemy_place: "Чекаємо суперника…",
+    press_ready_hint: "Натисни «Готовий», коли влаштує розстановка",
+    enemy_field_lbl: "🎯 Поле суперника — тапни щоб стріляти",
+    own_field_lbl: "🛡 Твоє поле",
+    restart_btn: "Заново",
+    win_fleet: "🏆 Флот потоплено — ти виграв!",
+    lose_fleet: "Твій флот потоплено",
+    your_turn: "ТВІЙ ХІД",
+    your_turn_sub: " — стріляй (влучив = б'єш ще)",
+    turn_of: "Хід: {n}",
+    alert_code: "Код?"
+  },
+  ru: {
+    title: "Морской бой — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🚢 Морской бой — правила",
+    rules_body: "Расставь корабли на своём поле. По очереди стреляй по полю соперника. Попал — стреляешь ещё раз. Кто первым потопит весь флот врага — победил.",
+    rules_ok: "Понятно 👍",
+    nav_games: "🎮 Игры",
+    page_title: "🚢 МОРСКОЙ БОЙ",
+    page_sub: "потопи весь флот соперника · на двоих",
+    name_ph: "Имя",
+    create_btn: "Создать",
+    code_ph: "КОД",
+    join_btn: "Войти",
+    back_btn: "← все игры",
+    room_code: "Код:",
+    diff_easy: "🤖 Лёгкий",
+    diff_medium: "Средний",
+    diff_hard: "Сложный",
+    add_bot_btn: "🤖 Добавить",
+    wait_msg: "Ждём второго…",
+    place_own_lbl: "Твоё поле (расстановка авто)",
+    reroll_btn: "🎲 Перерасставить",
+    ready_btn: "✅ Готов",
+    wait_enemy_place: "Ждём соперника…",
+    press_ready_hint: "Нажми «Готов» когда устроит расстановка",
+    enemy_field_lbl: "🎯 Поле соперника — тапни чтобы стрелять",
+    own_field_lbl: "🛡 Твоё поле",
+    restart_btn: "Заново",
+    win_fleet: "🏆 Флот потоплен — ты выиграл!",
+    lose_fleet: "Твой флот потоплен",
+    your_turn: "ТВОЙ ХОД",
+    your_turn_sub: " — стреляй (попал = бьёшь ещё)",
+    turn_of: "Ходит {n}",
+    alert_code: "Код?"
+  },
+  en: {
+    title: "Battleship — Lobby.gg",
+    rules_btn: "Rules",
+    rules_title: "🚢 Battleship — rules",
+    rules_body: "Arrange ships on your grid. Take turns firing at the opponent's grid. Hit — take another shot. First to sink the entire enemy fleet wins.",
+    rules_ok: "Got it 👍",
+    nav_games: "🎮 Games",
+    page_title: "🚢 BATTLESHIP",
+    page_sub: "sink the opponent's fleet · 2 players",
+    name_ph: "Name",
+    create_btn: "Create",
+    code_ph: "CODE",
+    join_btn: "Join",
+    back_btn: "← all games",
+    room_code: "Code:",
+    diff_easy: "🤖 Easy",
+    diff_medium: "Medium",
+    diff_hard: "Hard",
+    add_bot_btn: "🤖 Add",
+    wait_msg: "Waiting for opponent…",
+    place_own_lbl: "Your fleet (auto placement)",
+    reroll_btn: "🎲 Reshuffle",
+    ready_btn: "✅ Ready",
+    wait_enemy_place: "Waiting for opponent…",
+    press_ready_hint: "Click 'Ready' when you like the layout",
+    enemy_field_lbl: "🎯 Opponent's grid — tap to fire",
+    own_field_lbl: "🛡 Your grid",
+    restart_btn: "Restart",
+    win_fleet: "🏆 Fleet destroyed — you won!",
+    lose_fleet: "Your fleet was destroyed",
+    your_turn: "YOUR TURN",
+    your_turn_sub: " — fire (hit = extra shot)",
+    turn_of: "Turn: {n}",
+    alert_code: "Code?"
+  }
+};
+
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+
+function t(k, vars) {
+  let v = UI[LANG] && UI[LANG][k];
+  if (v === undefined) v = UI.ru[k] || k;
+  if (vars) {
+    for (const key in vars) {
+      v = v.replace('{' + key + '}', vars[key]);
+    }
+  }
+  return v;
+}
+
+const GT = {
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+};
+
+function T(s) {
+  if (s == null) return s;
+  if (LANG === 'ru') return s;
+  const e = GT[s];
+  return e && e[LANG] ? e[LANG] : (window.LobbyI18n ? LobbyI18n.T(s) : s);
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (st) {
+    if (st.phase === 'place') {
+      const meReady = st.ready && st.ready[pid];
+      document.getElementById('placestatus').textContent = meReady ? t('wait_enemy_place') : t('press_ready_hint');
+    } else {
+      const ov = document.getElementById('over');
+      if (st.winner) {
+        document.getElementById('ot').textContent = st.winner === pid ? t('win_fleet') : t('lose_fleet');
+      } else {
+        const my = st.turn_pid === pid;
+        document.getElementById('turninfo').innerHTML = my
+          ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub')
+          : t('turn_of', { n: st.names[st.turn_pid] || '?' });
+      }
+    }
+  }
+}
+
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+
+document.addEventListener('DOMContentLoaded', applyUI);
+
 function show(id){for(const s of['home','lobby','place','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
 function connect(cb){
@@ -54,7 +234,7 @@ function connect(cb){
   });
 }
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'battleship'}));}
-function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function fire(r,c){if(st&&st.turn_pid===pid)send({action:'bs_fire',r:r,c:c});}
 function renderBoard(el,grid,fireable){let h='';for(let r=0;r<10;r++)for(let c=0;c<10;c++){const v=grid[r][c];
   let cls='c';if(v===1)cls+=' ship';else if(v===2)cls+=' hit';else if(v===3)cls+=' miss';
@@ -67,15 +247,15 @@ function handle(m){
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
   else if(m.type==='bs_state'){st=m;
     if(m.phase==='place'){show('place');renderBoard('ownplace',m.own,false);
-      const meReady=m.ready[pid];document.getElementById('placestatus').textContent=meReady?'Ждём соперника…':'Нажми «Готов» когда устроит расстановка';
+      const meReady=m.ready[pid];document.getElementById('placestatus').textContent=meReady?t('wait_enemy_place'):t('press_ready_hint');
       return;}
     show('game');
     const my=m.turn_pid===pid;
     renderBoard('enemy',m.enemy,my&&!m.winner);renderBoard('own',m.own,false);
     const ov=document.getElementById('over');
-    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?'🏆 Флот потоплен — ты выиграл!':'Твой флот потоплен';}
-    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">ТВОЙ ХОД</span> — стреляй (попал = бьёшь ещё)':'Ходит '+(m.names[m.turn_pid]||'?');}}
-  else if(m.type==='error'){alert(m.msg);}
+    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?t('win_fleet'):t('lose_fleet');}
+    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:m.names[m.turn_pid]||'?'});}}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 const autoCode = sessionStorage.getItem('jg_battleship_code');
 if (autoCode) {

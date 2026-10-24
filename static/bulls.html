@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Быки и коровы — Lobby.gg</title>
+<title data-i18n="title">Быки и коровы — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -11,38 +11,227 @@
   .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
   .col{display:flex;gap:10px}.col>div{flex:1}
   .lbl2{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style></head><body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>🐂 БЫКИ И КОРОВЫ</h1><div class="sub">взломай 4-значный код соперника · на двоих</div>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">🐂 БЫКИ И КОРОВЫ</h1><div class="sub" data-i18n="page_sub">взломай 4-значный код соперника · на двоих</div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 <div id="home" class="card" style="max-width:360px;margin:0 auto">
-  <input id="name" placeholder="Имя" maxlength="20"><button onclick="create()">Создать</button>
-  <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase"><button class="sec" onclick="join()">Войти</button>
-  <div class="sub" style="margin-top:10px"><a href="/games">← все игры</a></div></div>
+  <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph"><button onclick="create()" data-i18n="create_btn">Создать</button>
+  <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph"><button class="sec" onclick="join()" data-i18n="join_btn">Войти</button>
+  <div class="sub" style="margin-top:10px"><a href="/games" data-i18n="back_btn">← все игры</a></div></div>
 <div id="lobby" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
-  <div class="sub">Код комнаты:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})">🤖 Добавить</button></div><div class="sub" id="waitmsg">Ждём второго…</div></div>
+  <div class="sub" data-i18n="room_code">Код комнаты:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div><div class="sub" id="waitmsg" data-i18n="wait_msg">Ждём второго…</div></div>
 <div id="setup" class="card hide" style="max-width:360px;margin:0 auto;text-align:center">
-  <div class="sub">Загадай свой секрет — 4 РАЗНЫЕ цифры</div>
-  <input id="secret" placeholder="напр. 4071" maxlength="4" inputmode="numeric" style="font-size:24px;letter-spacing:6px">
-  <button onclick="setCode()">Загадать</button>
+  <div class="sub" data-i18n="setup_sub">Загадай свой секрет — 4 РАЗНЫЕ цифры</div>
+  <input id="secret" placeholder="напр. 4071" maxlength="4" inputmode="numeric" style="font-size:24px;letter-spacing:6px" data-i18n-ph="secret_ph">
+  <button onclick="setCode()" data-i18n="set_code_btn">Загадать</button>
   <div class="sub" id="setupstatus"></div></div>
 <div id="game" class="hide">
   <div class="turn" id="turninfo"></div>
   <div id="guessbox" class="card" style="max-width:360px;margin:0 auto">
-    <input id="guess" placeholder="Твоя догадка (4 цифры)" maxlength="4" inputmode="numeric" style="font-size:22px;letter-spacing:6px;text-align:center">
-    <button onclick="makeGuess()">Угадать</button></div>
+    <input id="guess" placeholder="Твоя догадка (4 цифры)" maxlength="4" inputmode="numeric" style="font-size:22px;letter-spacing:6px;text-align:center" data-i18n-ph="guess_ph">
+    <button onclick="makeGuess()" data-i18n="guess_btn">Угадать</button></div>
   <div class="col" style="max-width:380px;margin:8px auto">
-    <div><div class="lbl2">Твои попытки</div><div id="mine"></div></div>
-    <div><div class="lbl2" id="opname">Соперник</div><div id="theirs"></div></div></div>
-  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
+    <div><div class="lbl2" data-i18n="my_attempts">Твои попытки</div><div id="mine"></div></div>
+    <div><div class="lbl2" id="opname" data-i18n="opponent">Соперник</div><div id="theirs"></div></div></div>
+  <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Заново</button></div>
 </div>
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/quickplay.js"></script>
 <script>
 let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
+
+const UI = {
+  uk: {
+    title: "Бики та корови — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🐂 Бики та корови — правила",
+    rules_body: "Суперник загадав код із 4 різних цифр. Відгадуй: <b>🐂 бик</b> — цифра правильна і на своєму місці, <b>🐄 корова</b> — цифра є в коді, але не на тому місці. Розгадай код першим.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "🎮 Ігри",
+    page_title: "🐂 БИКИ ТА КОРОВИ",
+    page_sub: "зламай 4-значний код суперника · на двох",
+    name_ph: "Ім'я",
+    create_btn: "Створити",
+    code_ph: "КОД кімнати",
+    join_btn: "Увійти",
+    back_btn: "← всі ігри",
+    room_code: "Код кімнати:",
+    diff_easy: "🤖 Легкий",
+    diff_medium: "Середній",
+    diff_hard: "Складний",
+    add_bot_btn: "🤖 Додати",
+    wait_msg: "Чекаємо другого…",
+    setup_sub: "Загадай свій секрет — 4 РІЗНІ цифри",
+    secret_ph: "напр. 4071",
+    set_code_btn: "Загадати",
+    wait_opponent: "Чекаємо суперника…",
+    guess_ph: "Твоя здогадка (4 цифри)",
+    guess_btn: "Вгадати",
+    my_attempts: "Твої спроби",
+    opponent: "Суперник",
+    restart_btn: "Заново",
+    you_won: "🏆 Ти зламав код!",
+    someone_won: "Суперник угадав першим",
+    your_turn: "ТВІЙ ХІД",
+    your_turn_sub: " — вгадай код суперника",
+    turn_of: "Хід: {n}",
+    alert_code: "Код?",
+    alert_digits_diff: "Потрібні 4 РІЗНІ цифри",
+    alert_4digits: "4 цифри"
+  },
+  ru: {
+    title: "Быки и коровы — Lobby.gg",
+    rules_btn: "Правила",
+    rules_title: "🐂 Быки и коровы — правила",
+    rules_body: "Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.",
+    rules_ok: "Понятно 👍",
+    nav_games: "🎮 Игры",
+    page_title: "🐂 БЫКИ И КОРОВЫ",
+    page_sub: "взломай 4-значный код соперника · на двоих",
+    name_ph: "Имя",
+    create_btn: "Создать",
+    code_ph: "КОД комнаты",
+    join_btn: "Войти",
+    back_btn: "← все игры",
+    room_code: "Код комнаты:",
+    diff_easy: "🤖 Лёгкий",
+    diff_medium: "Средний",
+    diff_hard: "Сложный",
+    add_bot_btn: "🤖 Добавить",
+    wait_msg: "Ждём второго…",
+    setup_sub: "Загадай свой секрет — 4 РАЗНЫЕ цифры",
+    secret_ph: "напр. 4071",
+    set_code_btn: "Загадать",
+    wait_opponent: "Ждём соперника…",
+    guess_ph: "Твоя догадка (4 цифры)",
+    guess_btn: "Угадать",
+    my_attempts: "Твои попытки",
+    opponent: "Соперник",
+    restart_btn: "Заново",
+    you_won: "🏆 Ты взломал код!",
+    someone_won: "Соперник угадал первым",
+    your_turn: "ТВОЙ ХОД",
+    your_turn_sub: " — угадай код соперника",
+    turn_of: "Ходит {n}",
+    alert_code: "Код?",
+    alert_digits_diff: "Нужны 4 РАЗНЫЕ цифры",
+    alert_4digits: "4 цифры"
+  },
+  en: {
+    title: "Bulls & Cows — Lobby.gg",
+    rules_btn: "Rules",
+    rules_title: "🐂 Bulls & Cows — rules",
+    rules_body: "Your opponent picked a secret 4-digit number (unique digits). Guess: <b>🐂 bull</b> = correct digit in correct position, <b>🐄 cow</b> = correct digit in wrong position. Crack the code first.",
+    rules_ok: "Got it 👍",
+    nav_games: "🎮 Games",
+    page_title: "🐂 BULLS & COWS",
+    page_sub: "crack the opponent's 4-digit code · 2 players",
+    name_ph: "Name",
+    create_btn: "Create",
+    code_ph: "ROOM CODE",
+    join_btn: "Join",
+    back_btn: "← all games",
+    room_code: "Room code:",
+    diff_easy: "🤖 Easy",
+    diff_medium: "Medium",
+    diff_hard: "Hard",
+    add_bot_btn: "🤖 Add",
+    wait_msg: "Waiting for opponent…",
+    setup_sub: "Pick your secret — 4 UNIQUE digits",
+    secret_ph: "e.g. 4071",
+    set_code_btn: "Lock in",
+    wait_opponent: "Waiting for opponent…",
+    guess_ph: "Your guess (4 digits)",
+    guess_btn: "Guess",
+    my_attempts: "Your attempts",
+    opponent: "Opponent",
+    restart_btn: "Restart",
+    you_won: "🏆 You cracked the code!",
+    someone_won: "Opponent guessed first",
+    your_turn: "YOUR TURN",
+    your_turn_sub: " — guess the opponent's code",
+    turn_of: "Turn: {n}",
+    alert_code: "Code?",
+    alert_digits_diff: "Must be 4 UNIQUE digits",
+    alert_4digits: "4 digits"
+  }
+};
+
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+
+function t(k, vars) {
+  let v = UI[LANG] && UI[LANG][k];
+  if (v === undefined) v = UI.ru[k] || k;
+  if (vars) {
+    for (const key in vars) {
+      v = v.replace('{' + key + '}', vars[key]);
+    }
+  }
+  return v;
+}
+
+const GT = {
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+};
+
+function T(s) {
+  if (s == null) return s;
+  if (LANG === 'ru') return s;
+  const e = GT[s];
+  return e && e[LANG] ? e[LANG] : (window.LobbyI18n ? LobbyI18n.T(s) : s);
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (st) {
+    if (st.phase === 'setup') {
+      const meReady = st.ready && st.ready[pid];
+      document.getElementById('setupstatus').textContent = meReady ? t('wait_opponent') : '';
+    } else {
+      const opp = st.players.find(p => p !== pid);
+      document.getElementById('opname').textContent = (st.names && st.names[opp]) || t('opponent');
+      const ov = document.getElementById('over');
+      if (st.winner) {
+        document.getElementById('ot').textContent = st.winner === pid ? t('you_won') : t('someone_won');
+      } else {
+        const my = st.turn_pid === pid;
+        document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: (st.names && st.names[st.turn_pid]) || '?' });
+      }
+    }
+  }
+}
+
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+
+document.addEventListener('DOMContentLoaded', applyUI);
+
 function show(id){for(const s of['home','lobby','setup','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
 function connect(cb){
@@ -57,9 +246,9 @@ function connect(cb){
   });
 }
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'bulls'}));}
-function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
-function setCode(){const v=document.getElementById('secret').value;if(v.length!==4||new Set(v).size!==4||!/^\d+$/.test(v))return alert('Нужны 4 РАЗНЫЕ цифры');send({action:'bc_set',code:v});}
-function makeGuess(){const v=document.getElementById('guess').value;if(v.length!==4||!/^\d+$/.test(v))return alert('4 цифры');send({action:'bc_guess',guess:v});document.getElementById('guess').value='';}
+function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
+function setCode(){const v=document.getElementById('secret').value;if(v.length!==4||new Set(v).size!==4||!/^\d+$/.test(v))return alert(t('alert_digits_diff'));send({action:'bc_set',code:v});}
+function makeGuess(){const v=document.getElementById('guess').value;if(v.length!==4||!/^\d+$/.test(v))return alert(t('alert_4digits'));send({action:'bc_guess',guess:v});document.getElementById('guess').value='';}
 function rows(arr){return arr.map(g=>'<div class="g"><span class="num">'+g[0]+'</span><span><span class="bull">🐂'+g[1]+'</span> <span class="cow">🐄'+g[2]+'</span></span></div>').join('')||'<div class="sub">—</div>';}
 function handle(m){
   if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_bulls_code',m.code);}
@@ -67,19 +256,19 @@ function handle(m){
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
   else if(m.type==='bc_state'){st=m;
     if(m.phase==='setup'){show('setup');
-      const meReady=m.ready[pid];document.getElementById('setupstatus').textContent=meReady?'Ждём соперника…':'';
+      const meReady=m.ready[pid];document.getElementById('setupstatus').textContent=meReady?t('wait_opponent'):'';
       return;}
     show('game');
     const opp=m.players.find(p=>p!==pid);
-    document.getElementById('opname').textContent=(m.names[opp]||'Соперник');
+    document.getElementById('opname').textContent=(m.names[opp]||t('opponent'));
     document.getElementById('mine').innerHTML=rows(m.guesses[pid]||[]);
     document.getElementById('theirs').innerHTML=rows(m.guesses[opp]||[]);
     const my=m.turn_pid===pid;
     document.getElementById('guessbox').style.display=(my&&!m.winner)?'block':'none';
     const ov=document.getElementById('over');
-    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?'🏆 Ты взломал код!':'Соперник угадал первым';}
-    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">ТВОЙ ХОД</span> — угадай код соперника':'Ходит '+(m.names[m.turn_pid]||'?');}}
-  else if(m.type==='error'){alert(m.msg);}
+    if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?t('you_won'):t('someone_won');}
+    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:m.names[m.turn_pid]||'?'});}}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 const autoCode = sessionStorage.getItem('jg_bulls_code');
 if (autoCode) {

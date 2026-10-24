@@ -12,6 +12,7 @@ mkdir -p "$T/data"
 cp -r "$ROOT"/*.py "$ROOT/static" "$T/"
 sed -i "s#/app/static#$T/static#g; s#\"/data/#\"$T/data/#g; s#'/data/#'$T/data/#g" "$T"/*.py
 UVF="${UV_OFFLINE:+--offline}"
+export LOBBY_RECONNECT_GRACE="${LOBBY_RECONNECT_GRACE:-3}"   # в тестах лобби ждёт 3 с вместо 60
 (cd "$T" && exec uv run -q $UVF --python 3.11 --with fastapi==0.141.1 --with 'uvicorn[standard]==0.53.0' --with websockets \
    uvicorn server:app --host 127.0.0.1 --port 18090 > "$T/server.log" 2>&1) &
 SRV=$!

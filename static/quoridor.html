@@ -294,6 +294,7 @@
   </div>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -321,7 +322,7 @@ const GT={
  "Стенка полностью перекрывает путь игроку!":{uk:"Стінка повністю перекриває шлях гравцю!",en:"That wall would completely block a player's path!"},
  "Недопустимый ход фишкой.":{uk:"Недопустимий хід фішкою.",en:"Invalid pawn move."}
 };
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:s;}
+function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 function applyUI(){
  document.documentElement.lang=LANG;
  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v!=='string')return;
