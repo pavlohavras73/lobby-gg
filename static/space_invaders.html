@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Invaders - Lobby.gg</title>
+    <title data-i18n="title">Space Invaders - Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
     <link rel="stylesheet" href="/games/static/theme.css">
     <style>
@@ -134,7 +134,11 @@
             border: 1px solid rgba(255,255,255,0.1); color: #fff; font-weight: 700; font-size: 16px;
             margin-top: 10px; cursor: pointer;
         }
-    </style>
+    
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
 </head>
 <body>
 
@@ -154,7 +158,8 @@
     <div id="mainMenu" class="modal-overlay">
         <div class="glass-panel">
             <div class="menu-header">
-                <div class="menu-title">БАЗА СОПРОТИВЛЕНИЯ</div>
+                <div class="menu-title" data-i18n="base_title">БАЗА СОПРОТИВЛЕНИЯ</div>
+                <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
                 <div class="menu-coins"><span id="menuCoinsVal">0</span> 🪙</div>
             </div>
 
@@ -169,24 +174,24 @@
                 <div class="card-item">
                     <div class="card-icon">💥</div>
                     <div class="card-info">
-                        <div class="card-title">Плазма-урон (Lv <span id="lvDamage">1</span>)</div>
-                        <div class="card-sub">Повышает урон каждого снаряда.</div>
+                        <div class="card-title"><span data-i18n="dmg_title">Плазма-урон</span> (Lv <span id="lvDamage">1</span>)</div>
+                        <div class="card-sub" data-i18n="dmg_sub">Повышает урон каждого снаряда.</div>
                     </div>
                     <button class="buy-btn" id="upgDamage" onclick="buyUpgrade('damage')"><span id="costDamage">50</span> 🪙</button>
                 </div>
                 <div class="card-item">
                     <div class="card-icon">⚡</div>
                     <div class="card-info">
-                        <div class="card-title">Охлаждение (Lv <span id="lvFireRate">1</span>)</div>
-                        <div class="card-sub">Ускоряет перезарядку орудий.</div>
+                        <div class="card-title"><span data-i18n="fr_title">Охлаждение</span> (Lv <span id="lvFireRate">1</span>)</div>
+                        <div class="card-sub" data-i18n="fr_sub">Ускоряет перезарядку орудий.</div>
                     </div>
                     <button class="buy-btn" id="upgFireRate" onclick="buyUpgrade('fireRate')"><span id="costFireRate">50</span> 🪙</button>
                 </div>
                 <div class="card-item">
                     <div class="card-icon">🔫</div>
                     <div class="card-info">
-                        <div class="card-title">Мульти-ствол (Lv <span id="lvMultishot">1</span>)</div>
-                        <div class="card-sub">Добавляет дополнительные лазеры.</div>
+                        <div class="card-title"><span data-i18n="ms_title">Мульти-ствол</span> (Lv <span id="lvMultishot">1</span>)</div>
+                        <div class="card-sub" data-i18n="ms_sub">Добавляет дополнительные лазеры.</div>
                     </div>
                     <button class="buy-btn" id="upgMultishot" onclick="buyUpgrade('multishot')"><span id="costMultishot">200</span> 🪙</button>
                 </div>
@@ -197,24 +202,24 @@
                 <div class="card-item active" id="row_skin0">
                     <img src="/games/static/assets/skins/ship_crimson.jpg" class="skin-img">
                     <div class="card-info">
-                        <div class="card-title">Crimson Fighter</div>
-                        <div class="card-sub">Базовый штурмовик.</div>
+                        <div class="card-title" data-i18n="skin0_title">Crimson Fighter</div>
+                        <div class="card-sub" data-i18n="skin0_sub">Базовый штурмовик.</div>
                     </div>
                     <button class="buy-btn" style="background:rgba(255,255,255,0.1);" onclick="equipSkin(0)">Выбран</button>
                 </div>
                 <div class="card-item" id="row_skin1">
                     <img src="/games/static/assets/skins/ship_phantom.jpg" class="skin-img">
                     <div class="card-info">
-                        <div class="card-title">Neon Phantom</div>
-                        <div class="card-sub">Скоростной стелс-перехватчик.</div>
+                        <div class="card-title" data-i18n="skin1_title">Neon Phantom</div>
+                        <div class="card-sub" data-i18n="skin1_sub">Скоростной стелс-перехватчик.</div>
                     </div>
                     <button class="buy-btn" id="btn_skin1" onclick="buySkin(1, 1000)">1000 🪙</button>
                 </div>
                 <div class="card-item" id="row_skin2">
                     <img src="/games/static/assets/skins/ship_juggernaut.jpg" class="skin-img">
                     <div class="card-info">
-                        <div class="card-title">Gold Juggernaut</div>
-                        <div class="card-sub">Тяжелый золотой крейсер.</div>
+                        <div class="card-title" data-i18n="skin2_title">Gold Juggernaut</div>
+                        <div class="card-sub" data-i18n="skin2_sub">Тяжелый золотой крейсер.</div>
                     </div>
                     <button class="buy-btn" id="btn_skin2" onclick="buySkin(2, 5000)">5000 🪙</button>
                 </div>
@@ -224,8 +229,8 @@
             <div id="contentSettings" style="display:none;">
                 <div class="setting-row">
                     <div>
-                        <div class="setting-title">Частицы (Взрывы)</div>
-                        <div class="card-sub">Отключи для экономии батареи.</div>
+                        <div class="setting-title" data-i18n="opt_part_title">Частицы (Взрывы)</div>
+                        <div class="card-sub" data-i18n="opt_part_sub">Отключи для экономии батареи.</div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="setParticles" checked onchange="toggleSetting('particles')">
@@ -234,8 +239,8 @@
                 </div>
                 <div class="setting-row">
                     <div>
-                        <div class="setting-title">Звездный фон</div>
-                        <div class="card-sub">Отключи для чистого фона.</div>
+                        <div class="setting-title" data-i18n="opt_bg_title">Звездный фон</div>
+                        <div class="card-sub" data-i18n="opt_bg_sub">Отключи для чистого фона.</div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="setStars" checked onchange="toggleSetting('stars')">
@@ -261,6 +266,34 @@
     </div>
 
     <script>
+
+const UI = {"uk": {"title": "Космічні Загарбники - Lobby.gg", "base_title": "БАЗА ОПОРУ", "tab_upgrades": "АПГРЕЙДИ", "tab_ships": "КОРАБЛІ", "tab_options": "ОПЦІЇ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Підвищує урон кожного снаряда.", "upg_btn": "ПОКРАЩИТИ (", "fr_title": "Охолодження (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Прискорює перезаряджання гармат.", "ms_title": "Мульті-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Додає додаткові лазери.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовий штурмовик.", "skin_selected": "Обраний", "skin_select": "Обрати", "skin_buy": "Купити (", "skin1_title": "Neon Phantom", "skin1_sub": "Швидкісний стелс-перехоплювач.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Важкий золотий крейсер.", "opt_part_title": "Частинки (Вибухи)", "opt_part_sub": "Вимкни для економії батареї.", "opt_bg_title": "Зоряний фон", "opt_bg_sub": "Вимкни для чистого фону.", "close_btn": "ЗАКРИТИ І ПРОДОВЖИТИ", "over_title": "СИСТЕМУ ЗНИЩЕНО", "over_score": "Підсумковий рахунок:", "restart_btn": "ПОЧАТИ ЗНОВУ", "nav_games": "🎮 Ігри", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "ru": {"title": "Space Invaders - Lobby.gg", "base_title": "БАЗА СОПРОТИВЛЕНИЯ", "tab_upgrades": "АПГРЕЙДЫ", "tab_ships": "КОРАБЛИ", "tab_options": "ОПЦИИ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Повышает урон каждого снаряда.", "upg_btn": "УЛУЧШИТЬ (", "fr_title": "Охлаждение (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Ускоряет перезарядку орудий.", "ms_title": "Мульти-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Добавляет дополнительные лазеры.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовый штурмовик.", "skin_selected": "Выбран", "skin_select": "Выбрать", "skin_buy": "Купить (", "skin1_title": "Neon Phantom", "skin1_sub": "Скоростной стелс-перехватчик.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Тяжелый золотой крейсер.", "opt_part_title": "Частицы (Взрывы)", "opt_part_sub": "Отключи для экономии батареи.", "opt_bg_title": "Звездный фон", "opt_bg_sub": "Отключи для чистого фона.", "close_btn": "ЗАКРЫТЬ И ПРОДОЛЖИТЬ", "over_title": "СИСТЕМА УНИЧТОЖЕНА", "over_score": "Итоговый счет:", "restart_btn": "НАЧАТЬ ЗАНОВО", "nav_games": "🎮 Игры", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "en": {"title": "Space Invaders - Lobby.gg", "base_title": "RESISTANCE BASE", "tab_upgrades": "UPGRADES", "tab_ships": "SHIPS", "tab_options": "OPTIONS", "dmg_title": "Plasma DMG (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Increases damage of each projectile.", "upg_btn": "UPGRADE (", "fr_title": "Cooling (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Speeds up weapon reload.", "ms_title": "Multi-barrel (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Adds extra lasers.", "skin0_title": "Crimson Fighter", "skin0_sub": "Basic assault ship.", "skin_selected": "Selected", "skin_select": "Select", "skin_buy": "Buy (", "skin1_title": "Neon Phantom", "skin1_sub": "High-speed stealth interceptor.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Heavy gold cruiser.", "opt_part_title": "Particles (Explosions)", "opt_part_sub": "Disable to save battery.", "opt_bg_title": "Starry Background", "opt_bg_sub": "Disable for a clean background.", "close_btn": "CLOSE AND CONTINUE", "over_title": "SYSTEM DESTROYED", "over_score": "Final score:", "restart_btn": "RESTART", "nav_games": "🎮 Games", "menu_btn": "🚀 UPGRADES / MENU", "buy_btn_suffix": " 🪙)"}};
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.tagName.toLowerCase() === 'title') document.title = v;
+    
+    else el.textContent = v;
+  });
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (typeof updateMenuUI === 'function') updateMenuUI();
+}
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+// Язык применяем, когда весь скрипт страницы выполнен (раньше переменные игры ещё не объявлены)
+document.addEventListener('DOMContentLoaded', applyUI);
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -296,11 +329,18 @@
         let imagesLoaded = 0;
 
         skinsData.forEach((s, idx) => {
-            let img = new Image();
-            img.src = s.src;
-            img.onload = () => imagesLoaded++;
-            skinImages.push(img);
-        });
+                let row = document.getElementById('row_skin' + idx);
+                let btn = document.getElementById('btn_skin' + idx);
+                row.className = idx === currentSkinIndex ? 'card-item active' : 'card-item';
+                if(btn) {
+                    if(s.unlocked) {
+                        btn.innerHTML = idx === currentSkinIndex ? t('skin_selected') : t('skin_select');
+                    } else {
+                        btn.innerHTML = t('skin_buy') + s.cost + t('buy_btn_suffix');
+                        btn.disabled = coins < s.cost;
+                    }
+                }
+            });
 
         // Entities
         let player = {
@@ -368,14 +408,17 @@
             document.getElementById('costDamage').innerText = costs.damage;
             document.getElementById('lvDamage').innerText = stats.damage;
             document.getElementById('upgDamage').disabled = coins < costs.damage;
+            document.getElementById('upgDamage').innerHTML = t('upg_btn') + '<span id="costDamage">' + costs.damage + '</span>' + t('buy_btn_suffix');
 
             document.getElementById('costFireRate').innerText = costs.fireRate;
             document.getElementById('lvFireRate').innerText = Math.floor((500 - stats.fireRate) / 50) + 1;
             document.getElementById('upgFireRate').disabled = coins < costs.fireRate || stats.fireRate <= 100;
+            document.getElementById('upgFireRate').innerHTML = t('upg_btn') + '<span id="costFireRate">' + costs.fireRate + '</span>' + t('buy_btn_suffix');
 
             document.getElementById('costMultishot').innerText = costs.multishot;
             document.getElementById('lvMultishot').innerText = stats.multishot;
             document.getElementById('upgMultishot').disabled = coins < costs.multishot || stats.multishot >= 5;
+            document.getElementById('upgMultishot').innerHTML = t('upg_btn') + '<span id="costMultishot">' + costs.multishot + '</span>' + t('buy_btn_suffix');
 
             skinsData.forEach((s, idx) => {
                 let row = document.getElementById('row_skin' + idx);
@@ -383,11 +426,10 @@
                 row.className = idx === currentSkinIndex ? 'card-item active' : 'card-item';
                 if(btn) {
                     if(s.unlocked) {
-                        btn.innerText = "Выбрать"; btn.onclick = () => equipSkin(idx); btn.disabled = false;
-                        btn.style.background = 'rgba(255,255,255,0.1)';
+                        btn.innerHTML = idx === currentSkinIndex ? t('skin_selected') : t('skin_select');
                     } else {
-                        btn.innerText = s.cost + " 🪙"; btn.disabled = coins < s.cost;
-                        btn.style.background = 'var(--crimson)';
+                        btn.innerHTML = t('skin_buy') + s.cost + t('buy_btn_suffix');
+                        btn.disabled = coins < s.cost;
                     }
                 }
             });

@@ -438,6 +438,77 @@ async def _drop_room_if_abandoned(room, delay):
             _cancel_bots(room)
             rooms.pop(room["code"], None)
 
+
+# ── Быстрая игра (матчмейкинг для 7 дуэлей) ─────────────────────────────────
+QUICKPLAY_GAMES = ("c4", "reversi", "dots", "bulls", "battleship", "checkers", "chess")
+QUICKPLAY_QUEUES = {g: [] for g in QUICKPLAY_GAMES}  # game -> [entry_dict]
+QUICKPLAY_LOCKS = {g: asyncio.Lock() for g in QUICKPLAY_GAMES}
+
+
+def _quickplay_timeout() -> float:
+    try:
+        return max(0.05, float(os.environ.get("QUICKPLAY_TIMEOUT", "30")))
+    except Exception:
+        return 30.0
+
+
+def _qp_is_alive(entry) -> bool:
+    conn = entry.get("conn") or {}
+    if conn.get("closed") or conn.get("room") is not None:
+        return False
+    ws_obj = entry.get("ws")
+    if not ws_obj:
+        return False
+    st = getattr(ws_obj, "client_state", None)
+    if st is not None and getattr(st, "name", "CONNECTED") != "CONNECTED":
+        return False
+    app_st = getattr(ws_obj, "application_state", None)
+    if app_st is not None and getattr(app_st, "name", "CONNECTED") != "CONNECTED":
+        return False
+    return True
+
+
+async def _qp_remove_conn(conn, by_user=False):
+    """Удаляет ожидание из всех очередей для данного соединения (или аккаунта при by_user=True)."""
+    removed_game = None
+    user = conn.get("user")
+    for g in QUICKPLAY_GAMES:
+        async with QUICKPLAY_LOCKS[g]:
+            q = QUICKPLAY_QUEUES[g]
+            keep = []
+            for e in q:
+                if e.get("conn") is conn or (by_user and user and e.get("user") == user):
+                    removed_game = g
+                    t = e.get("timer")
+                    if t is not None and not t.done():
+                        t.cancel()
+                else:
+                    keep.append(e)
+            q[:] = keep
+    return removed_game
+
+
+async def _qp_timeout_task(g: str, entry: dict, delay: float):
+    """Через delay сек (по умолчанию 30) убирает ожидающего из очереди и шлёт status=timeout."""
+    try:
+        await asyncio.sleep(delay)
+        still_waiting = False
+        async with QUICKPLAY_LOCKS[g]:
+            q = QUICKPLAY_QUEUES[g]
+            if entry in q:
+                q.remove(entry)
+                still_waiting = True
+        if still_waiting and _qp_is_alive(entry):
+            try:
+                await entry["ws"].send_json({"type": "queue", "status": "timeout", "game": g})
+            except Exception:
+                pass
+    except asyncio.CancelledError:
+        return
+    except Exception:
+        logging.exception("quickplay timeout task failed")
+
+
 # ── Присутствие (онлайн-статус друзей) ──────────────────────────────────────
 # username -> {"n": число активных соединений, "game": текущая игра или None, "seen": ts}
 import time as _time
@@ -3073,6 +3144,7 @@ async def resync_game(room):
 
 
 @app.websocket("/ws")
+@app.websocket("/games/ws")
 async def ws(websocket: WebSocket):
     auth_user = _check_session(websocket.cookies.get("jsession"))
     if not auth_user:
@@ -3081,6 +3153,7 @@ async def ws(websocket: WebSocket):
     await websocket.accept()
     pid = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
     room = None
+    conn = {"room": None, "pid": pid, "ws": websocket, "user": auth_user["username"], "closed": False}
     _presence_add(auth_user["username"])  # онлайн-статус для друзей
     _msg_times = []
     try:
@@ -3111,8 +3184,155 @@ async def ws(websocket: WebSocket):
             if not act:
                 continue
 
+            room = conn["room"]
+            pid = conn["pid"]
+
             try:
-                if act == "create":
+                if act == "quick_cancel":
+                    removed_game = await _qp_remove_conn(conn, by_user=True)
+                    payload = {"type": "queue", "status": "cancelled"}
+                    if removed_game:
+                        payload["game"] = removed_game
+                    await websocket.send_json(payload)
+                    continue
+
+                elif act == "quick_play":
+                    TWO_P = {"c4": start_c4, "reversi": start_rv, "dots": start_db,
+                             "bulls": start_bc, "battleship": start_bs, "checkers": start_ck, "chess": start_chess}
+                    g = str(msg.get("game") or "").strip().lower()
+                    if g not in TWO_P:
+                        await websocket.send_json({"type": "error", "msg": "Быстрая игра доступна только для дуэлей."})
+                        continue
+                    my_name = (msg.get("name") or "Игрок")[:20]
+                    # Убираем из очередей других игр, если стоял там раньше
+                    for og in QUICKPLAY_GAMES:
+                        if og != g:
+                            async with QUICKPLAY_LOCKS[og]:
+                                q_og = QUICKPLAY_QUEUES[og]
+                                for e in list(q_og):
+                                    if e.get("conn") is conn or e.get("user") == auth_user["username"]:
+                                        q_og.remove(e)
+                                        if e.get("timer") and not e["timer"].done():
+                                            e["timer"].cancel()
+
+                    matched_opp = None
+                    matched_room = None
+                    matched_code = None
+
+                    async with QUICKPLAY_LOCKS[g]:
+                        q = QUICKPLAY_QUEUES[g]
+                        # Чистим мёртвые сокеты и уже ушедших в комнату
+                        alive_q = []
+                        for e in q:
+                            if _qp_is_alive(e):
+                                alive_q.append(e)
+                            else:
+                                if e.get("timer") and not e["timer"].done():
+                                    e["timer"].cancel()
+                        q[:] = alive_q
+
+                        # Ищем соперника с ДРУГИМ аккаунтом и живым сокетом
+                        for cand in list(q):
+                            if cand["user"] == auth_user["username"]:
+                                continue
+                            if not _qp_is_alive(cand):
+                                q.remove(cand)
+                                if cand.get("timer") and not cand["timer"].done():
+                                    cand["timer"].cancel()
+                                continue
+                            if len(rooms) >= MAX_ROOMS:
+                                break
+                            code = code4()
+                            while code in rooms:
+                                code = code4()
+                            try:
+                                await cand["ws"].send_json({"type": "joined", "code": code, "pid": cand["pid"], "host": True})
+                            except Exception:
+                                cand["conn"]["closed"] = True
+                                q.remove(cand)
+                                if cand.get("timer") and not cand["timer"].done():
+                                    cand["timer"].cancel()
+                                continue
+                            # Нашли живого соперника!
+                            q.remove(cand)
+                            if cand.get("timer") and not cand["timer"].done():
+                                cand["timer"].cancel()
+                            # Если наш аккаунт почему-то тоже был в очереди — убираем
+                            for self_e in list(q):
+                                if self_e["user"] == auth_user["username"] or self_e["conn"] is conn:
+                                    q.remove(self_e)
+                                    if self_e.get("timer") and not self_e["timer"].done():
+                                        self_e["timer"].cancel()
+                            matched_code = code
+                            matched_opp = cand
+                            matched_room = {
+                                "code": code, "players": {}, "host": cand["pid"],
+                                "state": "lobby", "game": g,
+                                "settings": {"seats": 0, "timer": 0, "reveals_per_round": 0},
+                                "vote": None, "chat": [],
+                            }
+                            room_lock(matched_room)
+                            rooms[code] = matched_room
+                            matched_opp["conn"]["room"] = matched_room
+                            conn["room"] = matched_room
+                            break
+
+                        if matched_opp is None:
+                            if len(rooms) >= MAX_ROOMS:
+                                await websocket.send_json({"type": "error", "msg": "Слишком много комнат, попробуйте позже."})
+                                continue
+                            # Один аккаунт не может стоять в очереди дважды и не может сыграть сам с собой
+                            existing_idx = next((i for i, e in enumerate(q)
+                                                 if e["user"] == auth_user["username"] or e["conn"] is conn), None)
+                            new_entry = {
+                                "user": auth_user["username"],
+                                "pid": pid,
+                                "name": my_name,
+                                "ws": websocket,
+                                "conn": conn,
+                                "game": g,
+                                "timer": None,
+                            }
+                            new_entry["timer"] = asyncio.create_task(_qp_timeout_task(g, new_entry, _quickplay_timeout()))
+                            if existing_idx is not None:
+                                old_e = q[existing_idx]
+                                if old_e.get("timer") and not old_e["timer"].done():
+                                    old_e["timer"].cancel()
+                                q[existing_idx] = new_entry
+                                pos = existing_idx + 1
+                            else:
+                                q.append(new_entry)
+                                pos = len(q)
+                            await websocket.send_json({"type": "queue", "status": "waiting", "game": g, "position": pos})
+                            continue
+
+                    # Соперник найден — сажаем обоих в комнату и запускаем игру тем же TWO_P-стартом
+                    room = matched_room
+                    code = matched_code
+                    async with room_lock(room):
+                        pid1 = matched_opp["pid"]
+                        ws1 = matched_opp["ws"]
+                        name1 = matched_opp["name"]
+                        user1 = matched_opp["user"]
+                        room["players"][pid1] = {"name": name1[:20], "ws": ws1, "role": None, "alive": True, "user": user1}
+                        room["players"][pid] = {"name": my_name[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
+                        log_usage("create", name1, g, code, ws1, user1)
+                        log_usage("join", my_name, g, code, websocket, auth_user["username"])
+                        _presence_game(user1, g)
+                        _presence_game(auth_user["username"], g)
+                        try:
+                            await ws1.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
+                        except Exception:
+                            pass
+                        await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": False})
+                        await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
+                        await broadcast(room, lobby_state(room))
+                        await TWO_P[g](room)
+                        schedule_bots(room)
+                    continue
+
+                elif act == "create":
+                    await _qp_remove_conn(conn, by_user=False)
                     if len(rooms) >= MAX_ROOMS or not _rate_ok("create", auth_user["username"], 20, 600):
                         await websocket.send_json({"type": "error", "msg": "Слишком много комнат, попробуйте позже."})
                         continue
@@ -3123,7 +3343,9 @@ async def ws(websocket: WebSocket):
                             "settings": {"seats": 0, "timer": 0, "reveals_per_round": 0}, "vote": None, "chat": []}
                     room_lock(room)
                     rooms[code] = room
+                    conn["room"] = room
                 elif act == "join":
+                    await _qp_remove_conn(conn, by_user=False)
                     code = (msg.get("code", "") or "").upper().strip()
                     room = rooms.get(code)
                     if room:
@@ -3132,7 +3354,9 @@ async def ws(websocket: WebSocket):
                     if not room:
                         await websocket.send_json({"type": "error", "msg": "Комната не найдена."})
                         room = None
+                        conn["room"] = None
                         continue
+                    conn["room"] = room
 
                 if not room:
                     continue
@@ -3150,6 +3374,7 @@ async def ws(websocket: WebSocket):
                         if rooms.get(code) is not room:
                             await websocket.send_json({"type": "error", "msg": "Комната не найдена."})
                             room = None
+                            conn["room"] = None
                             continue
                         room.setdefault("chat", [])
                         # ПЕРЕПОДКЛЮЧЕНИЕ: если этот аккаунт уже в комнате (вылетел из браузера),
@@ -3158,6 +3383,7 @@ async def ws(websocket: WebSocket):
                                         if pl.get("user") == auth_user["username"] and not pl.get("ws")), None)
                         if old_pid:
                             pid = old_pid
+                            conn["pid"] = pid
                             room["players"][pid]["ws"] = websocket
                             await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
                             await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
@@ -3871,7 +4097,11 @@ async def ws(websocket: WebSocket):
     except Exception:
         logging.exception("ws loop crashed")
     finally:
+        conn["closed"] = True
+        await _qp_remove_conn(conn, by_user=False)
         _presence_remove(auth_user["username"])  # снять онлайн-статус
+        room = conn["room"]
+        pid = conn["pid"]
         if room and pid in room.get("players", {}):
             async with room_lock(room):
                 if pid in room["players"]:

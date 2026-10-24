@@ -39,12 +39,27 @@
   <div class="cap-row" id="capWhite"></div>
   <div id="over" class="card hide" style="max-width:360px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
 </div>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
+<script src="/games/static/quickplay.js"></script>
 <script>
-let ws,pid,st=null,sel=null;
+let ws = null, pid = null, st = null, sel = null, roomCode = null, firstOpenCb = null, opened = false;
 const PIECE_VAL = {P:1,N:3,B:3,R:5,Q:9,K:0};
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
-function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));}
+function send(o){if(ws)ws.send(o);}
+function connect(cb){
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
+}
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'chess'}));}
 function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function myColor(){ if(!st) return null; return st.order.indexOf(pid); }
@@ -102,14 +117,16 @@ function render(){
   }
 }
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;}
+  if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_chess_code',m.code);}
   else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
   else if(m.type==='chess_state'){ st=m; show('game'); render(); }
   else if(m.type==='error'){alert(m.msg);}
 }
-</script><script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
+const autoCode = sessionStorage.getItem('jg_chess_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
+</script>
 </body></html>

@@ -120,6 +120,10 @@
   <button class="sec" onclick="send({action:'back'})" data-i18n="btn_back">← В лобби</button>
 </div>
 
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
 <script>
 // ═══════════ i18n Мафии: УКР / РУС / ENG ═══════════
 const UI={
@@ -223,15 +227,20 @@ document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesMo
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 document.getElementById('backbtn').onclick=()=>{if(confirm(t('confirm_back')))send({action:'back'});};
 
-let ws, pid, isHost=false, myRole=null, myAlive=true, phase='lobby', picked=null;
+let ws = null, pid = null, isHost = false, myRole = null, myAlive = true, phase = 'lobby', picked = null, roomCode = null, firstOpenCb = null, opened = false;
 function show(id){for(const s of ['home','lobby','game','over'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
+function send(o){if(ws)ws.send(o);}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function connect(cb){
-  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
-  ws.onopen=cb;
-  ws.onmessage=e=>handle(JSON.parse(e.data));
-  ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent=t('conn_lost');};
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || t('def_name'), code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
 }
 function create(){const n=document.getElementById('name').value||t('def_name');connect(()=>send({action:'create',name:n,game:'mafia'}));}
 function join(){const n=document.getElementById('name').value||t('def_name');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
@@ -239,7 +248,7 @@ function nightPick(id){ if(phase!=='night'||!myAlive)return; picked=id; send({ac
 function vote(id){ if(phase!=='day'||!myAlive)return; picked=id; send({action:'mafia_vote',target:id}); }
 
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  if(m.type==='joined'){pid=m.pid;isHost=m.host;roomCode=m.code;sessionStorage.setItem('jg_mafia_code',m.code);}
   if(m.type==='error'){const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;}
   if(m.type==='lobby'||m.type==='room'){
     show('lobby');
@@ -359,10 +368,12 @@ function renderOver(m){
   document.getElementById('againbtn').classList.toggle('hide',!isHost);
 }
 applyUI();
+
+const autoCode = sessionStorage.getItem('jg_mafia_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
 </script>
-<script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
 </body>
 </html>

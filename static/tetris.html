@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Тетрис Киберпанк</title>
+    <title data-i18n="title">Тетрис Киберпанк</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
     <link rel="stylesheet" href="/games/static/theme.css">
     <style>
@@ -178,16 +178,21 @@
         .clearing {
             animation: lineClear 0.3s ease-in-out;
         }
-    </style>
+    
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+</style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🧱 Тетрис — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧱 Тетрис — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
     <div class="header">
-        <a href="/games/static/index.html" class="back-button">◀ Лоби</a>
-        <h1>Тетрис</h1>
-        <select id="speedSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" title="Скорость">
-          <option value="1100">🐢 Легко</option><option value="800" selected>⚡ Средне</option><option value="500">🔥 Сложно</option>
+        <a href="/games/" class="back-button" data-i18n="back_btn">◀ Лоби</a>
+        <h1 data-i18n="page_title">Тетрис</h1>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+        <select id="speedSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" data-i18n-title="speed_title" title="Скорость">
+          <option value="1100" data-i18n="speed_easy">🐢 Легко</option><option value="800" selected data-i18n="speed_med">⚡ Средне</option><option value="500" data-i18n="speed_hard">🔥 Сложно</option>
         </select>
         <div id="score-display">000</div>
     </div>
@@ -216,6 +221,33 @@
     </div>
 
     <script>
+
+const UI = {"uk": {"title": "Тетріс Кіберпанк", "rules_title": "🧱 Тетріс — правила", "rules_body": "Фігури падають зверху — повертай і рухай їх, заповнюй горизонтальні ряди цілком. Повний ряд зникає і дає очки. Стакан переповнився — кінець.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Тетріс", "speed_title": "Швидкість", "speed_easy": "🐢 Легко", "speed_med": "⚡ Середньо", "speed_hard": "🔥 Складно", "score": "Рахунок: ", "game_over": "ГРА ЗАКІНЧЕНА", "restart_btn": "Рестарт"}, "ru": {"title": "Тетрис Киберпанк", "rules_title": "🧱 Тетрис — правила", "rules_body": "Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Тетрис", "speed_title": "Скорость", "speed_easy": "🐢 Легко", "speed_med": "⚡ Средне", "speed_hard": "🔥 Сложно", "score": "Счёт: ", "game_over": "ИГРА ОКОНЧЕНА", "restart_btn": "Рестарт"}, "en": {"title": "Cyberpunk Tetris", "rules_title": "🧱 Tetris — rules", "rules_body": "Blocks fall from above — rotate and move them to fill horizontal rows completely. A full row disappears and scores points. Overflow the glass — game over.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Tetris", "speed_title": "Speed", "speed_easy": "🐢 Easy", "speed_med": "⚡ Medium", "speed_hard": "🔥 Hard", "score": "Score: ", "game_over": "GAME OVER", "restart_btn": "Restart"}};
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+applyUI();
+
+
         const canvas = document.getElementById('tetrisCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score-display');

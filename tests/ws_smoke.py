@@ -331,6 +331,78 @@ async def test_concurrency_durak_and_uno(c1, c2):
               f"(смен хода: {len(turns_seen)})")
 
 
+async def test_quickplay(c1, c2):
+    # 1. Один аккаунт дважды (в одном сокете и с двух вкладок) — не играет сам с собой и не дублируется в очереди
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a1, \
+               websockets.connect(WS, additional_headers={"Cookie": c1}) as a2:
+        await a1.send(json.dumps({"action": "quick_play", "game": "chess", "name": "Клон1"}))
+        q1, _ = await recv_until(a1, lambda m: m.get("type") in ("queue", "joined"), timeout=5)
+        await a1.send(json.dumps({"action": "quick_play", "game": "chess", "name": "Клон1"}))
+        q1_dup, _ = await recv_until(a1, lambda m: m.get("type") in ("queue", "joined"), timeout=5)
+        await a2.send(json.dumps({"action": "quick_play", "game": "chess", "name": "Клон2"}))
+        q2, _ = await recv_until(a2, lambda m: m.get("type") in ("queue", "joined"), timeout=5)
+        ok_self = (
+            q1 is not None and q1.get("type") == "queue" and q1.get("status") == "waiting" and q1.get("position") == 1
+            and q1_dup is not None and q1_dup.get("type") == "queue" and q1_dup.get("status") == "waiting" and q1_dup.get("position") == 1
+            and q2 is not None and q2.get("type") == "queue" and q2.get("status") == "waiting" and q2.get("position") == 1
+        )
+        check("Быстрая игра: один аккаунт дважды не играет сам с собой и не стоит в очереди дважды",
+              ok_self, f"(ответы: {q1}, {q1_dup}, {q2})")
+
+        # 2. Отмена очереди (quick_cancel)
+        await a2.send(json.dumps({"action": "quick_cancel"}))
+        canc, _ = await recv_until(a2, lambda m: m.get("type") == "queue" and m.get("status") == "cancelled", timeout=5)
+        check("Быстрая игра: отмена очереди (quick_cancel → cancelled)", canc is not None, f"(ответ: {canc})")
+
+    # 2б. Обрыв сокета убирает из очереди (второй аккаунт не матчится с оборванным)
+    ws_drop = await websockets.connect(WS, additional_headers={"Cookie": c1})
+    await ws_drop.send(json.dumps({"action": "quick_play", "game": "c4", "name": "Ушедший"}))
+    await recv_until(ws_drop, lambda m: m.get("type") == "queue" and m.get("status") == "waiting", timeout=5)
+    await ws_drop.close()
+    await asyncio.sleep(0.15)
+    async with websockets.connect(WS, additional_headers={"Cookie": c2}) as b_after:
+        await b_after.send(json.dumps({"action": "quick_play", "game": "c4", "name": "Живой"}))
+        wb, _ = await recv_until(b_after, lambda m: m.get("type") in ("queue", "joined"), timeout=5)
+        check("Быстрая игра: обрыв сокета убирает игрока из очереди",
+              wb is not None and wb.get("type") == "queue" and wb.get("status") == "waiting" and wb.get("position") == 1,
+              f"(ответ: {wb})")
+        await b_after.send(json.dumps({"action": "quick_cancel"}))
+
+    # 3. Два разных аккаунта жмут «Быструю игру» в шахматы → оба получают joined в одну комнату и chess_state
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a, \
+               websockets.connect(WS, additional_headers={"Cookie": c2}) as b:
+        await a.send(json.dumps({"action": "quick_play", "game": "chess", "name": "Магнус"}))
+        wa, _ = await recv_until(a, lambda m: m.get("type") == "queue" and m.get("status") == "waiting", timeout=5)
+        await b.send(json.dumps({"action": "quick_play", "game": "chess", "name": "Хикару"}))
+        ja, _ = await recv_until(a, lambda m: m.get("type") == "joined", timeout=5)
+        jb, _ = await recv_until(b, lambda m: m.get("type") == "joined", timeout=5)
+        sa, _ = await recv_until(a, lambda m: m.get("type") == "chess_state", timeout=5)
+        sb, _ = await recv_until(b, lambda m: m.get("type") == "chess_state", timeout=5)
+        same_room = bool(
+            wa and ja and jb and sa and sb
+            and ja.get("code") == jb.get("code")
+            and ja.get("pid") != jb.get("pid")
+            and set(sa.get("order", [])) == {ja["pid"], jb["pid"]}
+        )
+        check("Быстрая игра (шахматы): 2 аккаунта → joined в одну комнату и стартовое состояние партии",
+              same_room, f"(код: {ja and ja.get('code')}, игроки: {sa and sa.get('names')})")
+        if same_room:
+            # Проверим, что первый игрок (ждавший в очереди) реально привязан к комнате и может сделать ход e2-e4
+            await a.send(json.dumps({"action": "chess_move", "fr": 6, "fc": 4, "tr": 4, "tc": 4, "promo": "Q"}))
+            sb2, _ = await recv_until(b, lambda m: m.get("type") == "chess_state" and m.get("turn_pid") == jb["pid"], timeout=5)
+            check("Быстрая игра (шахматы): ход первого игрока в созданной комнате доходит до второго",
+                  sb2 is not None, f"(ход перешёл к: {sb2 and sb2.get('turn_pid')})")
+
+    # 4. Тайм-аут очереди (QUICKPLAY_TIMEOUT)
+    qp_wait = float(os.environ.get("QUICKPLAY_TIMEOUT", "30")) + 4.0
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a:
+        await a.send(json.dumps({"action": "quick_play", "game": "reversi", "name": "Ждун"}))
+        w, _ = await recv_until(a, lambda m: m.get("type") == "queue" and m.get("status") == "waiting", timeout=5)
+        tm, last = await recv_until(a, lambda m: m.get("type") == "queue" and m.get("status") == "timeout", timeout=qp_wait)
+        check("Быстрая игра: тайм-аут при отсутствии соперника (status=timeout)",
+              w is not None and tm is not None, f"(ответ: {tm or last})")
+
+
 def check_server_log():
     log_path = os.environ.get("LOBBY_SERVER_LOG")
     if not log_path or not os.path.exists(log_path):
@@ -357,6 +429,7 @@ async def main():
     await test_room_chat(u[0], u[1])
     await test_global_chat(u[0], u[1])
     await test_concurrency_durak_and_uno(u[0], u[1])
+    await test_quickplay(u[0], u[1])
     check_server_log()
     print(f"\nИтого: {sum(ok for _, ok in results)}/{len(results)}")
     sys.exit(0 if all(ok for _, ok in results) else 1)

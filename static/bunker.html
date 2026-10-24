@@ -94,6 +94,10 @@
   </div>
 </div>
 
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
 <script>
 // ═══════════ i18n Бункера: УКР / РУС / ENG ═══════════
 const UI={
@@ -272,13 +276,19 @@ document.getElementById('langbar').addEventListener('click',e=>{const b=e.target
 document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
-let ws,pid,isHost=false,myChar=null,cats=[];
+let ws = null, pid = null, isHost = false, myChar = null, cats = [], roomCode = null, firstOpenCb = null, opened = false;
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
+function send(o){if(ws)ws.send(o);}
 function connect(cb){
-  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
-  ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));
-  ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent=t('conn_lost');};
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || t('def_name'), code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
 }
 function create(){const n=document.getElementById('name').value||t('def_name');connect(()=>send({action:'create',name:n,game:'bunker'}));}
 function join(){const n=document.getElementById('name').value||t('def_name');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
@@ -332,7 +342,10 @@ function renderBunker(m){
 }
 
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  if(m.type==='joined'){
+    pid=m.pid;isHost=m.host;roomCode=m.code;
+    sessionStorage.setItem('jg_bunker_code',m.code);
+  }
   else if(m.type==='lobby'){
     show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
@@ -348,10 +361,12 @@ function handle(m){
   else if(m.type==='error'){alert(m.msg);}
 }
 applyUI();
+
+const autoCode = sessionStorage.getItem('jg_bunker_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
 </script>
-<script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
 </body>
 </html>

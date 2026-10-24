@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>GeoBunker 🌍 — 200+ Global Random Shuffled Locations</title>
+<title data-i18n="title">GeoBunker 🌍 — 200+ Global Random Shuffled Locations</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -185,6 +185,10 @@
     width: 24px; height: 24px; background: #22c55e; border: 3px solid #fff; border-radius: 50%;
     box-shadow: 0 0 18px #22c55e;
   }
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style>
 </head>
 <body>
@@ -192,53 +196,54 @@
   <!-- PRE-GAME LOBBY MODAL -->
   <div class="lobby-overlay" id="lobbyModal">
     <div class="lobby-card">
-      <div class="lobby-title">GEOBUNKER 🌍</div>
-      <div class="lobby-sub">200+ случайно перемешанных локаций со всех континентов</div>
+      <div class="lobby-title" data-i18n="lobby_title">GEOBUNKER 🌍</div>
+      <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+      <div class="lobby-sub" data-i18n="lobby_sub">200+ случайно перемешанных локаций со всех континентов</div>
 
       <!-- Mode Selector -->
-      <div class="option-group-title">1. РЕЖИМ ИГРЫ:</div>
+      <div class="option-group-title" data-i18n="opt1_title">1. РЕЖИМ ИГРЫ:</div>
       <div class="options-grid">
         <div class="opt-btn active" data-mode="classic" onclick="setOpt('mode','classic')">
-          <div class="title">🎯 Одиночный</div>
-          <div class="desc">5 раундов на очки</div>
+          <div class="title" data-i18n="mode_classic_title">🎯 Одиночный</div>
+          <div class="desc" data-i18n="mode_classic_desc">5 раундов на очки</div>
         </div>
         <div class="opt-btn" data-mode="quick" onclick="setOpt('mode','quick')">
-          <div class="title">⚡ Экспресс</div>
-          <div class="desc">1 быстрый раунд</div>
+          <div class="title" data-i18n="mode_quick_title">⚡ Экспресс</div>
+          <div class="desc" data-i18n="mode_quick_desc">1 быстрый раунд</div>
         </div>
       </div>
 
       <!-- Category / Country Selector -->
-      <div class="option-group-title">2. СТРАНА / РЕГИОН:</div>
+      <div class="option-group-title" data-i18n="opt2_title">2. СТРАНА / РЕГИОН:</div>
       <div class="options-grid">
         <div class="opt-btn active" data-cat="all" onclick="setOpt('cat','all')">
-          <div class="title">🌐 Вся Планета (200+)</div>
-          <div class="desc">100% случайный мир</div>
+          <div class="title" data-i18n="cat_all_title">🌐 Вся Планета (200+)</div>
+          <div class="desc" data-i18n="cat_all_desc">100% случайный мир</div>
         </div>
         <div class="opt-btn" data-cat="capitals" onclick="setOpt('cat','capitals')">
-          <div class="title">🏛️ Города Мира (70+)</div>
-          <div class="desc">Париж, Токио, Нью-Йорк...</div>
+          <div class="title" data-i18n="cat_capitals_title">🏛️ Города Мира (70+)</div>
+          <div class="desc" data-i18n="cat_capitals_desc">Париж, Токио, Нью-Йорк...</div>
         </div>
         <div class="opt-btn" data-cat="nature" onclick="setOpt('cat','nature')">
-          <div class="title">🏔️ Природа & Чудеса (50+)</div>
-          <div class="desc">Горы, каньоны, Исландия...</div>
+          <div class="title" data-i18n="cat_nature_title">🏔️ Природа & Чудеса (50+)</div>
+          <div class="desc" data-i18n="cat_nature_desc">Горы, каньоны, Исландия...</div>
         </div>
         <div class="opt-btn" data-cat="ukraine" onclick="setOpt('cat','ukraine')">
-          <div class="title">🇺🇦 Украина (30+)</div>
-          <div class="desc">Города, замки, Карпаты</div>
+          <div class="title" data-i18n="cat_ukraine_title">🇺🇦 Украина (30+)</div>
+          <div class="desc" data-i18n="cat_ukraine_desc">Города, замки, Карпаты</div>
         </div>
       </div>
 
       <!-- Timer Selector -->
-      <div class="option-group-title">3. ТАЙМЕР РАУНДА:</div>
+      <div class="option-group-title" data-i18n="opt3_title">3. ТАЙМЕР РАУНДА:</div>
       <div class="options-grid">
         <div class="opt-btn active" data-timer="60" onclick="setOpt('timer', 60)">
-          <div class="title">⏱️ 60 секунд</div>
-          <div class="desc">Стандартный ритм</div>
+          <div class="title" data-i18n="timer_60_title">⏱️ 60 секунд</div>
+          <div class="desc" data-i18n="timer_60_desc">Стандартный ритм</div>
         </div>
         <div class="opt-btn" data-timer="0" onclick="setOpt('timer', 0)">
-          <div class="title">🧘 Без таймера</div>
-          <div class="desc">Спокойный поиск</div>
+          <div class="title" data-i18n="timer_0_title">🧘 Без таймера</div>
+          <div class="desc" data-i18n="timer_0_desc">Спокойный поиск</div>
         </div>
       </div>
 
@@ -283,7 +288,7 @@
       <div id="map"></div>
       <div class="map-action-bar">
         <button class="btn-confirm-guess" id="btnConfirmGuess" disabled onclick="submitGuess()">Поставьте метку на карте</button>
-        <button class="btn-view-score" id="btnViewScore" style="display:none;" onclick="openScoreModal()">Посмотреть результаты и очки →</button>
+        <button class="btn-view-score" id="btnViewScore" style="display:none;" onclick="openScoreModal()" data-i18n="score_btn">Посмотреть результаты и очки →</button>
       </div>
     </div>
   </div>
@@ -293,16 +298,41 @@
     <div class="result-card">
       <div style="font-size:11px;font-weight:800;color:#ff2238;text-transform:uppercase;letter-spacing:1px;" id="roundResultTitle">Результат раунда</div>
       <div class="score-huge" id="modalScore">+0</div>
-      <div class="dist-str" id="modalDist">0 км до цели</div>
+      <div class="dist-str" id="modalDist"><span id="modalDistNum">0</span><span data-i18n="dist_msg"> км до цели</span></div>
       <div class="loc-desc" id="modalLoc">Локация</div>
 
-      <button class="btn-action-pill primary" style="width:100%;justify-content:center;" id="modalActionBtn" onclick="nextRound()">Следующий раунд →</button>
+      <button class="btn-action-pill primary" style="width:100%;justify-content:center;" id="modalActionBtn" onclick="nextRound()" data-i18n="next_btn">Следующий раунд →</button>
     </div>
   </div>
 
   <script src="/games/static/sfx.js"></script>
   <script src="/games/static/reconnect.js"></script>
   <script>
+
+const UI = {"uk": {"title": "GeoBunker 🌍 — 200+ локацій з усього світу", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ випадково перемішаних локацій з усіх континентів", "opt1_title": "1. РЕЖИМ ГРИ:", "mode_classic_title": "🎯 Одиночний", "mode_classic_desc": "5 раундів на очки", "mode_quick_title": "⚡ Експрес", "mode_quick_desc": "1 швидкий раунд", "opt2_title": "2. КРАЇНА / РЕГІОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% випадковий світ", "cat_capitals_title": "🏛️ Міста Світу (70+)", "cat_capitals_desc": "Париж, Токіо, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Дива (50+)", "cat_nature_desc": "Гори, каньйони, Ісландія...", "cat_ukraine_title": "🇺🇦 Україна (30+)", "cat_ukraine_desc": "Міста, замки, Карпати", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартний ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокійний пошук", "start_btn": "🚀 ПОГНАЛИ / ПОЧАТИ ГРУ", "nav_games": "🎮 Ігри", "map_btn": "🗺️ Відкрити Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Виберіть точку на Топо-Карти", "map_close": "✕ Закрити", "map_confirm": "Поставити мітку на карті", "res_title": "Результат раунду", "dist_msg": " км до цілі", "next_btn": "Наступний раунд →", "score_btn": "Подивитися результати та очки →"}, "ru": {"title": "GeoBunker 🌍 — 200+ Global Random Shuffled Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ случайно перемешанных локаций со всех континентов", "opt1_title": "1. РЕЖИМ ИГРЫ:", "mode_classic_title": "🎯 Одиночный", "mode_classic_desc": "5 раундов на очки", "mode_quick_title": "⚡ Экспресс", "mode_quick_desc": "1 быстрый раунд", "opt2_title": "2. СТРАНА / РЕГИОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% случайный мир", "cat_capitals_title": "🏛️ Города Мира (70+)", "cat_capitals_desc": "Париж, Токио, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Чудеса (50+)", "cat_nature_desc": "Горы, каньоны, Исландия...", "cat_ukraine_title": "🇺🇦 Украина (30+)", "cat_ukraine_desc": "Города, замки, Карпаты", "opt3_title": "3. ТАЙМЕР РАУНДА:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартный ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокойный поиск", "start_btn": "🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ", "nav_games": "🎮 Игры", "map_btn": "🗺️ Открыть Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Выберите точку на Топо-Карте", "map_close": "✕ Закрыть", "map_confirm": "Поставьте метку на карте", "res_title": "Результат раунда", "dist_msg": " км до цели", "next_btn": "Следующий раунд →", "score_btn": "Посмотреть результаты и очки →"}, "en": {"title": "GeoBunker 🌍 — 200+ Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ randomly shuffled locations from all continents", "opt1_title": "1. GAME MODE:", "mode_classic_title": "🎯 Single Player", "mode_classic_desc": "5 rounds for points", "mode_quick_title": "⚡ Express", "mode_quick_desc": "1 quick round", "opt2_title": "2. COUNTRY / REGION:", "cat_all_title": "🌐 Whole Planet (200+)", "cat_all_desc": "100% random world", "cat_capitals_title": "🏛️ World Cities (70+)", "cat_capitals_desc": "Paris, Tokyo, New York...", "cat_nature_title": "🏔️ Nature & Wonders (50+)", "cat_nature_desc": "Mountains, canyons, Iceland...", "cat_ukraine_title": "🇺🇦 Ukraine (30+)", "cat_ukraine_desc": "Cities, castles, Carpathians", "opt3_title": "3. ROUND TIMER:", "timer_60_title": "⏱️ 60 seconds", "timer_60_desc": "Standard pace", "timer_0_title": "🧘 No timer", "timer_0_desc": "Relaxed search", "start_btn": "🚀 LET'S GO / START GAME", "nav_games": "🎮 Games", "map_btn": "🗺️ Open Topo Map", "menu_btn": "⚙️ Menu", "map_title": "Select a point on the Topo Map", "map_close": "✕ Close", "map_confirm": "Place marker on map", "res_title": "Round Result", "dist_msg": " km from target", "next_btn": "Next round →", "score_btn": "View results and scores →"}};
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+applyUI();
+
+
     // MASSIVE GLOBAL DATASET ACROSS ALL CONTINENTS (Mix of World, Nature, Capitals, Ukraine)
     const LOCATIONS = [
       // 🏛️ СТОЛИЦЫ & МЕГАПОЛИСЫ МИРА
@@ -563,8 +593,12 @@
 
       map.fitBounds(resultPolyline.getBounds(), { padding: [50, 50] });
 
-      const distStr = dist < 1 ? `${Math.round(dist*1000)} м` : `${dist.toFixed(1)} км`;
-      document.getElementById('mapHeaderTitle').textContent = `📍 Промах: ${distStr} до цели!`;
+            const isMeters = dist < 1;
+      const val = isMeters ? Math.round(dist*1000) : dist.toFixed(1);
+      const unit = isMeters ? (LANG === 'en' ? 'm' : 'м') : (LANG === 'en' ? 'km' : 'км');
+      const distStr = `${val} ${unit}`;
+      const missMsg = LANG === 'en' ? `📍 Missed by: ${distStr} to target!` : (LANG === 'uk' ? `📍 Промах: ${distStr} до цілі!` : `📍 Промах: ${distStr} до цели!`);
+      document.getElementById('mapHeaderTitle').textContent = missMsg;
       document.getElementById('btnConfirmGuess').style.display = 'none';
       document.getElementById('btnViewScore').style.display = 'block';
 
@@ -574,7 +608,10 @@
     function openScoreModal() {
       const modal = document.getElementById('resultModal');
       document.getElementById('modalScore').textContent = `+${pendingScore}`;
-      document.getElementById('modalDist').textContent = pendingDist < 1 ? `${Math.round(pendingDist*1000)} м до цели` : `${pendingDist.toFixed(1)} км до цели`;
+            const isM = pendingDist < 1;
+      const v = isM ? Math.round(pendingDist*1000) : pendingDist.toFixed(1);
+      const u = isM ? (LANG === 'en' ? 'm' : 'м') : (LANG === 'en' ? 'km' : 'км');
+      document.getElementById('modalDist').textContent = `${v} ${u} ${t('dist_msg').trim()}`;
       document.getElementById('modalLoc').textContent = `${currentLoc.name}, ${currentLoc.country}`;
 
       if (pendingScore > 3500 && window.confetti) {

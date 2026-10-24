@@ -134,9 +134,10 @@
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/quickplay.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script>
-let ws, pid, st = null, sel = null, roomCode = "";
+let ws = null, pid = null, st = null, sel = null, roomCode = null, firstOpenCb = null, opened = false;
 
 const savedName = localStorage.getItem('jg_player_name') || '';
 if (savedName) document.getElementById('name').value = savedName;
@@ -155,9 +156,11 @@ function connect(cb){
     if (cb) cb();
     return;
   }
+  firstOpenCb = cb;
   ws = JarvisWS("/games/ws", {
     onopen: () => {
-      if (cb) cb();
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value.trim() || 'Игрок', code: roomCode });
     },
     onmessage: (e) => {
       handle(JSON.parse(e.data));

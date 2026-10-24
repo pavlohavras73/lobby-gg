@@ -6,3 +6,5 @@ __pycache__/
 *.sqlite*
 auth_secret.txt
 data/
+static/*.drawer-v1
+node_modules/

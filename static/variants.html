@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Аукцион лжи (Варианты)</title>
+<title data-i18n="title">Аукцион лжи (Варианты)</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -40,6 +40,10 @@
   .lb-row { display:flex; justify-content:space-between; background:rgba(0,0,0,.3); padding:12px; border-radius:12px; margin-bottom:8px; font-weight:700; }
   
   .explanation { font-size:15px; color:#aaa; font-style:italic; text-align:center; margin-top:10px; padding:15px; border-left:3px solid #ff6a7a; background:rgba(255,34,56,.05); }
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style>
 </head>
 <body>
@@ -48,15 +52,16 @@
 <!-- LOBBY -->
 <div id="screen-lobby" class="screen">
   <div class="card">
-    <h2>Аукцион Лжи</h2>
-    <div style="font-size:14px; color:#aaa; text-align:center; margin-bottom:20px;">Генерируем бредовые факты через Gemini. Выбирайте темы:</div>
+    <h2 data-i18n="lobby_title">Аукцион Лжи</h2>
+    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+    <div style="font-size:14px; color:#aaa; text-align:center; margin-bottom:20px;" data-i18n="lobby_sub">Генерируем бредовые факты через Gemini. Выбирайте темы:</div>
     <div class="cats-grid" id="catsGrid">
-      <div class="cat-btn" onclick="toggleCat(this)">Классика</div>
-      <div class="cat-btn" onclick="toggleCat(this)">История</div>
+      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_classic">Классика</div>
+      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_history">История</div>
       <div class="cat-btn" onclick="toggleCat(this)">Dota 2</div>
-      <div class="cat-btn" onclick="toggleCat(this)">Абсурдные законы</div>
-      <div class="cat-btn" onclick="toggleCat(this)">Кино и сериалы</div>
-      <div class="cat-btn" onclick="toggleCat(this)">Аниме</div>
+      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_absurd">Абсурдные законы</div>
+      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_movies">Кино и сериалы</div>
+      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_anime">Аниме</div>
     </div>
     
     <div id="roundsSelector" style="display:none; margin-bottom:20px; text-align:center;">
@@ -77,12 +82,12 @@
 <!-- INPUT PHASE -->
 <div id="screen-input" class="screen">
   <div class="card">
-    <h2>Раунд <span id="roundNum"></span>/<span id="totalRounds"></span></h2>
+    <h2 data-i18n="round_title">Раунд <span id="roundNum"></span>/<span id="totalRounds"></span></h2>
     <div class="prompt-box" id="promptText">В 1923 году мэр запретил <span class="blank">_____</span>, чтобы снизить преступность.</div>
     
     <div id="inputBox">
-      <div style="text-align:center; margin-bottom:10px; font-size:14px; color:#aaa;">Придумай самую правдоподобную ложь:</div>
-      <input type="text" id="bluffInput" class="input-field" placeholder="Твоя версия...">
+      <div style="text-align:center; margin-bottom:10px; font-size:14px; color:#aaa;" data-i18n="input_sub">Придумай самую правдоподобную ложь:</div>
+      <input type="text" id="bluffInput" class="input-field" placeholder="Твоя версия..." data-i18n-ph="input_ph">
       <button class="btn" onclick="submitBluff()" style="width:100%;">Обмануть всех</button>
     </div>
     <div id="waitInput" style="display:none; text-align:center; color:var(--muted); font-size:18px; padding:20px;">
@@ -95,19 +100,19 @@
 <!-- VOTING PHASE -->
 <div id="screen-voting" class="screen">
   <div class="card">
-    <h2>Голосование</h2>
+    <h2 data-i18n="vote_title">Голосование</h2>
     <div class="prompt-box" id="promptTextVote" style="font-size:16px;"></div>
-    <div style="text-align:center; margin-bottom:15px; color:#aaa;">Где правда? Найди правильный ответ и не попадись на уловку!</div>
+    <div style="text-align:center; margin-bottom:15px; color:#aaa;" data-i18n="vote_sub">Где правда? Найди правильный ответ и не попадись на уловку!</div>
     
     <div id="answersList"></div>
-    <div id="waitVote" style="display:none; text-align:center; color:var(--muted); margin-top:20px;">Ждём остальных...</div>
+    <div id="waitVote" style="display:none; text-align:center; color:var(--muted); margin-top:20px;" data-i18n="wait_vote">Ждём остальных...</div>
   </div>
 </div>
 
 <!-- RESULTS PHASE -->
 <div id="screen-results" class="screen">
   <div class="card">
-    <h2>Итоги раунда</h2>
+    <h2 data-i18n="res_title">Итоги раунда</h2>
     <div id="resultsList"></div>
     <div class="explanation" id="explanationText"></div>
     
@@ -122,9 +127,9 @@
 <div id="screen-game_over" class="screen">
   <div class="card" style="text-align:center;">
     <h1 style="font-size:40px;margin-bottom:10px;">🏆</h1>
-    <h2>Игра окончена!</h2>
+    <h2 data-i18n="over_title">Игра окончена!</h2>
     <div id="finalLeaderboard"></div>
-    <button class="btn" onclick="location.href='/games/'" style="width:100%;margin-top:20px;background:#444;">В меню</button>
+    <button class="btn" onclick="location.href='/games/'" style="width:100%;margin-top:20px;background:#444;" data-i18n="menu_btn">В меню</button>
   </div>
 </div>
 
@@ -132,6 +137,33 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
+
+const UI = {"uk": {"title": "Аукціон брехні (Варіанти)", "lobby_title": "Аукціон Брехні", "lobby_sub": "Генеруємо абсурдні факти через Gemini. Обирайте теми:", "cat_classic": "Класика", "cat_history": "Історія", "cat_anime": "Аніме", "cat_movies": "Кіно і серіали", "cat_absurd": "Абсурдні закони", "rounds_lbl": "Кількість раундів:", "start_btn": "Почати гру", "host_wait": "Чекаємо хоста...", "players_lbl": "Гравці", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай найправдоподібнішу брехню:", "input_ph": "Твоя версія...", "bluff_btn": "Обдурити всіх", "wait_others": "Брехня відправлена. Чекаємо інших...", "vote_title": "Голосування", "vote_sub": "Де правда? Знайди правильну відповідь і не попадись на виверт!", "wait_vote": "Чекаємо інших...", "res_title": "Підсумки раунду", "next_round": "Наступний раунд", "host_study": "Хост вивчає результати...", "over_title": "Гру закінчено!", "menu_btn": "В меню"}, "ru": {"title": "Аукцион лжи (Варианты)", "lobby_title": "Аукцион Лжи", "lobby_sub": "Генерируем бредовые факты через Gemini. Выбирайте темы:", "cat_classic": "Классика", "cat_history": "История", "cat_anime": "Аниме", "cat_movies": "Кино и сериалы", "cat_absurd": "Абсурдные законы", "rounds_lbl": "Количество раундов:", "start_btn": "Начать игру", "host_wait": "Ждём хоста...", "players_lbl": "Игроки", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай самую правдоподобную ложь:", "input_ph": "Твоя версия...", "bluff_btn": "Обмануть всех", "wait_others": "Ложь отправлена. Ждем остальных...", "vote_title": "Голосование", "vote_sub": "Где правда? Найди правильный ответ и не попадись на уловку!", "wait_vote": "Ждём остальных...", "res_title": "Итоги раунда", "next_round": "Следующий раунд", "host_study": "Хост изучает результаты...", "over_title": "Игра окончена!", "menu_btn": "В меню"}, "en": {"title": "Fibbage (Variants)", "lobby_title": "Fibbage", "lobby_sub": "Generate crazy facts via Gemini. Choose topics:", "cat_classic": "Classic", "cat_history": "History", "cat_anime": "Anime", "cat_movies": "Movies & TV", "cat_absurd": "Absurd Laws", "rounds_lbl": "Number of rounds:", "start_btn": "Start game", "host_wait": "Waiting for host...", "players_lbl": "Players", "round_title": "Round <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Come up with the most believable lie:", "input_ph": "Your version...", "bluff_btn": "Fool everyone", "wait_others": "Lie submitted. Waiting for others...", "vote_title": "Voting", "vote_sub": "Where is the truth? Find the correct answer and don't get tricked!", "wait_vote": "Waiting for others...", "res_title": "Round Results", "next_round": "Next round", "host_study": "Host is reviewing results...", "over_title": "Game over!", "menu_btn": "To menu"}};
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.innerHTML = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+  updateUI();
+});
+applyUI();
+
+
 let state = null;
 let myId = null;
 let wsInstance = null;

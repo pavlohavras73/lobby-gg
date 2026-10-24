@@ -57,16 +57,31 @@
   </div>
 </div>
 
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
+<script src="/games/static/quickplay.js"></script>
 <script>
-let ws,pid,st=null;
+let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
-function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent='Связь потеряна, обнови.';};}
+function send(o){if(ws)ws.send(o);}
+function connect(cb){
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
+}
 function create(){const n=document.getElementById('name').value||'Игрок';connect(()=>send({action:'create',name:n,game:'c4'}));}
 function join(){const n=document.getElementById('name').value||'Игрок';const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:n,code:c}));}
 function drop(col){if(st&&st.turn_pid===pid&&!st.winner&&!st.draw)send({action:'c4_drop',col:col});}
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;}
+  if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_c4_code',m.code);}
   else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');}
   else if(m.type==='c4_state'){
@@ -90,10 +105,11 @@ function handle(m){
   }
   else if(m.type==='error'){alert(m.msg);}
 }
+const autoCode = sessionStorage.getItem('jg_c4_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
 </script>
-<script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
 </body>
 </html>

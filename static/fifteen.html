@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Lobby.gg — Пятнашки</title>
+<title data-i18n="title">Lobby.gg — Пятнашки</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -24,23 +24,55 @@
   .win .big{font-size:26px;font-weight:900;color:#5cff9e;margin-bottom:10px}
   .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
   .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">🎮 Игры</a>
-<h1>🔢 Пятнашки</h1>
+<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="backlink">🎮 Игры</a>
+<h1 data-i18n="page_title">🔢 Пятнашки</h1>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
 <div class="bar">
-  <div class="score"><div class="l">Ходов</div><div class="v" id="moves">0</div></div>
+  <div class="score"><div class="l" data-i18n="moves">Ходов</div><div class="v" id="moves">0</div></div>
   <select id="size" onchange="newGame()"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
-  <button class="sec" onclick="newGame()">↻ Мешать</button>
+  <button class="sec" onclick="newGame()" data-i18n="mix_btn">↻ Мешать</button>
 </div>
-<div class="board" id="board"><div class="win" id="win"><div class="big">🎉 Собрал!</div><button onclick="newGame()">Ещё раз</button></div></div>
-<div class="hint">Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.</div>
-<a class="backlink" href="/games/">← Все игры</a>
+<div class="board" id="board"><div class="win" id="win"><div class="big" data-i18n="win_title">🎉 Собрал!</div><button onclick="newGame()" data-i18n="again_btn">Ещё раз</button></div></div>
+<div class="hint" data-i18n="hint">Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.</div>
+<a class="backlink" href="/games/" data-i18n="backlink">← Все игры</a>
 
 <script>
+
+const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"}};
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+applyUI();
+
+
 let N=4, tiles, blank, moves, size, gap=6, cell;
 function idx(x,y){return y*N+x;}
 function layout(){

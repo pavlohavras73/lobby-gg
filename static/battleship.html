@@ -33,11 +33,26 @@
   <div class="lbl2">🛡 Твоё поле</div><div class="bd" id="own"></div>
   <div id="over" class="card hide" style="max-width:340px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())">Заново</button></div>
 </div>
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
+<script src="/games/static/quickplay.js"></script>
 <script>
-let ws,pid,st=null;
+let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
 function show(id){for(const s of['home','lobby','place','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
-function connect(cb){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));}
+function send(o){if(ws)ws.send(o);}
+function connect(cb){
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
+}
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'battleship'}));}
 function join(){const c=document.getElementById('joincode').value;if(!c)return alert('Код?');connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function fire(r,c){if(st&&st.turn_pid===pid)send({action:'bs_fire',r:r,c:c});}
@@ -47,7 +62,7 @@ function renderBoard(el,grid,fireable){let h='';for(let r=0;r<10;r++)for(let c=0
   h+='<div class="'+cls+'" '+(f?'onclick="fire('+r+','+c+')"':'')+'>'+(v===2?'✶':v===3?'·':'')+'</div>';}
   document.getElementById(el).innerHTML=h;}
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;}
+  if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_battleship_code',m.code);}
   else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
   else if(m.type==='bs_state'){st=m;
@@ -62,8 +77,10 @@ function handle(m){
     else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">ТВОЙ ХОД</span> — стреляй (попал = бьёшь ещё)':'Ходит '+(m.names[m.turn_pid]||'?');}}
   else if(m.type==='error'){alert(m.msg);}
 }
-</script><script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
+const autoCode = sessionStorage.getItem('jg_battleship_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
+</script>
 </body></html>

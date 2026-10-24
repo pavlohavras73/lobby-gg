@@ -80,6 +80,10 @@
   <button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="btn_restart">Новая партия</button>
 </div>
 
+<script src="/games/static/invite.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/reconnect.js"></script>
+<script src="/games/static/room_chat.js"></script>
 <script>
 const UI={
   uk:{
@@ -133,7 +137,7 @@ const SUITS=["♠","♥","♦","♣"],RANKS={6:"6",7:"7",8:"8",9:"9",10:"10",11:
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
 
-let ws,pid,isHost=false,sel=null,st=null;
+let ws = null, pid = null, isHost = false, sel = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
 function applyUI(){
   document.documentElement.lang=LANG;
   document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
@@ -146,11 +150,17 @@ document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesMo
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
 function show(id){for(const s of['home','lobby','game','over'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){ws.send(JSON.stringify(o));}
+function send(o){if(ws)ws.send(o);}
 function connect(cb){
-  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/games/ws');
-  ws.onopen=cb;ws.onmessage=e=>handle(JSON.parse(e.data));
-  ws.onclose=()=>{const w=document.getElementById('waitmsg');if(w)w.textContent=t('conn_lost');};
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
+  firstOpenCb = cb;
+  ws = JarvisWS("/games/ws", {
+    onopen: () => {
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: document.getElementById('name').value || t('def_player'), code: roomCode });
+    },
+    onmessage: (e) => handle(JSON.parse(e.data))
+  });
 }
 function create(){const n=document.getElementById('name').value||t('def_player');connect(()=>send({action:'create',name:n,game:'durak'}));}
 function join(){const n=document.getElementById('name').value||t('def_player');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
@@ -223,7 +233,10 @@ function renderState(m){
 }
 
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;isHost=m.host;}
+  if(m.type==='joined'){
+    pid=m.pid;isHost=m.host;roomCode=m.code;
+    sessionStorage.setItem('jg_durak_code',m.code);
+  }
   else if(m.type==='lobby'){
     show('lobby');document.getElementById('lcode').textContent=m.code;
     document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
@@ -236,10 +249,12 @@ function handle(m){
   else if(m.type==='error'){alert(m.msg);}
 }
 applyUI();
+
+const autoCode = sessionStorage.getItem('jg_durak_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
+}
 </script>
-<script src="/games/static/invite.js"></script>
-<script src="/games/static/sfx.js"></script>
-<script src="/games/static/reconnect.js"></script>
-<script src="/games/static/room_chat.js"></script>
 </body>
 </html>

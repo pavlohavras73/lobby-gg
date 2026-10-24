@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>➡️ Стрелки — Arrow Escape</title>
+<title data-i18n="title">➡️ Стрелки — Arrow Escape</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -44,54 +44,84 @@
 </style>
 </head>
 <body>
-  <a href="/games/" class="top-btn btn-back">🎮 Игры</a>
+  <a href="/games/" class="top-btn btn-back" data-i18n="nav_games">🎮 Игры</a>
   <div style="position:fixed;bottom:4px;left:7px;z-index:99999;font-size:9px;font-weight:800;color:#6a6a80;letter-spacing:1px">v10 · weave</div>
+  <div class="langbar" id="langbar" style="position:fixed;bottom:4px;right:7px;z-index:99999;margin:0;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
   <div class="center-hud">
     <div class="hearts-display" id="heartsDisplay"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
-    <div class="level-badge" id="levelLabel">LEVEL 1</div>
+    <div class="level-badge" id="levelLabel" data-i18n="level">УРОВЕНЬ 1</div>
   </div>
-  <button onclick="restartLevel()" class="top-btn btn-restart">🔄 Сначала</button>
+  <button onclick="restartLevel()" class="top-btn btn-restart" data-i18n="restart">🔄 Сначала</button>
   <div class="board-wrapper"><div class="board-card"><canvas id="gameCanvas"></canvas></div></div>
   <div class="corner-tools">
-    <button class="tool" title="Подсказка" onclick="useHint()">💡<span class="badge" id="hintCount">3</span></button>
-    <button class="tool" title="По центру" onclick="resetCamera()">🎯</button>
+    <button class="tool" title="Подсказка" data-i18n-title="hint_btn" onclick="useHint()">💡<span class="badge" id="hintCount">3</span></button>
+    <button class="tool" title="По центру" data-i18n-title="center_btn" onclick="resetCamera()">🎯</button>
   </div>
 
   <div class="modal-overlay open" id="lobby"><div class="modal-card lobby">
     <div class="lobby-emoji">🧩</div>
-    <h1>СТРЕЛКИ</h1>
-    <div class="lobby-sub">Arrow Escape — разбери неон-лабиринт</div>
+    <h1 data-i18n="lobby_title">СТРЕЛКИ</h1>
+    <div class="lobby-sub" data-i18n="lobby_sub">Arrow Escape — разбери неон-лабиринт</div>
     <ul class="rules">
-      <li>🔴 <span>Тапни стрелку — она вылетит в свою сторону.</span></li>
-      <li>⛔ <span>Если перед головой другая линия — затор (−❤️).</span></li>
-      <li>🎯 <span>Начинай с тех, у кого путь к краю свободен.</span></li>
-      <li>🤏 <span>Щипок — зум, палец — двигать поле.</span></li>
+      <li data-i18n="rule_1">🔴 <span>Тапни стрелку — она вылетит в свою сторону.</span></li>
+      <li data-i18n="rule_2">⛔ <span>Если перед головой другая линия — затор (−❤️).</span></li>
+      <li data-i18n="rule_3">🎯 <span>Начинай с тех, у кого путь к краю свободен.</span></li>
+      <li data-i18n="rule_4">🤏 <span>Щипок — зум, палец — двигать поле.</span></li>
     </ul>
-    <div class="diff-lbl">Сложность</div>
+    <div class="diff-lbl" data-i18n="diff_lbl">Сложность</div>
     <div class="diff-row">
-      <button class="diff on" onclick="setDiff('easy',this)">Лёгкий<span class="d">малое поле</span></button>
-      <button class="diff" onclick="setDiff('medium',this)">Средний<span class="d">×1.5</span></button>
-      <button class="diff" onclick="setDiff('hard',this)">Тяжёлый<span class="d">×2-3</span></button>
+      <button class="diff on" onclick="setDiff('easy',this)"><span data-i18n="diff_easy">Лёгкий</span><span class="d" data-i18n="diff_easy_sub">малое поле</span></button>
+      <button class="diff" onclick="setDiff('medium',this)"><span data-i18n="diff_med">Средний</span><span class="d" data-i18n="diff_med_sub">×1.5</span></button>
+      <button class="diff" onclick="setDiff('hard',this)"><span data-i18n="diff_hard">Тяжёлый</span><span class="d" data-i18n="diff_hard_sub">×2-3</span></button>
     </div>
-    <button class="btn-primary" onclick="startGame()">▶ Играть</button>
+    <button class="btn-primary" onclick="startGame()" data-i18n="play_btn">▶ Играть</button>
   </div></div>
 
   <div class="modal-overlay" id="winModal"><div class="modal-card">
-    <div style="font-size:12px;font-weight:900;color:#22c55e;text-transform:uppercase;letter-spacing:1px">Лабиринт разобран!</div>
+    <div style="font-size:12px;font-weight:900;color:#22c55e;text-transform:uppercase;letter-spacing:1px" data-i18n="win_title">Лабиринт разобран!</div>
     <div style="font-size:42px;margin:12px 0">⭐⭐⭐</div>
-    <div style="font-size:13px;color:#9aa;margin-bottom:16px">Все стрелки вылетели без коллизий.</div>
-    <button class="btn-primary" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="nextLevel()">Следующий →</button>
+    <div style="font-size:13px;color:#9aa;margin-bottom:16px" data-i18n="win_sub">Все стрелки вылетели без коллизий.</div>
+    <button class="btn-primary" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="nextLevel()" data-i18n="next_btn">Следующий →</button>
   </div></div>
   <div class="modal-overlay" id="loseModal"><div class="modal-card">
-    <div style="font-size:12px;font-weight:900;color:#ef4444;text-transform:uppercase;letter-spacing:1px">Затор!</div>
+    <div style="font-size:12px;font-weight:900;color:#ef4444;text-transform:uppercase;letter-spacing:1px" data-i18n="lose_title">Затор!</div>
     <div style="font-size:42px;margin:12px 0">💔</div>
-    <div style="font-size:13px;color:#9aa;margin-bottom:16px">3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.</div>
-    <button class="btn-primary" onclick="restartLevel()">Ещё раз 🔄</button>
+    <div style="font-size:13px;color:#9aa;margin-bottom:16px" data-i18n="lose_sub">3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.</div>
+    <button class="btn-primary" onclick="restartLevel()" data-i18n="again_btn">Ещё раз 🔄</button>
   </div></div>
 
   <script src="/games/static/sfx.js"></script>
   <script src="/games/static/reconnect.js"></script>
   <script>
+
+  const UI = {"uk": {"title": "➡️ Стрілки — Arrow Escape", "nav_games": "🎮 Ігри", "level": "РІВЕНЬ", "restart": "🔄 Спочатку", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРІЛКИ", "lobby_sub": "Arrow Escape — розбери неон-лабіринт", "rule_1": "🔴 <span>Тапни стрілку — вона вилетить у свій бік.</span>", "rule_2": "⛔ <span>Якщо перед головою інша лінія — затор (−❤️).</span>", "rule_3": "🎯 <span>Починай з тих, у кого шлях до краю вільний.</span>", "rule_4": "🤏 <span>Щипок — зум, палець — рухати поле.</span>", "diff_lbl": "Складність", "diff_easy": "Легкий", "diff_easy_sub": "мале поле", "diff_med": "Середній", "diff_med_sub": "×1.5", "diff_hard": "Важкий", "diff_hard_sub": "×2-3", "play_btn": "▶ Грати", "win_title": "Лабіринт розібрано!", "win_sub": "Усі стрілки вилетіли без колізій.", "next_btn": "Наступний →", "lose_title": "Затор!", "lose_sub": "3 колізії. Прибирай спочатку стрілки, у яких перед головою вільно.", "again_btn": "Ще раз 🔄"}, "ru": {"title": "➡️ Стрелки — Arrow Escape", "nav_games": "🎮 Игры", "level": "УРОВЕНЬ", "restart": "🔄 Сначала", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРЕЛКИ", "lobby_sub": "Arrow Escape — разбери неон-лабиринт", "rule_1": "🔴 <span>Тапни стрелку — она вылетит в свою сторону.</span>", "rule_2": "⛔ <span>Если перед головой другая линия — затор (−❤️).</span>", "rule_3": "🎯 <span>Начинай с тех, у кого путь к краю свободен.</span>", "rule_4": "🤏 <span>Щипок — зум, палец — двигать поле.</span>", "diff_lbl": "Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "малое поле", "diff_med": "Средний", "diff_med_sub": "×1.5", "diff_hard": "Тяжёлый", "diff_hard_sub": "×2-3", "play_btn": "▶ Играть", "win_title": "Лабиринт разобран!", "win_sub": "Все стрелки вылетели без коллизий.", "next_btn": "Следующий →", "lose_title": "Затор!", "lose_sub": "3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.", "again_btn": "Ещё раз 🔄"}, "en": {"title": "➡️ Arrows — Arrow Escape", "nav_games": "🎮 Games", "level": "LEVEL", "restart": "🔄 Restart", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "ARROWS", "lobby_sub": "Arrow Escape — clear the neon maze", "rule_1": "🔴 <span>Tap an arrow — it flies in its direction.</span>", "rule_2": "⛔ <span>If the path is blocked — crash (−❤️).</span>", "rule_3": "🎯 <span>Start with those having a free path to the edge.</span>", "rule_4": "🤏 <span>Pinch to zoom, drag to pan.</span>", "diff_lbl": "Difficulty", "diff_easy": "Easy", "diff_easy_sub": "small board", "diff_med": "Medium", "diff_med_sub": "×1.5", "diff_hard": "Hard", "diff_hard_sub": "×2-3", "play_btn": "▶ Play", "win_title": "Maze cleared!", "win_sub": "All arrows escaped without collisions.", "next_btn": "Next →", "lose_title": "Crash!", "lose_sub": "3 collisions. Remove arrows with a clear path first.", "again_btn": "Try again 🔄"}};
+  let LANG = localStorage.getItem('jg_lang') || 'ru';
+  if (!UI[LANG]) LANG = 'ru';
+  function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+  function applyUI() {
+    document.documentElement.lang = LANG;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = t(el.dataset.i18n);
+      if (typeof v !== 'string') return;
+      if (el.tagName.toLowerCase() === 'li') el.innerHTML = v;
+      else if (el.tagName.toLowerCase() === 'title') document.title = v;
+      else el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+    document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+    
+    // Custom label update
+    const lbl = document.getElementById('levelLabel');
+    if(lbl) lbl.textContent = t('level') + ' ' + (currentLvlIdx + 1);
+  }
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    applyUI();
+  });
+
   const DIRS=[{dx:0,dy:-1,name:'up'},{dx:1,dy:0,name:'right'},{dx:0,dy:1,name:'down'},{dx:-1,dy:0,name:'left'}];
   function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
   const dname=(dx,dy)=>DIRS.find(d=>d.dx===dx&&d.dy===dy).name;
@@ -241,7 +271,7 @@
     activeLevel=JSON.parse(JSON.stringify(getLevel(currentLvlIdx)));
     activeLevel.snakes.forEach(s=>{s.flying=false;s.phase=0;s.shakeT=0;s.hi=0;});
     hearts=3; hints=3;
-    document.getElementById('levelLabel').textContent=`LEVEL ${currentLvlIdx+1}`;
+    document.getElementById('levelLabel').textContent=t('level') + ' ' + (currentLvlIdx + 1);
     document.getElementById('winModal').classList.remove('open');
     document.getElementById('loseModal').classList.remove('open');
     updateHUD(); onResize();
@@ -313,7 +343,10 @@
     for(const s of activeLevel.snakes) if(!s.flying)drawSnake(s);
     for(const s of activeLevel.snakes) if(s.flying)drawSnake(s);
   }
-  window.onload=()=>initGame();
+  window.onload=()=>{applyUI();initGame();};
   </script>
 </body>
 </html>
+<script>
+  applyUI();
+</script>

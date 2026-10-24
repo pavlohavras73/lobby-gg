@@ -299,7 +299,7 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
-let ws, pid, myName = "", isHost = false, roomCode = "";
+let ws = null, pid = null, myName = "", isHost = false, roomCode = null, firstOpenCb = null, opened = false;
 let state = null;
 let currentMode = 'pawn'; // 'pawn' | 'wall'
 let currentWallDir = 'h';  // 'h' | 'v'
@@ -374,67 +374,67 @@ function setWallDir(wdir) {
 }
 
 // ── Подключение и WebSockets ──
-function connectWS(onOpenCb) {
-  if (ws && ws.getSocket && ws.getSocket().readyState === WebSocket.OPEN) {
-    if (onOpenCb) onOpenCb();
+function send(o){ if (ws) ws.send(o); }
+
+function handle(msg) {
+  if (msg.type === "joined") {
+    pid = msg.pid;
+    roomCode = msg.code;
+    sessionStorage.setItem('jg_quoridor_code', msg.code);
+    isHost = msg.host;
+    document.getElementById("home").classList.add("hide");
+    document.getElementById("lobby").classList.remove("hide");
+    document.getElementById("lcode").textContent = roomCode;
+  } else if (msg.type === "lobby" || msg.type === "lobby_state") {
+    document.getElementById("home").classList.add("hide");
+    document.getElementById("game").classList.add("hide");
+    document.getElementById("lobby").classList.remove("hide");
+    lastLobbyMsg = msg;
+    renderLobby(msg);
+  } else if (msg.type === "quoridor_state") {
+    state = msg;
+    document.getElementById("home").classList.add("hide");
+    document.getElementById("lobby").classList.add("hide");
+    document.getElementById("game").classList.remove("hide");
+    renderGame();
+  } else if (msg.type === "error") {
+    showToast(msg.msg, true);
+  }
+}
+
+function connect(cb) {
+  if (ws && ws.getSocket && ws.getSocket().readyState === 1) {
+    if (cb) cb();
     return;
   }
-  if (ws && ws.getSocket && ws.getSocket().readyState === WebSocket.CONNECTING) {
-    const timer = setInterval(() => {
-      if (ws.getSocket().readyState === WebSocket.OPEN) {
-        clearInterval(timer);
-        if (onOpenCb) onOpenCb();
-      }
-    }, 40);
-    return;
-  }
+  firstOpenCb = cb;
   ws = JarvisWS("/games/ws", {
     onopen: () => {
-      if (onOpenCb) onOpenCb();
+      if (!opened) { opened = true; const f = firstOpenCb; firstOpenCb = null; if (f) f(); return; }
+      if (roomCode) ws.send({ action: 'join', name: (document.getElementById('name') && document.getElementById('name').value.trim()) || myName || t('default_player'), code: roomCode });
     },
     onmessage: (e) => {
-      const msg = JSON.parse(e.data);
-      if (msg.type === "joined") {
-        pid = msg.pid;
-        roomCode = msg.code;
-        isHost = msg.host;
-        document.getElementById("home").classList.add("hide");
-        document.getElementById("lobby").classList.remove("hide");
-        document.getElementById("lcode").textContent = roomCode;
-      } else if (msg.type === "lobby" || msg.type === "lobby_state") {
-        document.getElementById("home").classList.add("hide");
-        document.getElementById("game").classList.add("hide");
-        document.getElementById("lobby").classList.remove("hide");
-        lastLobbyMsg = msg;
-        renderLobby(msg);
-      } else if (msg.type === "quoridor_state") {
-        state = msg;
-        document.getElementById("home").classList.add("hide");
-        document.getElementById("lobby").classList.add("hide");
-        document.getElementById("game").classList.remove("hide");
-        renderGame();
-      } else if (msg.type === "error") {
-        showToast(msg.msg, true);
-      }
+      handle(JSON.parse(e.data));
     }
   });
 }
+const connectWS = connect;
 
 function create() {
   myName = document.getElementById("name").value.trim() || t('default_player');
   localStorage.setItem("jg_name", myName);
-  connectWS(() => {
-    ws.send({ action: "create", game: "quoridor", name: myName });
+  connect(() => {
+    send({ action: "create", game: "quoridor", name: myName });
   });
 }
 
-function join() {
+function join(c) {
   myName = document.getElementById("name").value.trim() || t('default_player');
-  const code = document.getElementById("joincode").value.trim().toUpperCase();
+  const code = (c || document.getElementById("joincode").value).trim().toUpperCase();
   if (!code) return alert(t("enter_code_alert"));
   localStorage.setItem("jg_name", myName);
-  connectWS(() => {
-    ws.send({ action: "join", code: code, name: myName });
+  connect(() => {
+    send({ action: "join", code: code, name: myName });
   });
 }
 
@@ -692,6 +692,12 @@ function onWallClick(wr, wc, dir) {
   removeGhostWall();
   ws.send({ action: "quoridor_wall", r: wr, c: wc, dir: dir });
   if (window.SFX) SFX.tap();
+}
+
+const autoCode = sessionStorage.getItem('jg_quoridor_code');
+if (autoCode) {
+  const jc = document.getElementById('joincode');
+  if (jc) jc.value = autoCode;
 }
 </script>
 </body>
