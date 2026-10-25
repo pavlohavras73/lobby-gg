@@ -29,7 +29,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💬 Элиас — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Объясни слово команде <b>не называя его</b> и однокоренные. Команда угадывает. Больше угаданных слов за раунд — победа.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">💬 ЭЛИАС</h1><div class="sub" data-i18n="tagline">объясни слово команде</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <div id="home" class="card">
   <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
@@ -155,6 +155,27 @@ const UI={
     winner_team:num=>"🏆 Team "+num+" won!",
     winner_solo:name=>"🏆 "+name+" won!",
     time_up:"⏱ TIME'S UP!", conn_lost:"Connection lost, refresh.", ask_code:"Code?", def_player:"Player"
+  },
+  de:{
+    rules_title:"💬 Alias — Regeln",
+    rules_body:"Erkläre das Wort deinem Team, <b>ohne es oder Wortstämme zu nennen</b>. Dein Team rät. Das Team mit den meisten erratenen Wörtern gewinnt.",
+    rules_ok:"Verstanden 👍", nav_games:"🎮 Spiele", title:"💬 ALIAS", tagline:"Erkläre das Wort deinem Team",
+    ph_name:"Dein Name", btn_create:"Spiel erstellen", ph_code:"CODE", btn_join:"Mit Code beitreten", all_games:"← Alle Spiele",
+    lobby_code:"Spielcode:", lbl_wordlang:"Wortsprache", lbl_diff:"Schwierigkeit",
+    diff_easy:"Leicht", diff_easy_desc:"einfache Wörter", diff_med:"Mittel", diff_med_desc:"Standard",
+    diff_hard:"Schwer", diff_hard_desc:"selten & anspruchsvoll", lbl_mode:"Modus",
+    mode_solo:"👤 Jeder gegen jeden", mode_solo_desc:"Einzelwertung, abwechselnd",
+    mode_teams:"👥 Teams", mode_teams_desc:"benötigt mind. 4 Spieler (gerade Zahl)",
+    lbl_roundtime:"Rundenzeit (Sek.)", lbl_targetscore:"Zielpunktzahl", btn_bot:"🤖 Bot hinzufügen",
+    btn_start:"▶ Spiel starten", wait_host:"Warte auf Host…", team1:"Team 1", team2:"Team 2",
+    btn_correct:"✓ Erraten", btn_skip:"⤼ Überspringen", btn_pass:"Zug abgeben",
+    btn_begin_round:"▶ Runde starten (du erklärst)", watch_hint:"Zuhören und laut mitraten 🎧",
+    lbl_score:"Punkte", btn_newgame:"Neues Spiel",
+    explaining_team:(name,team,me)=>'Erklärt: <b class="'+(me?'me':'')+'">'+name+'</b> (Team '+team+')',
+    explaining_solo:(name,me)=>'Erklärt: <b class="'+(me?'me':'')+'">'+name+'</b> — alle raten',
+    winner_team:num=>"🏆 Team "+num+" hat gewonnen!",
+    winner_solo:name=>"🏆 "+name+" hat gewonnen!",
+    time_up:"⏱ ZEIT UM!", conn_lost:"Verbindung verloren, bitte aktualisieren.", ask_code:"Code?", def_player:"Spieler"
   }
 };
 

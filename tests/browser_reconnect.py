@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("LOBBY_BASE", "http://127.0.0.1:18090")
 PARTY = set() if os.environ.get("NO_START") else {"quoridor", "durak", "uno", "poker", "mafia", "bunker", "spy", "alias"}  # NO_START=1 — рвём связь ещё в лобби
-CHROMIUM = os.environ.get("CHROMIUM", "/usr/bin/chromium")
+CHROMIUM = os.environ.get("CHROMIUM") or ("/usr/bin/chromium" if os.path.exists("/usr/bin/chromium") else None)  # None — Chromium из Playwright (CI)
 
 
 def register():
@@ -77,7 +77,7 @@ def main(games):
     token = register()
     results = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=CHROMIUM, headless=True)
+        browser = p.chromium.launch(executable_path=CHROMIUM, headless=True) if CHROMIUM else p.chromium.launch(headless=True)
         for game in games:
             ctx = browser.new_context()
             ctx.add_cookies([{"name": "jsession", "value": token, "url": BASE}])

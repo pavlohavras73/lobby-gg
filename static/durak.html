@@ -35,7 +35,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🃏 Дурак — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">🃏 ДУРАК</h1><div class="sub" data-i18n="tagline">подкидной · 2-6 игроков</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <div id="home" class="card">
   <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
@@ -130,6 +130,43 @@ const UI={
     hint_attack:"⚔️ Tap a card to add. 'Done' when everything is beaten.",
     res_draw:"🤝 Draw", res_you_durak:"😭 You are the FOOL!", res_durak:name=>"🃏 The Fool: "+name,
     conn_lost:"Connection lost, refresh.", ask_code:"Code?", def_player:"Player"
+  },
+  de: {
+    "rules_title": "🃏 Durak — Regeln",
+    "rules_body": "Verteidige mit einer höheren Karte derselben Farbe oder einem Trumpf. Kannst du nicht verteidigen, musst du aufnehmen. Mitspieler dürfen Karten passenden Rangs dazulegen. Wer zuletzt Karten auf der Hand hat, ist der Durak (Verlierer).",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "title": "🃏 DURAK",
+    "tagline": "Klassisches Kartenspiel · 2-6 Spieler",
+    "ph_name": "Dein Name",
+    "btn_create": "Tisch erstellen",
+    "ph_code": "CODE",
+    "btn_join": "Mit Code beitreten",
+    "all_games": "← Alle Spiele",
+    "lobby_code": "Tischcode:",
+    "bot_easy": "🤖 Leicht",
+    "bot_med": "Mittel",
+    "bot_hard": "Schwer",
+    "btn_addbot": "🤖 +Bot",
+    "btn_start": "🃏 Karten austeilen",
+    "wait_host": "Warte auf Host…",
+    "lbl_trump": "Trumpf:",
+    "lbl_deck": "Stapel:",
+    "empty_table": "Tisch ist leer",
+    "turn_attack": "⚔️ Du greifst an",
+    "turn_defend": "🛡️ Du verteidigst",
+    "turn_toss": "⏳ Du kannst nachlegen",
+    "btn_take": "Nehmen",
+    "btn_done": "Fertig ✓",
+    "btn_restart": "Neues Spiel",
+    "hint_defend": "🛡 Tippe deine Karte, dann die Tischkarte zum Schlagen an. Oder 'Nehmen'.",
+    "hint_attack": "⚔️ Tippe eine Karte zum Nachlegen an. 'Fertig', wenn alles geschlagen ist.",
+    "res_draw": "🤝 Unentschieden",
+    "res_you_durak": "😭 Du bist der DURAK!",
+    "res_durak": name => "🃏 Der Durak: " + name,
+    "conn_lost": "Verbindung verloren, bitte aktualisieren.",
+    "ask_code": "Code?",
+    "def_player": "Spieler"
   }
 };
 

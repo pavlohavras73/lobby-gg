@@ -174,7 +174,7 @@
     <div id="home" class="lobby-card">
       <div class="lobby-title">🂡 ПОКЕР</div>
       <div class="lobby-sub" data-i18n="tagline">Texas Hold'em · Discord Night Edition</div>
-      <div class="langbar" id="langbar" style="margin-bottom:16px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+      <div class="langbar" id="langbar" style="margin-bottom:16px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
       <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px" data-i18n-ph="ph_name">
       <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px" data-i18n="btn_create">Создать Стол 🎴</button>
       
@@ -304,8 +304,57 @@
         btn_fold:"Fold", btn_check:"Check", btn_call:amt=>"Call "+amt, btn_raise:"Raise 🚀", btn_allin:"All-in 💥",
         btn_back:"← Back", raise_to:val=>"Raise to "+val+" 🪙", btn_nexthand:"🔄 Next hand",
         conn_lost:"Connection lost, refresh page.", ask_code:"Enter code!", def_player:"Player"
-      }
-    };
+      },
+  de: {
+    "rules_title": "🂡 Poker — Regeln",
+    "rules_body": "Texas Hold'em. Du hast 2 verdeckte Handkarten + 5 Gemeinschaftskarten auf dem Tisch. Bilde die beste 5-Karten-Kombination. Setzrunden: Check, Call, Raise, Fold, All-in. Das beste Blatt oder der letzte verbliebene Spieler gewinnt den Pot.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "tagline": "Texas Hold'em · Discord Night Edition",
+    "ph_name": "Dein Name",
+    "btn_create": "Tisch erstellen 🎴",
+    "ph_code": "TISCHCODE",
+    "btn_join": "Beitreten",
+    "lobby_table": "TISCH",
+    "wait_players": "Warte auf Spieler...",
+    "opt_blinds_10": "Blinds 5/10",
+    "opt_blinds_20": "Blinds 10/20",
+    "opt_blinds_50": "Blinds 25/50",
+    "opt_stack_1000": "Stack 1000",
+    "opt_stack_2500": "Stack 2500",
+    "opt_stack_5000": "Stack 5000",
+    "btn_addbot": "+ Bot hinzufügen 🤖",
+    "btn_start": "🚀 Karten austeilen",
+    "need_2p": "Mindestens 2 Spieler erforderlich…",
+    "host_prompt": "Klicke auf 'Karten austeilen'",
+    "wait_host": "Warte auf Host…",
+    "lbl_pot": "💰 POT:",
+    "stage_preflop": "Preflop",
+    "stage_flop": "Flop",
+    "stage_turn": "Turn",
+    "stage_river": "River",
+    "stage_showdown": "Showdown",
+    "your_turn_banner": " — DU BIST DRAN! 🔥",
+    "turn_of_banner": name => " — am Zug: " + name,
+    "badge_bet": b => "Einsatz " + b,
+    "badge_fold": "FOLD",
+    "badge_allin": "ALL-IN 💥",
+    "allin_badge": "💥 ALL-IN",
+    "your_stack": "Dein Stack: ",
+    "you_folded": "du hast gepasst",
+    "btn_fold": "Fold",
+    "btn_check": "Check",
+    "btn_call": amt => "Call " + amt,
+    "btn_raise": "Raise 🚀",
+    "btn_allin": "All-in 💥",
+    "btn_back": "← Zurück",
+    "raise_to": val => "Raise auf " + val + " 🪙",
+    "btn_nexthand": "🔄 Nächste Hand",
+    "conn_lost": "Verbindung verloren, bitte Seite aktualisieren.",
+    "ask_code": "Code eingeben!",
+    "def_player": "Spieler"
+  }
+};
 
     const COMB_TR={
       "Старшая карта":{uk:"Старша карта",en:"High card"},

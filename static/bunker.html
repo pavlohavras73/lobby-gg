@@ -32,6 +32,7 @@
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
   <button type="button" data-lang="en">ENG</button>
+  <button type="button" data-lang="de">DEU</button>
 </div>
 
 <div id="home" class="card">
@@ -143,117 +144,959 @@ const UI={
     opened:"revealed", open:"reveal", exile:"exile", voted_ok:"You voted ✓", out_of_game:"You're out — no vote",
     voted_count:(a,b)=>"Voted "+a+" of "+b, nothing_revealed:"nothing revealed yet", unexile:"bring back",
     conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!"
+  },
+  de: {
+    "rules_title": "☢ Bunker — Regeln",
+    "rules_body": "Apokalypse, und der Bunker hat nur wenige Plätze. Jeder hat eigene Karten (Beruf, Gesundheit, Gepäck…). Deckt sie auf, diskutiert und stimmt ab, wer NICHT hineindarf.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "tagline": "Lobby.gg · Wer verdient einen Platz",
+    "ph_name": "Dein Rufzeichen",
+    "btn_create": "Bunker erstellen",
+    "ph_code": "CODE",
+    "btn_join": "Mit Code beitreten",
+    "link_spy": "→ Spion spielen",
+    "lobby_code": "Bunkercode:",
+    "settings": "⚙ EINSTELLUNGEN",
+    "set_seats": "Plätze im Bunker (0=auto)",
+    "set_timer": "Rundentimer, Sek. (0=aus)",
+    "set_rev": "Aufdeckungen pro Runde (0=∞)",
+    "btn_bot": "🤖 Bot hinzufügen",
+    "btn_start": "🚪 Spiel starten",
+    "wait_host": "Warte auf den Host…",
+    "seats_label": "Plätze im Bunker:",
+    "round_label": "Runde",
+    "your_card": "📋 DEINE KARTE (Feld antippen — für alle aufdecken)",
+    "vote_title": "🗳 ABSTIMMUNG — wen verbannen?",
+    "host_panel": "🎛 HOST-STEUERUNG",
+    "btn_vote": "🗳 Abstimmen",
+    "btn_endvote": "Ergebnisse auszählen",
+    "btn_timer": "⏱ Timer starten",
+    "btn_newround": "↻ Neue Runde",
+    "btn_setseats": "Plätze festlegen",
+    "bunker_board": "👥 BUNKER",
+    "opened": "aufgedeckt",
+    "open": "aufdecken",
+    "exile": "verbannen",
+    "voted_ok": "Abgestimmt ✓",
+    "out_of_game": "Du bist raus — keine Stimme",
+    "voted_count": (a, b) => "Abgestimmt: " + a + " von " + b,
+    "nothing_revealed": "noch nichts aufgedeckt",
+    "unexile": "zurückholen",
+    "conn_lost": "Verbindung verloren, bitte aktualisieren.",
+    "def_name": "Überlebender",
+    "ask_seats": "Wie viele Plätze?",
+    "ask_code": "Code?",
+    "time_up": "⏱ ZEIT UM!"
   }
 };
 // Игровой контент: канонич. русская строка → {uk, en}
 const GT={
- "Метеорит размером с Бельгию превратил поверхность в стекло. Снаружи −200°C.":{uk:"Метеорит розміром з Бельгію перетворив поверхню на скло. Зовні −200°C.",en:"A meteor the size of Belgium turned the surface to glass. It's −200°C outside."},
- "Утечка нейротоксина: все наверху превратились в агрессивных слизней.":{uk:"Витік нейротоксину: усі нагорі перетворилися на агресивних слимаків.",en:"A neurotoxin leak turned everyone above into aggressive slugs."},
- "ИИ захватил дроны и охотится на людей. Электроника снаружи = смерть.":{uk:"ШІ захопив дрони й полює на людей. Електроніка зовні = смерть.",en:"An AI seized the drones and hunts humans. Electronics outside = death."},
- "Грибковая пандемия: споры превращают людей в ходячие грибницы за 3 часа.":{uk:"Грибкова пандемія: спори перетворюють людей на ходячі грибниці за 3 години.",en:"A fungal pandemic: spores turn people into walking mycelium in 3 hours."},
- "Ядерная зима, 40 лет тьмы. Радиация убивает за сутки без укрытия.":{uk:"Ядерна зима, 40 років темряви. Радіація вбиває за добу без укриття.",en:"Nuclear winter, 40 years of darkness. Radiation kills in a day without shelter."},
- "Разлом в реальности: наружу выходят твари из чужого измерения.":{uk:"Розлам у реальності: назовні виходять тварюки з чужого виміру.",en:"A rift in reality: creatures from another dimension are coming through."},
- "Океаны вскипели, атмосфера выгорает. Кислород только в бункере.":{uk:"Океани скипіли, атмосфера вигорає. Кисень лише в бункері.",en:"The oceans boiled, the atmosphere is burning off. Oxygen only in the bunker."},
- "Бункер на 50 м под землёй. Запас еды на 1 год, мест меньше чем людей.":{uk:"Бункер на 50 м під землею. Запас їжі на 1 рік, місць менше ніж людей.",en:"A bunker 50 m underground. Food for 1 year, fewer seats than people."},
- "Старый советский бункер. Протечка реактора в дальнем крыле. Воды на 8 месяцев.":{uk:"Старий радянський бункер. Протікання реактора в дальньому крилі. Води на 8 місяців.",en:"An old Soviet bunker. Reactor leak in the far wing. Water for 8 months."},
- "Роскошный бункер миллиардера: спа, но еды всего на полгода и сломан фильтр воздуха.":{uk:"Розкішний бункер мільярдера: спа, але їжі лише на пів року і зламаний фільтр повітря.",en:"A billionaire's luxury bunker: a spa, but only half a year of food and a broken air filter."},
- "Тесный бункер на 4 человека, вас больше. Генератор барахлит.":{uk:"Тісний бункер на 4 людини, вас більше. Генератор збоїть.",en:"A cramped 4-person bunker, and there are more of you. The generator is failing."},
- "Пол / Раса":{uk:"Стать / Раса",en:"Sex / Race"}, "Возраст":{uk:"Вік",en:"Age"}, "Телосложение":{uk:"Статура",en:"Build"},
- "Профессия":{uk:"Професія",en:"Profession"}, "Здоровье":{uk:"Здоров'я",en:"Health"}, "Хобби / Увлечения":{uk:"Хобі / Захоплення",en:"Hobbies"},
- "Фобии / Страхи":{uk:"Фобії / Страхи",en:"Phobias / Fears"}, "Крупный инвентарь":{uk:"Великий інвентар",en:"Large inventory"}, "Рюкзак":{uk:"Рюкзак",en:"Backpack"},
- "Доп. сведения":{uk:"Дод. відомості",en:"Extra info"}, "Спецспособность 1":{uk:"Здібність 1",en:"Special ability 1"}, "Спецспособность 2":{uk:"Здібність 2",en:"Special ability 2"},
- "Мужчина, альбинос 2.10м":{uk:"Чоловік, альбінос 2.10м",en:"Man, albino, 2.10 m"},
- "Женщина, карлица-бодибилдер":{uk:"Жінка, карлиця-бодібілдерка",en:"Woman, dwarf bodybuilder"},
- "Небинарная персона, рыжая":{uk:"Небінарна персона, руда",en:"Non-binary person, redhead"},
- "Мужчина, сиамский близнец (второй спит)":{uk:"Чоловік, сіамський близнюк (другий спить)",en:"Man, conjoined twin (the other's asleep)"},
- "Женщина, гермафродит":{uk:"Жінка, гермафродит",en:"Woman, hermaphrodite"},
- "Мужик, бывший качок-ныне-скелет":{uk:"Мужик, колишній качок-нині-скелет",en:"Guy, ex-muscleman now a skeleton"},
- "Женщина, 7 месяцев беременна тройней":{uk:"Жінка, 7 місяців вагітна трійнею",en:"Woman, 7 months pregnant with triplets"},
- "Транс-женщина, экс-морпех":{uk:"Транс-жінка, екс-морпіх",en:"Trans woman, ex-marine"},
- "Мужчина, без обеих рук":{uk:"Чоловік, без обох рук",en:"Man, missing both arms"},
- "Женщина-гигант 2.30м":{uk:"Жінка-гігант 2.30м",en:"Giant woman, 2.30 m"},
- "Мужчина, голубых кровей (буквально синяя кожа)":{uk:"Чоловік, блакитної крові (буквально синя шкіра)",en:"Man, blue-blooded (literally blue skin)"},
- "Интерсекс, гениальный ребёнок в теле взрослого":{uk:"Інтерсекс, геніальна дитина в тілі дорослого",en:"Intersex, a genius child in an adult's body"},
- "Женщина, сросшиеся пальцы":{uk:"Жінка, зрощені пальці",en:"Woman, fused fingers"},
- "Мужчина, третий сосок-детектор лжи":{uk:"Чоловік, третій сосок-детектор брехні",en:"Man, third nipple that detects lies"},
- "9 лет (вундеркинд)":{uk:"9 років (вундеркінд)",en:"9 years old (prodigy)"}, "16 лет":{uk:"16 років",en:"16 years old"},
- "19 лет":{uk:"19 років",en:"19 years old"}, "23 года":{uk:"23 роки",en:"23 years old"}, "28 лет":{uk:"28 років",en:"28 years old"},
- "34 года":{uk:"34 роки",en:"34 years old"}, "41 год":{uk:"41 рік",en:"41 years old"}, "55 лет":{uk:"55 років",en:"55 years old"},
- "67 лет":{uk:"67 років",en:"67 years old"}, "78 лет":{uk:"78 років",en:"78 years old"}, "92 года (но бодрый)":{uk:"92 роки (але бадьорий)",en:"92 years old (but spry)"},
- "104 года":{uk:"104 роки",en:"104 years old"}, "13 лет (готка)":{uk:"13 років (готка)",en:"13 years old (goth girl)"}, "47 лет":{uk:"47 років",en:"47 years old"},
- "Анорексия, 38 кг":{uk:"Анорексія, 38 кг",en:"Anorexic, 38 kg"}, "Ожирение 180 кг":{uk:"Ожиріння 180 кг",en:"Obese, 180 kg"},
- "Атлет в идеальной форме":{uk:"Атлет в ідеальній формі",en:"Athlete in perfect shape"}, "Дрыщ, но выносливый":{uk:"Дохляк, але витривалий",en:"Scrawny but tough"},
- "Беременный живот (у мужика тоже)":{uk:"Вагітний живіт (у мужика теж)",en:"Pregnant belly (the guy too)"}, "Культурист на стероидах":{uk:"Культурист на стероїдах",en:"Bodybuilder on steroids"},
- "Карлик-крепыш":{uk:"Карлик-кремезний",en:"Stocky dwarf"}, "Высокий и хилый":{uk:"Високий і кволий",en:"Tall and frail"},
- "Один глаз, одна нога":{uk:"Одне око, одна нога",en:"One eye, one leg"}, "Тело покрыто татуировками-оберегами":{uk:"Тіло вкрите татуюваннями-оберегами",en:"Body covered in protective tattoos"},
- "Горбун с огромной силой рук":{uk:"Горбань з величезною силою рук",en:"Hunchback with enormous arm strength"}, "Идеальные зубы, остальное гниёт":{uk:"Ідеальні зуби, решта гниє",en:"Perfect teeth, the rest is rotting"},
- "Гибкий как акробат":{uk:"Гнучкий як акробат",en:"Flexible as an acrobat"}, "Парализованы ноги, руки-кувалды":{uk:"Паралізовані ноги, руки-кувалди",en:"Paralyzed legs, sledgehammer arms"},
- "Гинеколог (стаж 20 лет)":{uk:"Гінеколог (стаж 20 років)",en:"Gynecologist (20 years' experience)"}, "Ассенизатор-философ":{uk:"Асенізатор-філософ",en:"Sewage worker–philosopher"},
- "Безработный тиктокер":{uk:"Безробітний тіктокер",en:"Unemployed TikToker"}, "Военный хирург":{uk:"Військовий хірург",en:"Military surgeon"},
- "Повар-отравитель (в прошлом)":{uk:"Кухар-отруйник (у минулому)",en:"Poisoner-chef (former)"}, "Учитель ОБЖ":{uk:"Вчитель ОБЖ",en:"Safety-class teacher"},
- "Проститутка с медобразованием":{uk:"Повія з медосвітою",en:"Sex worker with a medical degree"}, "Священник-расстрига":{uk:"Священник-розстрига",en:"Defrocked priest"},
- "Инженер-ядерщик (алкаш)":{uk:"Інженер-ядерник (алкаш)",en:"Nuclear engineer (drunk)"}, "Палач (на пенсии)":{uk:"Кат (на пенсії)",en:"Executioner (retired)"},
- "Психолог-манипулятор":{uk:"Психолог-маніпулятор",en:"Manipulative psychologist"}, "Фермер-выживальщик":{uk:"Фермер-виживальник",en:"Survivalist farmer"},
- "Хакер 17 лет":{uk:"Хакер 17 років",en:"17-year-old hacker"}, "Бывший крёстный отец мафии":{uk:"Колишній хрещений батько мафії",en:"Former mafia godfather"},
- "Ветеринар (лечит и людей)":{uk:"Ветеринар (лікує й людей)",en:"Veterinarian (treats humans too)"}, "Клоун-аниматор с ПТСР":{uk:"Клоун-аніматор з ПТСР",en:"Party clown with PTSD"},
- "Абсолютно здоров":{uk:"Абсолютно здоровий",en:"Completely healthy"}, "ВИЧ (на терапии)":{uk:"ВІЛ (на терапії)",en:"HIV (on treatment)"},
- "Бесплоден":{uk:"Безплідний",en:"Infertile"}, "Аллергия на всё кроме воды":{uk:"Алергія на все крім води",en:"Allergic to everything but water"},
- "Туберкулёз (заразен)":{uk:"Туберкульоз (заразний)",en:"Tuberculosis (contagious)"}, "Диабет, нужен инсулин":{uk:"Діабет, потрібен інсулін",en:"Diabetes, needs insulin"},
- "Шизофрения (3 голоса советуют)":{uk:"Шизофренія (3 голоси радять)",en:"Schizophrenia (3 voices give advice)"}, "Иммунитет как у бога":{uk:"Імунітет як у бога",en:"Immune system of a god"},
- "Рак 2 стадии (медленный)":{uk:"Рак 2 стадії (повільний)",en:"Stage 2 cancer (slow)"}, "Эпилепсия":{uk:"Епілепсія",en:"Epilepsy"},
- "Хронический понос":{uk:"Хронічний пронос",en:"Chronic diarrhea"}, "Сломанная психика, но крепкое тело":{uk:"Зламана психіка, але міцне тіло",en:"Broken mind, but a sturdy body"},
- "Беременность + здоров":{uk:"Вагітність + здоровий",en:"Pregnant + healthy"}, "Клептомания + идеальное зрение":{uk:"Клептоманія + ідеальний зір",en:"Kleptomania + perfect eyesight"},
- "Каннибализм (только по праздникам)":{uk:"Канібалізм (тільки на свята)",en:"Cannibalism (holidays only)"}, "Вязание из человеческих волос":{uk:"В'язання з людського волосся",en:"Knitting with human hair"},
- "Бодибилдинг":{uk:"Бодібілдинг",en:"Bodybuilding"}, "Коллекционирует зубы":{uk:"Колекціонує зуби",en:"Collects teeth"},
- "Готовит ресторанного уровня":{uk:"Готує ресторанного рівня",en:"Cooks at restaurant level"}, "Дрессировка крыс":{uk:"Дресирування щурів",en:"Rat training"},
- "Гербарий из ядовитых трав":{uk:"Гербарій з отруйних трав",en:"Herbarium of poisonous plants"}, "Танцы на пилоне":{uk:"Танці на пілоні",en:"Pole dancing"},
- "Самогоноварение":{uk:"Самогоноваріння",en:"Moonshine brewing"}, "Ставит опыты на себе":{uk:"Ставить досліди на собі",en:"Experiments on himself"},
- "Оружейный мастер-любитель":{uk:"Зброяр-любитель",en:"Amateur gunsmith"}, "Пишет порно-фанфики":{uk:"Пише порно-фанфіки",en:"Writes porn fanfiction"},
- "Медитация (реально помогает)":{uk:"Медитація (реально допомагає)",en:"Meditation (actually helps)"}, "Таксидермия":{uk:"Таксидермія",en:"Taxidermy"},
- "Боязнь темноты (а тут бункер)":{uk:"Страх темряви (а тут бункер)",en:"Fear of the dark (and this is a bunker)"}, "Клаустрофобия (а тут бункер!)":{uk:"Клаустрофобія (а тут бункер!)",en:"Claustrophobia (and this is a bunker!)"},
- "Панически боится женщин":{uk:"Панічно боїться жінок",en:"Panics around women"}, "Боязнь крови (но врач)":{uk:"Страх крові (але лікар)",en:"Fear of blood (but a doctor)"},
- "Гемофобия":{uk:"Гемофобія",en:"Hemophobia"}, "Боится детей":{uk:"Боїться дітей",en:"Afraid of children"},
- "Страх замкнутого пространства":{uk:"Страх замкненого простору",en:"Fear of enclosed spaces"}, "Боязнь микробов (тут грязно)":{uk:"Страх мікробів (тут брудно)",en:"Fear of germs (it's dirty here)"},
- "Никтофобия":{uk:"Ніктофобія",en:"Nyctophobia"}, "Боится сойти с ума":{uk:"Боїться збожеволіти",en:"Afraid of going insane"},
- "Не боится ничего (психопат)":{uk:"Не боїться нічого (психопат)",en:"Fears nothing (a psychopath)"}, "Боязнь еды (анорексия)":{uk:"Страх їжі (анорексія)",en:"Fear of food (anorexia)"},
- "Боится спать":{uk:"Боїться спати",en:"Afraid to sleep"}, "Арахнофобия (а в бункере пауки)":{uk:"Арахнофобія (а в бункері павуки)",en:"Arachnophobia (and there are spiders in the bunker)"},
- "Канистра самогона 20л":{uk:"Каністра самогону 20л",en:"20 L jerrycan of moonshine"}, "Ящик консервов на год":{uk:"Ящик консервів на рік",en:"A year's crate of canned food"},
- "Снайперская винтовка + патроны":{uk:"Снайперська гвинтівка + патрони",en:"Sniper rifle + ammo"}, "Аптечка хирурга":{uk:"Аптечка хірурга",en:"Surgeon's medical kit"},
- "Генератор на солнечных батареях":{uk:"Генератор на сонячних батареях",en:"Solar-powered generator"}, "Швейная машинка + ткань":{uk:"Швейна машинка + тканина",en:"Sewing machine + fabric"},
- "Бензопила":{uk:"Бензопила",en:"Chainsaw"}, "Библиотека по выживанию":{uk:"Бібліотека з виживання",en:"Survival library"},
- "Ящик семян (можно выращивать)":{uk:"Ящик насіння (можна вирощувати)",en:"Crate of seeds (you can grow food)"}, "Дойная коза":{uk:"Дійна коза",en:"A milk goat"},
- "Холодильник с вакциной":{uk:"Холодильник з вакциною",en:"Fridge with a vaccine"}, "Радиостанция дальней связи":{uk:"Радіостанція дальнього зв'язку",en:"Long-range radio station"},
- "Гроб (вместительный)":{uk:"Труна (містка)",en:"A coffin (roomy)"}, "Надувная секс-кукла (можно как подушку)":{uk:"Надувна секс-лялька (можна як подушку)",en:"Inflatable sex doll (usable as a pillow)"},
- "Нож + спички + фляга":{uk:"Ніж + сірники + фляга",en:"Knife + matches + flask"}, "Презервативы (100 шт)":{uk:"Презервативи (100 шт)",en:"Condoms (100 pack)"},
- "Пачка антибиотиков":{uk:"Пачка антибіотиків",en:"Pack of antibiotics"}, "Колода карт + кубики":{uk:"Колода карт + кубики",en:"Deck of cards + dice"},
- "Пистолет (1 патрон)":{uk:"Пістолет (1 патрон)",en:"Pistol (1 bullet)"}, "Дневник предыдущего жителя":{uk:"Щоденник попереднього мешканця",en:"Diary of the previous resident"},
- "Витамины на год":{uk:"Вітаміни на рік",en:"A year's vitamins"}, "Верёвка 50м + крюк":{uk:"Мотузка 50м + гак",en:"50 m rope + hook"},
- "Семена конопли":{uk:"Насіння конопель",en:"Cannabis seeds"}, "Фонарик + батарейки":{uk:"Ліхтарик + батарейки",en:"Flashlight + batteries"},
- "Зажигалка Zippo (вечная)":{uk:"Запальничка Zippo (вічна)",en:"Zippo lighter (never dies)"}, "Соль (1 кг — ценность!)":{uk:"Сіль (1 кг — цінність!)",en:"Salt (1 kg — a treasure!)"},
- "Библия + Коран + Тора":{uk:"Біблія + Коран + Тора",en:"Bible + Quran + Torah"}, "Виагра (упаковка)":{uk:"Віагра (упаковка)",en:"Viagra (a pack)"},
- "Знает код от соседнего склада с едой":{uk:"Знає код від сусіднього складу з їжею",en:"Knows the code to a nearby food depot"}, "Умеет принимать роды":{uk:"Вміє приймати пологи",en:"Can deliver babies"},
- "Тайно влюблён в ведущего":{uk:"Таємно закоханий у ведучого",en:"Secretly in love with the host"}, "Бесплоден, но мечтает о детях":{uk:"Безплідний, але мріє про дітей",en:"Infertile, but dreams of children"},
- "Видел карту других бункеров":{uk:"Бачив карту інших бункерів",en:"Has seen a map of other bunkers"}, "Был военнопленным, терпит пытки":{uk:"Був військовополоненим, терпить тортури",en:"Was a POW, endures torture"},
- "Полиглот (8 языков)":{uk:"Поліглот (8 мов)",en:"Polyglot (8 languages)"}, "Умеет чинить любую технику":{uk:"Вміє лагодити будь-яку техніку",en:"Can fix any machinery"},
- "Скрывает что заражён":{uk:"Приховує, що заражений",en:"Hiding that he's infected"}, "Был донором органов":{uk:"Був донором органів",en:"Was an organ donor"},
- "Знает рецепт лекарства от чумы":{uk:"Знає рецепт ліків від чуми",en:"Knows a plague-cure recipe"}, "Гипнотизёр":{uk:"Гіпнотизер",en:"Hypnotist"},
- "Помнит всё (эйдетик)":{uk:"Пам'ятає все (ейдетик)",en:"Remembers everything (eidetic)"}, "Тайно вегетарианец-радикал":{uk:"Таємно вегетаріанець-радикал",en:"Secretly a radical vegetarian"},
- "Раз за игру: заглянуть в любую закрытую карту игрока":{uk:"Раз за гру: зазирнути в будь-яку закриту карту гравця",en:"Once per game: peek at any player's hidden card"},
- "Раз за игру: отменить голосование":{uk:"Раз за гру: скасувати голосування",en:"Once per game: cancel a vote"},
- "Иммунитет к изгнанию на 1 раунд":{uk:"Імунітет до вигнання на 1 раунд",en:"Immunity from exile for 1 round"},
- "Поменяться одной картой с любым игроком":{uk:"Помінятися однією картою з будь-яким гравцем",en:"Swap one card with any player"},
- "Раз за игру: добавить себе случайную профессию":{uk:"Раз за гру: додати собі випадкову професію",en:"Once per game: give yourself a random profession"},
- "Вылечить любую болезнь (свою или чужую)":{uk:"Вилікувати будь-яку хворобу (свою чи чужу)",en:"Cure any illness (yours or someone's)"},
- "Раз за игру: украсть инвентарь изгнанного":{uk:"Раз за гру: вкрасти інвентар вигнаного",en:"Once per game: steal an exiled player's inventory"},
- "Заставить игрока вскрыть случайную карту":{uk:"Змусити гравця відкрити випадкову карту",en:"Force a player to reveal a random card"},
- "Раз за игру: переголосовать (твой голос ×2)":{uk:"Раз за гру: переголосувати (твій голос ×2)",en:"Once per game: revote (your vote counts ×2)"},
- "Раз за игру: спасти изгнанного (вернуть)":{uk:"Раз за гру: врятувати вигнаного (повернути)",en:"Once per game: save an exiled player (bring them back)"},
- "Обнулить чужую спецспособность":{uk:"Обнулити чужу здібність",en:"Nullify another's special ability"},
- "Раз за игру: тайно увидеть сценарий-секрет":{uk:"Раз за гру: таємно побачити сценарій-секрет",en:"Once per game: secretly see the hidden scenario"},
- "Поменять свой возраст на любой":{uk:"Поміняти свій вік на будь-який",en:"Change your age to any value"},
- "Раз за игру: объединиться с игроком (вас не изгнать вместе)":{uk:"Раз за гру: об'єднатися з гравцем (вас не вигнати разом)",en:"Once per game: ally with a player (you can't be exiled together)"},
- "Раз за игру: форсировать новый раунд карт":{uk:"Раз за гру: форсувати новий раунд карт",en:"Once per game: force a new card round"},
- "Сделать свою болезнь незаразной навсегда":{uk:"Зробити свою хворобу незаразною назавжди",en:"Make your illness non-contagious forever"}
+  "Метеорит размером с Бельгию превратил поверхность в стекло. Снаружи −200°C.": {
+    "uk": "Метеорит розміром з Бельгію перетворив поверхню на скло. Зовні −200°C.",
+    "en": "A meteor the size of Belgium turned the surface to glass. It's −200°C outside.",
+    "de": "Ein Meteor von der Größe Belgiens hat die Oberfläche in Glas verwandelt. Draußen herrschen −200°C."
+  },
+  "Утечка нейротоксина: все наверху превратились в агрессивных слизней.": {
+    "uk": "Витік нейротоксину: усі нагорі перетворилися на агресивних слимаків.",
+    "en": "A neurotoxin leak turned everyone above into aggressive slugs.",
+    "de": "Neurotoxin-Leck: Alle an der Oberfläche wurden zu aggressiven Nacktschnecken."
+  },
+  "ИИ захватил дроны и охотится на людей. Электроника снаружи = смерть.": {
+    "uk": "ШІ захопив дрони й полює на людей. Електроніка зовні = смерть.",
+    "en": "An AI seized the drones and hunts humans. Electronics outside = death.",
+    "de": "Eine KI hat die Drohnen übernommen und jagt Menschen. Elektronik draußen = Tod."
+  },
+  "Грибковая пандемия: споры превращают людей в ходячие грибницы за 3 часа.": {
+    "uk": "Грибкова пандемія: спори перетворюють людей на ходячі грибниці за 3 години.",
+    "en": "A fungal pandemic: spores turn people into walking mycelium in 3 hours.",
+    "de": "Pilz-Pandemie: Sporen verwandeln Menschen innerhalb von 3 Stunden in wandelnde Myzelien."
+  },
+  "Ядерная зима, 40 лет тьмы. Радиация убивает за сутки без укрытия.": {
+    "uk": "Ядерна зима, 40 років темряви. Радіація вбиває за добу без укриття.",
+    "en": "Nuclear winter, 40 years of darkness. Radiation kills in a day without shelter.",
+    "de": "Nuklearer Winter, 40 Jahre Dunkelheit. Strahlung tötet ohne Schutz binnen eines Tages."
+  },
+  "Разлом в реальности: наружу выходят твари из чужого измерения.": {
+    "uk": "Розлам у реальності: назовні виходять тварюки з чужого виміру.",
+    "en": "A rift in reality: creatures from another dimension are coming through.",
+    "de": "Riss in der Realität: Kreaturen aus einer fremden Dimension dringen ein."
+  },
+  "Океаны вскипели, атмосфера выгорает. Кислород только в бункере.": {
+    "uk": "Океани скипіли, атмосфера вигорає. Кисень лише в бункері.",
+    "en": "The oceans boiled, the atmosphere is burning off. Oxygen only in the bunker.",
+    "de": "Die Ozeane kochen, die Atmosphäre verbrennt. Sauerstoff gibt es nur noch im Bunker."
+  },
+  "Бункер на 50 м под землёй. Запас еды на 1 год, мест меньше чем людей.": {
+    "uk": "Бункер на 50 м під землею. Запас їжі на 1 рік, місць менше ніж людей.",
+    "en": "A bunker 50 m underground. Food for 1 year, fewer seats than people.",
+    "de": "Bunker 50 m unter der Erde. Nahrung für 1 Jahr, weniger Plätze als Personen."
+  },
+  "Старый советский бункер. Протечка реактора в дальнем крыле. Воды на 8 месяцев.": {
+    "uk": "Старий радянський бункер. Протікання реактора в дальньому крилі. Води на 8 місяців.",
+    "en": "An old Soviet bunker. Reactor leak in the far wing. Water for 8 months.",
+    "de": "Alter sowjetischer Bunker. Reaktorleck im hinteren Flügel. Wasser für 8 Monate."
+  },
+  "Роскошный бункер миллиардера: спа, но еды всего на полгода и сломан фильтр воздуха.": {
+    "uk": "Розкішний бункер мільярдера: спа, але їжі лише на пів року і зламаний фільтр повітря.",
+    "en": "A billionaire's luxury bunker: a spa, but only half a year of food and a broken air filter.",
+    "de": "Luxusbunker eines Milliardärs: Spa vorhanden, aber Nahrung nur für 6 Monate und Luftfilter defekt."
+  },
+  "Тесный бункер на 4 человека, вас больше. Генератор барахлит.": {
+    "uk": "Тісний бункер на 4 людини, вас більше. Генератор збоїть.",
+    "en": "A cramped 4-person bunker, and there are more of you. The generator is failing.",
+    "de": "Enge Schutzunterkunft für 4 Personen, ihr seid mehr. Der Generator stottert."
+  },
+  "Пол / Раса": {
+    "uk": "Стать / Раса",
+    "en": "Sex / Race",
+    "de": "Geschlecht / Rasse"
+  },
+  "Возраст": {
+    "uk": "Вік",
+    "en": "Age",
+    "de": "Alter"
+  },
+  "Телосложение": {
+    "uk": "Статура",
+    "en": "Build",
+    "de": "Körperbau"
+  },
+  "Профессия": {
+    "uk": "Професія",
+    "en": "Profession",
+    "de": "Beruf"
+  },
+  "Здоровье": {
+    "uk": "Здоров'я",
+    "en": "Health",
+    "de": "Gesundheit"
+  },
+  "Хобби / Увлечения": {
+    "uk": "Хобі / Захоплення",
+    "en": "Hobbies",
+    "de": "Hobbys"
+  },
+  "Фобии / Страхи": {
+    "uk": "Фобії / Страхи",
+    "en": "Phobias / Fears",
+    "de": "Phobien / Ängste"
+  },
+  "Крупный инвентарь": {
+    "uk": "Великий інвентар",
+    "en": "Large inventory",
+    "de": "Großes Inventar"
+  },
+  "Рюкзак": {
+    "uk": "Рюкзак",
+    "en": "Backpack",
+    "de": "Rucksack"
+  },
+  "Доп. сведения": {
+    "uk": "Дод. відомості",
+    "en": "Extra info",
+    "de": "Zusatzinfo"
+  },
+  "Спецспособность 1": {
+    "uk": "Здібність 1",
+    "en": "Special ability 1",
+    "de": "Spezialfähigkeit 1"
+  },
+  "Спецспособность 2": {
+    "uk": "Здібність 2",
+    "en": "Special ability 2",
+    "de": "Spezialfähigkeit 2"
+  },
+  "Мужчина, альбинос 2.10м": {
+    "uk": "Чоловік, альбінос 2.10м",
+    "en": "Man, albino, 2.10 m",
+    "de": "Mann, Albino, 2,10 m"
+  },
+  "Женщина, карлица-бодибилдер": {
+    "uk": "Жінка, карлиця-бодібілдерка",
+    "en": "Woman, dwarf bodybuilder",
+    "de": "Frau, kleinwüchsige Bodybuilderin"
+  },
+  "Небинарная персона, рыжая": {
+    "uk": "Небінарна персона, руда",
+    "en": "Non-binary person, redhead",
+    "de": "Nicht-binäre Person, rothaarig"
+  },
+  "Мужчина, сиамский близнец (второй спит)": {
+    "uk": "Чоловік, сіамський близнюк (другий спить)",
+    "en": "Man, conjoined twin (the other's asleep)",
+    "de": "Mann, siamesischer Zwilling (der andere schläft)"
+  },
+  "Женщина, гермафродит": {
+    "uk": "Жінка, гермафродит",
+    "en": "Woman, hermaphrodite",
+    "de": "Frau, Hermaphrodit"
+  },
+  "Мужик, бывший качок-ныне-скелет": {
+    "uk": "Мужик, колишній качок-нині-скелет",
+    "en": "Guy, ex-muscleman now a skeleton",
+    "de": "Mann, ehemals Muskelpaket, jetzt ein Skelett"
+  },
+  "Женщина, 7 месяцев беременна тройней": {
+    "uk": "Жінка, 7 місяців вагітна трійнею",
+    "en": "Woman, 7 months pregnant with triplets",
+    "de": "Frau, im 7. Monat schwanger mit Drillingen"
+  },
+  "Транс-женщина, экс-морпех": {
+    "uk": "Транс-жінка, екс-морпіх",
+    "en": "Trans woman, ex-marine",
+    "de": "Transfrau, ehemalige Marinesoldatin"
+  },
+  "Мужчина, без обеих рук": {
+    "uk": "Чоловік, без обох рук",
+    "en": "Man, missing both arms",
+    "de": "Mann, ohne beide Arme"
+  },
+  "Женщина-гигант 2.30м": {
+    "uk": "Жінка-гігант 2.30м",
+    "en": "Giant woman, 2.30 m",
+    "de": "Riesenfrau, 2,30 m"
+  },
+  "Мужчина, голубых кровей (буквально синяя кожа)": {
+    "uk": "Чоловік, блакитної крові (буквально синя шкіра)",
+    "en": "Man, blue-blooded (literally blue skin)",
+    "de": "Mann von blauem Blut (buchstäblich blaue Haut)"
+  },
+  "Интерсекс, гениальный ребёнок в теле взрослого": {
+    "uk": "Інтерсекс, геніальна дитина в тілі дорослого",
+    "en": "Intersex, a genius child in an adult's body",
+    "de": "Intersexuell, Wunderkind im Körper eines Erwachsenen"
+  },
+  "Женщина, сросшиеся пальцы": {
+    "uk": "Жінка, зрощені пальці",
+    "en": "Woman, fused fingers",
+    "de": "Frau, zusammengewachsene Finger"
+  },
+  "Мужчина, третий сосок-детектор лжи": {
+    "uk": "Чоловік, третій сосок-детектор брехні",
+    "en": "Man, third nipple that detects lies",
+    "de": "Mann, dritte Brustwarze als Lügendetektor"
+  },
+  "9 лет (вундеркинд)": {
+    "uk": "9 років (вундеркінд)",
+    "en": "9 years old (prodigy)",
+    "de": "9 Jahre alt (Wunderkind)"
+  },
+  "16 лет": {
+    "uk": "16 років",
+    "en": "16 years old",
+    "de": "16 Jahre alt"
+  },
+  "19 лет": {
+    "uk": "19 років",
+    "en": "19 years old",
+    "de": "19 Jahre alt"
+  },
+  "23 года": {
+    "uk": "23 роки",
+    "en": "23 years old",
+    "de": "23 Jahre alt"
+  },
+  "28 лет": {
+    "uk": "28 років",
+    "en": "28 years old",
+    "de": "28 Jahre alt"
+  },
+  "34 года": {
+    "uk": "34 роки",
+    "en": "34 years old",
+    "de": "34 Jahre alt"
+  },
+  "41 год": {
+    "uk": "41 рік",
+    "en": "41 years old",
+    "de": "41 Jahre alt"
+  },
+  "55 лет": {
+    "uk": "55 років",
+    "en": "55 years old",
+    "de": "55 Jahre alt"
+  },
+  "67 лет": {
+    "uk": "67 років",
+    "en": "67 years old",
+    "de": "67 Jahre alt"
+  },
+  "78 лет": {
+    "uk": "78 років",
+    "en": "78 years old",
+    "de": "78 Jahre alt"
+  },
+  "92 года (но бодрый)": {
+    "uk": "92 роки (але бадьорий)",
+    "en": "92 years old (but spry)",
+    "de": "92 Jahre alt (aber rüstig)"
+  },
+  "104 года": {
+    "uk": "104 роки",
+    "en": "104 years old",
+    "de": "104 Jahre alt"
+  },
+  "13 лет (готка)": {
+    "uk": "13 років (готка)",
+    "en": "13 years old (goth girl)",
+    "de": "13 Jahre alt (Gothic-Girl)"
+  },
+  "47 лет": {
+    "uk": "47 років",
+    "en": "47 years old",
+    "de": "47 Jahre alt"
+  },
+  "Анорексия, 38 кг": {
+    "uk": "Анорексія, 38 кг",
+    "en": "Anorexic, 38 kg",
+    "de": "Magersüchtig, 38 kg"
+  },
+  "Ожирение 180 кг": {
+    "uk": "Ожиріння 180 кг",
+    "en": "Obese, 180 kg",
+    "de": "Fettleibig, 180 kg"
+  },
+  "Атлет в идеальной форме": {
+    "uk": "Атлет в ідеальній формі",
+    "en": "Athlete in perfect shape",
+    "de": "Athlet in Bestform"
+  },
+  "Дрыщ, но выносливый": {
+    "uk": "Дохляк, але витривалий",
+    "en": "Scrawny but tough",
+    "de": "Dürr, aber ausdauernd"
+  },
+  "Беременный живот (у мужика тоже)": {
+    "uk": "Вагітний живіт (у мужика теж)",
+    "en": "Pregnant belly (the guy too)",
+    "de": "Schwangerschaftsbauch (beim Mann auch)"
+  },
+  "Культурист на стероидах": {
+    "uk": "Культурист на стероїдах",
+    "en": "Bodybuilder on steroids",
+    "de": "Bodybuilder auf Steroiden"
+  },
+  "Карлик-крепыш": {
+    "uk": "Карлик-кремезний",
+    "en": "Stocky dwarf",
+    "de": "Stämmiger Kleinwüchsiger"
+  },
+  "Высокий и хилый": {
+    "uk": "Високий і кволий",
+    "en": "Tall and frail",
+    "de": "Groß und gebrechlich"
+  },
+  "Один глаз, одна нога": {
+    "uk": "Одне око, одна нога",
+    "en": "One eye, one leg",
+    "de": "Ein Auge, ein Bein"
+  },
+  "Тело покрыто татуировками-оберегами": {
+    "uk": "Тіло вкрите татуюваннями-оберегами",
+    "en": "Body covered in protective tattoos",
+    "de": "Körper mit Schutztattoos bedeckt"
+  },
+  "Горбун с огромной силой рук": {
+    "uk": "Горбань з величезною силою рук",
+    "en": "Hunchback with enormous arm strength",
+    "de": "Glöckner mit enormer Armkraft"
+  },
+  "Идеальные зубы, остальное гниёт": {
+    "uk": "Ідеальні зуби, решта гниє",
+    "en": "Perfect teeth, the rest is rotting",
+    "de": "Perfekte Zähne, der Rest fault"
+  },
+  "Гибкий как акробат": {
+    "uk": "Гнучкий як акробат",
+    "en": "Flexible as an acrobat",
+    "de": "Gelenkig wie ein Akrobat"
+  },
+  "Парализованы ноги, руки-кувалды": {
+    "uk": "Паралізовані ноги, руки-кувалди",
+    "en": "Paralyzed legs, sledgehammer arms",
+    "de": "Beine gelähmt, Arme wie Vorschlaghämmer"
+  },
+  "Гинеколог (стаж 20 лет)": {
+    "uk": "Гінеколог (стаж 20 років)",
+    "en": "Gynecologist (20 years' experience)",
+    "de": "Gynäkologe (20 Jahre Erfahrung)"
+  },
+  "Ассенизатор-философ": {
+    "uk": "Асенізатор-філософ",
+    "en": "Sewage worker–philosopher",
+    "de": "Kanalreiniger und Philosoph"
+  },
+  "Безработный тиктокер": {
+    "uk": "Безробітний тіктокер",
+    "en": "Unemployed TikToker",
+    "de": "Arbeitsloser TikToker"
+  },
+  "Военный хирург": {
+    "uk": "Військовий хірург",
+    "en": "Military surgeon",
+    "de": "Militärchirurg"
+  },
+  "Повар-отравитель (в прошлом)": {
+    "uk": "Кухар-отруйник (у минулому)",
+    "en": "Poisoner-chef (former)",
+    "de": "Giftmischer-Koch (ehemalig)"
+  },
+  "Учитель ОБЖ": {
+    "uk": "Вчитель ОБЖ",
+    "en": "Safety-class teacher",
+    "de": "Überlebenstrainer / Notfall-Lehrer"
+  },
+  "Проститутка с медобразованием": {
+    "uk": "Повія з медосвітою",
+    "en": "Sex worker with a medical degree",
+    "de": "Sexarbeiterin mit medizinischer Ausbildung"
+  },
+  "Священник-расстрига": {
+    "uk": "Священник-розстрига",
+    "en": "Defrocked priest",
+    "de": "Ehemaliger Priester"
+  },
+  "Инженер-ядерщик (алкаш)": {
+    "uk": "Інженер-ядерник (алкаш)",
+    "en": "Nuclear engineer (drunk)",
+    "de": "Kernkraftingenieur (Alkoholiker)"
+  },
+  "Палач (на пенсии)": {
+    "uk": "Кат (на пенсії)",
+    "en": "Executioner (retired)",
+    "de": "Henker (im Ruhestand)"
+  },
+  "Психолог-манипулятор": {
+    "uk": "Психолог-маніпулятор",
+    "en": "Manipulative psychologist",
+    "de": "Manipulativer Psychologe"
+  },
+  "Фермер-выживальщик": {
+    "uk": "Фермер-виживальник",
+    "en": "Survivalist farmer",
+    "de": "Survival-Bauer"
+  },
+  "Хакер 17 лет": {
+    "uk": "Хакер 17 років",
+    "en": "17-year-old hacker",
+    "de": "17-jähriger Hacker"
+  },
+  "Бывший крёстный отец мафии": {
+    "uk": "Колишній хрещений батько мафії",
+    "en": "Former mafia godfather",
+    "de": "Ehemaliger Mafia-Pate"
+  },
+  "Ветеринар (лечит и людей)": {
+    "uk": "Ветеринар (лікує й людей)",
+    "en": "Veterinarian (treats humans too)",
+    "de": "Tierarzt (behandelt auch Menschen)"
+  },
+  "Клоун-аниматор с ПТСР": {
+    "uk": "Клоун-аніматор з ПТСР",
+    "en": "Party clown with PTSD",
+    "de": "Party-Clown mit PTBS"
+  },
+  "Абсолютно здоров": {
+    "uk": "Абсолютно здоровий",
+    "en": "Completely healthy",
+    "de": "Kerngesund"
+  },
+  "ВИЧ (на терапии)": {
+    "uk": "ВІЛ (на терапії)",
+    "en": "HIV (on treatment)",
+    "de": "HIV (unter Therapie)"
+  },
+  "Бесплоден": {
+    "uk": "Безплідний",
+    "en": "Infertile",
+    "de": "Unfruchtbar"
+  },
+  "Аллергия на всё кроме воды": {
+    "uk": "Алергія на все крім води",
+    "en": "Allergic to everything but water",
+    "de": "Allergisch gegen alles außer Wasser"
+  },
+  "Туберкулёз (заразен)": {
+    "uk": "Туберкульоз (заразний)",
+    "en": "Tuberculosis (contagious)",
+    "de": "Tuberkulose (ansteckend)"
+  },
+  "Диабет, нужен инсулин": {
+    "uk": "Діабет, потрібен інсулін",
+    "en": "Diabetes, needs insulin",
+    "de": "Diabetes, benötigt Insulin"
+  },
+  "Шизофрения (3 голоса советуют)": {
+    "uk": "Шизофренія (3 голоси радять)",
+    "en": "Schizophrenia (3 voices give advice)",
+    "de": "Schizophrenie (3 Stimmen beraten)"
+  },
+  "Иммунитет как у бога": {
+    "uk": "Імунітет як у бога",
+    "en": "Immune system of a god",
+    "de": "Göttliches Immunsystem"
+  },
+  "Рак 2 стадии (медленный)": {
+    "uk": "Рак 2 стадії (повільний)",
+    "en": "Stage 2 cancer (slow)",
+    "de": "Krebs Stadium 2 (langsam)"
+  },
+  "Эпилепсия": {
+    "uk": "Епілепсія",
+    "en": "Epilepsy",
+    "de": "Epilepsie"
+  },
+  "Хронический понос": {
+    "uk": "Хронічний пронос",
+    "en": "Chronic diarrhea",
+    "de": "Chronischer Durchfall"
+  },
+  "Сломанная психика, но крепкое тело": {
+    "uk": "Зламана психіка, але міцне тіло",
+    "en": "Broken mind, but a sturdy body",
+    "de": "Zerrüttete Psyche, aber robuster Körper"
+  },
+  "Беременность + здоров": {
+    "uk": "Вагітність + здоровий",
+    "en": "Pregnant + healthy",
+    "de": "Schwangerschaft + gesund"
+  },
+  "Клептомания + идеальное зрение": {
+    "uk": "Клептоманія + ідеальний зір",
+    "en": "Kleptomania + perfect eyesight",
+    "de": "Kleptomanie + perfekte Sehkraft"
+  },
+  "Каннибализм (только по праздникам)": {
+    "uk": "Канібалізм (тільки на свята)",
+    "en": "Cannibalism (holidays only)",
+    "de": "Kannibalismus (nur an Feiertagen)"
+  },
+  "Вязание из человеческих волос": {
+    "uk": "В'язання з людського волосся",
+    "en": "Knitting with human hair",
+    "de": "Stricken mit Menschenhaaren"
+  },
+  "Бодибилдинг": {
+    "uk": "Бодібілдинг",
+    "en": "Bodybuilding",
+    "de": "Bodybuilding"
+  },
+  "Коллекционирует зубы": {
+    "uk": "Колекціонує зуби",
+    "en": "Collects teeth",
+    "de": "Sammelt Zähne"
+  },
+  "Готовит ресторанного уровня": {
+    "uk": "Готує ресторанного рівня",
+    "en": "Cooks at restaurant level",
+    "de": "Kocht auf Restaurant-Niveau"
+  },
+  "Дрессировка крыс": {
+    "uk": "Дресирування щурів",
+    "en": "Rat training",
+    "de": "Rattendressur"
+  },
+  "Гербарий из ядовитых трав": {
+    "uk": "Гербарій з отруйних трав",
+    "en": "Herbarium of poisonous plants",
+    "de": "Herbarium aus Giftpflanzen"
+  },
+  "Танцы на пилоне": {
+    "uk": "Танці на пілоні",
+    "en": "Pole dancing",
+    "de": "Poledance"
+  },
+  "Самогоноварение": {
+    "uk": "Самогоноваріння",
+    "en": "Moonshine brewing",
+    "de": "Schwarzbrennerei"
+  },
+  "Ставит опыты на себе": {
+    "uk": "Ставить досліди на собі",
+    "en": "Experiments on himself",
+    "de": "Macht Selbstversuche"
+  },
+  "Оружейный мастер-любитель": {
+    "uk": "Зброяр-любитель",
+    "en": "Amateur gunsmith",
+    "de": "Hobby-Büchsenmacher"
+  },
+  "Пишет порно-фанфики": {
+    "uk": "Пише порно-фанфіки",
+    "en": "Writes porn fanfiction",
+    "de": "Schreibt Erotik-Fanfiction"
+  },
+  "Медитация (реально помогает)": {
+    "uk": "Медитація (реально допомагає)",
+    "en": "Meditation (actually helps)",
+    "de": "Meditation (hilft wirklich)"
+  },
+  "Таксидермия": {
+    "uk": "Таксидермія",
+    "en": "Taxidermy",
+    "de": "Tierpräparation (Taxidermie)"
+  },
+  "Боязнь темноты (а тут бункер)": {
+    "uk": "Страх темряви (а тут бункер)",
+    "en": "Fear of the dark (and this is a bunker)",
+    "de": "Angst vor Dunkelheit (und das im Bunker)"
+  },
+  "Клаустрофобия (а тут бункер!)": {
+    "uk": "Клаустрофобія (а тут бункер!)",
+    "en": "Claustrophobia (and this is a bunker!)",
+    "de": "Klaustrophobie (und das im Bunker!)"
+  },
+  "Панически боится женщин": {
+    "uk": "Панічно боїться жінок",
+    "en": "Panics around women",
+    "de": "Panische Angst vor Frauen"
+  },
+  "Боязнь крови (но врач)": {
+    "uk": "Страх крові (але лікар)",
+    "en": "Fear of blood (but a doctor)",
+    "de": "Angst vor Blut (ist aber Arzt)"
+  },
+  "Гемофобия": {
+    "uk": "Гемофобія",
+    "en": "Hemophobia",
+    "de": "Hämophobie"
+  },
+  "Боится детей": {
+    "uk": "Боїться дітей",
+    "en": "Afraid of children",
+    "de": "Angst vor Kindern"
+  },
+  "Страх замкнутого пространства": {
+    "uk": "Страх замкненого простору",
+    "en": "Fear of enclosed spaces",
+    "de": "Angst vor geschlossenen Räumen"
+  },
+  "Боязнь микробов (тут грязно)": {
+    "uk": "Страх мікробів (тут брудно)",
+    "en": "Fear of germs (it's dirty here)",
+    "de": "Angst vor Keimen (hier ist es schmutzig)"
+  },
+  "Никтофобия": {
+    "uk": "Ніктофобія",
+    "en": "Nyctophobia",
+    "de": "Nyktophobie"
+  },
+  "Боится сойти с ума": {
+    "uk": "Боїться збожеволіти",
+    "en": "Afraid of going insane",
+    "de": "Angst, den Verstand zu verlieren"
+  },
+  "Не боится ничего (психопат)": {
+    "uk": "Не боїться нічого (психопат)",
+    "en": "Fears nothing (a psychopath)",
+    "de": "Fürchtet nichts (Psychopath)"
+  },
+  "Боязнь еды (анорексия)": {
+    "uk": "Страх їжі (анорексія)",
+    "en": "Fear of food (anorexia)",
+    "de": "Angst vor Essen (Anorexie)"
+  },
+  "Боится спать": {
+    "uk": "Боїться спати",
+    "en": "Afraid to sleep",
+    "de": "Angst einzuschlafen"
+  },
+  "Арахнофобия (а в бункере пауки)": {
+    "uk": "Арахнофобія (а в бункері павуки)",
+    "en": "Arachnophobia (and there are spiders in the bunker)",
+    "de": "Arachnophobie (und im Bunker gibt es Spinnen)"
+  },
+  "Канистра самогона 20л": {
+    "uk": "Каністра самогону 20л",
+    "en": "20 L jerrycan of moonshine",
+    "de": "20-Liter-Kanister Schnaps"
+  },
+  "Ящик консервов на год": {
+    "uk": "Ящик консервів на рік",
+    "en": "A year's crate of canned food",
+    "de": "Kiste Dosenessen für ein Jahr"
+  },
+  "Снайперская винтовка + патроны": {
+    "uk": "Снайперська гвинтівка + патрони",
+    "en": "Sniper rifle + ammo",
+    "de": "Scharfschützengewehr + Munition"
+  },
+  "Аптечка хирурга": {
+    "uk": "Аптечка хірурга",
+    "en": "Surgeon's medical kit",
+    "de": "Chirurgisches Erste-Hilfe-Set"
+  },
+  "Генератор на солнечных батареях": {
+    "uk": "Генератор на сонячних батареях",
+    "en": "Solar-powered generator",
+    "de": "Solargenerator"
+  },
+  "Швейная машинка + ткань": {
+    "uk": "Швейна машинка + тканина",
+    "en": "Sewing machine + fabric",
+    "de": "Nähmaschine + Stoff"
+  },
+  "Бензопила": {
+    "uk": "Бензопила",
+    "en": "Chainsaw",
+    "de": "Kettensäge"
+  },
+  "Библиотека по выживанию": {
+    "uk": "Бібліотека з виживання",
+    "en": "Survival library",
+    "de": "Survival-Bibliothek"
+  },
+  "Ящик семян (можно выращивать)": {
+    "uk": "Ящик насіння (можна вирощувати)",
+    "en": "Crate of seeds (you can grow food)",
+    "de": "Saatgutkiste (Anbau möglich)"
+  },
+  "Дойная коза": {
+    "uk": "Дійна коза",
+    "en": "A milk goat",
+    "de": "Milchziege"
+  },
+  "Холодильник с вакциной": {
+    "uk": "Холодильник з вакциною",
+    "en": "Fridge with a vaccine",
+    "de": "Kühlschrank mit Impfstoff"
+  },
+  "Радиостанция дальней связи": {
+    "uk": "Радіостанція дальнього зв'язку",
+    "en": "Long-range radio station",
+    "de": "Langstrecken-Funkgerät"
+  },
+  "Гроб (вместительный)": {
+    "uk": "Труна (містка)",
+    "en": "A coffin (roomy)",
+    "de": "Sarg (geräumig)"
+  },
+  "Надувная секс-кукла (можно как подушку)": {
+    "uk": "Надувна секс-лялька (можна як подушку)",
+    "en": "Inflatable sex doll (usable as a pillow)",
+    "de": "Aufblasbare Sexpuppe (als Kissen nutzbar)"
+  },
+  "Нож + спички + фляга": {
+    "uk": "Ніж + сірники + фляга",
+    "en": "Knife + matches + flask",
+    "de": "Messer + Streichhölzer + Feldflasche"
+  },
+  "Презервативы (100 шт)": {
+    "uk": "Презервативи (100 шт)",
+    "en": "Condoms (100 pack)",
+    "de": "Kondome (100 Stück)"
+  },
+  "Пачка антибиотиков": {
+    "uk": "Пачка антибіотиків",
+    "en": "Pack of antibiotics",
+    "de": "Packung Antibiotika"
+  },
+  "Колода карт + кубики": {
+    "uk": "Колода карт + кубики",
+    "en": "Deck of cards + dice",
+    "de": "Kartendeck + Würfel"
+  },
+  "Пистолет (1 патрон)": {
+    "uk": "Пістолет (1 патрон)",
+    "en": "Pistol (1 bullet)",
+    "de": "Pistole (1 Schuss)"
+  },
+  "Дневник предыдущего жителя": {
+    "uk": "Щоденник попереднього мешканця",
+    "en": "Diary of the previous resident",
+    "de": "Tagebuch des vorherigen Bewohners"
+  },
+  "Витамины на год": {
+    "uk": "Вітаміни на рік",
+    "en": "A year's vitamins",
+    "de": "Vitamine für ein Jahr"
+  },
+  "Верёвка 50м + крюк": {
+    "uk": "Мотузка 50м + гак",
+    "en": "50 m rope + hook",
+    "de": "50m Seil + Haken"
+  },
+  "Семена конопли": {
+    "uk": "Насіння конопель",
+    "en": "Cannabis seeds",
+    "de": "Cannabissamen"
+  },
+  "Фонарик + батарейки": {
+    "uk": "Ліхтарик + батарейки",
+    "en": "Flashlight + batteries",
+    "de": "Taschenlampe + Batterien"
+  },
+  "Зажигалка Zippo (вечная)": {
+    "uk": "Запальничка Zippo (вічна)",
+    "en": "Zippo lighter (never dies)",
+    "de": "Zippo-Feuerzeug (unverwüstlich)"
+  },
+  "Соль (1 кг — ценность!)": {
+    "uk": "Сіль (1 кг — цінність!)",
+    "en": "Salt (1 kg — a treasure!)",
+    "de": "Salz (1 kg — wahrer Schatz!)"
+  },
+  "Библия + Коран + Тора": {
+    "uk": "Біблія + Коран + Тора",
+    "en": "Bible + Quran + Torah",
+    "de": "Bibel + Koran + Tora"
+  },
+  "Виагра (упаковка)": {
+    "uk": "Віагра (упаковка)",
+    "en": "Viagra (a pack)",
+    "de": "Viagra (Packung)"
+  },
+  "Знает код от соседнего склада с едой": {
+    "uk": "Знає код від сусіднього складу з їжею",
+    "en": "Knows the code to a nearby food depot",
+    "de": "Kennt den Code zum benachbarten Lebensmittellager"
+  },
+  "Умеет принимать роды": {
+    "uk": "Вміє приймати пологи",
+    "en": "Can deliver babies",
+    "de": "Kann Geburten leiten"
+  },
+  "Тайно влюблён в ведущего": {
+    "uk": "Таємно закоханий у ведучого",
+    "en": "Secretly in love with the host",
+    "de": "Heimlich in den Spielleiter verliebt"
+  },
+  "Бесплоден, но мечтает о детях": {
+    "uk": "Безплідний, але мріє про дітей",
+    "en": "Infertile, but dreams of children",
+    "de": "Unfruchtbar, träumt aber von Kindern"
+  },
+  "Видел карту других бункеров": {
+    "uk": "Бачив карту інших бункерів",
+    "en": "Has seen a map of other bunkers",
+    "de": "Hat die Karte anderer Bunker gesehen"
+  },
+  "Был военнопленным, терпит пытки": {
+    "uk": "Був військовополоненим, терпить тортури",
+    "en": "Was a POW, endures torture",
+    "de": "War Kriegsgefangener, hält Folter aus"
+  },
+  "Полиглот (8 языков)": {
+    "uk": "Поліглот (8 мов)",
+    "en": "Polyglot (8 languages)",
+    "de": "Polyglott (8 Sprachen)"
+  },
+  "Умеет чинить любую технику": {
+    "uk": "Вміє лагодити будь-яку техніку",
+    "en": "Can fix any machinery",
+    "de": "Kann jede Technik reparieren"
+  },
+  "Скрывает что заражён": {
+    "uk": "Приховує, що заражений",
+    "en": "Hiding that he's infected",
+    "de": "Verheimlicht die eigene Infektion"
+  },
+  "Был донором органов": {
+    "uk": "Був донором органів",
+    "en": "Was an organ donor",
+    "de": "War Organspender"
+  },
+  "Знает рецепт лекарства от чумы": {
+    "uk": "Знає рецепт ліків від чуми",
+    "en": "Knows a plague-cure recipe",
+    "de": "Kennt das Heilmittel-Rezept gegen die Pest"
+  },
+  "Гипнотизёр": {
+    "uk": "Гіпнотизер",
+    "en": "Hypnotist",
+    "de": "Hypnotiseur"
+  },
+  "Помнит всё (эйдетик)": {
+    "uk": "Пам'ятає все (ейдетик)",
+    "en": "Remembers everything (eidetic)",
+    "de": "Erinnert sich an alles (Eidetiker)"
+  },
+  "Тайно вегетарианец-радикал": {
+    "uk": "Таємно вегетаріанець-радикал",
+    "en": "Secretly a radical vegetarian",
+    "de": "Heimlich radikaler Vegetarier"
+  },
+  "Раз за игру: заглянуть в любую закрытую карту игрока": {
+    "uk": "Раз за гру: зазирнути в будь-яку закриту карту гравця",
+    "en": "Once per game: peek at any player's hidden card",
+    "de": "Einmal pro Spiel: In eine beliebige verdeckte Karte eines Spielers blicken"
+  },
+  "Раз за игру: отменить голосование": {
+    "uk": "Раз за гру: скасувати голосування",
+    "en": "Once per game: cancel a vote",
+    "de": "Einmal pro Spiel: Eine Abstimmung annullieren"
+  },
+  "Иммунитет к изгнанию на 1 раунд": {
+    "uk": "Імунітет до вигнання на 1 раунд",
+    "en": "Immunity from exile for 1 round",
+    "de": "Immunität gegen Verbannung für 1 Runde"
+  },
+  "Поменяться одной картой с любым игроком": {
+    "uk": "Помінятися однією картою з будь-яким гравцем",
+    "en": "Swap one card with any player",
+    "de": "Eine Karte mit einem beliebigen Spieler tauschen"
+  },
+  "Раз за игру: добавить себе случайную профессию": {
+    "uk": "Раз за гру: додати собі випадкову професію",
+    "en": "Once per game: give yourself a random profession",
+    "de": "Einmal pro Spiel: Dir einen zufälligen Beruf hinzufügen"
+  },
+  "Вылечить любую болезнь (свою или чужую)": {
+    "uk": "Вилікувати будь-яку хворобу (свою чи чужу)",
+    "en": "Cure any illness (yours or someone's)",
+    "de": "Jede Krankheit heilen (eigene oder fremde)"
+  },
+  "Раз за игру: украсть инвентарь изгнанного": {
+    "uk": "Раз за гру: вкрасти інвентар вигнаного",
+    "en": "Once per game: steal an exiled player's inventory",
+    "de": "Einmal pro Spiel: Das Inventar eines Verbannten stehlen"
+  },
+  "Заставить игрока вскрыть случайную карту": {
+    "uk": "Змусити гравця відкрити випадкову карту",
+    "en": "Force a player to reveal a random card",
+    "de": "Einen Spieler zwingen, eine zufällige Karte aufzudecken"
+  },
+  "Раз за игру: переголосовать (твой голос ×2)": {
+    "uk": "Раз за гру: переголосувати (твій голос ×2)",
+    "en": "Once per game: revote (your vote counts ×2)",
+    "de": "Einmal pro Spiel: Neu abstimmen (deine Stimme zählt doppelt)"
+  },
+  "Раз за игру: спасти изгнанного (вернуть)": {
+    "uk": "Раз за гру: врятувати вигнаного (повернути)",
+    "en": "Once per game: save an exiled player (bring them back)",
+    "de": "Einmal pro Spiel: Einen Verbannten retten (zurückholen)"
+  },
+  "Обнулить чужую спецспособность": {
+    "uk": "Обнулити чужу здібність",
+    "en": "Nullify another's special ability",
+    "de": "Die Spezialfähigkeit eines anderen annullieren"
+  },
+  "Раз за игру: тайно увидеть сценарий-секрет": {
+    "uk": "Раз за гру: таємно побачити сценарій-секрет",
+    "en": "Once per game: secretly see the hidden scenario",
+    "de": "Einmal pro Spiel: Heimlich das geheime Szenario einsehen"
+  },
+  "Поменять свой возраст на любой": {
+    "uk": "Поміняти свій вік на будь-який",
+    "en": "Change your age to any value",
+    "de": "Dein Alter auf einen beliebigen Wert ändern"
+  },
+  "Раз за игру: объединиться с игроком (вас не изгнать вместе)": {
+    "uk": "Раз за гру: об'єднатися з гравцем (вас не вигнати разом)",
+    "en": "Once per game: ally with a player (you can't be exiled together)",
+    "de": "Einmal pro Spiel: Mit einem Spieler verbünden (ihr könnt nicht gemeinsam verbannt werden)"
+  },
+  "Раз за игру: форсировать новый раунд карт": {
+    "uk": "Раз за гру: форсувати новий раунд карт",
+    "en": "Once per game: force a new card round",
+    "de": "Einmal pro Spiel: Eine neue Kartenrunde erzwingen"
+  },
+  "Сделать свою болезнь незаразной навсегда": {
+    "uk": "Зробити свою хворобу незаразною назавжди",
+    "en": "Make your illness non-contagious forever",
+    "de": "Deine Krankheit dauerhaft unansteckend machen"
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}

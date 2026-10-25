@@ -190,7 +190,7 @@
     <div class="header">
         <a href="/games/" class="back-button" data-i18n="back_btn">◀ Лоби</a>
         <h1 data-i18n="page_title">Тетрис</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
         <select id="speedSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" data-i18n-title="speed_title" title="Скорость">
           <option value="1100" data-i18n="speed_easy">🐢 Легко</option><option value="800" selected data-i18n="speed_med">⚡ Средне</option><option value="500" data-i18n="speed_hard">🔥 Сложно</option>
         </select>
@@ -222,7 +222,23 @@
 
     <script>
 
-const UI = {"uk": {"title": "Тетріс Кіберпанк", "rules_title": "🧱 Тетріс — правила", "rules_body": "Фігури падають зверху — повертай і рухай їх, заповнюй горизонтальні ряди цілком. Повний ряд зникає і дає очки. Стакан переповнився — кінець.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Тетріс", "speed_title": "Швидкість", "speed_easy": "🐢 Легко", "speed_med": "⚡ Середньо", "speed_hard": "🔥 Складно", "score": "Рахунок: ", "game_over": "ГРА ЗАКІНЧЕНА", "restart_btn": "Рестарт"}, "ru": {"title": "Тетрис Киберпанк", "rules_title": "🧱 Тетрис — правила", "rules_body": "Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Тетрис", "speed_title": "Скорость", "speed_easy": "🐢 Легко", "speed_med": "⚡ Средне", "speed_hard": "🔥 Сложно", "score": "Счёт: ", "game_over": "ИГРА ОКОНЧЕНА", "restart_btn": "Рестарт"}, "en": {"title": "Cyberpunk Tetris", "rules_title": "🧱 Tetris — rules", "rules_body": "Blocks fall from above — rotate and move them to fill horizontal rows completely. A full row disappears and scores points. Overflow the glass — game over.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Tetris", "speed_title": "Speed", "speed_easy": "🐢 Easy", "speed_med": "⚡ Medium", "speed_hard": "🔥 Hard", "score": "Score: ", "game_over": "GAME OVER", "restart_btn": "Restart"}};
+const UI = {"uk": {"title": "Тетріс Кіберпанк", "rules_title": "🧱 Тетріс — правила", "rules_body": "Фігури падають зверху — повертай і рухай їх, заповнюй горизонтальні ряди цілком. Повний ряд зникає і дає очки. Стакан переповнився — кінець.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Тетріс", "speed_title": "Швидкість", "speed_easy": "🐢 Легко", "speed_med": "⚡ Середньо", "speed_hard": "🔥 Складно", "score": "Рахунок: ", "game_over": "ГРА ЗАКІНЧЕНА", "restart_btn": "Рестарт"}, "ru": {"title": "Тетрис Киберпанк", "rules_title": "🧱 Тетрис — правила", "rules_body": "Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Тетрис", "speed_title": "Скорость", "speed_easy": "🐢 Легко", "speed_med": "⚡ Средне", "speed_hard": "🔥 Сложно", "score": "Счёт: ", "game_over": "ИГРА ОКОНЧЕНА", "restart_btn": "Рестарт"}, "en": {"title": "Cyberpunk Tetris", "rules_title": "🧱 Tetris — rules", "rules_body": "Blocks fall from above — rotate and move them to fill horizontal rows completely. A full row disappears and scores points. Overflow the glass — game over.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Tetris", "speed_title": "Speed", "speed_easy": "🐢 Easy", "speed_med": "⚡ Medium", "speed_hard": "🔥 Hard", "score": "Score: ", "game_over": "GAME OVER", "restart_btn": "Restart"},
+  de: {
+    "title": "Cyberpunk Tetris",
+    "rules_title": "🧱 Tetris — Regeln",
+    "rules_body": "Blöcke fallen von oben — drehe und verschiebe sie, um Reihen vollständig zu füllen. Volle Reihen verschwinden und bringen Punkte. Läuft das Spielfeld voll — Game Over.",
+    "rules_ok": "Verstanden 👍",
+    "back_btn": "◀ Lobby",
+    "page_title": "Tetris",
+    "speed_title": "Geschwindigkeit",
+    "speed_easy": "🐢 Leicht",
+    "speed_med": "⚡ Mittel",
+    "speed_hard": "🔥 Schwer",
+    "score": "Punkte: ",
+    "game_over": "GAME OVER",
+    "restart_btn": "Neustart"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

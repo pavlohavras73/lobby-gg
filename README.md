@@ -13,7 +13,11 @@ Real-time multiplayer party games in the browser. Create a room, share the 4-let
 - **Reconnect**: if the network drops mid-game, the client reconnects with backoff and rejoins its seat; a banner shows the connection state.
 - **Bots**: fill empty seats, so a 2-player evening still works for a 5-player game.
 - **Accounts (optional)**: friends, profiles, stats. Passwords are PBKDF2-hashed, sessions are HMAC-signed cookies.
-- **Three languages**: Ukrainian, Russian, English, switchable live without a reload.
+- **Quick play**: matchmaking queue for the duel games, with a bot fallback if nobody shows up.
+- **Ratings**: ELO for the 8 duel games (bots and same-account games don't count) and a leaderboard.
+- **Room and global chat** over the same WebSocket.
+- **Installable (PWA)**: add to home screen, standalone window, offline page.
+- **Four languages**: Ukrainian, Russian, English, German, switchable live without a reload.
 - **AI content (optional)**: Gemini generates characters and game variants; Groq Whisper does the voice check in the language trainer.
 
 ## Architecture
@@ -58,6 +62,17 @@ localhost {
 
 Then open https://localhost/games/. To create an admin account, set `ROOT_USERNAME` / `ROOT_PASSWORD` before the first start. API keys are optional and only enable the AI features.
 
+## Tests
+
+CI (GitHub Actions) runs on every push. Locally you need [uv](https://docs.astral.sh/uv/):
+
+```bash
+bash tests/run_smoke.sh          # WebSocket smoke: rooms, bots, reconnect, quick play, chat (spins up a temp server)
+node tests/check_i18n_keys.js    # every page has all language keys
+cd tests && uv run --with fastapi --with pytest python -m pytest -q test_ratings.py test_perf_helpers.py
+bash tests/run_browser_i18n.sh   # headless Chromium: each page in uk/en/de, no JS errors
+```
+
 ## Project layout
 
 ```
@@ -67,6 +82,9 @@ learn.py           language trainer
 static/*.html      one page per game
 static/theme.css   design system shared by all pages
 static/shell.js    navigation, language switcher
+static/i18n_common.js  shared translations, language list
+pwa.py             manifest, service worker, PWA head tags
+tests/             smoke, browser and unit tests
 test_quoridor.py   unit tests for the Quoridor engine
 ```
 

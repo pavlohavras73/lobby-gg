@@ -38,7 +38,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💣 Сапёр — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">💣 Сапёр</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="bar">
   <div class="score"><div class="l" data-i18n="mines_label">Мины</div><div class="v" id="minecount">0</div></div>
   <div class="flagbtn" id="flagbtn" onclick="toggleFlag()">🚩</div>
@@ -55,7 +55,26 @@
 const UI={
  uk:{rules_title:"💣 Сапер — правила",rules_body:"Відкривай клітинки. Цифра = скільки мін навколо цієї клітинки. Вираховуй за цифрами, де міни, і став на них 🚩 (кнопка «Прапор»). Відкрий усі клітинки без мін. Перший тап завжди безпечний.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"💣 Сапер",mines_label:"Міни",flag:"🚩 Прапор",on:"увімк",off:"вимк",d_easy:"Легко 9×9",d_med:"Середньо 12×12",d_hard:"Складно 14×16",again:"Ще раз",hint:"Тап — відкрити. Кнопка «Прапор» увімк → тап ставить 🚩. Відкрий усі клітинки без мін.",all_games:"← Усі ігри",boom:"💥 Бум! Підірвався",win:"🎉 Розмінував!"},
  ru:{rules_title:"💣 Сапёр — правила",rules_body:"Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"💣 Сапёр",mines_label:"Мины",flag:"🚩 Флаг",on:"вкл",off:"выкл",d_easy:"Легко 9×9",d_med:"Средне 12×12",d_hard:"Сложно 14×16",again:"Ещё раз",hint:"Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.",all_games:"← Все игры",boom:"💥 Бум! Подорвался",win:"🎉 Разминировал!"},
- en:{rules_title:"💣 Minesweeper — rules",rules_body:"Open cells. A number = how many mines are around that cell. Work out where the mines are and flag them 🚩 (the «Flag» button). Open all cells without mines. The first tap is always safe.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"💣 Minesweeper",mines_label:"Mines",flag:"🚩 Flag",on:"on",off:"off",d_easy:"Easy 9×9",d_med:"Medium 12×12",d_hard:"Hard 14×16",again:"Again",hint:"Tap — open. «Flag» on → tap places 🚩. Open all cells without mines.",all_games:"← All games",boom:"💥 Boom! You blew up",win:"🎉 Cleared!"}
+ en:{rules_title:"💣 Minesweeper — rules",rules_body:"Open cells. A number = how many mines are around that cell. Work out where the mines are and flag them 🚩 (the «Flag» button). Open all cells without mines. The first tap is always safe.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"💣 Minesweeper",mines_label:"Mines",flag:"🚩 Flag",on:"on",off:"off",d_easy:"Easy 9×9",d_med:"Medium 12×12",d_hard:"Hard 14×16",again:"Again",hint:"Tap — open. «Flag» on → tap places 🚩. Open all cells without mines.",all_games:"← All games",boom:"💥 Boom! You blew up",win:"🎉 Cleared!"},
+  de: {
+    "rules_title": "💣 Minesweeper — Regeln",
+    "rules_body": "Öffne Felder. Eine Zahl zeigt, wie viele Minen an dieses Feld angrenzen. Finde die Minen und markiere sie mit 🚩 (Taste «Flagge»). Decke alle felder ohne Minen auf. Der erste Klick ist immer sicher.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "title": "💣 Minesweeper",
+    "mines_label": "Minen",
+    "flag": "🚩 Flagge",
+    "on": "an",
+    "off": "aus",
+    "d_easy": "Leicht 9×9",
+    "d_med": "Mittel 12×12",
+    "d_hard": "Schwer 14×16",
+    "again": "Nochmal",
+    "hint": "Tippen — öffnen. «Flagge» an → tippen setzt 🚩. Öffne alle Felder ohne Minen.",
+    "all_games": "← Alle Spiele",
+    "boom": "💥 Boom! Du bist auf eine Mine getreten",
+    "win": "🎉 Geschafft!"
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}

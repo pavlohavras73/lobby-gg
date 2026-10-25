@@ -749,7 +749,7 @@
     </div>
   </header>
 
-  <div class="langbar" id="langbar" style="margin-top:12px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+  <div class="langbar" id="langbar" style="margin-top:12px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
   <div class="sub" style="text-align:center;margin:6px 0 14px;" data-i18n="learn_sub">Короткие уроки каждый день · прокачай навыки</div>
 
   <div class="learn-container">
@@ -870,8 +870,25 @@
         no_courses: "No courses available in this track yet.",
         load_lesson_err: "Failed to load lesson.",
         confirm_exit: "Exit lesson? Progress for this session will not be saved."
-      }
-    };
+      },
+  de: {
+    "title": "Lobby.gg Learn — Mikrolernen",
+    "learn_sub": "Kurze tägliche Lektionen · verbessere deine Fähigkeiten",
+    "track_english": "🇬🇧 Englisch",
+    "track_cs": "💻 Informatik",
+    "track_german": "🇩🇪 Deutsch",
+    "back_btn": "← Alle Spiele",
+    "victory_title": "Lektion abgeschlossen!",
+    "victory_sub": "Du hast deine Kenntnisse erweitert und die Grundlagen gefestigt.",
+    "stat_xp": "Erfahrung",
+    "stat_streak": "Serie",
+    "victory_continue": "Weiter",
+    "sheet_next": "Weiter",
+    "no_courses": "In diesem Bereich sind noch keine Kurse verfügbar.",
+    "load_lesson_err": "Lektion konnte nicht geladen werden.",
+    "confirm_exit": "Lektion verlassen? Der Fortschritt dieser Sitzung geht verloren."
+  }
+};
 
     let LANG = localStorage.getItem('jg_lang') || 'ru';
     if (!UI[LANG]) LANG = 'ru';

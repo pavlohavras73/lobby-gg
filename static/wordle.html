@@ -73,7 +73,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🟩 5 букв — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="back_btn">🎮 Игры</a>
 <h1 data-i18n="page_title">🟩 5 букв</h1>
-<div class="langbar" id="langbar" style="margin-bottom:4px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div><div class="sub" data-i18n="page_sub">Отгадай слово · Lobby.gg</div>
+<div class="langbar" id="langbar" style="margin-bottom:4px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div><div class="sub" data-i18n="page_sub">Отгадай слово · Lobby.gg</div>
 
 <!-- SETUP -->
 <div id="setup" class="setup">
@@ -109,7 +109,37 @@
 
 <script>
 
-const UI = {"uk": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Вгадай слово з 5 букв за 6 спроб. Після кожної: 🟩 буква на своєму місці, 🟨 буква є в слові, але не там, ⬛ букви немає. На клавіатурі видно, які букви вже відгадані.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🟩 5 букв", "page_sub": "Відгадай слово · Lobby.gg", "lang_title": "🌍 Мова словника", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нім", "diff_title": "🎚 Складність", "diff_easy": "Легкий", "diff_easy_sub": "1 буква відкрита", "diff_med": "Середній", "diff_med_sub": "класика, 6 спроб", "diff_hard": "Складний", "diff_hard_sub": "обов'язкове врахування підказок", "play_btn": "🚀 Грати", "how_to_play": "Як грати", "back_btn": "← Усі ігри", "new_word_btn": "🔄 Нове слово", "msg_hint": "Підказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Відгадав за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вийшло. Слово: "}, "ru": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🟩 5 букв", "page_sub": "Отгадай слово · Lobby.gg", "lang_title": "🌍 Язык словаря", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нем", "diff_title": "🎚 Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "1 буква открыта", "diff_med": "Средний", "diff_med_sub": "классика, 6 попыток", "diff_hard": "Сложный", "diff_hard_sub": "обязателен учёт подсказок", "play_btn": "🚀 Играть", "how_to_play": "Как играть", "back_btn": "← Все игры", "new_word_btn": "🔄 Новое слово", "msg_hint": "Подсказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Отгадал за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вышло. Слово: "}, "en": {"title": "Lobby.gg — Wordle", "rules_title": "🟩 Wordle — rules", "rules_body": "Guess the 5-letter word in 6 tries. After each guess: 🟩 letter is in the correct spot, 🟨 letter is in the word but wrong spot, ⬛ letter is not in the word.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🟩 Wordle", "page_sub": "Guess the word · Lobby.gg", "lang_title": "🌍 Dictionary Language", "lang_ru": "🇷🇺 Rus", "lang_uk": "🇺🇦 Ukr", "lang_de": "🇩🇪 Ger", "diff_title": "🎚 Difficulty", "diff_easy": "Easy", "diff_easy_sub": "1 letter revealed", "diff_med": "Medium", "diff_med_sub": "classic, 6 tries", "diff_hard": "Hard", "diff_hard_sub": "must use hints", "play_btn": "🚀 Play", "how_to_play": "How to play", "back_btn": "← All games", "new_word_btn": "🔄 New word", "msg_hint": "Hint: letter #", "msg_short": "Not enough letters", "msg_win": "🎉 Solved in ", "msg_word": "! Word: ", "msg_lose": "😔 Failed. Word: "}};
+const UI = {"uk": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Вгадай слово з 5 букв за 6 спроб. Після кожної: 🟩 буква на своєму місці, 🟨 буква є в слові, але не там, ⬛ букви немає. На клавіатурі видно, які букви вже відгадані.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🟩 5 букв", "page_sub": "Відгадай слово · Lobby.gg", "lang_title": "🌍 Мова словника", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нім", "diff_title": "🎚 Складність", "diff_easy": "Легкий", "diff_easy_sub": "1 буква відкрита", "diff_med": "Середній", "diff_med_sub": "класика, 6 спроб", "diff_hard": "Складний", "diff_hard_sub": "обов'язкове врахування підказок", "play_btn": "🚀 Грати", "how_to_play": "Як грати", "back_btn": "← Усі ігри", "new_word_btn": "🔄 Нове слово", "msg_hint": "Підказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Відгадав за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вийшло. Слово: "}, "ru": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🟩 5 букв", "page_sub": "Отгадай слово · Lobby.gg", "lang_title": "🌍 Язык словаря", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нем", "diff_title": "🎚 Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "1 буква открыта", "diff_med": "Средний", "diff_med_sub": "классика, 6 попыток", "diff_hard": "Сложный", "diff_hard_sub": "обязателен учёт подсказок", "play_btn": "🚀 Играть", "how_to_play": "Как играть", "back_btn": "← Все игры", "new_word_btn": "🔄 Новое слово", "msg_hint": "Подсказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Отгадал за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вышло. Слово: "}, "en": {"title": "Lobby.gg — Wordle", "rules_title": "🟩 Wordle — rules", "rules_body": "Guess the 5-letter word in 6 tries. After each guess: 🟩 letter is in the correct spot, 🟨 letter is in the word but wrong spot, ⬛ letter is not in the word.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🟩 Wordle", "page_sub": "Guess the word · Lobby.gg", "lang_title": "🌍 Dictionary Language", "lang_ru": "🇷🇺 Rus", "lang_uk": "🇺🇦 Ukr", "lang_de": "🇩🇪 Ger", "diff_title": "🎚 Difficulty", "diff_easy": "Easy", "diff_easy_sub": "1 letter revealed", "diff_med": "Medium", "diff_med_sub": "classic, 6 tries", "diff_hard": "Hard", "diff_hard_sub": "must use hints", "play_btn": "🚀 Play", "how_to_play": "How to play", "back_btn": "← All games", "new_word_btn": "🔄 New word", "msg_hint": "Hint: letter #", "msg_short": "Not enough letters", "msg_win": "🎉 Solved in ", "msg_word": "! Word: ", "msg_lose": "😔 Failed. Word: "},
+  de: {
+    "title": "Lobby.gg — 5 Buchstaben",
+    "rules_title": "🟩 5 Buchstaben — Regeln",
+    "rules_body": "Errate das 5-Buchstaben-Wort in 6 Versuchen. Nach jedem Versuch: 🟩 Buchstabe an richtiger Stelle, 🟨 Buchstabe im Wort aber andere Stelle, ⬛ Buchstabe nicht im Wort.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "page_title": "🟩 5 Buchstaben",
+    "page_sub": "Wort erraten · Lobby.gg",
+    "lang_title": "🌍 Wörterbuch-Sprache",
+    "lang_ru": "🇷🇺 Rus",
+    "lang_uk": "🇺🇦 Ukr",
+    "lang_de": "🇩🇪 Deu",
+    "diff_title": "🎚 Schwierigkeit",
+    "diff_easy": "Leicht",
+    "diff_easy_sub": "1 Buchstabe aufgedeckt",
+    "diff_med": "Mittel",
+    "diff_med_sub": "Klassisch, 6 Versuche",
+    "diff_hard": "Schwer",
+    "diff_hard_sub": "Hinweise müssen genutzt werden",
+    "play_btn": "🚀 Spielen",
+    "how_to_play": "Spielanleitung",
+    "back_btn": "← Alle Spiele",
+    "new_word_btn": "🔄 Neues Wort",
+    "msg_hint": "Hinweis: Buchstabe #",
+    "msg_short": "Nicht genug Buchstaben",
+    "msg_win": "🎉 Gelöst in ",
+    "msg_word": "! Wort: ",
+    "msg_lose": "😔 Nicht geschafft. Wort: "
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

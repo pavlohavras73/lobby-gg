@@ -98,7 +98,7 @@
 
 <h1 data-i18n="page_title">🏁 ШАШКИ</h1>
 <div class="sub" data-i18n="page_sub">русские шашки · обязательный бой · на двоих</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <div id="home" class="card" style="max-width:360px;margin:0 auto">
   <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph">
@@ -247,6 +247,40 @@ const UI = {
     alert_code: "Enter room code",
     player1: "Player 1",
     player2: "Player 2"
+  },
+  de: {
+    "title": "Dame — Lobby.gg",
+    "rules_btn": "Regeln",
+    "rules_title": "🏁 Dame — Regeln",
+    "rules_body": "Ziehe Steine diagonal vorwärts. <b>Schlagen ist Pflicht</b> (vorwärts und rückwärts!), Mehrfachschläge möglich.<br>Wenn ein Schlag möglich ist, muss geschlagen werden (gold hervorgehoben).<br>Erreiche die gegnerische Grundreihe für eine Dame. Gewinne, indem du alle gegnerischen Steine schlägst oder blockierst!",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "page_title": "🏁 DAME",
+    "page_sub": "Klassische Dame · Schlagpflicht · 2 Spieler",
+    "name_ph": "Name",
+    "create_btn": "Spiel erstellen",
+    "code_ph": "CODE",
+    "join_btn": "Mit Code beitreten",
+    "back_btn": "← Alle Spiele",
+    "room_code": "Spielcode:",
+    "click_copy": "Klicken zum Kopieren",
+    "code_copied": "Code kopiert!",
+    "diff_easy": "🤖 Leicht",
+    "diff_medium": "Mittel",
+    "diff_hard": "Schwer",
+    "add_bot_btn": "🤖 Hinzufügen",
+    "wait_msg": "Warte auf Gegner…",
+    "restart_btn": "Neustart",
+    "you_won": "🏆 Du hast gewonnen!",
+    "someone_won": "{n} hat gewonnen!",
+    "your_turn": "DU BIST DRAN",
+    "turn_of": "Am Zug: {n}",
+    "opponent": "Gegner",
+    "must_continue": "⚡ SCHLAGFOLGE FORTSETZEN!",
+    "must_capture": "⚔️ SCHLAGPFLICHT — Stein schlagen!",
+    "alert_code": "Raumcode eingeben",
+    "player1": "Spieler 1",
+    "player2": "Spieler 2"
   }
 };
 
@@ -265,7 +299,8 @@ function t(k, vars) {
 }
 
 const GT = {
-  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players.",
+    de: "2 Spieler erforderlich." }
 };
 
 function T(s) {

@@ -197,7 +197,7 @@
   <div class="lobby-overlay" id="lobbyModal">
     <div class="lobby-card">
       <div class="lobby-title" data-i18n="lobby_title">GEOBUNKER 🌍</div>
-      <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+      <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
       <div class="lobby-sub" data-i18n="lobby_sub">200+ случайно перемешанных локаций со всех континентов</div>
 
       <!-- Mode Selector -->
@@ -309,7 +309,43 @@
   <script src="/games/static/reconnect.js"></script>
   <script>
 
-const UI = {"uk": {"title": "GeoBunker 🌍 — 200+ локацій з усього світу", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ випадково перемішаних локацій з усіх континентів", "opt1_title": "1. РЕЖИМ ГРИ:", "mode_classic_title": "🎯 Одиночний", "mode_classic_desc": "5 раундів на очки", "mode_quick_title": "⚡ Експрес", "mode_quick_desc": "1 швидкий раунд", "opt2_title": "2. КРАЇНА / РЕГІОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% випадковий світ", "cat_capitals_title": "🏛️ Міста Світу (70+)", "cat_capitals_desc": "Париж, Токіо, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Дива (50+)", "cat_nature_desc": "Гори, каньйони, Ісландія...", "cat_ukraine_title": "🇺🇦 Україна (30+)", "cat_ukraine_desc": "Міста, замки, Карпати", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартний ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокійний пошук", "start_btn": "🚀 ПОГНАЛИ / ПОЧАТИ ГРУ", "nav_games": "🎮 Ігри", "map_btn": "🗺️ Відкрити Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Виберіть точку на Топо-Карти", "map_close": "✕ Закрити", "map_confirm": "Поставити мітку на карті", "res_title": "Результат раунду", "dist_msg": " км до цілі", "next_btn": "Наступний раунд →", "score_btn": "Подивитися результати та очки →"}, "ru": {"title": "GeoBunker 🌍 — 200+ Global Random Shuffled Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ случайно перемешанных локаций со всех континентов", "opt1_title": "1. РЕЖИМ ИГРЫ:", "mode_classic_title": "🎯 Одиночный", "mode_classic_desc": "5 раундов на очки", "mode_quick_title": "⚡ Экспресс", "mode_quick_desc": "1 быстрый раунд", "opt2_title": "2. СТРАНА / РЕГИОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% случайный мир", "cat_capitals_title": "🏛️ Города Мира (70+)", "cat_capitals_desc": "Париж, Токио, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Чудеса (50+)", "cat_nature_desc": "Горы, каньоны, Исландия...", "cat_ukraine_title": "🇺🇦 Украина (30+)", "cat_ukraine_desc": "Города, замки, Карпаты", "opt3_title": "3. ТАЙМЕР РАУНДА:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартный ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокойный поиск", "start_btn": "🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ", "nav_games": "🎮 Игры", "map_btn": "🗺️ Открыть Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Выберите точку на Топо-Карте", "map_close": "✕ Закрыть", "map_confirm": "Поставьте метку на карте", "res_title": "Результат раунда", "dist_msg": " км до цели", "next_btn": "Следующий раунд →", "score_btn": "Посмотреть результаты и очки →"}, "en": {"title": "GeoBunker 🌍 — 200+ Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ randomly shuffled locations from all continents", "opt1_title": "1. GAME MODE:", "mode_classic_title": "🎯 Single Player", "mode_classic_desc": "5 rounds for points", "mode_quick_title": "⚡ Express", "mode_quick_desc": "1 quick round", "opt2_title": "2. COUNTRY / REGION:", "cat_all_title": "🌐 Whole Planet (200+)", "cat_all_desc": "100% random world", "cat_capitals_title": "🏛️ World Cities (70+)", "cat_capitals_desc": "Paris, Tokyo, New York...", "cat_nature_title": "🏔️ Nature & Wonders (50+)", "cat_nature_desc": "Mountains, canyons, Iceland...", "cat_ukraine_title": "🇺🇦 Ukraine (30+)", "cat_ukraine_desc": "Cities, castles, Carpathians", "opt3_title": "3. ROUND TIMER:", "timer_60_title": "⏱️ 60 seconds", "timer_60_desc": "Standard pace", "timer_0_title": "🧘 No timer", "timer_0_desc": "Relaxed search", "start_btn": "🚀 LET'S GO / START GAME", "nav_games": "🎮 Games", "map_btn": "🗺️ Open Topo Map", "menu_btn": "⚙️ Menu", "map_title": "Select a point on the Topo Map", "map_close": "✕ Close", "map_confirm": "Place marker on map", "res_title": "Round Result", "dist_msg": " km from target", "next_btn": "Next round →", "score_btn": "View results and scores →"}};
+const UI = {"uk": {"title": "GeoBunker 🌍 — 200+ локацій з усього світу", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ випадково перемішаних локацій з усіх континентів", "opt1_title": "1. РЕЖИМ ГРИ:", "mode_classic_title": "🎯 Одиночний", "mode_classic_desc": "5 раундів на очки", "mode_quick_title": "⚡ Експрес", "mode_quick_desc": "1 швидкий раунд", "opt2_title": "2. КРАЇНА / РЕГІОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% випадковий світ", "cat_capitals_title": "🏛️ Міста Світу (70+)", "cat_capitals_desc": "Париж, Токіо, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Дива (50+)", "cat_nature_desc": "Гори, каньйони, Ісландія...", "cat_ukraine_title": "🇺🇦 Україна (30+)", "cat_ukraine_desc": "Міста, замки, Карпати", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартний ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокійний пошук", "start_btn": "🚀 ПОГНАЛИ / ПОЧАТИ ГРУ", "nav_games": "🎮 Ігри", "map_btn": "🗺️ Відкрити Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Виберіть точку на Топо-Карти", "map_close": "✕ Закрити", "map_confirm": "Поставити мітку на карті", "res_title": "Результат раунду", "dist_msg": " км до цілі", "next_btn": "Наступний раунд →", "score_btn": "Подивитися результати та очки →"}, "ru": {"title": "GeoBunker 🌍 — 200+ Global Random Shuffled Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ случайно перемешанных локаций со всех континентов", "opt1_title": "1. РЕЖИМ ИГРЫ:", "mode_classic_title": "🎯 Одиночный", "mode_classic_desc": "5 раундов на очки", "mode_quick_title": "⚡ Экспресс", "mode_quick_desc": "1 быстрый раунд", "opt2_title": "2. СТРАНА / РЕГИОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% случайный мир", "cat_capitals_title": "🏛️ Города Мира (70+)", "cat_capitals_desc": "Париж, Токио, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Чудеса (50+)", "cat_nature_desc": "Горы, каньоны, Исландия...", "cat_ukraine_title": "🇺🇦 Украина (30+)", "cat_ukraine_desc": "Города, замки, Карпаты", "opt3_title": "3. ТАЙМЕР РАУНДА:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартный ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокойный поиск", "start_btn": "🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ", "nav_games": "🎮 Игры", "map_btn": "🗺️ Открыть Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Выберите точку на Топо-Карте", "map_close": "✕ Закрыть", "map_confirm": "Поставьте метку на карте", "res_title": "Результат раунда", "dist_msg": " км до цели", "next_btn": "Следующий раунд →", "score_btn": "Посмотреть результаты и очки →"}, "en": {"title": "GeoBunker 🌍 — 200+ Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ randomly shuffled locations from all continents", "opt1_title": "1. GAME MODE:", "mode_classic_title": "🎯 Single Player", "mode_classic_desc": "5 rounds for points", "mode_quick_title": "⚡ Express", "mode_quick_desc": "1 quick round", "opt2_title": "2. COUNTRY / REGION:", "cat_all_title": "🌐 Whole Planet (200+)", "cat_all_desc": "100% random world", "cat_capitals_title": "🏛️ World Cities (70+)", "cat_capitals_desc": "Paris, Tokyo, New York...", "cat_nature_title": "🏔️ Nature & Wonders (50+)", "cat_nature_desc": "Mountains, canyons, Iceland...", "cat_ukraine_title": "🇺🇦 Ukraine (30+)", "cat_ukraine_desc": "Cities, castles, Carpathians", "opt3_title": "3. ROUND TIMER:", "timer_60_title": "⏱️ 60 seconds", "timer_60_desc": "Standard pace", "timer_0_title": "🧘 No timer", "timer_0_desc": "Relaxed search", "start_btn": "🚀 LET'S GO / START GAME", "nav_games": "🎮 Games", "map_btn": "🗺️ Open Topo Map", "menu_btn": "⚙️ Menu", "map_title": "Select a point on the Topo Map", "map_close": "✕ Close", "map_confirm": "Place marker on map", "res_title": "Round Result", "dist_msg": " km from target", "next_btn": "Next round →", "score_btn": "View results and scores →"},
+  de: {
+    "title": "GeoBunker 🌍 — 200+ Orte",
+    "lobby_title": "GEOBUNKER 🌍",
+    "lobby_sub": "200+ zufällige Orte von allen Kontinenten",
+    "opt1_title": "1. SPIELMODUS:",
+    "mode_classic_title": "🎯 Einzelspieler",
+    "mode_classic_desc": "5 Runden auf Punkte",
+    "mode_quick_title": "⚡ Express",
+    "mode_quick_desc": "1 schnelle Runde",
+    "opt2_title": "2. LAND / REGION:",
+    "cat_all_title": "🌐 Gesamter Planet (200+)",
+    "cat_all_desc": "100% zufällige Welt",
+    "cat_capitals_title": "🏛️ Weltstädte (70+)",
+    "cat_capitals_desc": "Paris, Tokio, New York...",
+    "cat_nature_title": "🏔️ Natur & Wunder (50+)",
+    "cat_nature_desc": "Berge, Canyons, Island...",
+    "cat_ukraine_title": "🇺🇦 Ukraine (30+)",
+    "cat_ukraine_desc": "Städte, Burgen, Karpaten",
+    "opt3_title": "3. RUNDENTIMER:",
+    "timer_60_title": "⏱️ 60 Sekunden",
+    "timer_60_desc": "Standard-Tempo",
+    "timer_0_title": "🧘 Kein Timer",
+    "timer_0_desc": "Entspannte Suche",
+    "start_btn": "🚀 LOS GEHT'S / SPIEL STARTEN",
+    "nav_games": "🎮 Spiele",
+    "map_btn": "🗺️ Topo-Karte öffnen",
+    "menu_btn": "⚙️ Menü",
+    "map_title": "Wähle einen Punkt auf der Topo-Karte",
+    "map_close": "✕ Schließen",
+    "map_confirm": "Marker auf Karte setzen",
+    "res_title": "Rundenergebnis",
+    "dist_msg": " km vom Ziel entfernt",
+    "next_btn": "Nächste Runde →",
+    "score_btn": "Ergebnisse und Punkte ansehen →"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

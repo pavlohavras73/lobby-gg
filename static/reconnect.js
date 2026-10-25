@@ -21,6 +21,11 @@ window.JarvisWS = function(url, options = {}) {
       restored: 'Connection restored! ⚡',
       reconnecting: 'Connection lost. Reconnecting ({cur}/{max})...',
       failed: 'Could not connect to server. Please refresh the page.'
+    },
+    de: {
+      restored: 'Verbindung wiederhergestellt! ⚡',
+      reconnecting: 'Verbindung verloren. Erneuter Versuch ({cur}/{max})...',
+      failed: 'Verbindung zum Server fehlgeschlagen. Bitte Seite aktualisieren.'
     }
   };
 

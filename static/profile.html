@@ -48,7 +48,7 @@
 </style>
 </head>
 <body>
-<div class="langbar" id="langbar" style="position:absolute;top:8px;right:15px;z-index:999;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar" style="position:absolute;top:8px;right:15px;z-index:999;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="wrap">
   <a class="backlink" href="/games/">← К играм</a>
 
@@ -105,7 +105,41 @@
 
 <script>
 
-const UI = {"uk": {"title": "Lobby.gg — Профіль", "nav_games": "← До ігор", "played": "зіграно", "fav": "улюблена", "friends": "друзів", "friends_title": "👥 Друзі", "search_ph": "Знайти гравця за ніком", "settings_title": "⚙️ Налаштування профілю", "avatar_lbl": "Аватар", "color_lbl": "Колір", "name_lbl": "Відображуване ім'я", "sound_lbl": "🔊 Звук в іграх", "save_btn": "💾 Зберегти", "pwd_title": "🔒 Зміна пароля", "pwd_old": "Старий пароль", "pwd_new": "Новий пароль", "pwd_btn": "Оновити пароль", "toast_saved": "Збережено", "toast_pwd_ok": "Пароль оновлено", "toast_req": "Запит відправлено", "req_in": "хоче в друзі", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "у грі · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Покликати", "btn_remove": "прибрати", "empty_friends": "Поки немає друзів — знайди за ніком нижче 👇", "empty_search": "Нікого не знайшлося", "btn_add": "+ в друзі"}, "ru": {"title": "Lobby.gg — Профиль", "nav_games": "← К играм", "played": "сыграно", "fav": "любимая", "friends": "друзей", "friends_title": "👥 Друзья", "search_ph": "Найти игрока по нику", "settings_title": "⚙️ Настройки профиля", "avatar_lbl": "Аватар", "color_lbl": "Цвет", "name_lbl": "Отображаемое имя", "sound_lbl": "🔊 Звук в играх", "save_btn": "💾 Сохранить", "pwd_title": "🔒 Смена пароля", "pwd_old": "Старый пароль", "pwd_new": "Новий пароль", "pwd_btn": "Обновить пароль", "toast_saved": "Сохранено", "toast_pwd_ok": "Пароль обновлен", "toast_req": "Запрос отправлен", "req_in": "хочет в друзья", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "в игре · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Позвать", "btn_remove": "убрать", "empty_friends": "Пока нет друзей — найди по нику ниже 👇", "empty_search": "Никого не нашлось", "btn_add": "+ в друзья"}, "en": {"title": "Lobby.gg — Profile", "nav_games": "← To games", "played": "played", "fav": "favorite", "friends": "friends", "friends_title": "👥 Friends", "search_ph": "Find player by nickname", "settings_title": "⚙️ Profile Settings", "avatar_lbl": "Avatar", "color_lbl": "Color", "name_lbl": "Display Name", "sound_lbl": "🔊 Sound in games", "save_btn": "💾 Save", "pwd_title": "🔒 Change Password", "pwd_old": "Old password", "pwd_new": "New password", "pwd_btn": "Update password", "toast_saved": "Saved", "toast_pwd_ok": "Password updated", "toast_req": "Request sent", "req_in": "wants to be friends", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "in game · ", "status_online": "online", "status_offline": "offline", "btn_invite": "🎮 Invite", "btn_remove": "remove", "empty_friends": "No friends yet — find by nickname below 👇", "empty_search": "No one found", "btn_add": "+ Add friend"}};
+const UI = {"uk": {"title": "Lobby.gg — Профіль", "nav_games": "← До ігор", "played": "зіграно", "fav": "улюблена", "friends": "друзів", "friends_title": "👥 Друзі", "search_ph": "Знайти гравця за ніком", "settings_title": "⚙️ Налаштування профілю", "avatar_lbl": "Аватар", "color_lbl": "Колір", "name_lbl": "Відображуване ім'я", "sound_lbl": "🔊 Звук в іграх", "save_btn": "💾 Зберегти", "pwd_title": "🔒 Зміна пароля", "pwd_old": "Старий пароль", "pwd_new": "Новий пароль", "pwd_btn": "Оновити пароль", "toast_saved": "Збережено", "toast_pwd_ok": "Пароль оновлено", "toast_req": "Запит відправлено", "req_in": "хоче в друзі", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "у грі · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Покликати", "btn_remove": "прибрати", "empty_friends": "Поки немає друзів — знайди за ніком нижче 👇", "empty_search": "Нікого не знайшлося", "btn_add": "+ в друзі"}, "ru": {"title": "Lobby.gg — Профиль", "nav_games": "← К играм", "played": "сыграно", "fav": "любимая", "friends": "друзей", "friends_title": "👥 Друзья", "search_ph": "Найти игрока по нику", "settings_title": "⚙️ Настройки профиля", "avatar_lbl": "Аватар", "color_lbl": "Цвет", "name_lbl": "Отображаемое имя", "sound_lbl": "🔊 Звук в играх", "save_btn": "💾 Сохранить", "pwd_title": "🔒 Смена пароля", "pwd_old": "Старый пароль", "pwd_new": "Новий пароль", "pwd_btn": "Обновить пароль", "toast_saved": "Сохранено", "toast_pwd_ok": "Пароль обновлен", "toast_req": "Запрос отправлен", "req_in": "хочет в друзья", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "в игре · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Позвать", "btn_remove": "убрать", "empty_friends": "Пока нет друзей — найди по нику ниже 👇", "empty_search": "Никого не нашлось", "btn_add": "+ в друзья"}, "en": {"title": "Lobby.gg — Profile", "nav_games": "← To games", "played": "played", "fav": "favorite", "friends": "friends", "friends_title": "👥 Friends", "search_ph": "Find player by nickname", "settings_title": "⚙️ Profile Settings", "avatar_lbl": "Avatar", "color_lbl": "Color", "name_lbl": "Display Name", "sound_lbl": "🔊 Sound in games", "save_btn": "💾 Save", "pwd_title": "🔒 Change Password", "pwd_old": "Old password", "pwd_new": "New password", "pwd_btn": "Update password", "toast_saved": "Saved", "toast_pwd_ok": "Password updated", "toast_req": "Request sent", "req_in": "wants to be friends", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "in game · ", "status_online": "online", "status_offline": "offline", "btn_invite": "🎮 Invite", "btn_remove": "remove", "empty_friends": "No friends yet — find by nickname below 👇", "empty_search": "No one found", "btn_add": "+ Add friend"},
+  de: {
+    "title": "Lobby.gg — Profil",
+    "nav_games": "← Zu den Spielen",
+    "played": "gespielt",
+    "fav": "Lieblingsspiel",
+    "friends": "Freunde",
+    "friends_title": "👥 Freunde",
+    "search_ph": "Spieler nach Spitznamen suchen",
+    "settings_title": "⚙️ Profileinstellungen",
+    "avatar_lbl": "Avatar",
+    "color_lbl": "Farbe",
+    "name_lbl": "Anzeigename",
+    "sound_lbl": "🔊 Sound in Spielen",
+    "save_btn": "💾 Speichern",
+    "pwd_title": "🔒 Passwort ändern",
+    "pwd_old": "Altes Passwort",
+    "pwd_new": "Neues Passwort",
+    "pwd_btn": "Passwort aktualisieren",
+    "toast_saved": "Gespeichert",
+    "toast_pwd_ok": "Passwort aktualisiert",
+    "toast_req": "Anfrage gesendet",
+    "req_in": "wants to be friends",
+    "btn_accept": "✓",
+    "btn_reject": "✕",
+    "status_ingame": "im Spiel · ",
+    "status_online": "online",
+    "status_offline": "offline",
+    "btn_invite": "🎮 Einladen",
+    "btn_remove": "entfernen",
+    "empty_friends": "Noch keine Freunde — suche unten nach Namen 👇",
+    "empty_search": "Niemand gefunden",
+    "btn_add": "+ Als Freund hinzufügen"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

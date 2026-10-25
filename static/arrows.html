@@ -46,7 +46,7 @@
 <body>
   <a href="/games/" class="top-btn btn-back" data-i18n="nav_games">🎮 Игры</a>
   <div style="position:fixed;bottom:4px;left:7px;z-index:99999;font-size:9px;font-weight:800;color:#6a6a80;letter-spacing:1px">v10 · weave</div>
-  <div class="langbar" id="langbar" style="position:fixed;bottom:4px;right:7px;z-index:99999;margin:0;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+  <div class="langbar" id="langbar" style="position:fixed;bottom:4px;right:7px;z-index:99999;margin:0;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
   <div class="center-hud">
     <div class="hearts-display" id="heartsDisplay"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
     <div class="level-badge" id="levelLabel" data-i18n="level">УРОВЕНЬ 1</div>
@@ -94,7 +94,36 @@
   <script src="/games/static/reconnect.js"></script>
   <script>
 
-  const UI = {"uk": {"title": "➡️ Стрілки — Arrow Escape", "nav_games": "🎮 Ігри", "level": "РІВЕНЬ", "restart": "🔄 Спочатку", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРІЛКИ", "lobby_sub": "Arrow Escape — розбери неон-лабіринт", "rule_1": "🔴 <span>Тапни стрілку — вона вилетить у свій бік.</span>", "rule_2": "⛔ <span>Якщо перед головою інша лінія — затор (−❤️).</span>", "rule_3": "🎯 <span>Починай з тих, у кого шлях до краю вільний.</span>", "rule_4": "🤏 <span>Щипок — зум, палець — рухати поле.</span>", "diff_lbl": "Складність", "diff_easy": "Легкий", "diff_easy_sub": "мале поле", "diff_med": "Середній", "diff_med_sub": "×1.5", "diff_hard": "Важкий", "diff_hard_sub": "×2-3", "play_btn": "▶ Грати", "win_title": "Лабіринт розібрано!", "win_sub": "Усі стрілки вилетіли без колізій.", "next_btn": "Наступний →", "lose_title": "Затор!", "lose_sub": "3 колізії. Прибирай спочатку стрілки, у яких перед головою вільно.", "again_btn": "Ще раз 🔄"}, "ru": {"title": "➡️ Стрелки — Arrow Escape", "nav_games": "🎮 Игры", "level": "УРОВЕНЬ", "restart": "🔄 Сначала", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРЕЛКИ", "lobby_sub": "Arrow Escape — разбери неон-лабиринт", "rule_1": "🔴 <span>Тапни стрелку — она вылетит в свою сторону.</span>", "rule_2": "⛔ <span>Если перед головой другая линия — затор (−❤️).</span>", "rule_3": "🎯 <span>Начинай с тех, у кого путь к краю свободен.</span>", "rule_4": "🤏 <span>Щипок — зум, палец — двигать поле.</span>", "diff_lbl": "Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "малое поле", "diff_med": "Средний", "diff_med_sub": "×1.5", "diff_hard": "Тяжёлый", "diff_hard_sub": "×2-3", "play_btn": "▶ Играть", "win_title": "Лабиринт разобран!", "win_sub": "Все стрелки вылетели без коллизий.", "next_btn": "Следующий →", "lose_title": "Затор!", "lose_sub": "3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.", "again_btn": "Ещё раз 🔄"}, "en": {"title": "➡️ Arrows — Arrow Escape", "nav_games": "🎮 Games", "level": "LEVEL", "restart": "🔄 Restart", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "ARROWS", "lobby_sub": "Arrow Escape — clear the neon maze", "rule_1": "🔴 <span>Tap an arrow — it flies in its direction.</span>", "rule_2": "⛔ <span>If the path is blocked — crash (−❤️).</span>", "rule_3": "🎯 <span>Start with those having a free path to the edge.</span>", "rule_4": "🤏 <span>Pinch to zoom, drag to pan.</span>", "diff_lbl": "Difficulty", "diff_easy": "Easy", "diff_easy_sub": "small board", "diff_med": "Medium", "diff_med_sub": "×1.5", "diff_hard": "Hard", "diff_hard_sub": "×2-3", "play_btn": "▶ Play", "win_title": "Maze cleared!", "win_sub": "All arrows escaped without collisions.", "next_btn": "Next →", "lose_title": "Crash!", "lose_sub": "3 collisions. Remove arrows with a clear path first.", "again_btn": "Try again 🔄"}};
+  const UI = {"uk": {"title": "➡️ Стрілки — Arrow Escape", "nav_games": "🎮 Ігри", "level": "РІВЕНЬ", "restart": "🔄 Спочатку", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРІЛКИ", "lobby_sub": "Arrow Escape — розбери неон-лабіринт", "rule_1": "🔴 <span>Тапни стрілку — вона вилетить у свій бік.</span>", "rule_2": "⛔ <span>Якщо перед головою інша лінія — затор (−❤️).</span>", "rule_3": "🎯 <span>Починай з тих, у кого шлях до краю вільний.</span>", "rule_4": "🤏 <span>Щипок — зум, палець — рухати поле.</span>", "diff_lbl": "Складність", "diff_easy": "Легкий", "diff_easy_sub": "мале поле", "diff_med": "Середній", "diff_med_sub": "×1.5", "diff_hard": "Важкий", "diff_hard_sub": "×2-3", "play_btn": "▶ Грати", "win_title": "Лабіринт розібрано!", "win_sub": "Усі стрілки вилетіли без колізій.", "next_btn": "Наступний →", "lose_title": "Затор!", "lose_sub": "3 колізії. Прибирай спочатку стрілки, у яких перед головою вільно.", "again_btn": "Ще раз 🔄"}, "ru": {"title": "➡️ Стрелки — Arrow Escape", "nav_games": "🎮 Игры", "level": "УРОВЕНЬ", "restart": "🔄 Сначала", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "СТРЕЛКИ", "lobby_sub": "Arrow Escape — разбери неон-лабиринт", "rule_1": "🔴 <span>Тапни стрелку — она вылетит в свою сторону.</span>", "rule_2": "⛔ <span>Если перед головой другая линия — затор (−❤️).</span>", "rule_3": "🎯 <span>Начинай с тех, у кого путь к краю свободен.</span>", "rule_4": "🤏 <span>Щипок — зум, палец — двигать поле.</span>", "diff_lbl": "Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "малое поле", "diff_med": "Средний", "diff_med_sub": "×1.5", "diff_hard": "Тяжёлый", "diff_hard_sub": "×2-3", "play_btn": "▶ Играть", "win_title": "Лабиринт разобран!", "win_sub": "Все стрелки вылетели без коллизий.", "next_btn": "Следующий →", "lose_title": "Затор!", "lose_sub": "3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.", "again_btn": "Ещё раз 🔄"}, "en": {"title": "➡️ Arrows — Arrow Escape", "nav_games": "🎮 Games", "level": "LEVEL", "restart": "🔄 Restart", "hint_btn": "💡", "center_btn": "🎯", "lobby_title": "ARROWS", "lobby_sub": "Arrow Escape — clear the neon maze", "rule_1": "🔴 <span>Tap an arrow — it flies in its direction.</span>", "rule_2": "⛔ <span>If the path is blocked — crash (−❤️).</span>", "rule_3": "🎯 <span>Start with those having a free path to the edge.</span>", "rule_4": "🤏 <span>Pinch to zoom, drag to pan.</span>", "diff_lbl": "Difficulty", "diff_easy": "Easy", "diff_easy_sub": "small board", "diff_med": "Medium", "diff_med_sub": "×1.5", "diff_hard": "Hard", "diff_hard_sub": "×2-3", "play_btn": "▶ Play", "win_title": "Maze cleared!", "win_sub": "All arrows escaped without collisions.", "next_btn": "Next →", "lose_title": "Crash!", "lose_sub": "3 collisions. Remove arrows with a clear path first.", "again_btn": "Try again 🔄"},
+  de: {
+    "title": "➡️ Pfeile — Arrow Escape",
+    "nav_games": "🎮 Spiele",
+    "level": "LEVEL",
+    "restart": "🔄 Neustart",
+    "hint_btn": "💡",
+    "center_btn": "🎯",
+    "lobby_title": "PFEILE",
+    "lobby_sub": "Arrow Escape — räume das Neon-Labyrinth",
+    "rule_1": "🔴 <span>Tippe einen Pfeil an — er fliegt in Pfeilrichtung.</span>",
+    "rule_2": "⛔ <span>Ist der Weg blockiert — Kollision (−❤️).</span>",
+    "rule_3": "🎯 <span>Beginne mit Pfeilen, die freien Weg zum Rand haben.</span>",
+    "rule_4": "🤏 <span>Zoomen mit zwei Fingern, ziehen zum Bewegen.</span>",
+    "diff_lbl": "Schwierigkeit",
+    "diff_easy": "Leicht",
+    "diff_easy_sub": "kleines Feld",
+    "diff_med": "Mittel",
+    "diff_med_sub": "×1.5",
+    "diff_hard": "Schwer",
+    "diff_hard_sub": "×2-3",
+    "play_btn": "▶ Spielen",
+    "win_title": "Labyrinth geräumt!",
+    "win_sub": "Alle Pfeile sind kollisionsfrei entkommen.",
+    "next_btn": "Weiter →",
+    "lose_title": "Kollision!",
+    "lose_sub": "3 Kollisionen. Entferne zuerst Pfeile mit freiem Weg.",
+    "again_btn": "Nochmal versuchen 🔄"
+  }
+};
   let LANG = localStorage.getItem('jg_lang') || 'ru';
   if (!UI[LANG]) LANG = 'ru';
   function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

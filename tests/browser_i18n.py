@@ -23,7 +23,7 @@ def main(pages):
     token = register()
     ok_all = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=CHROMIUM, headless=True)
+        browser = p.chromium.launch(executable_path=CHROMIUM, headless=True) if CHROMIUM else p.chromium.launch(headless=True)
         for name in pages:
             ctx = browser.new_context()
             ctx.add_cookies([{"name": "jsession", "value": token, "url": BASE}])

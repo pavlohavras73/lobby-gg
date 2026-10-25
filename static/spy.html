@@ -24,7 +24,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🕵️ Шпион — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Всем игрокам показана одна локация — всем, кроме <b>шпиона</b>. Задавайте друг другу вопросы. Задача города — вычислить шпиона, задача шпиона — не спалиться и угадать локацию.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">🕵️ Шпион</h1><div class="sub" data-i18n="tagline">Lobby.gg · играй с друзьями</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <div id="home" class="card">
   <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
@@ -143,33 +143,148 @@ const UI={
     confirm_lobby:"Return to lobby? Current round will be aborted.",
     crafting:t=>"🧠 Gemini is crafting pack '"+t+"'…",
     enter_code:"Enter room code", def_player:"Player", conn_lost:"Connection lost, please refresh."
+  },
+  de:{
+    rules_title:"🕵️ Spion — Regeln",
+    rules_body:"Allen Spielern wird derselbe geheime Ort gezeigt — allen außer dem <b>Spion</b>. Stellt euch gegenseitig Fragen. Das Ziel der Stadt ist es, den Spion zu enttarnen; das Ziel des Spions ist es, unerkannt zu bleiben und den Ort zu erraten.",
+    rules_ok:"Verstanden 👍", nav_games:"🎮 Spiele", title:"🕵️ Spion", tagline:"Lobby.gg · Spiele mit Freunden",
+    ph_name:"Dein Name", btn_create:"Raum erstellen", ph_code:"RAUMCODE", btn_join:"Mit Code beitreten",
+    lobby_code:"Raumcode — teile ihn mit Freunden:", btn_bot:"🤖 Bot hinzufügen",
+    deck_title:"🎴 Deck — tippe Decks an (Mehrfachauswahl möglich):", ph_craft:"Eigenes Thema (Tokyo Ghoul…)",
+    btn_craft:"➕ Erstellen", timer_label:"⏱ Rundentimer",
+    t_3min:"3 Min.", t_5min:"5 Min.", t_8min:"8 Min.", t_10min:"10 Min.", t_notimer:"Kein Timer",
+    btn_start:"🚀 Spiel starten", wait_host:"Warte auf Spielstart durch den Host…",
+    btn_reveal:"🕵️ Spion aufdecken", btn_lobby:"← Zur Lobby",
+    reveal_summary:"Ergebnis", reveal_spy_was:"Der Spion war:", reveal_loc_was:"Das Geheimnis war:",
+    btn_again:"Noch eine Runde",
+    spy_title:"🕵️ DU BIST DER SPION",
+    spy_sub:c=>"Kategorie: «"+c+"». Finde das Geheimnis heraus, ohne aufzufallen.",
+    loc_sub_classic:"Finde den Spion durch Fragen. Nenne den Ort nicht direkt.",
+    loc_sub_custom:c=>"Figur aus «"+c+"». Finde den Spion, nenne den Namen nicht direkt.",
+    time_up:"⏰ ZEIT UM! Stimme für den Spion ab",
+    confirm_reveal:"Spion aufdecken? Die Runde endet für alle.",
+    confirm_lobby:"Zurück zur Lobby? Die aktuelle Runde wird abgebrochen.",
+    crafting:"Gemini erstellt Orte…",
+    enter_code:"Raumcode eingeben", def_player:"Spieler", conn_lost:"Verbindung verloren, bitte aktualisieren."
   }
 };
 
 const GT={
-  "Классика":{uk:"Класика",en:"Classic"},
-  "Marvel":{uk:"Marvel",en:"Marvel"},
-  "Атака титанов":{uk:"Атака титанів",en:"Attack on Titan"},
-  "Гарри Поттер":{uk:"Гаррі Поттер",en:"Harry Potter"},
-  "Школа":{uk:"Школа",en:"School"},
-  "Больница":{uk:"Лікарня",en:"Hospital"},
-  "Самолёт":{uk:"Літак",en:"Airplane"},
-  "Пляж":{uk:"Пляж",en:"Beach"},
-  "Казино":{uk:"Казино",en:"Casino"},
-  "Банк":{uk:"Банк",en:"Bank"},
-  "Космическая станция":{uk:"Космічна станція",en:"Space Station"},
-  "Подводная лодка":{uk:"Підводний човен",en:"Submarine"},
-  "Цирк":{uk:"Цирк",en:"Circus"},
-  "Ресторан":{uk:"Ресторан",en:"Restaurant"},
-  "Военная база":{uk:"Військова база",en:"Military Base"},
-  "Полицейский участок":{uk:"Поліцейський відділок",en:"Police Station"},
-  "Круизный лайнер":{uk:"Круїзний лайнер",en:"Cruise Ship"},
-  "Театр":{uk:"Театр",en:"Theater"},
-  "Отель":{uk:"Готель",en:"Hotel"},
-  "Супермаркет":{uk:"Супермаркет",en:"Supermarket"},
-  "Метро":{uk:"Метро",en:"Subway"},
-  "Стадион":{uk:"Стадіон",en:"Stadium"},
-  "Локации":{uk:"Локації",en:"Locations"}
+  "Классика": {
+    "uk": "Класика",
+    "en": "Classic",
+    "de": "Klassik"
+  },
+  "Marvel": {
+    "uk": "Marvel",
+    "en": "Marvel",
+    "de": "Marvel"
+  },
+  "Атака титанов": {
+    "uk": "Атака титанів",
+    "en": "Attack on Titan",
+    "de": "Attack on Titan"
+  },
+  "Гарри Поттер": {
+    "uk": "Гаррі Поттер",
+    "en": "Harry Potter",
+    "de": "Harry Potter"
+  },
+  "Школа": {
+    "uk": "Школа",
+    "en": "School",
+    "de": "Schule"
+  },
+  "Больница": {
+    "uk": "Лікарня",
+    "en": "Hospital",
+    "de": "Krankenhaus"
+  },
+  "Самолёт": {
+    "uk": "Літак",
+    "en": "Airplane",
+    "de": "Flugzeug"
+  },
+  "Пляж": {
+    "uk": "Пляж",
+    "en": "Beach",
+    "de": "Strand"
+  },
+  "Казино": {
+    "uk": "Казино",
+    "en": "Casino",
+    "de": "Kasino"
+  },
+  "Банк": {
+    "uk": "Банк",
+    "en": "Bank",
+    "de": "Bank"
+  },
+  "Космическая станция": {
+    "uk": "Космічна станція",
+    "en": "Space Station",
+    "de": "Raumstation"
+  },
+  "Подводная лодка": {
+    "uk": "Підводний човен",
+    "en": "Submarine",
+    "de": "U-Boot"
+  },
+  "Цирк": {
+    "uk": "Цирк",
+    "en": "Circus",
+    "de": "Zirkus"
+  },
+  "Ресторан": {
+    "uk": "Ресторан",
+    "en": "Restaurant",
+    "de": "Restaurant"
+  },
+  "Военная база": {
+    "uk": "Військова база",
+    "en": "Military Base",
+    "de": "Militärbasis"
+  },
+  "Полицейский участок": {
+    "uk": "Поліцейський відділок",
+    "en": "Police Station",
+    "de": "Polizeiwache"
+  },
+  "Круизный лайнер": {
+    "uk": "Круїзний лайнер",
+    "en": "Cruise Ship",
+    "de": "Kreuzfahrtschiff"
+  },
+  "Театр": {
+    "uk": "Театр",
+    "en": "Theater",
+    "de": "Theater"
+  },
+  "Отель": {
+    "uk": "Готель",
+    "en": "Hotel",
+    "de": "Hotel"
+  },
+  "Супермаркет": {
+    "uk": "Супермаркет",
+    "en": "Supermarket",
+    "de": "Supermarkt"
+  },
+  "Метро": {
+    "uk": "Метро",
+    "en": "Subway",
+    "de": "U-Bahn"
+  },
+  "Стадион": {
+    "uk": "Стадіон",
+    "en": "Stadium",
+    "de": "Stadion"
+  },
+  "Локации": {
+    "uk": "Локації",
+    "en": "Locations",
+    "de": "Orte"
+  }
 };
 
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';

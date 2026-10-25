@@ -204,12 +204,78 @@
       set_about: 'About Lobby.gg',
       set_about_desc: 'Real-time multiplayer party games in your browser. No installs — just a link.',
       close: 'Close'
+    },
+    de: {
+      sh_account: 'Konto',
+      sh_friends: 'Freunde',
+      sh_chat: 'Chat',
+      sh_settings: 'Einstellungen',
+      acc_stat_played: 'gespielt',
+      acc_stat_fav: 'Lieblingsspiel',
+      acc_stat_friends: 'Freunde',
+      acc_edit_profile: 'Profil bearbeiten',
+      acc_name_lbl: 'Anzeigename',
+      acc_avatar_lbl: 'Avatar-Emoji',
+      acc_color_lbl: 'Akzentfarbe',
+      acc_save: 'Profil speichern',
+      acc_saving: 'Speichern...',
+      acc_change_pw: 'Passwort ändern',
+      acc_old_pw: 'Aktuelles Passwort',
+      acc_new_pw: 'Neues Passwort (mind. 6 Zeichen)',
+      acc_update_pw: 'Passwort aktualisieren',
+      acc_logout: 'Abmelden',
+      saved: 'Gespeichert ✓',
+      pw_updated: 'Passwort aktualisiert ✓',
+      pw_fields_req: 'Beide Felder erforderlich',
+      pw_min6: 'Passwort muss mindestens 6 Zeichen haben',
+      err_generic: 'Ein Fehler ist aufgetreten',
+      not_logged_in: 'Nicht angemeldet',
+      role_admin: '👑 Admin',
+      role_player: 'Spieler',
+      fr_incoming: 'Freundschaftsanfragen',
+      fr_wants: 'möchte befreundet sein',
+      fr_accept: 'Annehmen',
+      fr_decline: 'Ablehnen',
+      fr_my: 'Meine Freunde',
+      fr_online: 'online',
+      fr_offline: 'offline',
+      fr_in_game: 'im Spiel',
+      fr_call: 'Einladen',
+      fr_choose_game: 'Spiel für die Einladung wählen:',
+      fr_remove: 'Entfernen',
+      fr_empty: 'Noch keine Freunde — suche unten nach Namen 👇',
+      fr_find_player: 'Spieler finden',
+      fr_search_ph: 'Benutzername des Freundes',
+      fr_add: '+ Hinzufügen',
+      fr_not_found: 'Niemand gefunden',
+      fr_req_sent: 'Anfrage gesendet',
+      fr_now_friends: 'Jetzt befreundet! 🎉',
+      fr_accepted: 'Freund hinzugefügt ✓',
+      fr_declined: 'Abgelehnt',
+      fr_removed: 'Aus Freunden entfernt',
+      ch_title: 'Lobby-Chat',
+      ch_online: 'Live',
+      ch_ph: 'Nachricht schreiben...',
+      ch_hint: 'Enter zum Senden',
+      ch_send: 'Senden',
+      ch_new: 'Neue Nachrichten ↓',
+      ch_empty: 'Im Chat ist es ruhig. Sag Hallo!',
+      ch_del: 'Löschen',
+      ch_del_ok: 'Nachricht gelöscht',
+      set_lang: 'Sprache',
+      set_sound: 'Soundeffekte',
+      set_sound_sub: 'Sounds in Lobby und Spielen',
+      set_rm: 'Bewegung reduzieren',
+      set_rm_sub: 'Animationen minimieren',
+      set_about: 'Über Lobby.gg',
+      set_about_desc: 'Echtzeit-Multiplayer-Partyspiele direkt im Browser. Keine Installation — einfach ein Link.',
+      close: 'Schließen'
     }
   };
 
   // Merge into global I18N if present
   if (window.I18N) {
-    ['uk', 'ru', 'en'].forEach(lang => {
+    ['uk', 'ru', 'en', 'de'].forEach(lang => {
       window.I18N[lang] = Object.assign({}, SHELL_I18N[lang], window.I18N[lang]);
     });
   }
@@ -219,7 +285,7 @@
     try { l = localStorage.getItem('jg_lang'); } catch (e) {}
     if (!SHELL_I18N[l]) {
       const nl = (navigator.language || 'en').slice(0, 2).toLowerCase();
-      l = nl === 'uk' ? 'uk' : (nl === 'ru' ? 'ru' : 'en');
+      l = nl === 'uk' ? 'uk' : (nl === 'ru' ? 'ru' : (nl === 'de' ? 'de' : 'en'));
     }
     return l;
   }
@@ -574,6 +640,7 @@
                 <button type="button" class="opt" data-lang="uk">UA</button>
                 <button type="button" class="opt" data-lang="ru">RU</button>
                 <button type="button" class="opt" data-lang="en">EN</button>
+                <button type="button" class="opt" data-lang="de">DEU</button>
               </div>
 
               <div class="sec-t"><span>Preferences</span></div>

@@ -69,6 +69,29 @@ def _auth_db():
         cols = [r[1] for r in con.execute("PRAGMA table_info(users)")]
         if "sess_ver" not in cols:
             con.execute("ALTER TABLE users ADD COLUMN sess_ver INTEGER DEFAULT 0")
+        con.execute("""CREATE TABLE IF NOT EXISTS profiles(
+            username TEXT PRIMARY KEY, display_name TEXT, avatar TEXT DEFAULT '🙂',
+            color TEXT DEFAULT '#e0102e', sound INTEGER DEFAULT 1, updated_at TEXT)""")
+        con.execute("""CREATE TABLE IF NOT EXISTS ratings(
+            username TEXT NOT NULL,
+            game TEXT NOT NULL,
+            elo REAL NOT NULL DEFAULT 1000.0,
+            wins INTEGER NOT NULL DEFAULT 0,
+            losses INTEGER NOT NULL DEFAULT 0,
+            draws INTEGER NOT NULL DEFAULT 0,
+            games INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT,
+            PRIMARY KEY(username, game))""")
+        con.execute("CREATE INDEX IF NOT EXISTS idx_ratings_game_elo ON ratings(game, elo DESC)")
+        con.execute("""CREATE TABLE IF NOT EXISTS rating_history(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game TEXT NOT NULL,
+            winner TEXT,
+            loser TEXT,
+            draw INTEGER NOT NULL DEFAULT 0,
+            elo_before_w REAL,
+            elo_before_l REAL,
+            ts TEXT)""")
         con.commit()
         _auth_db_initialized = True
     return con
@@ -1440,6 +1463,211 @@ async def get_profile(request: Request):
     return JSONResponse({"ok": True, "profile": prof})
 
 
+# ══════════ РЕЙТИНГИ (ELO для дуэлей) и ТАБЛИЦА ЛИДЕРОВ ══════════
+DUEL_GAMES = ("c4", "reversi", "dots", "bulls", "battleship", "checkers", "chess", "quoridor")
+ELO_START = 1000.0
+ELO_K = 32.0
+_ratings_lock = threading.Lock()
+
+_DUEL_STATE_SPEC = {
+    "c4": ("c4", "players"),
+    "reversi": ("rv", "players"),
+    "dots": ("db", "players"),
+    "bulls": ("bc", "players"),
+    "battleship": ("bs", "players"),
+    "checkers": ("ck", "players"),
+    "chess": ("chess", "order"),
+    "quoridor": ("quoridor", "player_order"),
+}
+
+
+def _elo_calc(ra: float, rb: float, score_a: float):
+    ea = 1.0 / (1.0 + 10.0 ** ((rb - ra) / 400.0))
+    eb = 1.0 - ea
+    return ra + ELO_K * (score_a - ea), rb + ELO_K * ((1.0 - score_a) - eb)
+
+
+def record_duel_result(room, winner_pid_or_None_for_draw):
+    """Фиксирует исход дуэли ровно один раз на партию, когда оба игрока — люди с разными аккаунтами."""
+    if not room:
+        return False
+    game = room.get("game")
+    spec = _DUEL_STATE_SPEC.get(game)
+    if not spec:
+        return False
+    state_key, pids_key = spec
+    s = room.get(state_key)
+    if not isinstance(s, dict) or s.get("_elo_recorded"):
+        return False
+    pids = s.get(pids_key)
+    if not isinstance(pids, list) or len(pids) != 2:
+        return False
+    p1_pid, p2_pid = pids[0], pids[1]
+    if winner_pid_or_None_for_draw is not None and winner_pid_or_None_for_draw not in (p1_pid, p2_pid):
+        return False
+
+    # Помечаем конкретную партию учтённой (при «Ещё раз» создаётся новый словарь состояния)
+    s["_elo_recorded"] = True
+
+    players_map = room.get("players") or {}
+    pl1 = players_map.get(p1_pid)
+    pl2 = players_map.get(p2_pid)
+    if not pl1 or not pl2:
+        return False
+    if pl1.get("bot") or pl2.get("bot"):
+        return False
+    u1 = pl1.get("user")
+    u2 = pl2.get("user")
+    if not u1 or not u2 or u1 == u2:
+        return False
+
+    import datetime
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    is_draw = winner_pid_or_None_for_draw is None
+    if is_draw:
+        w_user, l_user = u1, u2
+        score_w = 0.5
+    elif winner_pid_or_None_for_draw == p1_pid:
+        w_user, l_user = u1, u2
+        score_w = 1.0
+    else:
+        w_user, l_user = u2, u1
+        score_w = 1.0
+
+    with _ratings_lock:
+        con = _auth_db()
+        try:
+            r_w = con.execute(
+                "SELECT elo, wins, losses, draws, games FROM ratings WHERE username=? AND game=?",
+                (w_user, game),
+            ).fetchone()
+            r_l = con.execute(
+                "SELECT elo, wins, losses, draws, games FROM ratings WHERE username=? AND game=?",
+                (l_user, game),
+            ).fetchone()
+            elo_w, wins_w, losses_w, draws_w, games_w = r_w if r_w else (ELO_START, 0, 0, 0, 0)
+            elo_l, wins_l, losses_l, draws_l, games_l = r_l if r_l else (ELO_START, 0, 0, 0, 0)
+            elo_before_w = float(elo_w)
+            elo_before_l = float(elo_l)
+            new_elo_w, new_elo_l = _elo_calc(elo_before_w, elo_before_l, score_w)
+
+            if is_draw:
+                wins_w2, losses_w2, draws_w2 = wins_w, losses_w, draws_w + 1
+                wins_l2, losses_l2, draws_l2 = wins_l, losses_l, draws_l + 1
+            else:
+                wins_w2, losses_w2, draws_w2 = wins_w + 1, losses_w, draws_w
+                wins_l2, losses_l2, draws_l2 = wins_l, losses_l + 1, draws_l
+
+            con.execute(
+                """INSERT INTO ratings(username, game, elo, wins, losses, draws, games, updated_at)
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(username, game) DO UPDATE SET
+                     elo=excluded.elo, wins=excluded.wins, losses=excluded.losses,
+                     draws=excluded.draws, games=excluded.games, updated_at=excluded.updated_at""",
+                (w_user, game, new_elo_w, wins_w2, losses_w2, draws_w2, games_w + 1, now_iso),
+            )
+            con.execute(
+                """INSERT INTO ratings(username, game, elo, wins, losses, draws, games, updated_at)
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(username, game) DO UPDATE SET
+                     elo=excluded.elo, wins=excluded.wins, losses=excluded.losses,
+                     draws=excluded.draws, games=excluded.games, updated_at=excluded.updated_at""",
+                (l_user, game, new_elo_l, wins_l2, losses_l2, draws_l2, games_l + 1, now_iso),
+            )
+            con.execute(
+                """INSERT INTO rating_history(game, winner, loser, draw, elo_before_w, elo_before_l, ts)
+                   VALUES(?, ?, ?, ?, ?, ?, ?)""",
+                (game, w_user, l_user, 1 if is_draw else 0, elo_before_w, elo_before_l, now_iso),
+            )
+            con.commit()
+        finally:
+            con.close()
+    return True
+
+
+@app.get("/me/ratings")
+async def get_my_ratings(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401)
+    con = _auth_db()
+    try:
+        rows = con.execute(
+            "SELECT game, elo, wins, losses, draws, games, updated_at FROM ratings WHERE username=?",
+            (u["username"],),
+        ).fetchall()
+    finally:
+        con.close()
+    by_game = {
+        g: {"game": g, "elo": ELO_START, "wins": 0, "losses": 0, "draws": 0, "games": 0, "updated_at": None}
+        for g in DUEL_GAMES
+    }
+    for g, elo, wins, losses, draws, games_cnt, updated_at in rows:
+        if g in by_game:
+            by_game[g] = {
+                "game": g,
+                "elo": round(float(elo), 1),
+                "wins": int(wins),
+                "losses": int(losses),
+                "draws": int(draws),
+                "games": int(games_cnt),
+                "updated_at": updated_at,
+            }
+    return JSONResponse({"ok": True, "username": u["username"], "ratings": by_game})
+
+
+@app.get("/leaderboard")
+async def get_leaderboard(request: Request, game: str = None, limit: int = 50):
+    accept = (request.headers.get("accept") or "").lower()
+    if game is None and "limit" not in request.query_params and "application/json" not in accept:
+        return FileResponse("/app/static/leaderboard.html")
+    g = (game or "c4").strip().lower()
+    if g not in DUEL_GAMES:
+        return JSONResponse({"ok": False, "error": "Неизвестная дуэльная игра", "games": list(DUEL_GAMES)}, status_code=400)
+    try:
+        lim = max(1, min(int(limit), 200))
+    except Exception:
+        lim = 50
+    u = current_user(request)
+    con = _auth_db()
+    try:
+        rows = con.execute(
+            """SELECT r.username, r.elo, r.wins, r.losses, r.draws, r.games, r.updated_at,
+                      p.display_name, p.avatar, p.color
+               FROM ratings r
+               LEFT JOIN profiles p ON p.username = r.username
+               WHERE r.game = ? AND r.games >= 1
+               ORDER BY r.elo DESC, r.wins DESC, r.games ASC, r.username ASC
+               LIMIT ?""",
+            (g, lim),
+        ).fetchall()
+    finally:
+        con.close()
+    leaders = []
+    for idx, (uname, elo, wins, losses, draws, games_cnt, updated_at, disp, av, col) in enumerate(rows, start=1):
+        safe_col = col if col and re.fullmatch(r"#[0-9a-fA-F]{3,8}", col) else "#e0102e"
+        leaders.append({
+            "rank": idx,
+            "username": uname,
+            "display_name": _clean(disp or uname, 24),
+            "avatar": _clean(av or "🙂", 8),
+            "color": safe_col,
+            "elo": round(float(elo), 1),
+            "wins": int(wins),
+            "losses": int(losses),
+            "draws": int(draws),
+            "games": int(games_cnt),
+            "updated_at": updated_at,
+        })
+    return JSONResponse({
+        "ok": True,
+        "game": g,
+        "games": list(DUEL_GAMES),
+        "me": u["username"] if u else None,
+        "leaderboard": leaders,
+    })
+
+
 @app.post("/me")
 async def update_profile(request: Request):
     u = current_user(request)
@@ -2065,6 +2293,8 @@ async def push_ck(room):
     counts = [sum(row.count(1)+row.count(3) for row in s["board"]), sum(row.count(2)+row.count(4) for row in s["board"])]
     if not s["done"] and 0 in counts:
         s["done"] = True; s["winner"] = s["players"][0] if counts[1]==0 else s["players"][1]
+    if s["done"]:
+        record_duel_result(room, s["winner"])
     await broadcast(room, {"type":"ck_state","board":s["board"],"players":s["players"],
         "turn_pid":s["players"][s["turn"]],"names":{x:room["players"][x]["name"] for x in s["players"] if x in room["players"]},
         "legal":[list(m) for m in legal],"winner":s["winner"],"done":s["done"],
@@ -3581,6 +3811,8 @@ async def ws(websocket: WebSocket):
                             r, c = msg.get("r"), msg.get("c")
                             ok, err = apply_pawn_move(s, pid, r, c)
                             if ok:
+                                if s.get("winner"):
+                                    record_duel_result(room, s["winner"])
                                 await push_quoridor(room)
                             else:
                                 await websocket.send_json({"type": "error", "msg": err})
@@ -3612,6 +3844,8 @@ async def ws(websocket: WebSocket):
                             if all(isinstance(x, int) for x in (fr, fc, tr, tc)):
                                 if (tr, tc) in chs.legal_moves(s, fr, fc):
                                     chs.apply_move(s, fr, fc, tr, tc, msg.get("promo", "Q"))
+                                    if s["done"]:
+                                        record_duel_result(room, s["winner"])
                                     await push_chess(room)
 
                     # ── Кто есть кто ──
@@ -3690,6 +3924,7 @@ async def ws(websocket: WebSocket):
                                     s["done"] = True
                                     f = sum(x.count(1) for x in s["board"]); se = sum(x.count(2) for x in s["board"])
                                     s["winner"] = None if f==se else s["players"][0 if f>se else 1]
+                                    record_duel_result(room, s["winner"])
                                 await push_rv(room)
 
                     # ── Точки ──
@@ -3709,6 +3944,7 @@ async def ws(websocket: WebSocket):
                                 if sum(s["scores"]) == 16:
                                     s["done"] = True
                                     s["winner"] = None if s["scores"][0]==s["scores"][1] else s["players"][0 if s["scores"][0]>s["scores"][1] else 1]
+                                    record_duel_result(room, s["winner"])
                                 await push_db(room)
 
                     # ── Быки и коровы ──
@@ -3724,7 +3960,9 @@ async def ws(websocket: WebSocket):
                             opp = s["players"][1-s["players"].index(pid)]
                             bulls, cows = bc_eval(s["codes"][opp], g)
                             s["guesses"][pid].append([g, bulls, cows])
-                            if bulls == 4: s["winner"] = pid
+                            if bulls == 4:
+                                s["winner"] = pid
+                                record_duel_result(room, pid)
                             else: s["turn"] = 1 - s["turn"]
                             await push_bc(room)
 
@@ -3747,7 +3985,9 @@ async def ws(websocket: WebSocket):
                             if isinstance(r,int) and isinstance(c,int) and (r,c) not in s["shots"][pid]:
                                 s["shots"][pid].add((r,c))
                                 hit = (r,c) in s["ships"][opp]
-                                if s["ships"][opp].issubset(s["shots"][pid]): s["winner"] = pid
+                                if s["ships"][opp].issubset(s["shots"][pid]):
+                                    s["winner"] = pid
+                                    record_duel_result(room, pid)
                                 elif not hit: s["turn"] = 1 - s["turn"]   # промах → ход сопернику; попал → стреляешь ещё
                                 await push_bs(room)
 
@@ -3764,8 +4004,10 @@ async def ws(websocket: WebSocket):
                                         s["last"] = [r, col]
                                         if c4_check(s["board"], r, col, p):
                                             s["winner"] = pid
+                                            record_duel_result(room, pid)
                                         elif all(s["board"][0][c] for c in range(7)):
                                             s["draw"] = True
+                                            record_duel_result(room, None)
                                         else:
                                             s["turn"] = 1 - s["turn"]
                                         await push_c4(room)
@@ -4210,3 +4452,7 @@ try:
     app.include_router(learn.router)
 except Exception as e:
     logging.exception(f"Failed to load learn module: {e}")
+
+# PWA: manifest, service worker и теги «на домашний экран» на всех страницах (см. pwa.py)
+import pwa
+pwa.install(app)

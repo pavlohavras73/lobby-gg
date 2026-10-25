@@ -35,7 +35,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="backlink">🎮 Игры</a>
 <h1 data-i18n="page_title">🔢 Пятнашки</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="bar">
   <div class="score"><div class="l" data-i18n="moves">Ходов</div><div class="v" id="moves">0</div></div>
   <select id="size" onchange="newGame()"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
@@ -47,7 +47,22 @@
 
 <script>
 
-const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"}};
+const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"},
+  de: {
+    "title": "Lobby.gg — 15er-Puzzle",
+    "rules_title": "🧩 15er-Puzzle — Regeln",
+    "rules_body": "Verschiebe die Kacheln auf das freie Feld. Bringe alle Zahlen der Reihe nach (1, 2, 3 ...) von links nach rechts. Je weniger Züge, desto besser.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "page_title": "🔢 15er-Puzzle",
+    "moves": "Züge",
+    "mix_btn": "↻ Mischen",
+    "win_title": "🎉 Gelöst!",
+    "again_btn": "Nochmal",
+    "hint": "Tippe auf eine Kachel neben dem freien Feld. Sortiere von 1 bis N.",
+    "backlink": "← Alle Spiele"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

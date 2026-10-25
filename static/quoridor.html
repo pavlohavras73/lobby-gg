@@ -220,7 +220,7 @@
 
 <h1 data-i18n="title">🧱 КОРИДОР</h1>
 <div class="sub" data-i18n="subtitle">стратегия лабиринтов · 2, 3 или 4 игрока</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <!-- 1. Экран Создания / Входа -->
 <div id="home" class="card" style="max-width:390px;margin:0 auto">
@@ -310,17 +310,67 @@ let hoveredSlot = null;
 const UI={
  uk:{nav_games:"🎮 Ігри",rules_title:"🧱 Коридор — правила",rules_body:"Мета гри: <b>першим довести свою фішку на протилежну сторону поля</b>.<br><br>У свій хід можна зробити <b>одну з двох дій</b>:<br>• <b>Зробити крок фішкою</b> на 1 сусідню клітинку (якщо шлях не закритий стінкою). Через фішку суперника можна перестрибнути!<br>• <b>Поставити стінку</b> (довжиною в 2 клітинки), щоб заблокувати суперника або спрямувати його в лабіринт.<br><br>⚠️ <i>Головне правило:</i> <b>заборонено повністю замуровувати шлях до фінішу</b> — у кожного гравця завжди має лишатись хоча б один вихід!",rules_ok:"Зрозуміло 👍",title:"🧱 КОРИДОР",subtitle:"стратегія лабіринтів · 2, 3 або 4 гравці",name_ph:"Твоє ім'я",create_btn:"Створити кімнату",code_ph:"КОД КІМНАТИ",join_btn:"Увійти за кодом",all_games:"← до всіх ігор",room_code:"Код кімнати:",click_copy:"Клік — скопіювати",code_copied:"Код скопійовано!",players_in_room:"Гравці в кімнаті:",add_bot_title:"⚙️ Додати суперника (Бот):",diff_easy:"🤖 Легкий",diff_medium:"Середній",diff_hard:"Розумний",add_bot_btn:"+ Бот",wait_default:"Чекаємо гравців (мінімум 2, максимум 4)...",start_btn:"🚀 ПОЧАТИ ГРУ",mode_pawn:"Ходити фішкою",mode_wall:"Ставити стінку",dir_h:"Горизонтально",dir_v:"Вертикально",restart_btn:"🔄 Нова партія",enter_code_alert:"Введіть код кімнати",need_players:"Потрібно 2, 3 або 4 гравці (зараз {n})",ready_to_start:"Готово до старту! Гравців: {n}/4",your_turn:"ТВІЙ ХІД!",your_turn_sub:" — обери крок або стінку",turn_of:"Ходить: ",game_over:"Гру завершено",you_won:"🏆 Ти переміг!",someone_won:"Переміг {n}!",you_won_sub:"Твоя фішка першою досягла краю!",you_lost_sub:"Суперник першим пройшов лабіринт.",walls_suffix:"шт.",slot:"СЛОТ {n}",you_label:"(Ти)",default_player:"Гравець",remove_bot:"Прибрати бота"},
  ru:{nav_games:"🎮 Игры",rules_title:"🧱 Коридор — правила",rules_body:"Цель игры: <b>первым довести свою фишку на противоположную сторону поля</b>.<br><br>В свой ход можно сделать <b>одно из двух действий</b>:<br>• <b>Сделать шаг фишкой</b> на 1 соседнюю клетку (если путь не закрыт стенкой). Через фишку соперника можно перепрыгнуть!<br>• <b>Поставить стенку</b> (длиной в 2 клетки), чтобы заблокировать соперника или направить его в лабиринт.<br><br>⚠️ <i>Главное правило:</i> <b>запрещено полностью замуровывать путь к финишу</b> — у каждого игрока всегда должен оставаться хотя бы один выход!",rules_ok:"Понятно 👍",title:"🧱 КОРИДОР",subtitle:"стратегия лабиринтов · 2, 3 или 4 игрока",name_ph:"Твоё имя",create_btn:"Создать комнату",code_ph:"КОД КОМНАТЫ",join_btn:"Войти по коду",all_games:"← ко всем играм",room_code:"Код комнаты:",click_copy:"Клик — скопировать",code_copied:"Код скопирован!",players_in_room:"Игроки в комнате:",add_bot_title:"⚙️ Добавить соперника (Бот):",diff_easy:"🤖 Лёгкий",diff_medium:"Средний",diff_hard:"Умный",add_bot_btn:"+ Бот",wait_default:"Ждём игроков (минимум 2, максимум 4)...",start_btn:"🚀 НАЧАТЬ ИГРУ",mode_pawn:"Ходить фишкой",mode_wall:"Ставить стенку",dir_h:"Горизонтально",dir_v:"Вертикально",restart_btn:"🔄 Новая партия",enter_code_alert:"Введите код комнаты",need_players:"Нужно 2, 3 или 4 игрока (сейчас {n})",ready_to_start:"Готово к старту! Игроков: {n}/4",your_turn:"ТВОЙ ХОД!",your_turn_sub:" — выбери шаг или стенку",turn_of:"Ходит: ",game_over:"Игра завершена",you_won:"🏆 Ты выиграл!",someone_won:"Победил {n}!",you_won_sub:"Твоя фишка первой достигла края!",you_lost_sub:"Соперник первым прошёл лабиринт.",walls_suffix:"шт.",slot:"СЛОТ {n}",you_label:"(Ты)",default_player:"Игрок",remove_bot:"Убрать бота"},
- en:{nav_games:"🎮 Games",rules_title:"🧱 Corridor — rules",rules_body:"Goal: <b>be the first to get your pawn to the opposite side of the board</b>.<br><br>On your turn, do <b>one of two things</b>:<br>• <b>Move your pawn</b> 1 cell (if the path isn't blocked by a wall). You can jump over an opponent's pawn!<br>• <b>Place a wall</b> (2 cells long) to block an opponent or steer them into the maze.<br><br>⚠️ <i>Key rule:</i> <b>you may never fully wall off a player's path to their goal</b> — every player must always keep at least one way out!",rules_ok:"Got it 👍",title:"🧱 CORRIDOR",subtitle:"maze strategy · 2, 3 or 4 players",name_ph:"Your name",create_btn:"Create room",code_ph:"ROOM CODE",join_btn:"Join by code",all_games:"← all games",room_code:"Room code:",click_copy:"Click to copy",code_copied:"Code copied!",players_in_room:"Players in room:",add_bot_title:"⚙️ Add opponent (Bot):",diff_easy:"🤖 Easy",diff_medium:"Medium",diff_hard:"Smart",add_bot_btn:"+ Bot",wait_default:"Waiting for players (2 to 4)...",start_btn:"🚀 START GAME",mode_pawn:"Move pawn",mode_wall:"Place wall",dir_h:"Horizontal",dir_v:"Vertical",restart_btn:"🔄 New game",enter_code_alert:"Enter room code",need_players:"Need 2, 3 or 4 players (currently {n})",ready_to_start:"Ready to start! Players: {n}/4",your_turn:"YOUR TURN!",your_turn_sub:" — pick a move or a wall",turn_of:"Turn: ",game_over:"Game over",you_won:"🏆 You won!",someone_won:"{n} won!",you_won_sub:"Your pawn reached the edge first!",you_lost_sub:"Your opponent crossed the maze first.",walls_suffix:"pcs",slot:"SLOT {n}",you_label:"(You)",default_player:"Player",remove_bot:"Remove bot"}
+ en:{nav_games:"🎮 Games",rules_title:"🧱 Corridor — rules",rules_body:"Goal: <b>be the first to get your pawn to the opposite side of the board</b>.<br><br>On your turn, do <b>one of two things</b>:<br>• <b>Move your pawn</b> 1 cell (if the path isn't blocked by a wall). You can jump over an opponent's pawn!<br>• <b>Place a wall</b> (2 cells long) to block an opponent or steer them into the maze.<br><br>⚠️ <i>Key rule:</i> <b>you may never fully wall off a player's path to their goal</b> — every player must always keep at least one way out!",rules_ok:"Got it 👍",title:"🧱 CORRIDOR",subtitle:"maze strategy · 2, 3 or 4 players",name_ph:"Your name",create_btn:"Create room",code_ph:"ROOM CODE",join_btn:"Join by code",all_games:"← all games",room_code:"Room code:",click_copy:"Click to copy",code_copied:"Code copied!",players_in_room:"Players in room:",add_bot_title:"⚙️ Add opponent (Bot):",diff_easy:"🤖 Easy",diff_medium:"Medium",diff_hard:"Smart",add_bot_btn:"+ Bot",wait_default:"Waiting for players (2 to 4)...",start_btn:"🚀 START GAME",mode_pawn:"Move pawn",mode_wall:"Place wall",dir_h:"Horizontal",dir_v:"Vertical",restart_btn:"🔄 New game",enter_code_alert:"Enter room code",need_players:"Need 2, 3 or 4 players (currently {n})",ready_to_start:"Ready to start! Players: {n}/4",your_turn:"YOUR TURN!",your_turn_sub:" — pick a move or a wall",turn_of:"Turn: ",game_over:"Game over",you_won:"🏆 You won!",someone_won:"{n} won!",you_won_sub:"Your pawn reached the edge first!",you_lost_sub:"Your opponent crossed the maze first.",walls_suffix:"pcs",slot:"SLOT {n}",you_label:"(You)",default_player:"Player",remove_bot:"Remove bot"},
+  de: {
+    "nav_games": "🎮 Spiele",
+    "rules_title": "🧱 Corridor — Regeln",
+    "rules_body": "Ziel: <b>Bringe deine Spielfigur als Erster auf die gegenüberliegende Spielfeldseite</b>.<br><br>In deinem Zug führst du <b>eine von zwei Aktionen</b> aus:<br>• <b>Ziehe deine Figur</b> um 1 Feld (sofern der Weg nicht durch eine Wand blockiert ist). Du kannst über gegnerische Figuren springen!<br>• <b>Platziere eine Wand</b> (2 Felder lang), um Gegner zu blockieren oder ins Labyrinth zu leiten.<br><br>⚠️ <i>Hauptregel:</i> <b>Du darfst einem Spieler niemals den gesamten Weg zum Ziel versperren</b> — jeder Spieler muss immer mindestens einen Ausweg behalten!",
+    "rules_ok": "Verstanden 👍",
+    "title": "🧱 CORRIDOR",
+    "subtitle": "Labyrinth-Strategie · 2, 3 oder 4 Spieler",
+    "name_ph": "Dein Name",
+    "create_btn": "Raum erstellen",
+    "code_ph": "RAUMCODE",
+    "join_btn": "Mit Code beitreten",
+    "all_games": "← Alle Spiele",
+    "room_code": "Raumcode:",
+    "click_copy": "Klicken zum Kopieren",
+    "code_copied": "Code kopiert!",
+    "players_in_room": "Spieler im Raum:",
+    "add_bot_title": "⚙️ Gegner hinzufügen (Bot):",
+    "diff_easy": "🤖 Leicht",
+    "diff_medium": "Mittel",
+    "diff_hard": "Schlau",
+    "add_bot_btn": "+ Bot",
+    "wait_default": "Warte auf Spieler (2 bis 4)...",
+    "start_btn": "🚀 SPIEL STARTEN",
+    "mode_pawn": "Figur ziehen",
+    "mode_wall": "Wand setzen",
+    "dir_h": "Horizontal",
+    "dir_v": "Vertikal",
+    "restart_btn": "🔄 Neues Spiel",
+    "enter_code_alert": "Raumcode eingeben",
+    "need_players": "2, 3 oder 4 Spieler erforderlich (aktuell {n})",
+    "ready_to_start": "Bereit zum Start! Spieler: {n}/4",
+    "your_turn": "DU BIST DRAN!",
+    "your_turn_sub": " — ziehe oder setze eine Wand",
+    "turn_of": "Am Zug: ",
+    "game_over": "Spiel vorbei",
+    "you_won": "🏆 Du hast gewonnen!",
+    "someone_won": "{n} hat gewonnen!",
+    "you_won_sub": "Deine Figur hat die Gegenseite zuerst erreicht!",
+    "you_lost_sub": "Der Gegner hat das Labyrinth zuerst durchquert.",
+    "walls_suffix": "Stk",
+    "slot": "PLATZ {n}",
+    "you_label": "(Du)",
+    "default_player": "Spieler",
+    "remove_bot": "Bot entfernen"
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k,vars){let v=UI[LANG]&&UI[LANG][k];if(v===undefined)v=UI.ru[k]||k;if(vars)for(const key in vars)v=v.replace('{'+key+'}',vars[key]);return v;}
 // GT: канонические русские строки с сервера/движка -> {uk,en}
 const GT={
- "У вас не осталось стенок.":{uk:"У вас не залишилось стінок.",en:"You have no walls left."},
- "У вас не осталось стенок!":{uk:"У вас не залишилось стінок!",en:"You have no walls left!"},
- "Стенка здесь не помещается или пересекается с другой.":{uk:"Стінка тут не вміщається або перетинається з іншою.",en:"The wall doesn't fit here or crosses another one."},
- "Стенка полностью перекрывает путь игроку!":{uk:"Стінка повністю перекриває шлях гравцю!",en:"That wall would completely block a player's path!"},
- "Недопустимый ход фишкой.":{uk:"Недопустимий хід фішкою.",en:"Invalid pawn move."}
+ "У вас не осталось стенок.":{uk:"У вас не залишилось стінок.",en:"You have no walls left.",
+    de: "Du hast keine Wände mehr."},
+ "У вас не осталось стенок!":{uk:"У вас не залишилось стінок!",en:"You have no walls left!",
+    de: "Du hast keine Wände mehr!"},
+ "Стенка здесь не помещается или пересекается с другой.":{uk:"Стінка тут не вміщається або перетинається з іншою.",en:"The wall doesn't fit here or crosses another one.",
+    de: "Die Wand passt hier nicht hin oder schneidet eine andere."},
+ "Стенка полностью перекрывает путь игроку!":{uk:"Стінка повністю перекриває шлях гравцю!",en:"That wall would completely block a player's path!",
+    de: "Diese Wand würde den Weg eines Spielers komplett blockieren!"},
+ "Недопустимый ход фишкой.":{uk:"Недопустимий хід фішкою.",en:"Invalid pawn move.",
+    de: "Ungültiger Figurenzug."}
 };
 function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 function applyUI(){

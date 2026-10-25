@@ -55,6 +55,16 @@
       rate_err: "Wait 1 second between messages",
       close: "Minimize",
     },
+    de: {
+      btn: "Chat",
+      title: "Raum-Chat",
+      empty: "Noch keine Nachrichten. Schreib als Erster!",
+      placeholder: "Nachricht (max. 300 Zeichen)…",
+      send: "➤",
+      you: "Du",
+      rate_err: "Warte 1 Sekunde vor der nächsten Nachricht",
+      close: "Minimieren",
+    },
   };
 
   function getLang() {

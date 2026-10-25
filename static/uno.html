@@ -160,7 +160,7 @@
     <div id="home" class="lobby-card">
       <div class="lobby-title">🎴 UNO</div>
       <div class="lobby-sub" data-i18n="tagline">По цвету или достоинству · 2-10 Игроков</div>
-      <div class="langbar" id="langbar" style="margin-bottom:16px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+      <div class="langbar" id="langbar" style="margin-bottom:16px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
       <input id="name" placeholder="Твое имя" maxlength="20" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;margin-bottom:10px" data-i18n-ph="ph_name">
       <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px" data-i18n="btn_create">Создать Комнату 🎴</button>
       
@@ -265,8 +265,36 @@
         btn_play:n=>"▶ Play ("+n+")", btn_draw:"Draw card 🎴", btn_pass:"Pass",
         btn_newgame:"New Game 🔄", win_you:"🏆 YOU WON!", win_other:name=>"🏆 Winner: "+name,
         conn_lost:"Connection lost, refresh.", ask_code:"Enter code!", def_player:"Player"
-      }
-    };
+      },
+  de: {
+    "rules_title": "🎴 UNO — Regeln",
+    "rules_body": "Lege eine passende Karte nach Farbe oder Zahl ab. Aktionskarten: +2, +4, Farbwunsch, Aussetzen, Richtungswechsel. Bei 1 Restkarte — drücke UNO! Wer zuerst alle Karten loswird, gewinnt.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "tagline": "Farbe oder Zahl bedienen · 2-10 Spieler",
+    "ph_name": "Dein Name",
+    "btn_create": "Raum erstellen 🎴",
+    "ph_code": "RAUMCODE",
+    "btn_join": "Beitreten",
+    "lobby_room": "RAUM",
+    "wait_players": "Warte auf Spieler...",
+    "btn_addbot": "+ Bot hinzufügen 🤖",
+    "btn_start": "🚀 Karten austeilen",
+    "lbl_color": "FARBE:",
+    "choose_color": "Wähle eine neue Farbe:",
+    "your_turn": "🟢 DU BIST DRAN!",
+    "turn_of": name => "Am Zug: " + name,
+    "btn_play": n => "▶ Spielen (" + n + ")",
+    "btn_draw": "Karte ziehen 🎴",
+    "btn_pass": "Weiter",
+    "btn_newgame": "Neues Spiel 🔄",
+    "win_you": "🏆 DU HAST GEWONNEN!",
+    "win_other": name => "🏆 Gewinner: " + name,
+    "conn_lost": "Verbindung verloren, bitte aktualisieren.",
+    "ask_code": "Code eingeben!",
+    "def_player": "Spieler"
+  }
+};
 
     const CLS = ["red", "yellow", "green", "blue"];
     function vlabel(v) { return v === 'skip' ? '⊘' : v === 'rev' ? '⇄' : v === 'd2' ? '+2' : v === 'wild' ? '★' : v === 'wd4' ? '+4' : v; }

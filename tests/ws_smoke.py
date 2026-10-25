@@ -479,6 +479,175 @@ def test_password_change_revokes_sessions():
           f"({after_dev1_new}, {relogin})")
 
 
+def _http_get(path, cookie=None):
+    headers = {"Cookie": cookie} if cookie else {}
+    req = urllib.request.Request(BASE + path, headers=headers)
+    try:
+        with urllib.request.urlopen(req) as r:
+            raw = r.read().decode("utf-8", errors="replace")
+            ctype = r.headers.get("content-type", "")
+            data = json.loads(raw) if "application/json" in ctype else raw
+            return r.status, data
+    except urllib.error.HTTPError as e:
+        return e.code, None
+
+
+async def test_elo_and_leaderboard(c1, c2):
+    """ELO для дуэлей, защита от двойного подсчёта, игнор ботов/само-игры, /leaderboard и /me/ratings."""
+    # 1. GET /me/ratings без входа -> 401; со входом -> старт 1000 по всем 8 дуэлям; страница /leaderboard отдаёт HTML
+    st_unauth, _ = _http_get("/me/ratings")
+    st_me0, me0 = _http_get("/me/ratings", cookie=c1)
+    st_me0_2, me0_2 = _http_get("/me/ratings", cookie=c2)
+    u1_name = (me0 or {}).get("username", "")
+    u2_name = (me0_2 or {}).get("username", "")
+    st_page, html_page = _http_get("/leaderboard")
+    check("Рейтинги: GET /me/ratings требует вход (401 без cookie, 200 со стартовыми 1000)",
+          st_unauth == 401 and st_me0 == 200 and st_me0_2 == 200 and isinstance(me0, dict)
+          and bool(u1_name) and bool(u2_name) and u1_name != u2_name
+          and me0.get("ratings", {}).get("c4", {}).get("elo") == 1000.0
+          and len(me0.get("ratings", {})) == 8,
+          f"(unauth={st_unauth}, auth={st_me0}, users={u1_name}/{u2_name})")
+    check("Страница /leaderboard отдаёт HTML с языками УКР/РУС/ENG/DEU",
+          st_page == 200 and isinstance(html_page, str) and 'id="langbar"' in html_page and 'data-lang="de">DEU<' in html_page)
+
+    # До первой партии новые игроки не отображаются в /leaderboard?game=c4 (только games >= 1)
+    _, lb0 = _http_get("/leaderboard?game=c4")
+    lb0_users = {x["username"] for x in (lb0 or {}).get("leaderboard", [])}
+    check("Лидерборд: игроки с 0 партий не попадают в /leaderboard?game=c4",
+          u1_name not in lb0_users and u2_name not in lb0_users)
+
+    # 2. Короткая партия в «4 в ряд» (c4) между двумя аккаунтами до победы первого
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as a, \
+               websockets.connect(WS, additional_headers={"Cookie": c2}) as b:
+        await a.send(json.dumps({"action": "create", "name": "Победитель", "game": "c4"}))
+        ja, _ = await recv_until(a, lambda m: m.get("type") == "joined")
+        code = ja["code"]
+        pid1 = ja["pid"]
+        await b.send(json.dumps({"action": "join", "name": "Проигравший", "code": code}))
+        jb, _ = await recv_until(b, lambda m: m.get("type") == "joined")
+        pid2 = jb["pid"]
+        sa, _ = await recv_until(a, lambda m: m.get("type") == "c4_state")
+        await recv_until(b, lambda m: m.get("type") == "c4_state")
+
+        # 4 вертикальные фишки pid1 в колонке 0, pid2 кладёт 3 фишки в колонку 1
+        for step in range(4):
+            await a.send(json.dumps({"action": "c4_drop", "col": 0}))
+            sa, _ = await recv_until(a, lambda m: m.get("type") == "c4_state" and (m.get("winner") or m.get("turn_pid") == pid2))
+            await recv_until(b, lambda m: m.get("type") == "c4_state" and (m.get("winner") or m.get("turn_pid") == pid2))
+            if step < 3:
+                await b.send(json.dumps({"action": "c4_drop", "col": 1}))
+                sa, _ = await recv_until(a, lambda m: m.get("type") == "c4_state" and m.get("turn_pid") == pid1)
+                await recv_until(b, lambda m: m.get("type") == "c4_state" and m.get("turn_pid") == pid1)
+
+        check("ELO (c4): партия завершена победой первого игрока",
+              sa is not None and sa.get("winner") == pid1, f"(winner={sa and sa.get('winner')})")
+
+        _, lb1 = _http_get("/leaderboard?game=c4")
+        rows1 = {x["username"]: x for x in (lb1 or {}).get("leaderboard", [])}
+        w_row = rows1.get(u1_name)
+        l_row = rows1.get(u2_name)
+        check("ELO (c4): /leaderboard?game=c4 показывает победителя >1000 и проигравшего <1000",
+              bool(w_row and l_row and w_row["elo"] > 1000 and l_row["elo"] < 1000
+                   and w_row["rank"] < l_row["rank"]
+                   and w_row["wins"] == 1 and l_row["losses"] == 1),
+              f"(winner={w_row and w_row['elo']}, loser={l_row and l_row['elo']})")
+
+        # 3. Повторные сообщения в конце партии, переподключение (resync) и «Ещё раз» (restart) не считают партию дважды
+        await a.send(json.dumps({"action": "c4_drop", "col": 0}))
+        await b.send(json.dumps({"action": "c4_drop", "col": 1}))
+        # Реконнект второго игрока при открытом экране конца партии (вызывает resync_game -> push_c4)
+        async with websockets.connect(WS, additional_headers={"Cookie": c2}) as b_resync:
+            await b_resync.send(json.dumps({"action": "join", "name": "Проигравший", "code": code}))
+            await recv_until(b_resync, lambda m: m.get("type") == "joined", timeout=3)
+        # Оба жмут «Ещё раз» подряд
+        await a.send(json.dumps({"action": "restart"}))
+        await b.send(json.dumps({"action": "restart"}))
+        sa_re, _ = await recv_until(a, lambda m: m.get("type") == "c4_state" and m.get("winner") is None)
+        _, lb_after_re = _http_get("/leaderboard?game=c4")
+        rows_re = {x["username"]: x for x in (lb_after_re or {}).get("leaderboard", [])}
+        w_re = rows_re.get(u1_name)
+        l_re = rows_re.get(u2_name)
+        check("ELO (c4): повторные ходы, resync и «Ещё раз» не считают партию дважды",
+              bool(sa_re and w_re and l_re
+                   and w_re["elo"] == w_row["elo"] and w_re["games"] == 1
+                   and l_re["elo"] == l_row["elo"] and l_re["games"] == 1),
+              f"(после restart: games={w_re and w_re['games']}, elo={w_re and w_re['elo']})")
+
+    # 4. Партия против бота (до конца партии!) НЕ меняет рейтинг
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as ws_bot:
+        await ws_bot.send(json.dumps({"action": "create", "name": "Соло", "game": "c4"}))
+        jb_room, _ = await recv_until(ws_bot, lambda m: m.get("type") == "joined")
+        me_pid = jb_room["pid"]
+        await ws_bot.send(json.dumps({"action": "add_bot", "diff": "easy"}))
+        st_b, _ = await recv_until(ws_bot, lambda m: m.get("type") == "c4_state")
+        # Играем до конца партии с easy-ботом: выбираем колонку, где сверху нет фишки бота
+        loop = asyncio.get_event_loop()
+        deadline = loop.time() + 15
+        while st_b and not st_b.get("winner") and not st_b.get("draw") and loop.time() < deadline:
+            if st_b.get("turn_pid") == me_pid:
+                brd = st_b["board"]
+                # ищем колонку, где все уже лежащие фишки — наши (1), иначе любую свободную
+                best_col = next(
+                    (col for col in range(7) if brd[0][col] == 0 and all(brd[r][col] in (0, 1) for r in range(6))),
+                    next((col for col in range(7) if brd[0][col] == 0), 0),
+                )
+                await ws_bot.send(json.dumps({"action": "c4_drop", "col": best_col}))
+            st_b, _ = await recv_until(ws_bot, lambda m: m.get("type") == "c4_state", timeout=4)
+        bot_finished = bool(st_b and (st_b.get("winner") or st_b.get("draw")))
+        _, me_after_bot = _http_get("/me/ratings", cookie=c1)
+        c4_after_bot = (me_after_bot or {}).get("ratings", {}).get("c4", {})
+        check("ELO (c4): завершённая партия против бота НЕ меняет рейтинг",
+              bot_finished and c4_after_bot.get("elo") == w_row["elo"] and c4_after_bot.get("games") == 1,
+              f"(finished={bot_finished}, elo={c4_after_bot.get('elo')}, games={c4_after_bot.get('games')})")
+
+    # 5. Игра одного и того же аккаунта с двух вкладок против себя НЕ меняет рейтинг
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as s1, \
+               websockets.connect(WS, additional_headers={"Cookie": c1}) as s2:
+        await s1.send(json.dumps({"action": "create", "name": "Я1", "game": "bulls"}))
+        js1, _ = await recv_until(s1, lambda m: m.get("type") == "joined")
+        await s2.send(json.dumps({"action": "join", "name": "Я2", "code": js1["code"]}))
+        await recv_until(s2, lambda m: m.get("type") == "joined")
+        await recv_until(s1, lambda m: m.get("type") == "bc_state")
+        await s1.send(json.dumps({"action": "bc_set", "code": "1234"}))
+        await s2.send(json.dumps({"action": "bc_set", "code": "5678"}))
+        await recv_until(s1, lambda m: m.get("type") == "bc_state" and m.get("phase") == "play")
+        await s1.send(json.dumps({"action": "bc_guess", "guess": "5678"}))
+        st_self, _ = await recv_until(s1, lambda m: m.get("type") == "bc_state" and m.get("winner") == js1["pid"])
+        _, me_after_self = _http_get("/me/ratings", cookie=c1)
+        bulls_r = (me_after_self or {}).get("ratings", {}).get("bulls", {})
+        check("ELO: партия одного аккаунта сам с собой НЕ меняет рейтинг",
+              st_self is not None and bulls_r.get("games") == 0 and bulls_r.get("elo") == 1000.0,
+              f"(bulls={bulls_r})")
+
+    # 6. Quoridor 1×1 (2 человека) также обновляет ELO
+    async with websockets.connect(WS, additional_headers={"Cookie": c1}) as qa, \
+               websockets.connect(WS, additional_headers={"Cookie": c2}) as qb:
+        await qa.send(json.dumps({"action": "create", "name": "Юг", "game": "quoridor"}))
+        jqa, _ = await recv_until(qa, lambda m: m.get("type") == "joined")
+        await qb.send(json.dumps({"action": "join", "name": "Север", "code": jqa["code"]}))
+        jqb, _ = await recv_until(qb, lambda m: m.get("type") == "joined")
+        await qa.send(json.dumps({"action": "start"}))
+        sq, _ = await recv_until(qa, lambda m: m.get("type") == "quoridor_state")
+        await recv_until(qb, lambda m: m.get("type") == "quoridor_state")
+        # P1 идёт с (8,4) на row 0, P2 уходит вбок на (0,3) и шагает туда-сюда (0,3)<->(0,2)
+        p2_cols = [3, 2, 3, 2, 3, 2, 3, 2]
+        for step, r_target in enumerate(range(7, -1, -1)):
+            await qa.send(json.dumps({"action": "quoridor_move", "r": r_target, "c": 4}))
+            sq, _ = await recv_until(qa, lambda m: m.get("type") == "quoridor_state" and (m.get("winner") or m.get("turn_pid") == jqb["pid"]))
+            await recv_until(qb, lambda m: m.get("type") == "quoridor_state" and (m.get("winner") or m.get("turn_pid") == jqb["pid"]))
+            if r_target > 0:
+                await qb.send(json.dumps({"action": "quoridor_move", "r": 0, "c": p2_cols[step]}))
+                sq, _ = await recv_until(qa, lambda m: m.get("type") == "quoridor_state" and m.get("turn_pid") == jqa["pid"])
+                await recv_until(qb, lambda m: m.get("type") == "quoridor_state" and m.get("turn_pid") == jqa["pid"])
+        _, lb_q = _http_get("/leaderboard?game=quoridor")
+        q_rows = {x["username"]: x for x in (lb_q or {}).get("leaderboard", [])}
+        check("ELO (quoridor 2 игрока): победа учитывается в /leaderboard?game=quoridor",
+              bool(sq and sq.get("winner") == jqa["pid"]
+                   and q_rows.get(u1_name, {}).get("elo", 0) > 1000
+                   and q_rows.get(u2_name, {}).get("elo", 2000) < 1000),
+              f"(q_winner={q_rows.get(u1_name, {}).get('elo')}, q_loser={q_rows.get(u2_name, {}).get('elo')})")
+
+
 async def main():
     u = [register(f"t{random.randint(10000, 99999)}{i}") for i in range(2)]
     c = [u[0]] * 5
@@ -494,6 +663,7 @@ async def main():
     test_password_change_revokes_sessions()
     await test_concurrency_durak_and_uno(u[0], u[1])
     await test_quickplay(u[0], u[1])
+    await test_elo_and_leaderboard(u[0], u[1])
     check_server_log()
     print(f"\nИтого: {sum(ok for _, ok in results)}/{len(results)}")
     sys.exit(0 if all(ok for _, ok in results) else 1)

@@ -20,7 +20,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
 <h1 data-i18n="page_title">🐂 БЫКИ И КОРОВЫ</h1><div class="sub" data-i18n="page_sub">взломай 4-значный код соперника · на двоих</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div id="home" class="card" style="max-width:360px;margin:0 auto">
   <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph"><button onclick="create()" data-i18n="create_btn">Создать</button>
   <input id="joincode" placeholder="КОД комнаты" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph"><button class="sec" onclick="join()" data-i18n="join_btn">Войти</button>
@@ -164,6 +164,44 @@ const UI = {
     alert_code: "Code?",
     alert_digits_diff: "Must be 4 UNIQUE digits",
     alert_4digits: "4 digits"
+  },
+  de: {
+    "title": "Bullen und Kühe — Lobby.gg",
+    "rules_btn": "Regeln",
+    "rules_title": "🐂 Bullen und Kühe — Regeln",
+    "rules_body": "Jeder denkt sich eine 4-stellige Zahl mit unterschiedlichen Ziffern aus.<br>Rate die Zahl des Gegners durch Züge:<br>🐂 <b>Bulle</b> — Ziffer an der richtigen Stelle.<br>🐄 <b>Kuh</b> — Ziffer vorhanden, aber an falscher Stelle.<br>Wer als Erster 4 Bullen errät, gewinnt!",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "page_title": "🐂 BULLEN UND KÜHE",
+    "page_sub": "Logikduell · Errate die 4-stellige Zahl",
+    "name_ph": "Name",
+    "create_btn": "Spiel erstellen",
+    "code_ph": "CODE",
+    "join_btn": "Beitreten",
+    "back_btn": "← Alle Spiele",
+    "room_code": "Code:",
+    "diff_easy": "🤖 Leicht",
+    "diff_medium": "Mittel",
+    "diff_hard": "Schwer",
+    "add_bot_btn": "🤖 Hinzufügen",
+    "wait_msg": "Warte auf Gegner…",
+    "setup_sub": "Denke dir eine 4-stellige Zahl aus (alle Ziffern verschieden):",
+    "secret_ph": "4 verschiedene Ziffern",
+    "set_code_btn": "Zahl festlegen",
+    "wait_opponent": "Warte, bis der Gegner seine Zahl wählt…",
+    "guess_ph": "4 Ziffern raten",
+    "guess_btn": "Prüfen",
+    "my_attempts": "Deine Versuche:",
+    "opponent": "Gegner",
+    "restart_btn": "Neustart",
+    "you_won": "🏆 Du hast gewonnen! Zahl:",
+    "someone_won": "{n} hat gewonnen! Zahl:",
+    "your_turn": "DU BIST DRAN",
+    "your_turn_sub": "Gib 4 verschiedene Ziffern ein",
+    "turn_of": "Am Zug: {n}",
+    "alert_code": "Code?",
+    "alert_digits_diff": "Alle 4 Ziffern müssen unterschiedlich sein!",
+    "alert_4digits": "Gib genau 4 Ziffern ein!"
   }
 };
 
@@ -182,7 +220,8 @@ function t(k, vars) {
 }
 
 const GT = {
-  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players." }
+  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players.",
+    de: "2 Spieler erforderlich." }
 };
 
 function T(s) {

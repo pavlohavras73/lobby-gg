@@ -1166,3 +1166,24 @@ details.pw .pw-b { display: flex; flex-direction: column; gap: 8px; margin-top: 
 }
 #lgToast.on { transform: translate(-50%, 0); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Мобильные исправления (2026-10-25) ──
+   1) Нижнее меню не должно закрывать контент: index.html обнуляет padding у body правилом
+      `body{padding:0 16px 0}`, поэтому возвращаем отступ правилом с большей специфичностью.
+   2) Вкладки панели на узких экранах: иконка сверху, подпись снизу — влезают на любом языке
+      («Einstellungen», «Налаштування»). */
+@media (max-width: 760px) {
+  html body { padding-bottom: calc(96px + var(--sab)); }
+}
+@media (max-width: 480px) {
+  .sh-tab {
+    flex-direction: column;
+    gap: 2px;
+    height: 54px;
+    min-height: 54px;
+    padding: 4px 2px;
+    font-size: 10.5px;
+    letter-spacing: 0;
+  }
+  .sh-tab svg { width: 19px; height: 19px; }
+}

@@ -50,6 +50,21 @@
       invite_failed: 'Failed to invite',
       need_room: 'Create a room first',
       error: 'Error'
+    },
+    de: {
+      btn: '👋 Freund einladen',
+      modal_title: '👋 Zum Spiel einladen',
+      modal_sub: 'Dein Freund erhält eine Einladung und kann mit einem Klick beitreten.',
+      loading: 'Freunde werden geladen…',
+      close: 'Schließen',
+      no_friends: 'Noch keine Freunde. Füge welche in deinem Profil hinzu.',
+      load_err: 'Freunde konnten nicht geladen werden',
+      invite: 'Einladen',
+      invited: '✓ Eingeladen',
+      invited_at: '✓ Eingeladen @',
+      invite_failed: 'Einladung fehlgeschlagen',
+      need_room: 'Erstelle zuerst einen Raum',
+      error: 'Fehler'
     }
   };
 

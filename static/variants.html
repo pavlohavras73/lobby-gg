@@ -53,7 +53,7 @@
 <div id="screen-lobby" class="screen">
   <div class="card">
     <h2 data-i18n="lobby_title">Аукцион Лжи</h2>
-    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
     <div style="font-size:14px; color:#aaa; text-align:center; margin-bottom:20px;" data-i18n="lobby_sub">Генерируем бредовые факты через Gemini. Выбирайте темы:</div>
     <div class="cats-grid" id="catsGrid">
       <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_classic">Классика</div>
@@ -138,7 +138,35 @@
 <script src="/games/static/room_chat.js"></script>
 <script>
 
-const UI = {"uk": {"title": "Аукціон брехні (Варіанти)", "lobby_title": "Аукціон Брехні", "lobby_sub": "Генеруємо абсурдні факти через Gemini. Обирайте теми:", "cat_classic": "Класика", "cat_history": "Історія", "cat_anime": "Аніме", "cat_movies": "Кіно і серіали", "cat_absurd": "Абсурдні закони", "rounds_lbl": "Кількість раундів:", "start_btn": "Почати гру", "host_wait": "Чекаємо хоста...", "players_lbl": "Гравці", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай найправдоподібнішу брехню:", "input_ph": "Твоя версія...", "bluff_btn": "Обдурити всіх", "wait_others": "Брехня відправлена. Чекаємо інших...", "vote_title": "Голосування", "vote_sub": "Де правда? Знайди правильну відповідь і не попадись на виверт!", "wait_vote": "Чекаємо інших...", "res_title": "Підсумки раунду", "next_round": "Наступний раунд", "host_study": "Хост вивчає результати...", "over_title": "Гру закінчено!", "menu_btn": "В меню"}, "ru": {"title": "Аукцион лжи (Варианты)", "lobby_title": "Аукцион Лжи", "lobby_sub": "Генерируем бредовые факты через Gemini. Выбирайте темы:", "cat_classic": "Классика", "cat_history": "История", "cat_anime": "Аниме", "cat_movies": "Кино и сериалы", "cat_absurd": "Абсурдные законы", "rounds_lbl": "Количество раундов:", "start_btn": "Начать игру", "host_wait": "Ждём хоста...", "players_lbl": "Игроки", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай самую правдоподобную ложь:", "input_ph": "Твоя версия...", "bluff_btn": "Обмануть всех", "wait_others": "Ложь отправлена. Ждем остальных...", "vote_title": "Голосование", "vote_sub": "Где правда? Найди правильный ответ и не попадись на уловку!", "wait_vote": "Ждём остальных...", "res_title": "Итоги раунда", "next_round": "Следующий раунд", "host_study": "Хост изучает результаты...", "over_title": "Игра окончена!", "menu_btn": "В меню"}, "en": {"title": "Fibbage (Variants)", "lobby_title": "Fibbage", "lobby_sub": "Generate crazy facts via Gemini. Choose topics:", "cat_classic": "Classic", "cat_history": "History", "cat_anime": "Anime", "cat_movies": "Movies & TV", "cat_absurd": "Absurd Laws", "rounds_lbl": "Number of rounds:", "start_btn": "Start game", "host_wait": "Waiting for host...", "players_lbl": "Players", "round_title": "Round <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Come up with the most believable lie:", "input_ph": "Your version...", "bluff_btn": "Fool everyone", "wait_others": "Lie submitted. Waiting for others...", "vote_title": "Voting", "vote_sub": "Where is the truth? Find the correct answer and don't get tricked!", "wait_vote": "Waiting for others...", "res_title": "Round Results", "next_round": "Next round", "host_study": "Host is reviewing results...", "over_title": "Game over!", "menu_btn": "To menu"}};
+const UI = {"uk": {"title": "Аукціон брехні (Варіанти)", "lobby_title": "Аукціон Брехні", "lobby_sub": "Генеруємо абсурдні факти через Gemini. Обирайте теми:", "cat_classic": "Класика", "cat_history": "Історія", "cat_anime": "Аніме", "cat_movies": "Кіно і серіали", "cat_absurd": "Абсурдні закони", "rounds_lbl": "Кількість раундів:", "start_btn": "Почати гру", "host_wait": "Чекаємо хоста...", "players_lbl": "Гравці", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай найправдоподібнішу брехню:", "input_ph": "Твоя версія...", "bluff_btn": "Обдурити всіх", "wait_others": "Брехня відправлена. Чекаємо інших...", "vote_title": "Голосування", "vote_sub": "Де правда? Знайди правильну відповідь і не попадись на виверт!", "wait_vote": "Чекаємо інших...", "res_title": "Підсумки раунду", "next_round": "Наступний раунд", "host_study": "Хост вивчає результати...", "over_title": "Гру закінчено!", "menu_btn": "В меню"}, "ru": {"title": "Аукцион лжи (Варианты)", "lobby_title": "Аукцион Лжи", "lobby_sub": "Генерируем бредовые факты через Gemini. Выбирайте темы:", "cat_classic": "Классика", "cat_history": "История", "cat_anime": "Аниме", "cat_movies": "Кино и сериалы", "cat_absurd": "Абсурдные законы", "rounds_lbl": "Количество раундов:", "start_btn": "Начать игру", "host_wait": "Ждём хоста...", "players_lbl": "Игроки", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай самую правдоподобную ложь:", "input_ph": "Твоя версия...", "bluff_btn": "Обмануть всех", "wait_others": "Ложь отправлена. Ждем остальных...", "vote_title": "Голосование", "vote_sub": "Где правда? Найди правильный ответ и не попадись на уловку!", "wait_vote": "Ждём остальных...", "res_title": "Итоги раунда", "next_round": "Следующий раунд", "host_study": "Хост изучает результаты...", "over_title": "Игра окончена!", "menu_btn": "В меню"}, "en": {"title": "Fibbage (Variants)", "lobby_title": "Fibbage", "lobby_sub": "Generate crazy facts via Gemini. Choose topics:", "cat_classic": "Classic", "cat_history": "History", "cat_anime": "Anime", "cat_movies": "Movies & TV", "cat_absurd": "Absurd Laws", "rounds_lbl": "Number of rounds:", "start_btn": "Start game", "host_wait": "Waiting for host...", "players_lbl": "Players", "round_title": "Round <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Come up with the most believable lie:", "input_ph": "Your version...", "bluff_btn": "Fool everyone", "wait_others": "Lie submitted. Waiting for others...", "vote_title": "Voting", "vote_sub": "Where is the truth? Find the correct answer and don't get tricked!", "wait_vote": "Waiting for others...", "res_title": "Round Results", "next_round": "Next round", "host_study": "Host is reviewing results...", "over_title": "Game over!", "menu_btn": "To menu"},
+  de: {
+    "title": "Fibbage (Varianten)",
+    "lobby_title": "Fibbage",
+    "lobby_sub": "Generiere verrückte Fakten über Gemini. Wähle Themen:",
+    "cat_classic": "Klassiker",
+    "cat_history": "Geschichte",
+    "cat_anime": "Anime",
+    "cat_movies": "Filme & Serien",
+    "cat_absurd": "Absurde Gesetze",
+    "rounds_lbl": "Rundenanzahl:",
+    "start_btn": "Spiel starten",
+    "host_wait": "Warte auf Host...",
+    "players_lbl": "Spieler",
+    "round_title": "Runde <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>",
+    "input_sub": "Erfinde die glaubwürdigste Lüge:",
+    "input_ph": "Deine Version...",
+    "bluff_btn": "Alle täuschen",
+    "wait_others": "Lüge abgeschickt. Warte auf andere...",
+    "vote_title": "Abstimmung",
+    "vote_sub": "Wo ist die Wahrheit? Finde die richtige Antwort und lass dich nicht täuschen!",
+    "wait_vote": "Warte auf andere...",
+    "res_title": "Rundenergebnis",
+    "next_round": "Nächste Runde",
+    "host_study": "Host prüft Ergebnisse...",
+    "over_title": "Spiel vorbei!",
+    "menu_btn": "Zum Menü"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

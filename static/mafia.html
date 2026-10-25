@@ -65,6 +65,7 @@
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
   <button type="button" data-lang="en">ENG</button>
+  <button type="button" data-lang="de">DEU</button>
 </div>
 
 <div id="home" class="card">
@@ -184,17 +185,85 @@ const UI={
   win_town:"🎉 TOWN WINS", win_mafia:"🔪 MAFIA WINS",
   conn_lost:"Connection lost, refresh the page.", def_name:"Player", ask_code:"Enter a code", confirm_back:"Leave to lobby? The game will end for everyone.",
   rid:{mafia:"mafia",doctor:"doctor",sheriff:"sheriff",patrol:"patrol",civilian:"civilian"}
- }
+ },
+  de:{
+    rules_title:"🔪 Mafia — Regeln",
+    rules_body:"Nachts tötet die Mafia, der Doktor heilt, der Sheriff überprüft, der Wachmann schützt. Tagsüber diskutiert die Stadt und stimmt ab, wer hingerichtet wird. Die Bürger gewinnen, wenn alle Mafiosi eliminiert sind; die Mafia gewinnt bei Gleichstand.",
+    rules_ok:"Verstanden 👍", nav_games:"🎮 Spiele", tagline:"Lobby.gg · Spiele mit Freunden",
+    ph_name:"Dein Name", btn_create:"Raum erstellen", ph_code:"RAUMCODE", btn_join:"Mit Code beitreten",
+    rc_mafia:"🔪 Mafia", rc_doctor:"💉 Doktor", rc_sheriff:"🔎 Sheriff", rc_civ:"👤 Bürger",
+    home_hint:"3+ Spieler. Doktor ab 4, Sheriff ab 5. Kann mit Bots aufgefüllt werden.",
+    lobby_code:"Raumcode — teile ihn mit Freunden:", btn_bot:"🤖 Bot hinzufügen", btn_start:"🚀 Spiel starten",
+    wait_host:"Warte auf Spielstart durch den Host…", acted:"✅ Aktion ausgeführt. Warte auf andere…",
+    btn_skip:"🤝 Enthalten", btn_forceday:"⏭ Host: Tag beenden", btn_back:"← Zur Lobby",
+    btn_again:"🔄 Nochmal spielen", ph_night:"🌙 NACHT", ph_day:"☀️ TAG", ph_over:"ERGEBNIS",
+    round:n=>"Runde "+n,
+    verb_mafia:"🔪 Wen heute Nacht eliminieren?", verb_doctor:"💉 Wen heilen?", verb_sheriff:"🔎 Wen überprüfen?",
+    verb_patrol:"🚓 Wen heute Nacht bewachen?", verb_def:"Wähle ein Ziel",
+    no_targets:"Keine verfügbaren Ziele.", your_mafia:names=>"🔪 Deine Mafia: "+names,
+    patrol_alert:"🚓 Letzte Nacht hast du einen Angriff auf deine Zielperson verhindert!",
+    checks:"🔎 Überprüfungen:", maf:"MAFIA", clean:"sauber",
+    asleep:n=>"😴 Du schläfst. Nachtrollen sind am Zug… ("+n+" übrig)", out_watch:"💀 Du bist raus. Schau einfach zu.",
+    vote_dead:"💀 Du bist raus — du kannst nicht abstimmen, nur zuschauen.",
+    vote_ok:"✅ Stimme gezählt. Warte auf andere…", vote_day:"☀️ Tag. Stimme ab, wer hingerichtet werden soll:",
+    win_town:"🎉 DIE BÜRGER GEWINNEN", win_mafia:"🔪 DIE MAFIA GEWINNT",
+    conn_lost:"Verbindung verloren, bitte Seite aktualisieren.", def_name:"Spieler", ask_code:"Code eingeben",
+    confirm_back:"Zur Lobby zurückkehren? Das Spiel endet für alle.",
+    rid:{mafia:"Mafia",doctor:"Doktor",sheriff:"Sheriff",patrol:"Wachmann",civilian:"Bürger"}
+  }
 };
 // роль-титул + описание (канон рус → uk/en)
 const GT={
- "МАФИЯ":{uk:"МАФІЯ",en:"MAFIA"}, "ДОКТОР":{uk:"ДОКТОР",en:"DOCTOR"}, "ШЕРИФ":{uk:"ШЕРИФ",en:"SHERIFF"},
- "ПАТРУЛЬНЫЙ":{uk:"ПАТРУЛЬНИЙ",en:"PATROL"}, "МИРНЫЙ":{uk:"МИРНИЙ",en:"CIVILIAN"},
- "Ночью с подельниками выбираешь жертву. Днём прикидывайся мирным.":{uk:"Вночі з подільниками обираєш жертву. Удень прикидайся мирним.",en:"At night you pick a victim with your accomplices. By day, act innocent."},
- "Ночью лечишь одного игрока — спасаешь от убийства. Себя нельзя два раза подряд.":{uk:"Вночі лікуєш одного гравця — рятуєш від вбивства. Себе не можна двічі поспіль.",en:"At night you heal one player — saving them from being killed. Not yourself twice in a row."},
- "Ночью проверяешь одного — узнаёшь, мафия он или нет.":{uk:"Вночі перевіряєш одного — дізнаєшся, мафія він чи ні.",en:"At night you check one player — you learn whether they're mafia or not."},
- "Помощник комиссара. Ночью охраняешь игрока: если на него нападут — спасаешь его и узнаёшь, что была атака.":{uk:"Помічник комісара. Вночі охороняєш гравця: якщо на нього нападуть — рятуєш його й дізнаєшся, що була атака.",en:"The commissioner's aide. At night you guard a player: if they're attacked, you save them and learn there was an attack."},
- "Ты мирный житель. Днём вычисляй мафию и голосуй.":{uk:"Ти мирний житель. Удень вираховуй мафію та голосуй.",en:"You're a townsperson. By day, figure out the mafia and vote."}
+  "МАФИЯ": {
+    "uk": "МАФІЯ",
+    "en": "MAFIA",
+    "de": "MAFIA"
+  },
+  "ДОКТОР": {
+    "uk": "ДОКТОР",
+    "en": "DOCTOR",
+    "de": "DOKTOR"
+  },
+  "ШЕРИФ": {
+    "uk": "ШЕРИФ",
+    "en": "SHERIFF",
+    "de": "SHERIFF"
+  },
+  "ПАТРУЛЬНЫЙ": {
+    "uk": "ПАТРУЛЬНИЙ",
+    "en": "PATROL",
+    "de": "WACHMANN"
+  },
+  "МИРНЫЙ": {
+    "uk": "МИРНИЙ",
+    "en": "CIVILIAN",
+    "de": "BÜRGER"
+  },
+  "Ночью с подельниками выбираешь жертву. Днём прикидывайся мирным.": {
+    "uk": "Вночі з подільниками обираєш жертву. Удень прикидайся мирним.",
+    "en": "At night you pick a victim with your accomplices. By day, act innocent.",
+    "de": "Nachts wählst du mit deinen Komplizen ein Opfer. Tagsüber gibst du dich als unschuldiger Bürger aus."
+  },
+  "Ночью лечишь одного игрока — спасаешь от убийства. Себя нельзя два раза подряд.": {
+    "uk": "Вночі лікуєш одного гравця — рятуєш від вбивства. Себе не можна двічі поспіль.",
+    "en": "At night you heal one player — saving them from being killed. Not yourself twice in a row.",
+    "de": "Nachts heilst du einen Spieler — rettest ihn vor dem Mord. Dich selbst nicht zweimal hintereinander."
+  },
+  "Ночью проверяешь одного — узнаёшь, мафия он или нет.": {
+    "uk": "Вночі перевіряєш одного — дізнаєшся, мафія він чи ні.",
+    "en": "At night you check one player — you learn whether they're mafia or not.",
+    "de": "Nachts überprüfst du einen Spieler — erfährst, ob er Mafia ist oder nicht."
+  },
+  "Помощник комиссара. Ночью охраняешь игрока: если на него нападут — спасаешь его и узнаёшь, что была атака.": {
+    "uk": "Помічник комісара. Вночі охороняєш гравця: якщо на нього нападуть — рятуєш його й дізнаєшся, що була атака.",
+    "en": "The commissioner's aide. At night you guard a player: if they're attacked, you save them and learn there was an attack.",
+    "de": "Gehilfe des Kommissars. Nachts bewachst du einen Spieler: wird er angegriffen, rettest du ihn und erfährst vom Angriff."
+  },
+  "Ты мирный житель. Днём вычисляй мафию и голосуй.": {
+    "uk": "Ти мирний житель. Удень вираховуй мафію та голосуй.",
+    "en": "You're a townsperson. By day, figure out the mafia and vote.",
+    "de": "Du bist ein einfacher Bürger. Finde tagsüber die Mafia heraus und stimme ab."
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
@@ -203,7 +272,7 @@ function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e
 function logTr(s){
  if(LANG==='ru'||!s)return s;
  let m;
- if(s.indexOf("🌙 Город засыпает. Ночь 1")===0) return LANG==='uk'?"🌙 Місто засинає. Ніч 1 — мафія виходить на полювання.":"🌙 The town falls asleep. Night 1 — the mafia goes hunting.";
+ if(s.indexOf("🌙 Город засыпает. Ночь 1")===0) return LANG==='uk'?"🌙 Місто засинає. Ніч 1 — мафія виходить на полювання.":(LANG==='de'?"🌙 Die Stadt schläft ein. Nacht 1 — die Mafia geht auf die Jagd.":"🌙 The town falls asleep. Night 1 — the mafia goes hunting.");
  if(m=s.match(/^☠️ Ночью убит: (.+)\.$/)) return LANG==='uk'?"☠️ Уночі вбито: "+m[1]+".":"☠️ Killed at night: "+m[1]+".";
  if(s==="💉 Ночью было покушение, но доктор спас жертву!") return LANG==='uk'?"💉 Уночі був замах, але лікар врятував жертву!":"💉 There was an attack at night, but the doctor saved the victim!";
  if(s==="🌫️ Ночь прошла тихо — никто не погиб.") return LANG==='uk'?"🌫️ Ніч минула тихо — ніхто не загинув.":"🌫️ The night passed quietly — no one died.";

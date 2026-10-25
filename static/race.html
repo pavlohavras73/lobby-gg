@@ -147,7 +147,7 @@
     <div class="header">
         <a href="/games/" class="back-button" data-i18n="back_btn">◀ Лоби</a>
         <h1 data-i18n="page_title">Гонки</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
         <select id="laneSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" data-i18n-title="lanes_title" title="Кол-во полос">
           <option value="3" data-i18n="lane_3">3 полосы</option><option value="4" data-i18n="lane_4">4 полосы</option><option value="5" data-i18n="lane_5">5 полос</option>
         </select>
@@ -173,7 +173,24 @@
 
     <script>
 
-const UI = {"uk": {"title": "Неонові Перегони", "rules_title": "🏎️ Перегони — правила", "rules_body": "Ухиляйся від перешкод на трасі, керуючи вліво/вправо. Чим довше їдеш — тим більше очок і вища швидкість.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Перегони", "lanes_title": "Кіл-ть смуг", "lane_3": "3 смуги", "lane_4": "4 смуги", "lane_5": "5 смуг", "score": "Дистанція: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Їхати знову"}, "ru": {"title": "Неоновые Гонки", "rules_title": "🏎️ Гонки — правила", "rules_body": "Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Гонки", "lanes_title": "Кол-во полос", "lane_3": "3 полосы", "lane_4": "4 полосы", "lane_5": "5 полос", "score": "Дистанция: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Ехать снова"}, "en": {"title": "Neon Racing", "rules_title": "🏎️ Racing — rules", "rules_body": "Dodge obstacles on the track by steering left/right. The longer you drive, the more points you score and the faster you go.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Racing", "lanes_title": "Number of lanes", "lane_3": "3 lanes", "lane_4": "4 lanes", "lane_5": "5 lanes", "score": "Distance: ", "score_suffix": "m", "game_over": "CRASH!", "restart_btn": "Drive again"}};
+const UI = {"uk": {"title": "Неонові Перегони", "rules_title": "🏎️ Перегони — правила", "rules_body": "Ухиляйся від перешкод на трасі, керуючи вліво/вправо. Чим довше їдеш — тим більше очок і вища швидкість.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Перегони", "lanes_title": "Кіл-ть смуг", "lane_3": "3 смуги", "lane_4": "4 смуги", "lane_5": "5 смуг", "score": "Дистанція: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Їхати знову"}, "ru": {"title": "Неоновые Гонки", "rules_title": "🏎️ Гонки — правила", "rules_body": "Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Гонки", "lanes_title": "Кол-во полос", "lane_3": "3 полосы", "lane_4": "4 полосы", "lane_5": "5 полос", "score": "Дистанция: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Ехать снова"}, "en": {"title": "Neon Racing", "rules_title": "🏎️ Racing — rules", "rules_body": "Dodge obstacles on the track by steering left/right. The longer you drive, the more points you score and the faster you go.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Racing", "lanes_title": "Number of lanes", "lane_3": "3 lanes", "lane_4": "4 lanes", "lane_5": "5 lanes", "score": "Distance: ", "score_suffix": "m", "game_over": "CRASH!", "restart_btn": "Drive again"},
+  de: {
+    "title": "Neon Racing",
+    "rules_title": "🏎️ Racing — Regeln",
+    "rules_body": "Weiche Hindernissen auf der Strecke aus, indem du nach links/rechts lenkst. Je länger du fährst, desto mehr Punkte erzielst du und desto schneller wird es.",
+    "rules_ok": "Verstanden 👍",
+    "back_btn": "◀ Lobby",
+    "page_title": "Racing",
+    "lanes_title": "Anzahl der Spuren",
+    "lane_3": "3 Spuren",
+    "lane_4": "4 Spuren",
+    "lane_5": "5 Spuren",
+    "score": "Strecke: ",
+    "score_suffix": "m",
+    "game_over": "CRASH!",
+    "restart_btn": "Nochmal fahren"
+  }
+};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }

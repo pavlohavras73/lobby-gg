@@ -39,7 +39,7 @@
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔢 2048 — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Свайпай в 4 стороны. Одинаковые плитки при столкновении сливаются в одну (2+2=4). Собери плитку <b>2048</b>. Игра кончается, когда ходов нет.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">🔢 2048</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button></div>
+<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="bar">
   <div class="score"><div class="l" data-i18n="score">Счёт</div><div class="v" id="score">0</div></div>
   <button class="sec" onclick="newGame()" data-i18n="newbtn">↻ Новая</button>
@@ -55,7 +55,22 @@
 const UI={
  uk:{rules_title:"🔢 2048 — правила",rules_body:"Свайпай у 4 боки. Однакові плитки при зіткненні зливаються в одну (2+2=4). Збери плитку <b>2048</b>. Гра закінчується, коли ходів немає.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🔢 2048",score:"Рахунок",best:"Рекорд",newbtn:"↻ Нова",again:"Ще раз",hint:"Свайпай у 4 боки. Збери 2048! (на пк — стрілки)",all_games:"← Усі ігри",win:"🎉 2048! Зібрав!",dead:"💀 Глухий кут. Рахунок: "},
  ru:{rules_title:"🔢 2048 — правила",rules_body:"Свайпай в 4 стороны. Одинаковые плитки при столкновении сливаются в одну (2+2=4). Собери плитку <b>2048</b>. Игра кончается, когда ходов нет.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🔢 2048",score:"Счёт",best:"Рекорд",newbtn:"↻ Новая",again:"Ещё раз",hint:"Свайпай в 4 стороны. Собери 2048! (на компе — стрелки)",all_games:"← Все игры",win:"🎉 2048! Собрал!",dead:"💀 Тупик. Счёт: "},
- en:{rules_title:"🔢 2048 — rules",rules_body:"Swipe in 4 directions. Matching tiles merge on contact (2+2=4). Reach the <b>2048</b> tile. Game ends when there are no moves left.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🔢 2048",score:"Score",best:"Best",newbtn:"↻ New",again:"Again",hint:"Swipe in 4 directions. Reach 2048! (on PC — arrow keys)",all_games:"← All games",win:"🎉 2048! You made it!",dead:"💀 Stuck. Score: "}
+ en:{rules_title:"🔢 2048 — rules",rules_body:"Swipe in 4 directions. Matching tiles merge on contact (2+2=4). Reach the <b>2048</b> tile. Game ends when there are no moves left.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🔢 2048",score:"Score",best:"Best",newbtn:"↻ New",again:"Again",hint:"Swipe in 4 directions. Reach 2048! (on PC — arrow keys)",all_games:"← All games",win:"🎉 2048! You made it!",dead:"💀 Stuck. Score: "},
+  de: {
+    "rules_title": "🔢 2048 — Regeln",
+    "rules_body": "Wische in 4 Richtungen. Gleiche Kacheln verschmelzen bei Berührung (2+2=4). Erreiche die Kachel <b>2048</b>. Das Spiel endet, wenn keine Züge mehr möglich sind.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "title": "🔢 2048",
+    "score": "Punkte",
+    "best": "Rekord",
+    "newbtn": "↻ Neu",
+    "again": "Nochmal",
+    "hint": "Wische in 4 Richtungen. Erreiche 2048! (auf PC — Pfeiltasten)",
+    "all_games": "← Alle Spiele",
+    "win": "🎉 2048! Du hast es geschafft!",
+    "dead": "💀 Keine Züge mehr. Punkte: "
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}

@@ -41,6 +41,14 @@
       timeout: "No opponent found yet",
       bot: "🤖 Play with bot",
       retry: "🔄 Keep searching"
+    },
+    de: {
+      btn: "⚡ Schnellspiel",
+      searching: "Gegner wird gesucht…",
+      cancel: "Abbrechen",
+      timeout: "Noch kein Gegner gefunden",
+      bot: "🤖 Gegen Bot spielen",
+      retry: "🔄 Weitersuchen"
     }
   };
 
@@ -102,7 +110,7 @@
       return val.slice(0, 20);
     }
     var l = getLang();
-    return l === "uk" ? "Гравець" : (l === "en" ? "Player" : "Игрок");
+    return l === "uk" ? "Гравець" : (l === "en" ? "Player" : (l === "de" ? "Spieler" : "Игрок"));
   }
 
   function getSelectedBotDiff() {

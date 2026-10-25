@@ -57,7 +57,23 @@
 const UI={
  uk:{rules_title:"🐍 Змійка — правила",rules_body:"Керуй змійкою свайпами. Їж 🍎 — ростеш і набираєш очки. Врізався в себе чи стіну — кінець.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🐍 Змійка",score:"Рахунок",best:"Рекорд",slow:"Повільно",med:"Середньо",fast:"Швидко",again:"Ще раз",hint:"Свайпай, куди повзти. Їж 🍎, не врізайся в себе. (на пк — стрілки)",all_games:"← Усі ігри",over_score:"💀 Рахунок: "},
  ru:{rules_title:"🐍 Змейка — правила",rules_body:"Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя или стену — конец.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🐍 Змейка",score:"Счёт",best:"Рекорд",slow:"Медленно",med:"Средне",fast:"Быстро",again:"Ещё раз",hint:"Свайпай, куда ползти. Ешь 🍎, не врежься в себя. (на компе — стрелки)",all_games:"← Все игры",over_score:"💀 Счёт: "},
- en:{rules_title:"🐍 Snake — rules",rules_body:"Control the snake by swiping. Eat 🍎 to grow and score. Hit yourself or a wall — game over.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🐍 Snake",score:"Score",best:"Best",slow:"Slow",med:"Medium",fast:"Fast",again:"Again",hint:"Swipe where to go. Eat 🍎, don't hit yourself. (on PC — arrow keys)",all_games:"← All games",over_score:"💀 Score: "}
+ en:{rules_title:"🐍 Snake — rules",rules_body:"Control the snake by swiping. Eat 🍎 to grow and score. Hit yourself or a wall — game over.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🐍 Snake",score:"Score",best:"Best",slow:"Slow",med:"Medium",fast:"Fast",again:"Again",hint:"Swipe where to go. Eat 🍎, don't hit yourself. (on PC — arrow keys)",all_games:"← All games",over_score:"💀 Score: "},
+  de: {
+    "rules_title": "🐍 Snake — Regeln",
+    "rules_body": "Steuere die Schlange mit Wischgesten. Friss 🍎, um zu wachsen und Punkte zu sammeln. Kollision mit der Wand oder dir selbst — Spiel vorbei.",
+    "rules_ok": "Verstanden 👍",
+    "nav_games": "🎮 Spiele",
+    "title": "🐍 Snake",
+    "score": "Punkte",
+    "best": "Rekord",
+    "slow": "Langsam",
+    "med": "Mittel",
+    "fast": "Schnell",
+    "again": "Nochmal",
+    "hint": "Wische in die gewünschte Richtung. Friss 🍎, stoße nicht an. (auf PC — Pfeiltasten)",
+    "all_games": "← Alle Spiele",
+    "over_score": "💀 Punkte: "
+  }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
