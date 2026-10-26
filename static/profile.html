@@ -116,18 +116,18 @@
   <!-- SUPPORT INBOX (Admin Only) -->
   <div class="card hide" id="adminSupportInbox">
     <div class="sh" style="display:flex; justify-content:space-between; align-items:center">
-      <span>Support inbox</span>
+      <span data-i18n="sup_title">Support inbox</span>
       <span class="pc-badge" id="supportUnreadBadge" style="display:none">0</span>
     </div>
     
     <div style="display:flex; gap:8px; margin-bottom:12px">
-      <select id="supFilter" onchange="loadSupportTickets()" style="padding:6px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:8px; color:#fff">
-        <option value="">All</option>
-        <option value="new">New</option>
-        <option value="in_progress">In Progress</option>
-        <option value="done">Done</option>
+      <select id="supFilter" onchange="loadSupportTickets()" style="flex:1;min-width:0;padding:6px 30px 6px 10px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:8px; color:#fff">
+        <option value="" data-i18n="sup_all">All</option>
+        <option value="new" data-i18n="sup_new">New</option>
+        <option value="in_progress" data-i18n="sup_prog">In Progress</option>
+        <option value="done" data-i18n="sup_done">Done</option>
       </select>
-      <button class="sec btn-mini" onclick="loadSupportTickets()">Refresh</button>
+      <button class="sec btn-mini" style="flex-shrink:0;white-space:nowrap" onclick="loadSupportTickets()" data-i18n="sup_refresh">Refresh</button>
     </div>
     
     <div id="supportTicketsList" style="display:flex; flex-direction:column; gap:12px"></div>
@@ -139,6 +139,7 @@
 <script>
 const UI = {
   uk: {
+    sup_title:"Звернення в підтримку",sup_all:"Усі",sup_new:"Нові",sup_prog:"В роботі",sup_done:"Готово",sup_refresh:"Оновити",sup_note:"Нотатка адміна",sup_save:"Зберегти",sup_guest:"гість",sup_empty:"Звернень немає",cat_Bug:"Баг",cat_Complaint:"Скарга",cat_Idea:"Ідея",cat_Other:"Інше",
     "title": "Lobby.gg — Профіль",
     "nav_games": "← До ігор",
     "role_admin": "👑 адмін",
@@ -185,6 +186,7 @@ const UI = {
     "cancel_btn": "Скасувати"
   },
   ru: {
+    sup_title:"Обращения в поддержку",sup_all:"Все",sup_new:"Новые",sup_prog:"В работе",sup_done:"Готово",sup_refresh:"Обновить",sup_note:"Заметка админа",sup_save:"Сохранить",sup_guest:"гость",sup_empty:"Обращений нет",cat_Bug:"Баг",cat_Complaint:"Жалоба",cat_Idea:"Идея",cat_Other:"Другое",
     "title": "Lobby.gg — Профиль",
     "nav_games": "← К играм",
     "role_admin": "👑 админ",
@@ -231,6 +233,7 @@ const UI = {
     "cancel_btn": "Отмена"
   },
   en: {
+    sup_title:"Support inbox",sup_all:"All",sup_new:"New",sup_prog:"In progress",sup_done:"Done",sup_refresh:"Refresh",sup_note:"Admin note",sup_save:"Save",sup_guest:"guest",sup_empty:"No messages",cat_Bug:"Bug",cat_Complaint:"Complaint",cat_Idea:"Idea",cat_Other:"Other",
     "title": "Lobby.gg — Profile",
     "nav_games": "← Games",
     "role_admin": "👑 admin",
@@ -277,6 +280,7 @@ const UI = {
     "cancel_btn": "Cancel"
   },
   de: {
+    sup_title:"Support-Postfach",sup_all:"Alle",sup_new:"Neu",sup_prog:"In Arbeit",sup_done:"Erledigt",sup_refresh:"Aktualisieren",sup_note:"Admin-Notiz",sup_save:"Speichern",sup_guest:"Gast",sup_empty:"Keine Nachrichten",cat_Bug:"Fehler",cat_Complaint:"Beschwerde",cat_Idea:"Idee",cat_Other:"Sonstiges",
     "title": "Lobby.gg — Profil",
     "nav_games": "← Spiele",
     "role_admin": "👑 Admin",
@@ -465,39 +469,39 @@ async function loadSupportTickets() {
   list.innerHTML = '';
   
   if(!d.tickets.length) {
-    list.innerHTML = `<div class="empty">No tickets</div>`;
+    list.innerHTML = `<div class="empty">${esc(t('sup_empty'))}</div>`;
     return;
   }
   
-  d.tickets.forEach(t => {
+  d.tickets.forEach(tk => {
     const card = document.createElement('div');
     card.style.cssText = 'background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:12px; padding:12px';
     
     let stColor = '#555';
-    if(t.status === 'new') stColor = '#2fbf5f';
-    else if(t.status === 'in_progress') stColor = '#f59e0b';
+    if(tk.status === 'new') stColor = '#2fbf5f';
+    else if(tk.status === 'in_progress') stColor = '#f59e0b';
     
-    const ts = new Date(t.created_at).toLocaleString();
+    const ts = new Date(tk.created_at).toLocaleString(LANG === 'uk' ? 'uk-UA' : LANG);
     
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
         <div style="display:flex; gap:6px; align-items:center">
-          <span style="background:rgba(255,255,255,.1); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:800">${esc(t.category)}</span>
-          <span style="font-size:11px; color:var(--muted)">${esc(ts)} · ${esc(t.page)} / ${esc(t.lang)}</span>
+          <span style="background:rgba(255,255,255,.1); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:800">${esc(t('cat_' + tk.category) !== 'cat_' + tk.category ? t('cat_' + tk.category) : tk.category)}</span>
+          <span style="font-size:11px; color:var(--muted)">${esc(ts)} · ${esc(tk.page)} / ${esc(tk.lang)}</span>
         </div>
-        <span style="background:${stColor}; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800">${t.status}</span>
+        <span style="background:${stColor}; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800">${esc(t({new:'sup_new', in_progress:'sup_prog', done:'sup_done'}[tk.status] || tk.status))}</span>
       </div>
-      <div style="font-size:13px; font-weight:700; margin-bottom:4px">${esc(t.username || 'guest')} <span style="font-weight:400; color:var(--muted)">${esc(t.contact || '')}</span></div>
-      <div style="font-size:14px; margin-bottom:12px; white-space:pre-wrap; word-break:break-word">${esc(t.message)}</div>
+      <div style="font-size:13px; font-weight:700; margin-bottom:4px">${esc(tk.username || t('sup_guest'))} <span style="font-weight:400; color:var(--muted)">${esc(tk.contact || '')}</span></div>
+      <div style="font-size:14px; margin-bottom:12px; white-space:pre-wrap; word-break:break-word">${esc(tk.message)}</div>
       
       <div style="display:flex; gap:6px; margin-bottom:8px">
-        <input type="text" id="note_${t.id}" value="${esc(t.admin_note || '')}" placeholder="Admin note" style="flex:1; padding:6px; font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; color:#fff">
-        <button class="sec btn-mini" onclick="updateTicket(${t.id}, null, document.getElementById('note_${t.id}').value)">Save Note</button>
+        <input type="text" id="note_${tk.id}" value="${esc(tk.admin_note || '')}" placeholder="${esc(t('sup_note'))}" style="flex:1; padding:6px; font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; color:#fff">
+        <button class="sec btn-mini" onclick="updateTicket(${tk.id}, null, document.getElementById('note_${tk.id}').value)">${esc(t('sup_save'))}</button>
       </div>
       
       <div style="display:flex; gap:6px">
-        <button class="btn-mini" style="background:#f59e0b; color:#fff" onclick="updateTicket(${t.id}, 'in_progress', null)">In Progress</button>
-        <button class="btn-mini" style="background:#222; color:#fff" onclick="updateTicket(${t.id}, 'done', null)">Done</button>
+        <button class="btn-mini" style="background:#f59e0b; color:#fff" onclick="updateTicket(${tk.id}, 'in_progress', null)">${esc(t('sup_prog'))}</button>
+        <button class="btn-mini" style="background:#222; color:#fff" onclick="updateTicket(${tk.id}, 'done', null)">${esc(t('sup_done'))}</button>
       </div>
     `;
     list.appendChild(card);

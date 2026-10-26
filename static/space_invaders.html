@@ -567,6 +567,16 @@ document.addEventListener('DOMContentLoaded', applyUI);
             if(settings.stars) { for(let s of stars) { s.y += s.speed; if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; } } }
         }
 
+        // Спрайты пришельцев: кальмар, краб, осьминог; по два кадра
+        const ALIENS = [
+            [["....####....","...######...","..########..",".##..##..##.",".##########.","...#....#...","..#.##.##.#.",".#.#....#.#."],
+             ["....####....","...######...","..########..",".##..##..##.",".##########.","....#..#....","...#.##.#...","..#......#.."]],
+            [["..#......#..","...#....#...","..########..",".##.####.##.","############","#.########.#","#.#......#.#","...##..##..."],
+             ["..#......#..","#..#....#..#","#.########.#","###.####.###","############",".##########.","..#......#..",".#........#."]],
+            [["....####....",".##########.","############","###..##..###","############","...##..##...","..##.##.##..","##........##"],
+             ["....####....",".##########.","############","###..##..###","############","..###..###..",".##..##..##.","..##....##.."]]
+        ];
+
         function draw() {
             ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -634,13 +644,11 @@ document.addEventListener('DOMContentLoaded', applyUI);
                 ctx.fillStyle = e.color;
                 ctx.shadowBlur = 5;
                 ctx.shadowColor = e.color;
-                if (e.shape === 1) { // Diamond
-                    ctx.beginPath(); ctx.moveTo(0, -eh/2); ctx.lineTo(ew/2, 0); ctx.lineTo(0, eh/2); ctx.lineTo(-ew/2, 0); ctx.fill();
-                } else if (e.shape === 2) { // Hexagon
-                    ctx.beginPath(); ctx.moveTo(-ew/4, -eh/2); ctx.lineTo(ew/4, -eh/2); ctx.lineTo(ew/2, 0); ctx.lineTo(ew/4, eh/2); ctx.lineTo(-ew/4, eh/2); ctx.lineTo(-ew/2, 0); ctx.fill();
-                } else { // Spikey
-                    ctx.beginPath(); ctx.moveTo(0, -eh/2); ctx.lineTo(ew/4, -eh/4); ctx.lineTo(ew/2, 0); ctx.lineTo(ew/4, eh/4); ctx.lineTo(0, eh/2); ctx.lineTo(-ew/4, eh/4); ctx.lineTo(-ew/2, 0); ctx.lineTo(-ew/4, -eh/4); ctx.fill();
-                }
+                // Пиксельные пришельцы как в классике: 3 вида × 2 кадра анимации (сетка 12×8)
+                const sprite = ALIENS[e.shape === 1 ? 0 : e.shape === 2 ? 1 : 2][Math.floor(performance.now() / 450) % 2];
+                const px = ew / 12, py = eh / 8;
+                for (let r = 0; r < 8; r++) for (let c = 0; c < 12; c++)
+                    if (sprite[r][c] === '#') ctx.fillRect(-ew/2 + c*px, -eh/2 + r*py, px + 0.5, py + 0.5);
                 ctx.restore();
                 if (e.hp < e.maxHp) { ctx.fillStyle = '#333'; ctx.fillRect(e.x, e.y - 15, e.width, 4); ctx.fillStyle = '#0f0'; ctx.fillRect(e.x, e.y - 15, e.width * (e.hp / e.maxHp), 4); }
             }
