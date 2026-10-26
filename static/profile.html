@@ -9,17 +9,19 @@
 <style>
   body{display:flex;flex-direction:column;align-items:center;padding:12px;-webkit-user-select:none;user-select:none}
   .wrap{max-width:460px;width:100%}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
   .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
   .phead{display:flex;align-items:center;gap:14px}
   .avatar{width:66px;height:66px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
-  .phead .nm{font-size:20px;font-weight:800}
+  .phead .nm{font-size:20px;font-weight:800;word-break:break-word}
   .phead .role{font-size:12px;color:var(--muted)}
   .stats{display:flex;gap:8px;margin-top:12px}
-  .stat{flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:8px;text-align:center}
-  .stat .v{font-size:20px;font-weight:800}.stat .l{font-size:11px;color:var(--muted)}
+  .stat{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:10px;padding:8px 6px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stat .l{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sh{font-weight:800;color:var(--crimson);margin:2px 0 10px;font-size:15px}
   label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-  input{width:100%;box-sizing:border-box;margin:0}
+  input{width:100%;box-sizing:border-box;margin:0;text-align:left}
   .emoji-grid{display:flex;flex-wrap:wrap;gap:6px}
   .emo{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);
     display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
@@ -27,41 +29,46 @@
   .colors{display:flex;gap:8px;flex-wrap:wrap}
   .col{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent}
   .col.on{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.4)}
-  .toggle{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
-  .sw{width:48px;height:28px;border-radius:14px;background:#3a3d44;position:relative;cursor:pointer;transition:.2s}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+  .sw{width:48px;height:28px;border-radius:14px;background:#3a3d44;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
   .sw.on{background:#2fbf5f}.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
   .sw.on::after{left:23px}
-  .frow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .frow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
   .frow .fav{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-  .frow .fn{flex:1;font-weight:700}
-  .frow button{margin:0;padding:6px 12px;font-size:13px;width:auto}
-  .btn-mini{padding:6px 12px !important;font-size:13px !important;width:auto !important;margin:0 !important}
-  .backlink{display:inline-block;margin:6px 0 14px;color:var(--muted);text-decoration:none;font-size:14px}
+  .frow .fn{flex:1;min-width:90px;font-weight:700;word-break:break-word}
+  .frow button{margin:0;padding:6px 10px;font-size:12.5px;width:auto}
+  .btn-mini{padding:6px 10px !important;font-size:12.5px !important;width:auto !important;margin:0 !important}
+  .backlink{display:inline-flex;align-items:center;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:700;white-space:nowrap}
+  .backlink:hover{color:#fff}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--border);
-    padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;transition:.2s;z-index:50}
+    padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;transition:.2s;z-index:50;pointer-events:none;white-space:nowrap}
   .toast.show{opacity:1}
   .empty{color:var(--muted);font-size:13px;padding:8px 0}
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
-  @media (max-width:380px){
-    .langbar{gap:2px;padding:3px;right:10px !important}
-    .langbar button{padding:4px 7px;font-size:11px;letter-spacing:0}
-    .backlink{font-size:13px}
+  .langbar{display:flex;gap:2px;justify-content:center;margin:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:3px;width:max-content;flex-shrink:0}
+  .langbar button{width:auto;margin:0;border:0;background:transparent;box-shadow:none;color:var(--muted);font:inherit;font-weight:800;font-size:11px;padding:4px 8px;border-radius:999px;cursor:pointer;letter-spacing:.3px}
+  .langbar button::after{display:none}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 12px rgba(255,34,56,.4)}
+  @media (max-width:360px){
+    body{padding:10px 8px}
+    .card{padding:13px}
+    .langbar button{padding:3px 6px;font-size:10px;letter-spacing:0}
+    .backlink{font-size:12.5px}
   }
 </style>
 </head>
 <body>
-<div class="langbar" id="langbar" style="position:absolute;top:8px;right:15px;z-index:999;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="wrap">
-  <a class="backlink" href="/games/">← К играм</a>
+  <div class="topbar">
+    <a class="backlink" href="/games/" data-i18n="nav_games">← К играм</a>
+    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+  </div>
 
   <!-- ШАПКА ПРОФИЛЯ -->
   <div class="card">
     <div class="phead">
       <div class="avatar" id="pAvatar">🙂</div>
-      <div style="flex:1">
+      <div style="flex:1;min-width:0">
         <div class="nm" id="pName">—</div>
         <div class="role" id="pRole"></div>
       </div>
@@ -78,9 +85,9 @@
     <div class="sh" data-i18n="friends_title">👥 Друзья</div>
     <div id="incoming"></div>
     <div id="friends"></div>
-    <label>Найти игрока по нику</label>
+    <label data-i18n="search_lbl">Найти игрока по нику</label>
     <div style="display:flex;gap:8px">
-      <input id="search" placeholder="ник друга" oninput="doSearch()" style="flex:1">
+      <input id="search" placeholder="ник друга" data-i18n-ph="search_ph" oninput="doSearch()" style="flex:1">
     </div>
     <div id="searchRes"></div>
   </div>
@@ -89,65 +96,285 @@
   <div class="card">
     <div class="sh" data-i18n="settings_title">⚙️ Настройки профиля</div>
     <label data-i18n="name_lbl">Отображаемое имя</label>
-    <input id="dispName" maxlength="24" placeholder="как тебя видят">
+    <input id="dispName" maxlength="24" placeholder="как тебя видят" data-i18n-ph="name_ph">
     <label data-i18n="avatar_lbl">Аватар</label>
     <div class="emoji-grid" id="emojiGrid"></div>
     <label data-i18n="color_lbl">Цвет</label>
     <div class="colors" id="colorGrid"></div>
     <div class="toggle"><span data-i18n="sound_lbl">🔊 Звук в играх</span><div class="sw" id="soundSw" onclick="toggleSound()"></div></div>
-    <button onclick="saveProfile()" style="margin-top:14px">💾 Сохранить</button>
+    <button onclick="saveProfile()" style="margin-top:14px" data-i18n="save_btn">💾 Сохранить</button>
   </div>
 
   <!-- ПАРОЛЬ -->
   <div class="card">
     <div class="sh" data-i18n="pwd_title">🔒 Смена пароля</div>
-    <label>Старый пароль</label><input id="oldPw" type="password">
-    <label>Новый пароль</label><input id="newPw" type="password">
-    <button class="sec" onclick="changePw()" style="margin-top:12px">Обновить пароль</button>
+    <label data-i18n="pwd_old">Старый пароль</label><input id="oldPw" type="password" data-i18n-ph="pwd_old">
+    <label data-i18n="pwd_new">Новый пароль</label><input id="newPw" type="password" data-i18n-ph="pwd_new">
+    <button class="sec" onclick="changePw()" style="margin-top:12px" data-i18n="pwd_btn">Обновить пароль</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script>
-
-const UI = {"uk": {"title": "Lobby.gg — Профіль", "nav_games": "← До ігор", "played": "зіграно", "fav": "улюблена", "friends": "друзів", "friends_title": "👥 Друзі", "search_ph": "Знайти гравця за ніком", "settings_title": "⚙️ Налаштування профілю", "avatar_lbl": "Аватар", "color_lbl": "Колір", "name_lbl": "Відображуване ім'я", "sound_lbl": "🔊 Звук в іграх", "save_btn": "💾 Зберегти", "pwd_title": "🔒 Зміна пароля", "pwd_old": "Старий пароль", "pwd_new": "Новий пароль", "pwd_btn": "Оновити пароль", "toast_saved": "Збережено", "toast_pwd_ok": "Пароль оновлено", "toast_req": "Запит відправлено", "req_in": "хоче в друзі", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "у грі · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Покликати", "btn_remove": "прибрати", "empty_friends": "Поки немає друзів — знайди за ніком нижче 👇", "empty_search": "Нікого не знайшлося", "btn_add": "+ в друзі"}, "ru": {"title": "Lobby.gg — Профиль", "nav_games": "← К играм", "played": "сыграно", "fav": "любимая", "friends": "друзей", "friends_title": "👥 Друзья", "search_ph": "Найти игрока по нику", "settings_title": "⚙️ Настройки профиля", "avatar_lbl": "Аватар", "color_lbl": "Цвет", "name_lbl": "Отображаемое имя", "sound_lbl": "🔊 Звук в играх", "save_btn": "💾 Сохранить", "pwd_title": "🔒 Смена пароля", "pwd_old": "Старый пароль", "pwd_new": "Новий пароль", "pwd_btn": "Обновить пароль", "toast_saved": "Сохранено", "toast_pwd_ok": "Пароль обновлен", "toast_req": "Запрос отправлен", "req_in": "хочет в друзья", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "в игре · ", "status_online": "онлайн", "status_offline": "офлайн", "btn_invite": "🎮 Позвать", "btn_remove": "убрать", "empty_friends": "Пока нет друзей — найди по нику ниже 👇", "empty_search": "Никого не нашлось", "btn_add": "+ в друзья"}, "en": {"title": "Lobby.gg — Profile", "nav_games": "← To games", "played": "played", "fav": "favorite", "friends": "friends", "friends_title": "👥 Friends", "search_ph": "Find player by nickname", "settings_title": "⚙️ Profile Settings", "avatar_lbl": "Avatar", "color_lbl": "Color", "name_lbl": "Display Name", "sound_lbl": "🔊 Sound in games", "save_btn": "💾 Save", "pwd_title": "🔒 Change Password", "pwd_old": "Old password", "pwd_new": "New password", "pwd_btn": "Update password", "toast_saved": "Saved", "toast_pwd_ok": "Password updated", "toast_req": "Request sent", "req_in": "wants to be friends", "btn_accept": "✓", "btn_reject": "✕", "status_ingame": "in game · ", "status_online": "online", "status_offline": "offline", "btn_invite": "🎮 Invite", "btn_remove": "remove", "empty_friends": "No friends yet — find by nickname below 👇", "empty_search": "No one found", "btn_add": "+ Add friend"},
+const UI = {
+  uk: {
+    "title": "Lobby.gg — Профіль",
+    "nav_games": "← До ігор",
+    "role_admin": "👑 адмін",
+    "role_player": "гравець",
+    "played": "зіграно",
+    "fav": "улюблена",
+    "friends": "друзів",
+    "friends_title": "👥 Друзі",
+    "search_lbl": "Знайти гравця за ніком",
+    "search_ph": "нік друга",
+    "settings_title": "⚙️ Налаштування профілю",
+    "avatar_lbl": "Аватар",
+    "color_lbl": "Колір",
+    "name_lbl": "Відображуване ім'я",
+    "name_ph": "як тебе бачать",
+    "sound_lbl": "🔊 Звук в іграх",
+    "save_btn": "💾 Зберегти",
+    "pwd_title": "🔒 Зміна пароля",
+    "pwd_old": "Старий пароль",
+    "pwd_new": "Новий пароль",
+    "pwd_btn": "Оновити пароль",
+    "pwd_fill_both": "Заповни обидва поля",
+    "toast_saved": "Збережено ✓",
+    "toast_pwd_ok": "Пароль оновлено ✓",
+    "toast_req": "Заявку надіслано",
+    "toast_friends_now": "Тепер друзі! 🎉",
+    "toast_accepted": "Додано в друзі ✓",
+    "toast_rejected": "Відхилено",
+    "not_logged": "Не авторизовано",
+    "err_generic": "Помилка",
+    "req_in": "хоче в друзі",
+    "btn_accept": "✓",
+    "btn_reject": "✕",
+    "status_ingame": "у грі · ",
+    "status_online": "онлайн",
+    "status_offline": "офлайн",
+    "btn_invite": "🎮 Покликати",
+    "btn_remove": "прибрати",
+    "empty_friends": "Поки немає друзів — знайди за ніком нижче 👇",
+    "empty_search": "Нікого не знайшлося",
+    "btn_add": "+ у друзі",
+    "call_title": "🎮 Покликати",
+    "call_sub": "Обери гру — створю кімнату і надішлю запрошення.",
+    "cancel_btn": "Скасувати"
+  },
+  ru: {
+    "title": "Lobby.gg — Профиль",
+    "nav_games": "← К играм",
+    "role_admin": "👑 админ",
+    "role_player": "игрок",
+    "played": "сыграно",
+    "fav": "любимая",
+    "friends": "друзей",
+    "friends_title": "👥 Друзья",
+    "search_lbl": "Найти игрока по нику",
+    "search_ph": "ник друга",
+    "settings_title": "⚙️ Настройки профиля",
+    "avatar_lbl": "Аватар",
+    "color_lbl": "Цвет",
+    "name_lbl": "Отображаемое имя",
+    "name_ph": "как тебя видят",
+    "sound_lbl": "🔊 Звук в играх",
+    "save_btn": "💾 Сохранить",
+    "pwd_title": "🔒 Смена пароля",
+    "pwd_old": "Старый пароль",
+    "pwd_new": "Новый пароль",
+    "pwd_btn": "Обновить пароль",
+    "pwd_fill_both": "Заполни оба поля",
+    "toast_saved": "Сохранено ✓",
+    "toast_pwd_ok": "Пароль обновлён ✓",
+    "toast_req": "Заявка отправлена",
+    "toast_friends_now": "Теперь друзья! 🎉",
+    "toast_accepted": "Добавлен в друзья ✓",
+    "toast_rejected": "Отклонено",
+    "not_logged": "Не залогинен",
+    "err_generic": "Ошибка",
+    "req_in": "хочет в друзья",
+    "btn_accept": "✓",
+    "btn_reject": "✕",
+    "status_ingame": "в игре · ",
+    "status_online": "онлайн",
+    "status_offline": "офлайн",
+    "btn_invite": "🎮 Позвать",
+    "btn_remove": "убрать",
+    "empty_friends": "Пока нет друзей — найди по нику ниже 👇",
+    "empty_search": "Никого не нашлось",
+    "btn_add": "+ в друзья",
+    "call_title": "🎮 Позвать",
+    "call_sub": "Выбери игру — создам комнату и отправлю приглашение.",
+    "cancel_btn": "Отмена"
+  },
+  en: {
+    "title": "Lobby.gg — Profile",
+    "nav_games": "← Games",
+    "role_admin": "👑 admin",
+    "role_player": "player",
+    "played": "played",
+    "fav": "favorite",
+    "friends": "friends",
+    "friends_title": "👥 Friends",
+    "search_lbl": "Find player by username",
+    "search_ph": "friend's username",
+    "settings_title": "⚙️ Profile Settings",
+    "avatar_lbl": "Avatar",
+    "color_lbl": "Color",
+    "name_lbl": "Display name",
+    "name_ph": "how others see you",
+    "sound_lbl": "🔊 Sound in games",
+    "save_btn": "💾 Save",
+    "pwd_title": "🔒 Change password",
+    "pwd_old": "Current password",
+    "pwd_new": "New password",
+    "pwd_btn": "Update password",
+    "pwd_fill_both": "Fill in both fields",
+    "toast_saved": "Saved ✓",
+    "toast_pwd_ok": "Password updated ✓",
+    "toast_req": "Request sent",
+    "toast_friends_now": "Now friends! 🎉",
+    "toast_accepted": "Added to friends ✓",
+    "toast_rejected": "Declined",
+    "not_logged": "Not signed in",
+    "err_generic": "Error",
+    "req_in": "wants to be friends",
+    "btn_accept": "✓",
+    "btn_reject": "✕",
+    "status_ingame": "in game · ",
+    "status_online": "online",
+    "status_offline": "offline",
+    "btn_invite": "🎮 Invite",
+    "btn_remove": "remove",
+    "empty_friends": "No friends yet — search by username below 👇",
+    "empty_search": "Nobody found",
+    "btn_add": "+ Add",
+    "call_title": "🎮 Invite",
+    "call_sub": "Pick a game — a room will open and send the invite.",
+    "cancel_btn": "Cancel"
+  },
   de: {
     "title": "Lobby.gg — Profil",
-    "nav_games": "← Zu den Spielen",
+    "nav_games": "← Spiele",
+    "role_admin": "👑 Admin",
+    "role_player": "Spieler",
     "played": "gespielt",
-    "fav": "Lieblingsspiel",
+    "fav": "Favorit",
     "friends": "Freunde",
     "friends_title": "👥 Freunde",
-    "search_ph": "Spieler nach Spitznamen suchen",
+    "search_lbl": "Spieler über Nutzernamen finden",
+    "search_ph": "Name des Freundes",
     "settings_title": "⚙️ Profileinstellungen",
     "avatar_lbl": "Avatar",
     "color_lbl": "Farbe",
     "name_lbl": "Anzeigename",
+    "name_ph": "wie andere dich sehen",
     "sound_lbl": "🔊 Sound in Spielen",
     "save_btn": "💾 Speichern",
     "pwd_title": "🔒 Passwort ändern",
     "pwd_old": "Altes Passwort",
     "pwd_new": "Neues Passwort",
-    "pwd_btn": "Passwort aktualisieren",
-    "toast_saved": "Gespeichert",
-    "toast_pwd_ok": "Passwort aktualisiert",
+    "pwd_btn": "Passwort ändern",
+    "pwd_fill_both": "Bitte beide Felder ausfüllen",
+    "toast_saved": "Gespeichert ✓",
+    "toast_pwd_ok": "Passwort geändert ✓",
     "toast_req": "Anfrage gesendet",
-    "req_in": "wants to be friends",
+    "toast_friends_now": "Ihr seid jetzt Freunde! 🎉",
+    "toast_accepted": "Als Freund hinzugefügt ✓",
+    "toast_rejected": "Abgelehnt",
+    "not_logged": "Nicht angemeldet",
+    "err_generic": "Fehler",
+    "req_in": "möchte befreundet sein",
     "btn_accept": "✓",
     "btn_reject": "✕",
-    "status_ingame": "im Spiel · ",
+    "status_ingame": "spielt · ",
     "status_online": "online",
     "status_offline": "offline",
     "btn_invite": "🎮 Einladen",
     "btn_remove": "entfernen",
     "empty_friends": "Noch keine Freunde — suche unten nach Namen 👇",
     "empty_search": "Niemand gefunden",
-    "btn_add": "+ Als Freund hinzufügen"
+    "btn_add": "+ Freund",
+    "call_title": "🎮 Einladen",
+    "call_sub": "Wähle ein Spiel — ein Raum wird erstellt und die Einladung verschickt.",
+    "cancel_btn": "Abbrechen"
   }
 };
+
+const GAME_LABELS = {
+  uno: { uk: 'UNO', ru: 'UNO', en: 'UNO', de: 'UNO' },
+  c4: { uk: '4 в ряд', ru: '4 в ряд', en: 'Connect 4', de: '4 Gewinnt' },
+  c4_3d: { uk: '3D 4 в ряд', ru: '3D 4 в ряд', en: '3D Connect 4', de: '3D 4 Gewinnt' },
+  connect4_3d: { uk: '3D 4 в ряд', ru: '3D 4 в ряд', en: '3D Connect 4', de: '3D 4 Gewinnt' },
+  poker: { uk: 'Покер', ru: 'Покер', en: 'Poker', de: 'Poker' },
+  checkers: { uk: 'Шашки', ru: 'Шашки', en: 'Checkers', de: 'Dame' },
+  chess: { uk: 'Шахи', ru: 'Шахматы', en: 'Chess', de: 'Schach' },
+  bunker: { uk: 'Бункер', ru: 'Бункер', en: 'Bunker', de: 'Bunker' },
+  spy: { uk: 'Шпигун', ru: 'Шпион', en: 'Spyfall', de: 'Spion' },
+  alias: { uk: 'Еліас', ru: 'Элиас', en: 'Alias', de: 'Alias' },
+  durak: { uk: 'Дурень', ru: 'Дурак', en: 'Durak', de: 'Durak' },
+  battleship: { uk: 'Морський бій', ru: 'Морской бой', en: 'Battleship', de: 'Schiffe versenken' },
+  reversi: { uk: 'Реверсі', ru: 'Реверси', en: 'Reversi', de: 'Reversi' },
+  dots: { uk: 'Крапки', ru: 'Точки', en: 'Dots & Boxes', de: 'Käsekästchen' },
+  bulls: { uk: 'Бики', ru: 'Быки', en: 'Bulls & Cows', de: 'Bulls & Cows' },
+  guesswho: { uk: 'Хто я?', ru: 'Кто есть кто', en: 'Guess Who', de: 'Wer ist es?' },
+  mafia: { uk: 'Мафія', ru: 'Мафия', en: 'Mafia', de: 'Mafia' },
+  quoridor: { uk: 'Коридор', ru: 'Коридор', en: 'Quoridor', de: 'Quoridor' },
+  variants: { uk: 'Варіанти', ru: 'Варианты', en: 'Fibbage', de: 'Fibbage' },
+  arrows: { uk: 'Стрілки', ru: 'Стрелки', en: 'Arrows', de: 'Pfeile' },
+  g2048: { uk: '2048', ru: '2048', en: '2048', de: '2048' },
+  n2048: { uk: '2048', ru: '2048', en: '2048', de: '2048' },
+  snake: { uk: 'Змійка', ru: 'Змейка', en: 'Snake', de: 'Snake' },
+  fifteen: { uk: "П'ятнашки", ru: 'Пятнашки', en: '15 Puzzle', de: '15-Puzzle' },
+  mines: { uk: 'Сапер', ru: 'Сапёр', en: 'Minesweeper', de: 'Minesweeper' },
+  wordle: { uk: '5 букв', ru: '5 букв', en: 'Wordle', de: '5 Buchstaben' },
+  tetris: { uk: 'Тетріс', ru: 'Тетрис', en: 'Tetris', de: 'Tetris' },
+  race: { uk: 'Перегони', ru: 'Гонки', en: 'Race', de: 'Rennen' },
+  space_invaders: { uk: 'Космобій', ru: 'Космобой', en: 'Space Invaders', de: 'Space Invaders' }
+};
+
+const CALL_GAMES = [
+  ['spy', '🕵️'],
+  ['bunker', '🏠'],
+  ['alias', '💬'],
+  ['mafia', '🔪'],
+  ['quoridor', '🧱'],
+  ['durak', '🃏'],
+  ['uno', '🎴'],
+  ['c4', '🔴']
+];
+
+const EMOJIS=['🙂','😎','🐺','🦊','🐱','🐶','🦁','🐯','🐸','🐵','🦉','🦅','🐢','🐉','👾','🤖','👑','💀','🔥','⚡','🌟','🍀','🎮','🎯','🃏','🚀','🐧','🦈','🌚','🎭'];
+const COLORS=['#e0102e','#f59e0b','#22c55e','#3b82f6','#a04bf0','#2fd9d9','#ff6b9d','#94a3b8'];
+
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
+let prof = { avatar: '🙂', color: '#e0102e', sound: 1, display_name: '', username: '', role: '', stats: null };
+let friendsCache = null;
+let searchCache = null;
+let activeCallUser = null;
+let searchT = null;
+
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function srvErr(e) {
+  if (!e) return t('err_generic');
+  return (window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(e) : e;
+}
+function gameLabel(g) {
+  const m = GAME_LABELS[g];
+  return (m && (m[LANG] || m.ru)) || g;
+}
+
+function renderProfileMeta() {
+  if (!prof || !prof.username) return;
+  document.getElementById('pRole').textContent = (prof.role === 'root' ? t('role_admin') : t('role_player')) + ' · @' + prof.username;
+  const st = prof.stats || {};
+  document.getElementById('sFav').textContent = st.top_games && st.top_games[0] ? gameLabel(st.top_games[0][0]) : '—';
+}
+
 function applyUI() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -158,26 +385,13 @@ function applyUI() {
   });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-  
-  if(window.renderFriends) renderFriends();
-  if(window.renderSearch) renderSearch();
+  renderProfileMeta();
+  renderFriends();
+  renderSearch();
+  if (activeCallUser && document.getElementById('callModal')) callToGame(activeCallUser);
 }
-document.getElementById('langbar').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  LANG = b.dataset.lang;
-  localStorage.setItem('jg_lang', LANG);
-  applyUI();
-});
-// Язык применяем, когда весь скрипт страницы выполнен (раньше переменные игры ещё не объявлены)
-document.addEventListener('DOMContentLoaded', applyUI);
 
-
-const EMOJIS=['🙂','😎','🐺','🦊','🐱','🐶','🦁','🐯','🐸','🐵','🦉','🦅','🐢','🐉','👾','🤖','👑','💀','🔥','⚡','🌟','🍀','🎮','🎯','🃏','🚀','🐧','🦈','🌚','🎭'];
-const COLORS=['#e0102e','#f59e0b','#22c55e','#3b82f6','#a04bf0','#2fd9d9','#ff6b9d','#94a3b8'];
-let prof={avatar:'🙂',color:'#e0102e',sound:1,display_name:''};
-
-function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 async function jget(p){const r=await fetch('/games'+p,{credentials:'include'});return r.ok?r.json():null;}
 async function jpost(p,b){const r=await fetch('/games'+p,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?r.json():{ok:false};}
@@ -198,92 +412,116 @@ function syncPickers(){
 
 async function loadProfile(){
   const d=await jget('/me');
-  if(!d||!d.profile){toast('Не залогинен');return;}
+  if(!d||!d.profile){toast(t('not_logged'));return;}
   prof=Object.assign(prof,d.profile);
   document.getElementById('pName').textContent=prof.display_name;
-  document.getElementById('pRole').textContent=(prof.role==='root'?'👑 админ':'игрок')+' · @'+prof.username;
   document.getElementById('dispName').value=prof.display_name;
   document.getElementById('soundSw').classList.toggle('on',!!prof.sound);
   const st=d.profile.stats||{};
   document.getElementById('sPlayed').textContent=st.played||0;
-  document.getElementById('sFav').textContent=st.top_games&&st.top_games[0]?gameLabel(st.top_games[0][0]):'—';
+  renderProfileMeta();
   syncPickers();
 }
-const GL={uno:'UNO',c4:'4 в ряд',poker:'Покер',checkers:'Шашки',chess:'Шахматы',bunker:'Бункер',spy:'Шпион',alias:'Элиас',durak:'Дурак',battleship:'Морской бой',reversi:'Реверси',dots:'Точки',bulls:'Быки',guesswho:'Кто есть кто',mafia:'Мафия',arrows:'Стрелки',g2048:'2048',snake:'Змейка',fifteen:'Пятнашки',mines:'Сапёр',wordle:'5 букв'};
-function gameLabel(g){return GL[g]||g;}
 
-async function loadFriends(){
-  const d=await jget('/friends');if(!d)return;
+function renderFriends(){
+  const d = friendsCache;
+  if (!d) return;
   document.getElementById('sFriends').textContent=(d.friends||[]).length;
-  // входящие заявки
   document.getElementById('incoming').innerHTML=(d.incoming||[]).map(u=>
     `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
-      <div class="fn">${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">${t('req_in')}</div></div>
-      <button class="btn-mini" onclick="respond('${esc(u.username)}',true)">✓</button>
-      <button class="sec btn-mini" onclick="respond('${esc(u.username)}',false)">✕</button></div>`).join('');
-  // друзья (онлайн-статус + «позвать в игру»)
-  const fr=(d.friends||[]);
-  // онлайн сверху
+      <div class="fn">${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">${esc(t('req_in'))}</div></div>
+      <button class="btn-mini" onclick="respond('${esc(u.username)}',true)">${esc(t('btn_accept'))}</button>
+      <button class="sec btn-mini" onclick="respond('${esc(u.username)}',false)">${esc(t('btn_reject'))}</button></div>`).join('');
+  const fr = [...(d.friends||[])];
   fr.sort((a,b)=>(b.online?1:0)-(a.online?1:0));
   document.getElementById('friends').innerHTML=fr.length?fr.map(u=>{
     const dot=u.online?'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2fbf5f;margin-right:5px;box-shadow:0 0 6px #2fbf5f"></span>'
                       :'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:5px"></span>';
-    const status=u.online?(u.game?(t('status_ingame')+gName(u.game)):t('status_online')):t('status_offline');
+    const status=u.online?(u.game?(t('status_ingame')+gameLabel(u.game)):t('status_online')):t('status_offline');
     return `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
-      <div class="fn">${dot}${esc(u.display_name)}<div style="font-size:11px;color:${u.online?'#2fbf5f':'var(--muted)'}">${status}</div></div>
-      <button class="btn-mini" onclick="callToGame('${esc(u.username)}')">🎮 Позвать</button>
-      <button class="sec btn-mini" onclick="removeFriend('${esc(u.username)}')">убрать</button></div>`;}).join('')
-    :`<div class="empty">${t('empty_friends')}</div>`;
+      <div class="fn">${dot}${esc(u.display_name)}<div style="font-size:11px;color:${u.online?'#2fbf5f':'var(--muted)'}">${esc(status)}</div></div>
+      <button class="btn-mini" onclick="callToGame('${esc(u.username)}')">${esc(t('btn_invite'))}</button>
+      <button class="sec btn-mini" onclick="removeFriend('${esc(u.username)}')">${esc(t('btn_remove'))}</button></div>`;}).join('')
+    :`<div class="empty">${esc(t('empty_friends'))}</div>`;
 }
-// имя игры для статуса
-const GAME_NAMES={spy:'Шпион',bunker:'Бункер',alias:'Элиас',durak:'Дурак',uno:'UNO',mafia:'Мафия',
-  wordle:'5 букв',arrows:'Стрелки',n2048:'2048',snake:'Змейка',fifteen:'Пятнашки',mines:'Сапёр',
-  tetris:'Тетрис',race:'Гонки',c4:'4 в ряд'};
-function gName(g){return GAME_NAMES[g]||g;}
-// «позвать в игру»: выбрать игру → перейти в неё, invite.js авто-пригласит друга
-const CALL_GAMES=[['spy','🕵️ Шпион'],['bunker','🏠 Бункер'],['alias','💬 Элиас'],['mafia','🔪 Мафия'],
-  ['durak','🃏 Дурак'],['uno','🎴 UNO'],['c4','🔴 4 в ряд']];
+
+async function loadFriends(){
+  const d=await jget('/friends');
+  if(!d)return;
+  friendsCache=d;
+  renderFriends();
+}
+
+function closeCallModal(){
+  activeCallUser=null;
+  const m=document.getElementById('callModal');
+  if(m)m.remove();
+}
+
 function callToGame(user){
+  activeCallUser=user;
   let m=document.getElementById('callModal');
   if(!m){m=document.createElement('div');m.id='callModal';
     m.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    m.onclick=e=>{if(e.target===m)closeCallModal();};
     document.body.appendChild(m);}
-  m.innerHTML=`<div style="max-width:340px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px">
-    <div style="font-size:17px;font-weight:800;margin-bottom:4px">🎮 Позвать @${esc(user)}</div>
-    <div style="font-size:12px;color:#9a9aa4;margin-bottom:12px">${LANG==='uk'?'Вибери гру — створю кімнату і відправлю запрошення.':(LANG==='en'?'Choose a game — I will create a room and send an invite.':'Выбери игру — создам комнату и отправлю приглашение.')}</div>
-    ${CALL_GAMES.map(([g,n])=>`<button class="btn-mini" style="width:100%;text-align:left;margin:5px 0;padding:11px 13px" onclick="location.href='/games/${g}?invite=${encodeURIComponent(user)}'">${n}</button>`).join('')}
-    <button class="sec btn-mini" style="width:100%;margin-top:8px" onclick="document.getElementById('callModal').remove()">${LANG==='uk'?'Скасувати':(LANG==='en'?'Cancel':'Отмена')}</button></div>`;
+  m.innerHTML=`<div style="max-width:340px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;max-height:85vh;overflow-y:auto">
+    <div style="font-size:17px;font-weight:800;margin-bottom:4px">${esc(t('call_title'))} @${esc(user)}</div>
+    <div style="font-size:12px;color:#9a9aa4;margin-bottom:12px">${esc(t('call_sub'))}</div>
+    ${CALL_GAMES.map(([g,ico])=>`<button class="btn-mini" style="width:100% !important;text-align:left;margin:5px 0 !important;padding:11px 13px !important" onclick="location.href='/games/${g}?invite=${encodeURIComponent(user)}'">${ico} ${esc(gameLabel(g))}</button>`).join('')}
+    <button class="sec btn-mini" style="width:100% !important;margin-top:8px !important" onclick="closeCallModal()">${esc(t('cancel_btn'))}</button></div>`;
   m.style.display='flex';
 }
-let searchT=null;
-function doSearch(){clearTimeout(searchT);searchT=setTimeout(async()=>{
+
+function renderSearch(){
   const q=document.getElementById('search').value.trim();
-  if(!q){document.getElementById('searchRes').innerHTML='';return;}
-  const d=await jget('/users/search?q='+encodeURIComponent(q));
-  document.getElementById('searchRes').innerHTML=(d.users||[]).map(u=>
+  if(!q || !searchCache){document.getElementById('searchRes').innerHTML='';return;}
+  document.getElementById('searchRes').innerHTML=(searchCache||[]).map(u=>
     `<div class="frow"><div class="fav" style="background:${u.color}">${u.avatar}</div>
       <div class="fn">${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">@${esc(u.username)}</div></div>
-      <button class="btn-mini" onclick="addFriend('${esc(u.username)}')">+ в друзья</button></div>`).join('')
-    ||`<div class="empty">${t('empty_search')}</div>`;
+      <button class="btn-mini" onclick="addFriend('${esc(u.username)}')">${esc(t('btn_add'))}</button></div>`).join('')
+    ||`<div class="empty">${esc(t('empty_search'))}</div>`;
+}
+
+function doSearch(){clearTimeout(searchT);searchT=setTimeout(async()=>{
+  const q=document.getElementById('search').value.trim();
+  if(!q){searchCache=null;document.getElementById('searchRes').innerHTML='';return;}
+  const d=await jget('/users/search?q='+encodeURIComponent(q));
+  searchCache=(d&&d.users)||[];
+  renderSearch();
 },300);}
+
 async function addFriend(u){const r=await jpost('/friends/request',{to:u});
-  toast(r.ok?(r.accepted?'Теперь друзья! 🎉':'Заявка отправлена'):(r.error||'Ошибка'));loadFriends();}
-async function respond(u,ok){await jpost('/friends/respond',{from:u,accept:ok});toast(ok?'Добавлен в друзья':'Отклонено');loadFriends();}
+  toast(r.ok?(r.accepted?t('toast_friends_now'):t('toast_req')):srvErr(r.error));loadFriends();}
+async function respond(u,ok){await jpost('/friends/respond',{from:u,accept:ok});toast(ok?t('toast_accepted'):t('toast_rejected'));loadFriends();}
 async function removeFriend(u){await jpost('/friends/remove',{user:u});loadFriends();}
 
 async function saveProfile(){
   prof.display_name=document.getElementById('dispName').value.trim()||prof.username;
   const r=await jpost('/me',{display_name:prof.display_name,avatar:prof.avatar,color:prof.color,sound:!!prof.sound});
-  if(r.ok){toast('Сохранено ✓');document.getElementById('pName').textContent=prof.display_name;}else toast('Ошибка');
+  if(r.ok){toast(t('toast_saved'));document.getElementById('pName').textContent=prof.display_name;}else toast(srvErr(r.error));
 }
 async function changePw(){
   const o=document.getElementById('oldPw').value,n=document.getElementById('newPw').value;
-  if(!o||!n)return toast('Заполни оба поля');
+  if(!o||!n)return toast(t('pwd_fill_both'));
   const r=await jpost('/me/password',{old:o,new:n});
-  if(r.ok){toast('Пароль обновлён ✓');document.getElementById('oldPw').value='';document.getElementById('newPw').value='';}
-  else toast(r.error||'Ошибка');
+  if(r.ok){toast(t('toast_pwd_ok'));document.getElementById('oldPw').value='';document.getElementById('newPw').value='';}
+  else toast(srvErr(r.error));
 }
-buildPickers();loadProfile();loadFriends();
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    applyUI();
+  });
+  buildPickers();
+  applyUI();
+  loadProfile();
+  loadFriends();
+});
 </script>
 <script src="/games/static/sfx.js"></script>
 </body>

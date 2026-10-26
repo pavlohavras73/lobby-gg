@@ -246,14 +246,14 @@ LOGIN_PAGE = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 </style></head><body>
 <header class="top">
   <a class="brand" href="/games/login" aria-label="Lobby.gg"><svg class="lgg-mark" viewBox="0 0 64 64"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4a5c"/><stop offset=".55" stop-color="#ff2238"/><stop offset="1" stop-color="#a50c1e"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#lg1)"/><path d="M23 17v25h15" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="46.5" cy="42" r="4.6" fill="#fff"/></svg><span class="lgg-word">Lobby<i>.gg</i></span></a>
-  <div class="langbar" id="langbar"><button type="button" data-lang="uk">UA</button><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button></div>
+  <div class="langbar" id="langbar"><button type="button" data-lang="uk">UA</button><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="de">DE</button></div>
 </header>
 <main class="split">
   <section>
     <div class="eyebrow"><span class="live"></span><span data-i18n="eyebrow">Real-time multiplayer · right in your browser</span></div>
     <h1 class="h" style="text-align:left;text-shadow:none"><span data-i18n="h1a">Party games with friends.</span><span class="grad" data-i18n="h1b">No installs — just a link.</span></h1>
     <p class="lead" data-i18n="lead">Create a room, share the 4-letter code, and everyone joins from their own phone.</p>
-    <div class="feats"><span data-i18n="f1">🎮 30+ games</span><span data-i18n="f2">⚡ Live WebSocket rooms</span><span data-i18n="f3">🤖 Bots fill empty seats</span><span>🌐 UA · RU · EN</span></div>
+    <div class="feats"><span data-i18n="f1">🎮 30+ games</span><span data-i18n="f2">⚡ Live WebSocket rooms</span><span data-i18n="f3">🤖 Bots fill empty seats</span><span>🌐 UA · RU · EN · DE</span></div>
   </section>
   <div class="card auth">
     <h2 data-i18n="welcome">Welcome to the lobby</h2>
@@ -294,19 +294,25 @@ var L10N={
   welcome:"Welcome to the lobby",sub:"Sign in or create an account to play with friends",t_login:"Sign in",t_reg:"Sign up",
   ph_user:"Username",ph_pass:"Password",b_login:"Sign in →",ph_user2:"Pick a username",ph_pass2:"Pick a password",
   b_reg:"Create account →",hint:"Username: 3–20 latin letters, digits or _",built_by:"Built by",
-  e_login:"Sign-in failed",e_reg:"Sign-up failed"}
+  e_login:"Sign-in failed",e_reg:"Sign-up failed"},
+ de:{eyebrow:"Echtzeit-Multiplayer · direkt im Browser",h1a:"Partyspiele mit Freunden.",h1b:"Kein Download — einfach per Link.",
+  lead:"Erstelle einen Raum, teile den 4-stelligen Code — und alle spielen direkt vom Handy mit.",f1:"🎮 30+ Spiele",f2:"⚡ Live-Räume in Echtzeit",f3:"🤖 Bots füllen freie Plätze",
+  welcome:"Willkommen in der Lobby",sub:"Melde dich an oder erstelle ein Konto, um mit Freunden zu spielen",t_login:"Anmelden",t_reg:"Registrieren",
+  ph_user:"Benutzername",ph_pass:"Passwort",b_login:"Anmelden →",ph_user2:"Benutzername wählen",ph_pass2:"Passwort wählen",
+  b_reg:"Konto erstellen →",hint:"Name: 3–20 Zeichen — Latein, Ziffern oder _",built_by:"Entwickelt von",
+  e_login:"Anmeldung fehlgeschlagen",e_reg:"Registrierung fehlgeschlagen"}
 };
 /* серверные ошибки приходят по-русски — переводим на лету */
 var SERR={
- "Неверное имя или пароль":{uk:"Невірне ім'я або пароль",en:"Wrong username or password"},
- "Это имя уже занято":{uk:"Це ім'я вже зайняте",en:"This username is taken"},
- "Имя: 3-20 симв., латиница/цифры/_":{uk:"Ім'я: 3-20 симв., латиниця/цифри/_",en:"Username: 3-20 chars, latin/digits/_"},
- "Пароль минимум 4 символа":{uk:"Пароль мінімум 4 символи",en:"Password must be at least 4 characters"},
- "Пароль минимум 6 символов":{uk:"Пароль мінімум 6 символів",en:"Password must be at least 6 characters"},
- "Слишком много попыток, подождите":{uk:"Забагато спроб, зачекайте",en:"Too many attempts, please wait"}
+ "Неверное имя или пароль":{uk:"Невірне ім'я або пароль",en:"Wrong username or password",de:"Falscher Benutzername oder Passwort"},
+ "Это имя уже занято":{uk:"Це ім'я вже зайняте",en:"This username is taken",de:"Dieser Name ist bereits vergeben"},
+ "Имя: 3-20 симв., латиница/цифры/_":{uk:"Ім'я: 3-20 симв., латиниця/цифри/_",en:"Username: 3-20 chars, latin/digits/_",de:"Name: 3–20 Zeichen, Latein/Ziffern/_"},
+ "Пароль минимум 4 символа":{uk:"Пароль мінімум 4 символи",en:"Password must be at least 4 characters",de:"Passwort mindestens 4 Zeichen"},
+ "Пароль минимум 6 символов":{uk:"Пароль мінімум 6 символів",en:"Password must be at least 6 characters",de:"Passwort mindestens 6 Zeichen"},
+ "Слишком много попыток, подождите":{uk:"Забагато спроб, зачекайте",en:"Too many attempts, please wait",de:"Zu viele Versuche, bitte warten"}
 };
 var LANG=null; try{LANG=localStorage.getItem('jg_lang');}catch(e){}
-if(!L10N[LANG]){var nl=(navigator.language||'en').slice(0,2).toLowerCase();LANG=nl==='uk'?'uk':(nl==='ru'?'ru':'en');}
+if(!L10N[LANG]){var nl=(navigator.language||'en').slice(0,2).toLowerCase();LANG=nl==='uk'?'uk':(nl==='ru'?'ru':(nl==='de'?'de':'en'));}
 function tr(k){return (L10N[LANG]&&L10N[LANG][k])||L10N.en[k]||k;}
 function serr(s,fb){if(!s)return tr(fb);if(LANG==='ru')return s;var m=SERR[s];return (m&&m[LANG])||s;}
 function applyL(){

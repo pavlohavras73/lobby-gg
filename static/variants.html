@@ -7,74 +7,123 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
-  body { display:flex; flex-direction:column; min-height:100vh; padding:15px; }
-  .screen { display:none; flex-direction:column; gap:15px; width:100%; max-width:480px; margin:0 auto; animation:fadeIn 0.3s; }
+  body { display:flex; flex-direction:column; min-height:100vh; padding:12px; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; max-width:480px; margin:0 auto 10px; }
+  .nav-pill { background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; }
+  .nav-pill:hover { border-color:var(--crimson); color:#fff; }
+  .conn-status { text-align:center; font-size:12px; color:var(--muted); margin-bottom:8px; }
+  .screen { display:none; flex-direction:column; gap:14px; width:100%; max-width:480px; margin:0 auto; animation:fadeIn 0.3s; }
   .screen.active { display:flex; }
-  
-  .card { background:linear-gradient(180deg,rgba(38,38,44,.8),rgba(20,20,26,.8)); padding:20px; border-radius:20px; border:1px solid var(--border); box-shadow:var(--inner), 0 10px 20px rgba(0,0,0,.5); }
-  h2 { font-size:24px; color:#ff6a7a; text-shadow:0 0 15px rgba(255,34,56,.4); text-align:center; margin-bottom:15px; }
-  
-  .cat-btn { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:12px; border-radius:12px; color:#fff; font-size:16px; font-weight:600; text-align:center; transition:.2s; cursor:pointer; }
-  .cat-btn.selected { background:rgba(255,34,56,.2); border-color:#ff6a7a; box-shadow:0 0 15px rgba(255,34,56,.4); }
-  .cats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
-  
-  .prompt-box { font-size:20px; line-height:1.5; font-weight:700; text-align:center; background:rgba(0,0,0,.3); padding:20px; border-radius:16px; border:1px solid rgba(255,34,56,.3); margin-bottom:20px; }
+
+  .card { background:linear-gradient(180deg,rgba(38,38,44,.82),rgba(20,20,26,.86)); padding:18px; border-radius:20px; border:1px solid var(--border); box-shadow:var(--inner), 0 10px 20px rgba(0,0,0,.5); margin:0; }
+  h2 { font-size:22px; color:#ff6a7a; text-shadow:0 0 15px rgba(255,34,56,.4); text-align:center; margin-bottom:12px; }
+
+  .cat-btn { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:11px 8px; border-radius:12px; color:#fff; font-size:14px; font-weight:700; text-align:center; transition:.2s; cursor:pointer; display:flex; align-items:center; justify-content:center; word-break:break-word; }
+  .cat-btn.selected { background:rgba(255,34,56,.2); border-color:var(--crimson); box-shadow:0 0 15px rgba(255,34,56,.38); }
+  .cats-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:18px; }
+
+  /* Слайдер раундов в стиле сайта (красный акцент + тёмный трек) */
+  .rounds-box { margin-bottom:18px; text-align:center; background:rgba(0,0,0,.28); border:1px solid var(--border); border-radius:14px; padding:12px 14px; }
+  .rounds-label { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:13.5px; font-weight:600; margin-bottom:10px; }
+  .rounds-badge { background:rgba(255,34,56,.18); border:1px solid rgba(255,34,56,.45); color:#fff; font-weight:800; font-size:13px; padding:2px 10px; border-radius:999px; min-width:34px; text-align:center; }
+  input[type="range"].crimson-range {
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:8px; padding:0; margin:4px 0;
+    border-radius:999px; border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(90deg, var(--crimson) 0%, var(--crimson) var(--pct, 16.6%), rgba(255,255,255,.08) var(--pct, 16.6%), rgba(255,255,255,.08) 100%);
+    accent-color:var(--crimson); outline:none; cursor:pointer; box-shadow:none;
+  }
+  input[type="range"].crimson-range:focus { box-shadow:0 0 0 3px rgba(255,34,56,.2); }
+  input[type="range"].crimson-range::-webkit-slider-thumb {
+    -webkit-appearance:none; appearance:none;
+    width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(135deg,#ff4a5c,var(--crimson));
+    border:2px solid #fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.6), 0 0 14px var(--crimson-glow);
+    cursor:pointer; transition:transform .12s;
+  }
+  input[type="range"].crimson-range::-webkit-slider-thumb:active { transform:scale(1.12); }
+  input[type="range"].crimson-range::-moz-range-thumb {
+    width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(135deg,#ff4a5c,var(--crimson));
+    border:2px solid #fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.6), 0 0 14px var(--crimson-glow);
+    cursor:pointer;
+  }
+  input[type="range"].crimson-range::-moz-range-track {
+    height:8px; border-radius:999px; background:transparent;
+  }
+
+  .prompt-box { font-size:18px; line-height:1.5; font-weight:700; text-align:center; background:rgba(0,0,0,.3); padding:18px; border-radius:16px; border:1px solid rgba(255,34,56,.3); margin-bottom:18px; }
   .prompt-box span.blank { color:#ff6a7a; text-decoration:underline; text-underline-offset:4px; }
-  
-  .input-field { width:100%; background:rgba(0,0,0,.4); border:1px solid var(--border); padding:15px; border-radius:12px; color:#fff; font-size:18px; text-align:center; margin-bottom:15px; outline:none; transition:.2s; }
+
+  .input-field { width:100%; background:rgba(0,0,0,.4); border:1px solid var(--border); padding:14px; border-radius:12px; color:#fff; font-size:17px; text-align:center; margin-bottom:14px; outline:none; transition:.2s; }
   .input-field:focus { border-color:#ff6a7a; box-shadow:0 0 15px rgba(255,34,56,.4); }
-  
-  .ans-btn { background:linear-gradient(180deg,rgba(40,40,48,.8),rgba(25,25,30,.8)); border:1px solid var(--border); padding:16px; border-radius:16px; color:#fff; font-size:18px; font-weight:700; text-align:center; margin-bottom:10px; transition:.2s; cursor:pointer; width:100%; }
+
+  .ans-btn { background:linear-gradient(180deg,rgba(40,40,48,.8),rgba(25,25,30,.8)); border:1px solid var(--border); padding:15px; border-radius:16px; color:#fff; font-size:17px; font-weight:700; text-align:center; margin-bottom:10px; transition:.2s; cursor:pointer; width:100%; word-break:break-word; }
   .ans-btn:active { transform:scale(0.97); }
   .ans-btn.voted { background:rgba(255,34,56,.3); border-color:#ff6a7a; }
-  
-  .result-item { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:15px; border-radius:16px; margin-bottom:12px; }
+
+  .result-item { background:rgba(255,255,255,.05); border:1px solid var(--border); padding:14px; border-radius:16px; margin-bottom:12px; }
   .result-item.correct { border-color:#2ecc71; box-shadow:0 0 20px rgba(46,204,113,.2); background:rgba(46,204,113,.1); }
-  .result-item .ans-text { font-size:20px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; }
-  .result-item .ans-author { font-size:14px; color:var(--muted); margin-bottom:10px; }
+  .result-item .ans-text { font-size:18px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .result-item .ans-author { font-size:13.5px; color:var(--muted); margin-bottom:10px; }
   .voter-chip { display:inline-block; background:rgba(255,255,255,.1); padding:4px 8px; border-radius:8px; font-size:13px; margin:2px; }
   .voter-chip.penalty { color:#ff4757; }
   .voter-chip.bonus { color:#2ecc71; }
-  
-  .leaderboard { margin-top:20px; }
-  .lb-row { display:flex; justify-content:space-between; background:rgba(0,0,0,.3); padding:12px; border-radius:12px; margin-bottom:8px; font-weight:700; }
-  
-  .explanation { font-size:15px; color:#aaa; font-style:italic; text-align:center; margin-top:10px; padding:15px; border-left:3px solid #ff6a7a; background:rgba(255,34,56,.05); }
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  .leaderboard { margin-top:18px; }
+  .lb-row { display:flex; justify-content:space-between; align-items:center; gap:8px; background:rgba(0,0,0,.3); padding:12px; border-radius:12px; margin-bottom:8px; font-weight:700; }
+
+  .explanation { font-size:14.5px; color:#aaa; font-style:italic; text-align:center; margin-top:10px; padding:14px; border-left:3px solid #ff6a7a; background:rgba(255,34,56,.05); border-radius:0 12px 12px 0; }
+
+  .langbar { display:flex; gap:2px; justify-content:center; margin:0; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:999px; padding:3px; width:max-content; }
+  .langbar button { width:auto; margin:0; border:0; background:transparent; box-shadow:none; color:var(--muted); font:inherit; font-weight:800; font-size:11px; padding:4px 8px; border-radius:999px; cursor:pointer; letter-spacing:.3px; }
+  .langbar button::after { display:none; }
+  .langbar button.active { background:var(--crimson); color:#fff; box-shadow:0 0 12px rgba(255,34,56,.4); }
+  @media (max-width:350px) {
+    body { padding:10px 8px; }
+    .card { padding:14px; }
+    .cat-btn { font-size:13px; padding:10px 6px; }
+    .langbar button { padding:3px 6px; font-size:10px; }
+  }
 </style>
 </head>
 <body>
-<div id="connectionStatus" class="conn-status">Подключение...</div>
+<div class="topbar">
+  <a href="/games/" class="nav-pill" data-i18n="nav_games">🎮 Игры</a>
+  <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+</div>
+<div id="connectionStatus" class="conn-status" data-i18n="connecting">Подключение...</div>
 
 <!-- LOBBY -->
 <div id="screen-lobby" class="screen">
   <div class="card">
     <h2 data-i18n="lobby_title">Аукцион Лжи</h2>
-    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-    <div style="font-size:14px; color:#aaa; text-align:center; margin-bottom:20px;" data-i18n="lobby_sub">Генерируем бредовые факты через Gemini. Выбирайте темы:</div>
+    <div style="font-size:13.5px; color:#aaa; text-align:center; margin-bottom:16px;" data-i18n="lobby_sub">Генерируем безумные факты. Выбирай темы:</div>
     <div class="cats-grid" id="catsGrid">
-      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_classic">Классика</div>
-      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_history">История</div>
-      <div class="cat-btn" onclick="toggleCat(this)">Dota 2</div>
-      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_absurd">Абсурдные законы</div>
-      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_movies">Кино и сериалы</div>
-      <div class="cat-btn" onclick="toggleCat(this)" data-i18n="cat_anime">Аниме</div>
+      <div class="cat-btn" data-cat="Классика" onclick="toggleCat(this)" data-i18n="cat_classic">Классика</div>
+      <div class="cat-btn" data-cat="История" onclick="toggleCat(this)" data-i18n="cat_history">История</div>
+      <div class="cat-btn" data-cat="Dota 2" onclick="toggleCat(this)">Dota 2</div>
+      <div class="cat-btn" data-cat="Абсурдные законы" onclick="toggleCat(this)" data-i18n="cat_absurd">Абсурдные законы</div>
+      <div class="cat-btn" data-cat="Кино и сериалы" onclick="toggleCat(this)" data-i18n="cat_movies">Кино и сериалы</div>
+      <div class="cat-btn" data-cat="Аниме" onclick="toggleCat(this)" data-i18n="cat_anime">Аниме</div>
     </div>
-    
-    <div id="roundsSelector" style="display:none; margin-bottom:20px; text-align:center;">
-      <label style="color:var(--muted); font-size:14px;">Количество раундов: <span id="roundsDisplay" style="color:#fff;font-weight:bold;">5</span></label><br>
-      <input type="range" id="roundsInput" min="3" max="15" value="5" oninput="updateRounds()" style="width:100%; margin-top:10px;">
+
+    <div id="roundsSelector" class="rounds-box" style="display:none;">
+      <label class="rounds-label" for="roundsInput">
+        <span data-i18n="rounds_lbl">Количество раундов:</span>
+        <span id="roundsDisplay" class="rounds-badge">5</span>
+      </label>
+      <input type="range" id="roundsInput" class="crimson-range" min="3" max="15" value="5" oninput="updateRounds()">
     </div>
-    
-    <button class="btn" id="btnStart" onclick="startRound()" style="display:none;width:100%;">Начать игру</button>
-    <div id="waitHost" style="text-align:center; color:var(--muted);">Ждём хоста...</div>
+
+    <button class="btn" id="btnStart" onclick="startRound()" style="display:none;width:100%;" data-i18n="start_btn">Начать игру</button>
+    <div id="waitHost" style="text-align:center; color:var(--muted);" data-i18n="host_wait">Ждём хоста...</div>
   </div>
-  
+
   <div class="card">
-    <h3 style="text-align:center;margin-bottom:10px;">Игроки</h3>
+    <h3 style="text-align:center;margin-bottom:10px;" data-i18n="players_lbl">Игроки</h3>
     <div id="lobbyPlayers"></div>
   </div>
 </div>
@@ -83,15 +132,15 @@
 <div id="screen-input" class="screen">
   <div class="card">
     <h2 data-i18n="round_title">Раунд <span id="roundNum"></span>/<span id="totalRounds"></span></h2>
-    <div class="prompt-box" id="promptText">В 1923 году мэр запретил <span class="blank">_____</span>, чтобы снизить преступность.</div>
-    
+    <div class="prompt-box" id="promptText"></div>
+
     <div id="inputBox">
       <div style="text-align:center; margin-bottom:10px; font-size:14px; color:#aaa;" data-i18n="input_sub">Придумай самую правдоподобную ложь:</div>
       <input type="text" id="bluffInput" class="input-field" placeholder="Твоя версия..." data-i18n-ph="input_ph">
-      <button class="btn" onclick="submitBluff()" style="width:100%;">Обмануть всех</button>
+      <button class="btn" onclick="submitBluff()" style="width:100%;" data-i18n="bluff_btn">Обмануть всех</button>
     </div>
-    <div id="waitInput" style="display:none; text-align:center; color:var(--muted); font-size:18px; padding:20px;">
-      Ложь отправлена. Ждем остальных...<br><br>
+    <div id="waitInput" style="display:none; text-align:center; color:var(--muted); font-size:16px; padding:16px;">
+      <span data-i18n="wait_others">Ложь отправлена. Ждём остальных...</span><br><br>
       <div id="inputPlayersStatus" style="font-size:14px;"></div>
     </div>
   </div>
@@ -102,8 +151,8 @@
   <div class="card">
     <h2 data-i18n="vote_title">Голосование</h2>
     <div class="prompt-box" id="promptTextVote" style="font-size:16px;"></div>
-    <div style="text-align:center; margin-bottom:15px; color:#aaa;" data-i18n="vote_sub">Где правда? Найди правильный ответ и не попадись на уловку!</div>
-    
+    <div style="text-align:center; margin-bottom:15px; color:#aaa; font-size:14px;" data-i18n="vote_sub">Где правда? Найди правильный ответ и не попадись на уловку!</div>
+
     <div id="answersList"></div>
     <div id="waitVote" style="display:none; text-align:center; color:var(--muted); margin-top:20px;" data-i18n="wait_vote">Ждём остальных...</div>
   </div>
@@ -115,11 +164,11 @@
     <h2 data-i18n="res_title">Итоги раунда</h2>
     <div id="resultsList"></div>
     <div class="explanation" id="explanationText"></div>
-    
+
     <div class="leaderboard" id="roundScores"></div>
-    
-    <button class="btn" id="btnNext" onclick="nextRound()" style="display:none;width:100%;margin-top:20px;">Следующий раунд</button>
-    <div id="waitNextHost" style="text-align:center; color:var(--muted); margin-top:20px;">Хост изучает результаты...</div>
+
+    <button class="btn" id="btnNext" onclick="nextRound()" style="display:none;width:100%;margin-top:20px;" data-i18n="next_round">Следующий раунд</button>
+    <div id="waitNextHost" style="text-align:center; color:var(--muted); margin-top:20px;" data-i18n="host_study">Хост изучает результаты...</div>
   </div>
 </div>
 
@@ -129,289 +178,767 @@
     <h1 style="font-size:40px;margin-bottom:10px;">🏆</h1>
     <h2 data-i18n="over_title">Игра окончена!</h2>
     <div id="finalLeaderboard"></div>
-    <button class="btn" onclick="location.href='/games/'" style="width:100%;margin-top:20px;background:#444;" data-i18n="menu_btn">В меню</button>
+    <button class="btn sec" onclick="location.href='/games/'" style="width:100%;margin-top:20px;" data-i18n="menu_btn">В меню</button>
   </div>
 </div>
 
+<script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
-
-const UI = {"uk": {"title": "Аукціон брехні (Варіанти)", "lobby_title": "Аукціон Брехні", "lobby_sub": "Генеруємо абсурдні факти через Gemini. Обирайте теми:", "cat_classic": "Класика", "cat_history": "Історія", "cat_anime": "Аніме", "cat_movies": "Кіно і серіали", "cat_absurd": "Абсурдні закони", "rounds_lbl": "Кількість раундів:", "start_btn": "Почати гру", "host_wait": "Чекаємо хоста...", "players_lbl": "Гравці", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай найправдоподібнішу брехню:", "input_ph": "Твоя версія...", "bluff_btn": "Обдурити всіх", "wait_others": "Брехня відправлена. Чекаємо інших...", "vote_title": "Голосування", "vote_sub": "Де правда? Знайди правильну відповідь і не попадись на виверт!", "wait_vote": "Чекаємо інших...", "res_title": "Підсумки раунду", "next_round": "Наступний раунд", "host_study": "Хост вивчає результати...", "over_title": "Гру закінчено!", "menu_btn": "В меню"}, "ru": {"title": "Аукцион лжи (Варианты)", "lobby_title": "Аукцион Лжи", "lobby_sub": "Генерируем бредовые факты через Gemini. Выбирайте темы:", "cat_classic": "Классика", "cat_history": "История", "cat_anime": "Аниме", "cat_movies": "Кино и сериалы", "cat_absurd": "Абсурдные законы", "rounds_lbl": "Количество раундов:", "start_btn": "Начать игру", "host_wait": "Ждём хоста...", "players_lbl": "Игроки", "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Придумай самую правдоподобную ложь:", "input_ph": "Твоя версия...", "bluff_btn": "Обмануть всех", "wait_others": "Ложь отправлена. Ждем остальных...", "vote_title": "Голосование", "vote_sub": "Где правда? Найди правильный ответ и не попадись на уловку!", "wait_vote": "Ждём остальных...", "res_title": "Итоги раунда", "next_round": "Следующий раунд", "host_study": "Хост изучает результаты...", "over_title": "Игра окончена!", "menu_btn": "В меню"}, "en": {"title": "Fibbage (Variants)", "lobby_title": "Fibbage", "lobby_sub": "Generate crazy facts via Gemini. Choose topics:", "cat_classic": "Classic", "cat_history": "History", "cat_anime": "Anime", "cat_movies": "Movies & TV", "cat_absurd": "Absurd Laws", "rounds_lbl": "Number of rounds:", "start_btn": "Start game", "host_wait": "Waiting for host...", "players_lbl": "Players", "round_title": "Round <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>", "input_sub": "Come up with the most believable lie:", "input_ph": "Your version...", "bluff_btn": "Fool everyone", "wait_others": "Lie submitted. Waiting for others...", "vote_title": "Voting", "vote_sub": "Where is the truth? Find the correct answer and don't get tricked!", "wait_vote": "Waiting for others...", "res_title": "Round Results", "next_round": "Next round", "host_study": "Host is reviewing results...", "over_title": "Game over!", "menu_btn": "To menu"},
+const UI = {
+  uk: {
+    "title": "Аукціон брехні (Варіанти)",
+    "nav_games": "🎮 Ігри",
+    "connecting": "Підключення...",
+    "lobby_title": "Аукціон Брехні",
+    "lobby_sub": "Божевільні факти й блеф. Обирай теми:",
+    "cat_classic": "Класика",
+    "cat_history": "Історія",
+    "cat_anime": "Аніме",
+    "cat_movies": "Кіно і серіали",
+    "cat_absurd": "Абсурдні закони",
+    "rounds_lbl": "Кількість раундів:",
+    "start_btn": "Почати гру",
+    "host_wait": "Чекаємо хоста...",
+    "players_lbl": "Гравці",
+    "default_player": "Гравець",
+    "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>",
+    "input_sub": "Придумай найправдоподібнішу брехню:",
+    "input_ph": "Твоя версія...",
+    "bluff_btn": "Обдурити всіх",
+    "wait_others": "Брехню надіслано. Чекаємо інших...",
+    "vote_title": "Голосування",
+    "vote_sub": "Де правда? Знайди правильну відповідь і не попадись на виверт!",
+    "wait_vote": "Чекаємо інших...",
+    "res_title": "Підсумки раунду",
+    "truth_badge": "ПРАВДА",
+    "house_bluff": "ОБМАНКА ГРИ",
+    "lie_by": "Брехня від: ",
+    "for_bluff": "за обман",
+    "leaderboard_lbl": "Таблиця очок",
+    "per_round": "за раунд",
+    "next_round": "Наступний раунд",
+    "host_study": "Хост дивиться результати...",
+    "over_title": "Гру закінчено!",
+    "menu_btn": "У меню"
+  },
+  ru: {
+    "title": "Аукцион лжи (Варианты)",
+    "nav_games": "🎮 Игры",
+    "connecting": "Подключение...",
+    "lobby_title": "Аукцион Лжи",
+    "lobby_sub": "Безумные факты и блеф. Выбирай темы:",
+    "cat_classic": "Классика",
+    "cat_history": "История",
+    "cat_anime": "Аниме",
+    "cat_movies": "Кино и сериалы",
+    "cat_absurd": "Абсурдные законы",
+    "rounds_lbl": "Количество раундов:",
+    "start_btn": "Начать игру",
+    "host_wait": "Ждём хоста...",
+    "players_lbl": "Игроки",
+    "default_player": "Игрок",
+    "round_title": "Раунд <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>",
+    "input_sub": "Придумай самую правдоподобную ложь:",
+    "input_ph": "Твоя версия...",
+    "bluff_btn": "Обмануть всех",
+    "wait_others": "Ложь отправлена. Ждём остальных...",
+    "vote_title": "Голосование",
+    "vote_sub": "Где правда? Найди правильный ответ и не попадись на уловку!",
+    "wait_vote": "Ждём остальных...",
+    "res_title": "Итоги раунда",
+    "truth_badge": "ПРАВДА",
+    "house_bluff": "ОБМАНКА ИГРЫ",
+    "lie_by": "Ложь от: ",
+    "for_bluff": "за обман",
+    "leaderboard_lbl": "Лидерборд",
+    "per_round": "за раунд",
+    "next_round": "Следующий раунд",
+    "host_study": "Хост изучает результаты...",
+    "over_title": "Игра окончена!",
+    "menu_btn": "В меню"
+  },
+  en: {
+    "title": "Fibbage (Variants)",
+    "nav_games": "🎮 Games",
+    "connecting": "Connecting...",
+    "lobby_title": "Fibbage",
+    "lobby_sub": "Wild facts & bluffs. Pick your topics:",
+    "cat_classic": "Classic",
+    "cat_history": "History",
+    "cat_anime": "Anime",
+    "cat_movies": "Movies & TV",
+    "cat_absurd": "Weird Laws",
+    "rounds_lbl": "Rounds:",
+    "start_btn": "Start game",
+    "host_wait": "Waiting for host...",
+    "players_lbl": "Players",
+    "default_player": "Player",
+    "round_title": "Round <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>",
+    "input_sub": "Write your most believable bluff:",
+    "input_ph": "Your bluff...",
+    "bluff_btn": "Fool everyone",
+    "wait_others": "Bluff sent. Waiting for others...",
+    "vote_title": "Voting",
+    "vote_sub": "Spot the truth and don't fall for a bluff!",
+    "wait_vote": "Waiting for others...",
+    "res_title": "Round results",
+    "truth_badge": "TRUTH",
+    "house_bluff": "HOUSE DECOY",
+    "lie_by": "Bluff by: ",
+    "for_bluff": "for fooling",
+    "leaderboard_lbl": "Scoreboard",
+    "per_round": "this round",
+    "next_round": "Next round",
+    "host_study": "Host is checking results...",
+    "over_title": "Game over!",
+    "menu_btn": "Back to menu"
+  },
   de: {
     "title": "Fibbage (Varianten)",
+    "nav_games": "🎮 Spiele",
+    "connecting": "Verbinde...",
     "lobby_title": "Fibbage",
-    "lobby_sub": "Generiere verrückte Fakten über Gemini. Wähle Themen:",
+    "lobby_sub": "Verrückte Fakten & Bluffs. Wähle deine Themen:",
     "cat_classic": "Klassiker",
     "cat_history": "Geschichte",
     "cat_anime": "Anime",
     "cat_movies": "Filme & Serien",
-    "cat_absurd": "Absurde Gesetze",
-    "rounds_lbl": "Rundenanzahl:",
+    "cat_absurd": "Kuriose Gesetze",
+    "rounds_lbl": "Runden:",
     "start_btn": "Spiel starten",
     "host_wait": "Warte auf Host...",
     "players_lbl": "Spieler",
+    "default_player": "Spieler",
     "round_title": "Runde <span id=\"roundNum\"></span>/<span id=\"totalRounds\"></span>",
-    "input_sub": "Erfinde die glaubwürdigste Lüge:",
-    "input_ph": "Deine Version...",
-    "bluff_btn": "Alle täuschen",
-    "wait_others": "Lüge abgeschickt. Warte auf andere...",
+    "input_sub": "Schreib deine glaubwürdigste Lüge:",
+    "input_ph": "Dein Bluff...",
+    "bluff_btn": "Alle reinlegen",
+    "wait_others": "Bluff gesendet. Warte auf die anderen...",
     "vote_title": "Abstimmung",
-    "vote_sub": "Wo ist die Wahrheit? Finde die richtige Antwort und lass dich nicht täuschen!",
-    "wait_vote": "Warte auf andere...",
+    "vote_sub": "Wo steckt die Wahrheit? Fall auf keinen Bluff rein!",
+    "wait_vote": "Warte auf die anderen...",
     "res_title": "Rundenergebnis",
+    "truth_badge": "WAHRHEIT",
+    "house_bluff": "HAUS-BLUFF",
+    "lie_by": "Bluff von: ",
+    "for_bluff": " fürs Reinlegen",
+    "leaderboard_lbl": "Punktestand",
+    "per_round": "diese Runde",
     "next_round": "Nächste Runde",
-    "host_study": "Host prüft Ergebnisse...",
+    "host_study": "Host schaut sich die Punkte an...",
     "over_title": "Spiel vorbei!",
     "menu_btn": "Zum Menü"
   }
 };
+
+const GT = {
+  "Во время Холодной войны ЦРУ потратило миллионы долларов на создание _____, чтобы шпионить за СССР.": {
+    uk: "Під час Холодної війни ЦРУ витратило мільйони доларів на створення _____, щоб шпигувати за СРСР.",
+    en: "During the Cold War, the CIA spent millions of dollars creating _____ to spy on the USSR.",
+    de: "Im Kalten Krieg gab die CIA Millionen Dollar für _____ aus, um die UdSSR auszuspionieren."
+  },
+  "акустической кошки": {
+    uk: "акустичної кішки",
+    en: "an acoustic cat",
+    de: "eine akustische Katze"
+  },
+  "роботизированного голубя": {
+    uk: "роботизованого голуба",
+    en: "a robotic pigeon",
+    de: "eine Robotertaube"
+  },
+  "Проект 'Acoustic Kitty' предполагал использование кошек с вживлёнными микрофонами.": {
+    uk: "Проєкт «Acoustic Kitty» передбачав використання кішок із вживленими мікрофонами.",
+    en: "Project 'Acoustic Kitty' implanted microphones and transmitters into cats.",
+    de: "Beim Projekt „Acoustic Kitty“ sollten Katzen mit Mikrofonen als Spione dienen."
+  },
+  "В 16 веке в Европе было модно носить украшения из _____, потому что считалось, что они отпугивают болезни.": {
+    uk: "У XVI столітті в Європі було модно носити прикраси з _____, бо вважалося, що вони відганяють хвороби.",
+    en: "In 16th-century Europe, it was fashionable to wear jewelry made of _____ to ward off disease.",
+    de: "Im Europa des 16. Jahrhunderts trug man Schmuck aus _____, weil er angeblich Krankheiten abwehrte."
+  },
+  "зубов акулы": {
+    uk: "зубів акули",
+    en: "shark teeth",
+    de: "Haifischzähnen"
+  },
+  "черепов крыс": {
+    uk: "черепів щурів",
+    en: "rat skulls",
+    de: "Rattenschädeln"
+  },
+  "Акульи зубы носили как амулеты от яда.": {
+    uk: "Акулячі зуби носили як амулети від отрути.",
+    en: "Shark teeth were worn as charms against poison.",
+    de: "Haifischzähne galten damals als Talisman gegen Gift."
+  },
+  "В игре Dota 2 изначально Pudge мог хукать _____.": {
+    uk: "У грі Dota 2 спочатку Pudge міг хукати _____.",
+    en: "In early versions of Dota 2, Pudge could hook _____.",
+    de: "In frühen Versionen von Dota 2 konnte Pudge _____ an den Haken nehmen."
+  },
+  "руны": {
+    uk: "руни",
+    en: "runes",
+    de: "Runen"
+  },
+  "башни": {
+    uk: "вежі",
+    en: "towers",
+    de: "Türme"
+  },
+  "В ранних версиях Pudge мог притягивать руны хуком.": {
+    uk: "У ранніх версіях Pudge міг притягувати руни гаком.",
+    en: "In early patches, Pudge could pull runes with Meat Hook.",
+    de: "In frühen Patches konnte Pudge tatsächlich Runen zu sich ziehen."
+  },
+  "В Японии есть мороженое со вкусом _____.": {
+    uk: "В Японії є морозиво зі смаком _____.",
+    en: "In Japan, you can buy _____ flavored ice cream.",
+    de: "In Japan gibt es tatsächlich Eis mit _____-Geschmack."
+  },
+  "угря": {
+    uk: "вугра",
+    en: "eel",
+    de: "Aal"
+  },
+  "васаби": {
+    uk: "васабі",
+    en: "wasabi",
+    de: "Wasabi"
+  },
+  "Мороженое со вкусом угря продаётся в некоторых префектурах Японии.": {
+    uk: "Морозиво зі смаком вугра продається в деяких префектурах Японії.",
+    en: "Eel-flavored ice cream is sold as a regional specialty in Japan.",
+    de: "Aal-Eis wird in einigen japanischen Präfekturen als Spezialität verkauft."
+  },
+  "Чарли Чаплин однажды участвовал в конкурсе двойников Чарли Чаплина и занял там _____ место.": {
+    uk: "Чарлі Чаплін якось брав участь у конкурсі двійників Чарлі Чапліна і посів там _____ місце.",
+    en: "Charlie Chaplin once entered a Charlie Chaplin look-alike contest and came in _____ place.",
+    de: "Charlie Chaplin nahm einmal an einem Charlie-Chaplin-Doppelgängerwettbewerb teil und belegte den _____ Platz."
+  },
+  "третье": {
+    uk: "третє",
+    en: "third",
+    de: "dritten"
+  },
+  "последнее": {
+    uk: "останнє",
+    en: "last",
+    de: "letzten"
+  },
+  "Судьи не узнали его без фирменных усов и походки.": {
+    uk: "Судді не впізнали його без фірмових вусів і ходи.",
+    en: "The judges didn't recognize the real Chaplin.",
+    de: "Die Jury erkannte den echten Chaplin nicht."
+  },
+  "Самая короткая война в истории человечества длилась _____.": {
+    uk: "Найкоротша війна в історії людства тривала _____.",
+    en: "The shortest war in recorded history lasted _____.",
+    de: "Der kürzeste Krieg der Menschheitsgeschichte dauerte _____."
+  },
+  "38 минут": {
+    uk: "38 хвилин",
+    en: "38 minutes",
+    de: "38 Minuten"
+  },
+  "3 дня": {
+    uk: "3 дні",
+    en: "3 days",
+    de: "3 Tage"
+  },
+  "Англо-занзибарская война длилась всего 38 минут в 1896 году.": {
+    uk: "Англо-занзібарська війна тривала лише 38 хвилин у 1896 році.",
+    en: "The Anglo-Zanzibar War of 1896 lasted just 38 minutes.",
+    de: "Der Britisch-Sansibarische Krieg dauerte 1896 nur 38 Minuten."
+  },
+  "Фобия длинных слов называется гиппопотомонстросескиппедало_____.": {
+    uk: "Фобія довгих слів називається гіппопотомонстросескіпедало_____.",
+    en: "The fear of long words is called hippopotomonstrosesquippedalo_____.",
+    de: "Die Angst vor langen Wörtern heißt Hippopotomonstrosesquippedalo_____."
+  },
+  "фобия": {
+    uk: "фобія",
+    en: "phobia",
+    de: "phobie"
+  },
+  "мания": {
+    uk: "манія",
+    en: "mania",
+    de: "manie"
+  },
+  "Это одно из самых длинных слов, созданное специально для описания этой фобии.": {
+    uk: "Це одне з найдовших слів, створене спеціально для опису цієї фобії.",
+    en: "One of the longest words, coined ironically to describe fear of long words.",
+    de: "Ironischerweise eines der längsten Wörter überhaupt — für die Angst vor langen Wörtern."
+  },
+  "Первоначально материал для 'пузырчатой пленки' предназначался для использования в качестве _____.": {
+    uk: "Спочатку матеріал для пухирчастої плівки призначався для використання як _____.",
+    en: "Bubble wrap was originally invented to be used as _____.",
+    de: "Luftpolsterfolie wurde ursprünglich als _____ erfunden."
+  },
+  "обоев": {
+    uk: "шпалер",
+    en: "wallpaper",
+    de: "Tapete"
+  },
+  "изоляции окон": {
+    uk: "ізоляції вікон",
+    en: "window insulation",
+    de: "Fensterisolierung"
+  },
+  "В 1957 году создатели пытались продать её как текстурные обои, но идея провалилась.": {
+    uk: "У 1957 році творці намагалися продати її як текстурні шпалери, але ідея провалилася.",
+    en: "In 1957 its inventors tried selling it as textured 3D wallpaper, which flopped.",
+    de: "1957 wollten die Erfinder sie als strukturierte 3D-Tapete verkaufen — ein Flop."
+  },
+  "В штате Огайо незаконно спаивать _____.": {
+    uk: "У штаті Огайо незаконно споювати _____.",
+    en: "In the state of Ohio, it is illegal to get _____ drunk.",
+    de: "Im US-Bundesstaat Ohio ist es illegal, _____ betrunken zu machen."
+  },
+  "рыб": {
+    uk: "риб",
+    en: "fish",
+    de: "Fische"
+  },
+  "собак": {
+    uk: "собак",
+    en: "dogs",
+    de: "Hunde"
+  },
+  "Старый и абсурдный закон штата запрещает давать алкоголь рыбам.": {
+    uk: "Старий абсурдний закон штату забороняє давати алкоголь рибам.",
+    en: "An old Ohio state law forbids giving alcohol to fish.",
+    de: "Ein altes Gesetz in Ohio verbietet es tatsächlich, Fischen Alkohol zu geben."
+  },
+  "Майкл Джексон пытался купить Marvel Comics в 1990-х, потому что хотел сыграть _____.": {
+    uk: "Майкл Джексон намагався купити Marvel Comics у 1990-х, бо хотів зіграти _____.",
+    en: "Michael Jackson tried to buy Marvel Comics in the 1990s because he wanted to play _____.",
+    de: "Michael Jackson wollte in den 1990ern Marvel Comics kaufen, um _____ zu spielen."
+  },
+  "Человека-паука": {
+    uk: "Людину-павука",
+    en: "Spider-Man",
+    de: "Spider-Man"
+  },
+  "Профессора Икс": {
+    uk: "Професора Ікс",
+    en: "Professor X",
+    de: "Professor X"
+  },
+  "Он был большим фанатом комиксов и хотел главную роль в фильме про Человека-паука.": {
+    uk: "Він був великим фанатом коміксів і хотів головну роль у фільмі про Людину-павука.",
+    en: "He was a huge comic fan and dreamed of starring as Spider-Man.",
+    de: "Er war riesiger Comic-Fan und wollte unbedingt die Hauptrolle in Spider-Man."
+  },
+  "Жирафы могут чистить свои уши с помощью _____.": {
+    uk: "Жирафи можуть чистити свої вуха за допомогою _____.",
+    en: "Giraffes can clean their own ears using _____.",
+    de: "Giraffen können ihre Ohren mit _____ putzen."
+  },
+  "своего языка": {
+    uk: "свого язика",
+    en: "their tongue",
+    de: "ihrer Zunge"
+  },
+  "хвоста": {
+    uk: "хвоста",
+    en: "their tail",
+    de: "ihrem Schwanz"
+  },
+  "Язык жирафа может достигать 50 сантиметров в длину.": {
+    uk: "Язик жирафа може сягати 50 сантиметрів завдовжки.",
+    en: "A giraffe's tongue can reach up to 50 centimeters in length.",
+    de: "Die Zunge einer Giraffe wird bis zu 50 Zentimeter lang."
+  },
+  "На Юпитере и Сатурне могут идти дожди из _____.": {
+    uk: "На Юпітері та Сатурні можуть іти дощі з _____.",
+    en: "On Jupiter and Saturn, it can rain _____.",
+    de: "Auf Jupiter und Saturn kann es _____ regnen."
+  },
+  "алмазов": {
+    uk: "алмазів",
+    en: "diamonds",
+    de: "Diamanten"
+  },
+  "кислоты": {
+    uk: "кислоти",
+    en: "acid",
+    de: "Säure"
+  },
+  "Высокое давление в атмосфере планет может превращать углерод в алмазы.": {
+    uk: "Високий тиск в атмосфері планет може перетворювати вуглець на алмази.",
+    en: "Extreme atmospheric pressure turns carbon soot into diamonds.",
+    de: "Extremer Druck in der Atmosphäre presst Kohlenstoff zu Diamanten."
+  },
+  "Свиньи не могут смотреть вверх в небо из-за _____.": {
+    uk: "Свині не можуть дивитися вгору в небо через _____.",
+    en: "Pigs physically cannot look straight up at the sky because of _____.",
+    de: "Schweine können nicht senkrecht in den Himmel schauen — wegen _____."
+  },
+  "строения шеи": {
+    uk: "будову шиї",
+    en: "their neck anatomy",
+    de: "ihres Nackenbaus"
+  },
+  "боязни высоты": {
+    uk: "боязнь висоти",
+    en: "fear of heights",
+    de: "Höhenangst"
+  },
+  "Анатомия шеи свиньи не позволяет ей поднять голову высоко вверх.": {
+    uk: "Анатомія шиї свині не дозволяє їй високо підняти голову.",
+    en: "A pig's neck spine and muscles prevent tilting the head straight up.",
+    de: "Wirbelsäule und Nackenmuskeln verhindern, dass Schweine den Kopf steil heben."
+  },
+  "Ежегодно больше людей гибнет от нападения _____, чем от акул.": {
+    uk: "Щорічно більше людей гине від нападів _____, ніж від акул.",
+    en: "More people are killed each year by _____ than by sharks.",
+    de: "Jedes Jahr sterben mehr Menschen durch _____ als durch Haie."
+  },
+  "коров": {
+    uk: "корів",
+    en: "cows",
+    de: "Kühe"
+  },
+  "пчел": {
+    uk: "бджіл",
+    en: "bees",
+    de: "Bienen"
+  },
+  "Коровы ежегодно убивают около 20 человек в США, в то время как акулы — около 1-2.": {
+    uk: "Корови щороку вбивають близько 20 людей у США, тоді як акули — близько 1–2.",
+    en: "Cows kill around 20 people a year in the US, compared to 1–2 by sharks.",
+    de: "Allein in den USA sterben jährlich rund 20 Menschen durch Kühe, aber nur 1–2 durch Haie."
+  },
+  "Оригинальное название поисковика Google было _____.": {
+    uk: "Оригінальною назвою пошуковика Google було _____.",
+    en: "Google's original name while in development was _____.",
+    de: "Der ursprüngliche Name der Suchmaschine Google lautete _____."
+  },
+  "BackRub": {
+    uk: "BackRub",
+    en: "BackRub",
+    de: "BackRub"
+  },
+  "SearchIt": {
+    uk: "SearchIt",
+    en: "SearchIt",
+    de: "SearchIt"
+  },
+  "Ларри Пейдж и Сергей Брин изначально назвали свой проект BackRub из-за анализа обратных ссылок.": {
+    uk: "Ларрі Пейдж і Сергій Брін спочатку назвали свій проєкт BackRub через аналіз зворотних посилань.",
+    en: "Larry Page and Sergey Brin named it BackRub because it analyzed backlinks.",
+    de: "Larry Page und Sergey Brin nannten das Projekt BackRub, weil es Backlinks analysierte."
+  }
+};
+
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
+let state = null;
+let myId = null;
+let wsInstance = null;
+
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function gt(s) {
+  if (!s || LANG === 'ru') return s;
+  const e = GT[s];
+  if (e && e[LANG]) return e[LANG];
+  return (window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(s) : s;
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+function trName(n) {
+  if (!n) return t('default_player');
+  if (n === 'Игрок' || n === 'Гравець' || n === 'Player' || n === 'Spieler') return t('default_player');
+  return (window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(n) : n;
+}
+
+function syncSliderTrack() {
+  const inp = document.getElementById('roundsInput');
+  if (!inp) return;
+  const min = parseFloat(inp.min) || 3;
+  const max = parseFloat(inp.max) || 15;
+  const val = parseFloat(inp.value) || 5;
+  const pct = ((val - min) / (max - min)) * 100;
+  inp.style.setProperty('--pct', pct.toFixed(1) + '%');
+}
+
 function applyUI() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const v = t(el.dataset.i18n);
     if (typeof v !== 'string') return;
     if (el.tagName.toLowerCase() === 'title') document.title = v;
-    else el.innerHTML = v;
+    else if (el.dataset.i18n === 'round_title') el.innerHTML = v;
+    else el.textContent = v;
   });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  syncSliderTrack();
+  if (state) updateUI();
 }
-document.getElementById('langbar').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  LANG = b.dataset.lang;
-  localStorage.setItem('jg_lang', LANG);
-  applyUI();
-  updateUI();
-});
-applyUI();
-
-
-let state = null;
-let myId = null;
-let wsInstance = null;
 
 function connectWS() {
-    let protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    let wsUrl = protocol + '//' + window.location.host + '/games/ws';
-    wsInstance = JarvisWS(wsUrl, {
-        onopen: (e) => {
-            let code = new URLSearchParams(window.location.search).get('code');
-            let name = localStorage.getItem('username') || 'Игрок';
-            if(code) wsSend({action: 'join', code: code, name: name});
-            else wsSend({action: 'create', game: 'variants', name: name});
-        },
-        onmessage: (e) => {
-            if(window.onWsMessage) window.onWsMessage(JSON.parse(e.data));
-        }
-    });
+  let protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  let wsUrl = protocol + '//' + window.location.host + '/games/ws';
+  wsInstance = JarvisWS(wsUrl, {
+    onopen: () => {
+      let code = new URLSearchParams(window.location.search).get('code');
+      let stored = '';
+      try { stored = localStorage.getItem('jg_player_name') || localStorage.getItem('username') || ''; } catch (_) {}
+      let name = stored.trim() || t('default_player');
+      if (code) wsSend({action: 'join', code: code, name: name});
+      else wsSend({action: 'create', game: 'variants', name: name});
+    },
+    onmessage: (e) => {
+      if (window.onWsMessage) window.onWsMessage(JSON.parse(e.data));
+    }
+  });
 }
 
 function wsSend(data) {
-    if(wsInstance) wsInstance.send(data);
+  if (wsInstance) wsInstance.send(data);
 }
 
 function toggleCat(el) {
-    if(state && state.host !== myId) return;
-    el.classList.toggle('selected');
-    sendCategories();
+  if (state && state.host !== myId) return;
+  el.classList.toggle('selected');
+  sendCategories();
 }
 
 function sendCategories() {
-    let cats = Array.from(document.querySelectorAll('.cat-btn.selected')).map(el => el.innerText);
-    let rounds = document.getElementById('roundsInput').value;
-    wsSend({action: 'variants_set_cats', categories: cats, total_rounds: parseInt(rounds)});
+  let cats = Array.from(document.querySelectorAll('.cat-btn.selected')).map(el => el.dataset.cat || el.textContent.trim());
+  let rounds = document.getElementById('roundsInput').value;
+  wsSend({action: 'variants_set_cats', categories: cats, total_rounds: parseInt(rounds, 10)});
 }
 
 function updateRounds() {
-    document.getElementById('roundsDisplay').innerText = document.getElementById('roundsInput').value;
-    sendCategories();
+  document.getElementById('roundsDisplay').textContent = document.getElementById('roundsInput').value;
+  syncSliderTrack();
+  sendCategories();
 }
 
 function startRound() {
-    wsSend({action: 'variants_next'});
+  wsSend({action: 'variants_next'});
 }
 
 function submitBluff() {
-    let text = document.getElementById('bluffInput').value.trim();
-    if(!text) return;
-    wsSend({action: 'variants_submit', bluff: text});
+  let text = document.getElementById('bluffInput').value.trim();
+  if (!text) return;
+  wsSend({action: 'variants_submit', bluff: text});
 }
 
 function voteAnswer(id) {
-    wsSend({action: 'variants_vote', vote_id: id});
+  wsSend({action: 'variants_vote', vote_id: id});
 }
 
 function nextRound() {
-    wsSend({action: 'variants_next'});
+  wsSend({action: 'variants_next'});
 }
 
 function switchScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-' + screenId).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + screenId);
+  if (el) el.classList.add('active');
+}
+
+function formatPromptHtml(raw) {
+  const translated = gt(raw || '');
+  return esc(translated).replace('_____', "<span class='blank'>_____</span>");
 }
 
 function updateUI() {
-    if(!state) return;
-    
-    // myId приходит в сообщении "joined" (msg.pid); localStorage тут не нужен
-    let isHost = state.host === myId;
-    let me = state.players.find(p => p.id === myId);
-    
-    switchScreen(state.phase);
-    
-    if(state.phase === 'lobby') {
-        document.getElementById('btnStart').style.display = isHost ? 'block' : 'none';
-        document.getElementById('roundsSelector').style.display = isHost ? 'block' : 'none';
-        document.getElementById('waitHost').style.display = isHost ? 'none' : 'block';
-        
-        if(!isHost) {
-            let catsGrid = document.getElementById('catsGrid');
-            Array.from(catsGrid.children).forEach(el => {
-                if(state.categories && state.categories.includes(el.innerText)) el.classList.add('selected');
-                else el.classList.remove('selected');
-            });
-            if(state.total_rounds) {
-                document.getElementById('roundsDisplay').innerText = state.total_rounds;
-                document.getElementById('roundsSelector').style.display = 'block';
-                document.getElementById('roundsInput').style.display = 'none';
-            }
-        }
-        
-        let html = '';
-        state.players.forEach(p => {
-            let hostStar = p.id === state.host ? '👑 ' : '';
-            html += `<div class="lb-row"><div>${hostStar}${p.name}</div></div>`;
-        });
-        document.getElementById('lobbyPlayers').innerHTML = html;
-    }
-    
-    if(state.phase === 'input') {
-        document.getElementById('roundNum').innerText = state.round;
-        document.getElementById('totalRounds').innerText = state.total_rounds;
-        
-        // Highlight prompt text
-        let promptText = state.prompt.replace("_____", "<span class='blank'>_____</span>");
-        document.getElementById('promptText').innerHTML = promptText;
-        document.getElementById('promptTextVote').innerHTML = promptText;
-        
-        if(me && me.has_submitted) {
-            document.getElementById('inputBox').style.display = 'none';
-            document.getElementById('waitInput').style.display = 'block';
-            let statuses = state.players.map(p => `${p.name}: ${p.has_submitted ? '✅' : '⏳'}`).join('<br>');
-            document.getElementById('inputPlayersStatus').innerHTML = statuses;
+  if (!state) return;
+
+  let isHost = state.host === myId;
+  let me = (state.players || []).find(p => p.id === myId);
+
+  switchScreen(state.phase);
+
+  if (state.phase === 'lobby') {
+    document.getElementById('btnStart').style.display = isHost ? 'block' : 'none';
+    document.getElementById('roundsSelector').style.display = isHost ? 'block' : 'none';
+    document.getElementById('roundsInput').style.display = isHost ? 'block' : 'none';
+    document.getElementById('waitHost').style.display = isHost ? 'none' : 'block';
+
+    if (!isHost) {
+      let catsGrid = document.getElementById('catsGrid');
+      Array.from(catsGrid.children).forEach(el => {
+        const key = el.dataset.cat || el.textContent.trim();
+        if (state.categories && (state.categories.includes(key) || state.categories.includes(el.textContent.trim()))) {
+          el.classList.add('selected');
         } else {
-            document.getElementById('inputBox').style.display = 'block';
-            document.getElementById('waitInput').style.display = 'none';
-            document.getElementById('bluffInput').value = '';
+          el.classList.remove('selected');
         }
+      });
+      if (state.total_rounds) {
+        document.getElementById('roundsDisplay').textContent = state.total_rounds;
+        document.getElementById('roundsSelector').style.display = 'block';
+        document.getElementById('roundsInput').style.display = 'none';
+      }
+    } else {
+      syncSliderTrack();
     }
-    
-    if(state.phase === 'voting') {
-        if(me && me.has_voted) {
-            document.getElementById('answersList').style.display = 'none';
-            document.getElementById('waitVote').style.display = 'block';
-            let statuses = state.players.map(p => `${p.name}: ${p.has_voted ? '✅' : '⏳'}`).join('<br>');
-            document.getElementById('waitVote').innerHTML = "Ждём остальных...<br><br>" + statuses;
-        } else {
-            document.getElementById('answersList').style.display = 'block';
-            document.getElementById('waitVote').style.display = 'none';
-            
-            let html = '';
-            state.answers.forEach(ans => {
-                html += `<div class="ans-btn" onclick="voteAnswer('${ans.id}')">${ans.text}</div>`;
-            });
-            document.getElementById('answersList').innerHTML = html;
-        }
+
+    let html = '';
+    (state.players || []).forEach(p => {
+      let hostStar = p.id === state.host ? '👑 ' : '';
+      html += `<div class="lb-row"><div>${hostStar}${esc(trName(p.name))}</div></div>`;
+    });
+    document.getElementById('lobbyPlayers').innerHTML = html;
+  }
+
+  if (state.phase === 'input') {
+    const rn = document.getElementById('roundNum');
+    const tr = document.getElementById('totalRounds');
+    if (rn) rn.textContent = state.round;
+    if (tr) tr.textContent = state.total_rounds;
+
+    let promptHtml = formatPromptHtml(state.prompt);
+    document.getElementById('promptText').innerHTML = promptHtml;
+    document.getElementById('promptTextVote').innerHTML = promptHtml;
+
+    if (me && me.has_submitted) {
+      document.getElementById('inputBox').style.display = 'none';
+      document.getElementById('waitInput').style.display = 'block';
+      let statuses = (state.players || []).map(p => `${esc(trName(p.name))}: ${p.has_submitted ? '✅' : '⏳'}`).join('<br>');
+      document.getElementById('inputPlayersStatus').innerHTML = statuses;
+    } else {
+      document.getElementById('inputBox').style.display = 'block';
+      document.getElementById('waitInput').style.display = 'none';
     }
-    
-    if(state.phase === 'results') {
-        document.getElementById('btnNext').style.display = isHost ? 'block' : 'none';
-        document.getElementById('waitNextHost').style.display = isHost ? 'none' : 'block';
-        
-        document.getElementById('explanationText').innerText = state.explanation;
-        
-        let resHtml = '';
-        state.answers.forEach(ans => {
-            let isCorrect = ans.id === state.correct_id;
-            let isSysBluff = ans.id === state.sys_bluff_id;
-            let voters = Object.entries(state.votes || {}).filter(([pid, vid]) => vid === ans.id).map(([pid]) => {
-                let name = state.players.find(p => p.id === pid)?.name || pid;
-                let c = isCorrect ? 'bonus' : '';
-                let s = isCorrect ? '+2' : '0';
-                return `<span class="voter-chip ${c}">${name} (${s})</span>`;
-            });
-            
-            if(voters.length > 0 || isCorrect) {
-                let authorName = isCorrect ? "ПРАВДА" : (isSysBluff ? "ОБМАНКА ИИ" : ("Ложь от: " + (state.players.find(p => p.id === ans.author)?.name || "?")));
-                let authorClass = isCorrect ? "correct" : "";
-                let pts = (!isCorrect && !isSysBluff && voters.length > 0) ? `<span style="color:#ff6a7a">(+${voters.length} за обман)</span>` : '';
-                
-                resHtml += `
-                <div class="result-item ${authorClass}">
-                    <div class="ans-text"><span>${ans.text}</span> ${pts}</div>
-                    <div class="ans-author" style="${isSysBluff ? 'color:#ffb8b8;' : ''}">${authorName}</div>
-                    <div>${voters.join('')}</div>
-                </div>`;
-            }
-        });
-        document.getElementById('resultsList').innerHTML = resHtml;
-        
-        let lbHtml = '<h3 style="text-align:center;margin-bottom:10px;">Лидерборд</h3>';
-        let sorted = [...state.players].sort((a,b) => b.score - a.score);
-        sorted.forEach(p => {
-            let details = state.round_scores && state.round_scores[p.id] ? state.round_scores[p.id].total : 0;
-            let dStr = details > 0 ? `+${details}` : details;
-            lbHtml += `<div class="lb-row">
-                <div>${p.name} <span style="color:var(--muted);font-weight:400;font-size:12px;">(за раунд: ${dStr})</span></div>
-                <div style="color:#ff6a7a">${p.score}</div>
-            </div>`;
-        });
-        document.getElementById('roundScores').innerHTML = lbHtml;
+  }
+
+  if (state.phase === 'voting') {
+    document.getElementById('promptTextVote').innerHTML = formatPromptHtml(state.prompt);
+    if (me && me.has_voted) {
+      document.getElementById('answersList').style.display = 'none';
+      document.getElementById('waitVote').style.display = 'block';
+      let statuses = (state.players || []).map(p => `${esc(trName(p.name))}: ${p.has_voted ? '✅' : '⏳'}`).join('<br>');
+      document.getElementById('waitVote').innerHTML = esc(t('wait_vote')) + '<br><br>' + statuses;
+    } else {
+      document.getElementById('answersList').style.display = 'block';
+      document.getElementById('waitVote').style.display = 'none';
+
+      let html = '';
+      (state.answers || []).forEach(ans => {
+        const safeId = String(ans.id).replace(/'/g, "\\'");
+        html += `<div class="ans-btn" onclick="voteAnswer('${safeId}')">${esc(gt(ans.text))}</div>`;
+      });
+      document.getElementById('answersList').innerHTML = html;
     }
-    
-    if(state.phase === 'game_over') {
-        let lbHtml = '';
-        let sorted = [...state.players].sort((a,b) => b.score - a.score);
-        sorted.forEach((p, i) => {
-            let medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-            lbHtml += `<div class="lb-row" style="font-size:18px;padding:15px;">
-                <div>${medal} ${p.name}</div>
-                <div style="color:#ff6a7a">${p.score}</div>
-            </div>`;
-        });
-        document.getElementById('finalLeaderboard').innerHTML = lbHtml;
-    }
+  }
+
+  if (state.phase === 'results') {
+    document.getElementById('btnNext').style.display = isHost ? 'block' : 'none';
+    document.getElementById('waitNextHost').style.display = isHost ? 'none' : 'block';
+
+    document.getElementById('explanationText').textContent = gt(state.explanation || '');
+
+    let resHtml = '';
+    (state.answers || []).forEach(ans => {
+      let isCorrect = ans.id === state.correct_id;
+      let isSysBluff = ans.author === 'system_bluff' || ans.id === state.sys_bluff_id;
+      let voters = Object.entries(state.votes || {}).filter(([pid, vid]) => vid === ans.id).map(([pid]) => {
+        let pObj = (state.players || []).find(p => p.id === pid);
+        let name = trName(pObj ? pObj.name : pid);
+        let c = isCorrect ? 'bonus' : '';
+        let s = isCorrect ? '+2' : '0';
+        return `<span class="voter-chip ${c}">${esc(name)} (${s})</span>`;
+      });
+
+      if (voters.length > 0 || isCorrect) {
+        let authorObj = (state.players || []).find(p => p.id === ans.author);
+        let authorName = isCorrect
+          ? t('truth_badge')
+          : (isSysBluff ? t('house_bluff') : (t('lie_by') + trName(authorObj ? authorObj.name : '?')));
+        let authorClass = isCorrect ? 'correct' : '';
+        let pts = (!isCorrect && !isSysBluff && voters.length > 0)
+          ? `<span style="color:#ff6a7a">(+${voters.length} ${esc(t('for_bluff'))})</span>`
+          : '';
+
+        resHtml += `
+        <div class="result-item ${authorClass}">
+          <div class="ans-text"><span>${esc(gt(ans.text))}</span> ${pts}</div>
+          <div class="ans-author" style="${isSysBluff ? 'color:#ffb8b8;' : ''}">${esc(authorName)}</div>
+          <div>${voters.join('')}</div>
+        </div>`;
+      }
+    });
+    document.getElementById('resultsList').innerHTML = resHtml;
+
+    let lbHtml = `<h3 style="text-align:center;margin-bottom:10px;">${esc(t('leaderboard_lbl'))}</h3>`;
+    let sorted = [...(state.players || [])].sort((a, b) => b.score - a.score);
+    sorted.forEach(p => {
+      let details = state.round_scores && state.round_scores[p.id] ? state.round_scores[p.id].total : 0;
+      let dStr = details > 0 ? `+${details}` : details;
+      lbHtml += `<div class="lb-row">
+        <div>${esc(trName(p.name))} <span style="color:var(--muted);font-weight:400;font-size:12px;">(${esc(t('per_round'))}: ${dStr})</span></div>
+        <div style="color:#ff6a7a">${p.score}</div>
+      </div>`;
+    });
+    document.getElementById('roundScores').innerHTML = lbHtml;
+  }
+
+  if (state.phase === 'game_over') {
+    let lbHtml = '';
+    let sorted = [...(state.players || [])].sort((a, b) => b.score - a.score);
+    sorted.forEach((p, i) => {
+      let medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+      lbHtml += `<div class="lb-row" style="font-size:18px;padding:15px;">
+        <div>${medal} ${esc(trName(p.name))}</div>
+        <div style="color:#ff6a7a">${p.score}</div>
+      </div>`;
+    });
+    document.getElementById('finalLeaderboard').innerHTML = lbHtml;
+  }
 }
 
-connectWS();
 window.onWsMessage = (msg) => {
-    if(msg.type === "joined") {
-        myId = msg.pid;
-        document.getElementById('connectionStatus').style.display = 'none';
+  if (msg.type === "joined") {
+    myId = msg.pid;
+    document.getElementById('connectionStatus').style.display = 'none';
+  }
+  if (msg.type === "lobby") {
+    document.getElementById('connectionStatus').style.display = 'none';
+    if (!state) {
+      state = {phase: "lobby", players: msg.players, host: msg.host, categories: ["Классика"], total_rounds: 5};
+    } else {
+      state.players = msg.players;
+      state.host = msg.host;
+      state.phase = "lobby";
     }
-    if(msg.type === "lobby") {
-        document.getElementById('connectionStatus').style.display = 'none';
-        if (!state) {
-            state = {phase: "lobby", players: msg.players, host: msg.host, categories: ["Классика"], total_rounds: 5};
-        } else {
-            state.players = msg.players;
-            state.host = msg.host;
-            state.phase = "lobby";
-        }
-        updateUI();
-    }
-    if(msg.type === "variants_state") {
-        document.getElementById('connectionStatus').style.display = 'none';
-        state = msg;
-        updateUI();
-    }
+    updateUI();
+  }
+  if (msg.type === "variants_state") {
+    document.getElementById('connectionStatus').style.display = 'none';
+    state = msg;
+    updateUI();
+  }
+  if (msg.type === "error" && msg.msg) {
+    alert((window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(msg.msg) : msg.msg);
+  }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    applyUI();
+  });
+  applyUI();
+  connectWS();
+});
 </script>
 </body>
 </html>

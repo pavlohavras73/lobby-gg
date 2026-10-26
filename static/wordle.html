@@ -9,26 +9,29 @@
 <style>
   html,body{height:100%}
   body{display:flex;flex-direction:column;align-items:center;min-height:100dvh;max-height:100dvh;
-    padding:8px 12px;overflow:hidden;
+    padding:8px 10px;overflow:hidden;
     -webkit-user-select:none;user-select:none;touch-action:manipulation}
-  h1{margin:2px 0 0;font-size:1.4em}
-  .sub{margin-bottom:6px;font-size:12px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;max-width:460px;flex-shrink:0;margin-bottom:4px}
+  .nav-pill{background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0}
+  .info-btn{width:32px;height:32px;min-width:32px;padding:0;margin:0;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:15px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+  h1{margin:2px 0 0;font-size:1.35em;text-align:center}
+  .sub{margin-bottom:6px;font-size:12px;text-align:center}
 
   /* стартовый экран */
-  .setup{max-width:400px;width:100%;text-align:center;overflow-y:auto}
-  .grpttl{color:var(--muted);font-size:13px;margin:14px 0 6px;text-align:left}
+  .setup{max-width:400px;width:100%;text-align:center;overflow-y:auto;padding-bottom:12px}
+  .grpttl{color:var(--muted);font-size:13px;margin:12px 0 6px;text-align:left}
   .opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-  .opt{flex:1;min-width:78px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);
-    background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:14px;transition:.15s}
+  .opt{flex:1;min-width:82px;padding:10px 7px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:13px;transition:.15s;line-height:1.25}
   .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 12px var(--crimson-glow)}
-  .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+  .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:3px}
 
   /* игровое поле — влезает в экран целиком: сетка гибкая, клавиатура всегда видна */
-  .game{display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;
-    flex:1;min-height:0;justify-content:space-between}
+  .game{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px;
+    flex:1;min-height:0;justify-content:space-between;padding-bottom:4px}
   /* размер плитки = минимум из ширины и высоты, чтобы всё уместилось на любом телефоне */
-  .grid{--t:min(52px,13.5vw,7.6vh);display:grid;grid-template-rows:repeat(6,var(--t));
-    gap:5px;margin:6px 0;flex-shrink:0}
+  .grid{--t:min(52px,13.5vw,7.4vh);display:grid;grid-template-rows:repeat(6,var(--t));
+    gap:5px;margin:4px 0;flex-shrink:0}
   .row{display:grid;grid-template-columns:repeat(5,var(--t));gap:5px}
   .tile{width:var(--t);height:var(--t);display:flex;align-items:center;justify-content:center;
     font-size:calc(var(--t)*0.48);font-weight:800;text-transform:uppercase;border:2px solid var(--border);
@@ -43,56 +46,66 @@
   .row.shake{animation:shake .4s}
   @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 
-  .msg{min-height:22px;font-weight:700;margin:2px 0 6px;color:var(--crimson)}
+  .msg{min-height:20px;font-weight:700;font-size:13px;text-align:center;margin:2px 0 4px;color:var(--crimson)}
 
   /* клавиатура — всегда прижата к низу и видна */
   .kbd{display:flex;flex-direction:column;gap:5px;width:100%;max-width:480px;margin-top:4px;flex-shrink:0}
   .krow{display:flex;gap:4px;justify-content:center}
-  .key{flex:1;min-width:0;height:min(46px,6.4vh);border-radius:7px;border:none;background:#4a4e57;color:#fff;
+  .key{flex:1;min-width:0;height:min(45px,6.2vh);border-radius:7px;border:none;background:#4a4e57;color:#fff;
     font-weight:700;font-size:min(15px,3.6vw);cursor:pointer;display:flex;align-items:center;justify-content:center;
-    padding:0;transition:background .3s;touch-action:manipulation}
-  .key.wide{flex:1.6;font-size:min(12px,3vw)}
+    padding:0;margin:0;width:auto;transition:background .3s;touch-action:manipulation;text-transform:uppercase}
+  .key.wide{flex:1.6;font-size:min(13px,3.2vw)}
   .key:active{background:#5c616b}
   .key.correct{background:#2fbf5f}
   .key.present{background:#e0a72e}
   .key.absent{background:#141519;color:#44474d;text-decoration:line-through;opacity:.5;pointer-events:none}
 
-  .again{margin-top:14px;display:none}
-  .backlink{margin-top:16px;color:var(--muted);font-size:13px;text-decoration:none}
+  .again{margin-top:8px;display:none}
+  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
   /* во время игры прячем шапку и нижнюю ссылку — вся высота уходит полю + клавиатуре */
   body.playing h1, body.playing .sub, body.playing .backlink{display:none}
-  body.playing{padding-top:4px}
+  body.playing{padding-top:6px}
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  .langbar{display:flex;gap:2px;justify-content:center;margin:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:3px;width:max-content;flex-shrink:0}
+  .langbar button{width:auto;margin:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:11px;padding:4px 8px;border-radius:999px;cursor:pointer;letter-spacing:.3px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 12px rgba(255,34,56,.4)}
+  @media (max-width:350px){
+    .nav-pill{padding:5px 8px;font-size:11px}
+    .langbar button{padding:3px 6px;font-size:10px}
+    .info-btn{width:28px;height:28px;min-width:28px;font-size:13px}
+  }
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div class="topbar">
+  <a href="/games/" class="nav-pill" title="Ко всем играм" data-i18n="nav_games" data-i18n-title="back_btn">🎮 Игры</a>
+  <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+  <button type="button" class="info-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" aria-label="Info">i</button>
+</div>
+
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🟩 5 букв — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="back_btn">🎮 Игры</a>
+
 <h1 data-i18n="page_title">🟩 5 букв</h1>
-<div class="langbar" id="langbar" style="margin-bottom:4px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div><div class="sub" data-i18n="page_sub">Отгадай слово · Lobby.gg</div>
+<div class="sub" data-i18n="page_sub">Отгадай слово · Lobby.gg</div>
 
 <!-- SETUP -->
 <div id="setup" class="setup">
-  <div class="grpttl" data-i18n="lang_title">🌍 Язык</div>
+  <div class="grpttl" data-i18n="lang_title">🌍 Язык словаря</div>
   <div class="opts" id="langopts">
-    <div class="opt on" data-lang="ru">🇷🇺 Рус</div>
-    <div class="opt" data-lang="uk">🇺🇦 Укр</div>
-    <div class="opt" data-lang="de">🇩🇪 Нім</div>
-    <div class="opt" data-lang="en">🇬🇧 Eng</div>
+    <div class="opt" data-lang="uk" data-i18n="lang_uk">🇺🇦 Укр</div>
+    <div class="opt on" data-lang="ru" data-i18n="lang_ru">🇷🇺 Рус</div>
+    <div class="opt" data-lang="en" data-i18n="lang_en">🇬🇧 Англ</div>
+    <div class="opt" data-lang="de" data-i18n="lang_de">🇩🇪 Нем</div>
   </div>
   <div class="grpttl" data-i18n="diff_title">🎚 Сложность</div>
   <div class="opts" id="diffopts">
-    <div class="opt" data-diff="easy">Лёгкий<span class="d">1 буква открыта</span></div>
-    <div class="opt on" data-diff="normal">Средний<span class="d">классика, 6 попыток</span></div>
-    <div class="opt" data-diff="hard">Сложный<span class="d">обязателен учёт подсказок</span></div>
+    <div class="opt" data-diff="easy"><span data-i18n="diff_easy">Лёгкий</span><span class="d" data-i18n="diff_easy_sub">1 буква открыта</span></div>
+    <div class="opt on" data-diff="normal"><span data-i18n="diff_med">Средний</span><span class="d" data-i18n="diff_med_sub">классика, 6 попыток</span></div>
+    <div class="opt" data-diff="hard"><span data-i18n="diff_hard">Сложный</span><span class="d" data-i18n="diff_hard_sub">обязателен учёт подсказок</span></div>
   </div>
-  <button style="margin-top:22px" onclick="startGame()">🚀 Играть</button>
-  <div class="grpttl" style="margin-top:20px">Как играть</div>
-  <div style="text-align:left;color:var(--muted);font-size:13px;line-height:1.6">
+  <button style="margin-top:18px" onclick="startGame()" data-i18n="play_btn">🚀 Играть</button>
+  <div class="grpttl" style="margin-top:16px" data-i18n="how_to_play">Как играть</div>
+  <div style="text-align:left;color:var(--muted);font-size:13px;line-height:1.6" data-i18n="how_body">
     🟩 буква на своём месте · 🟨 буква есть, но не там · ⬛ буквы нет.<br>
     6 попыток. Тапай буквы на клавиатуре ниже.
   </div>
@@ -103,70 +116,155 @@
   <div class="msg" id="msg"></div>
   <div class="grid" id="grid"></div>
   <div class="kbd" id="kbd"></div>
-  <button class="again" id="again" onclick="location.reload()" data-i18n="new_word_btn">🔄 Новое слово</button>
+  <button class="again" id="again" onclick="resetToNewWord()" data-i18n="new_word_btn">🔄 Новое слово</button>
 </div>
 <a class="backlink" href="/games/" data-i18n="back_btn">← Все игры</a>
 
+<script src="/games/static/i18n_common.js"></script>
 <script>
-
-const UI = {"uk": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Вгадай слово з 5 букв за 6 спроб. Після кожної: 🟩 буква на своєму місці, 🟨 буква є в слові, але не там, ⬛ букви немає. На клавіатурі видно, які букви вже відгадані.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🟩 5 букв", "page_sub": "Відгадай слово · Lobby.gg", "lang_title": "🌍 Мова словника", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нім", "diff_title": "🎚 Складність", "diff_easy": "Легкий", "diff_easy_sub": "1 буква відкрита", "diff_med": "Середній", "diff_med_sub": "класика, 6 спроб", "diff_hard": "Складний", "diff_hard_sub": "обов'язкове врахування підказок", "play_btn": "🚀 Грати", "how_to_play": "Як грати", "back_btn": "← Усі ігри", "new_word_btn": "🔄 Нове слово", "msg_hint": "Підказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Відгадав за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вийшло. Слово: "}, "ru": {"title": "Lobby.gg — 5 букв", "rules_title": "🟩 5 букв — правила", "rules_body": "Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🟩 5 букв", "page_sub": "Отгадай слово · Lobby.gg", "lang_title": "🌍 Язык словаря", "lang_ru": "🇷🇺 Рус", "lang_uk": "🇺🇦 Укр", "lang_de": "🇩🇪 Нем", "diff_title": "🎚 Сложность", "diff_easy": "Лёгкий", "diff_easy_sub": "1 буква открыта", "diff_med": "Средний", "diff_med_sub": "классика, 6 попыток", "diff_hard": "Сложный", "diff_hard_sub": "обязателен учёт подсказок", "play_btn": "🚀 Играть", "how_to_play": "Как играть", "back_btn": "← Все игры", "new_word_btn": "🔄 Новое слово", "msg_hint": "Подсказка: буква №", "msg_short": "Мало букв", "msg_win": "🎉 Отгадал за ", "msg_word": "! Слово: ", "msg_lose": "😔 Не вышло. Слово: "}, "en": {"title": "Lobby.gg — Wordle", "rules_title": "🟩 Wordle — rules", "rules_body": "Guess the 5-letter word in 6 tries. After each guess: 🟩 letter is in the correct spot, 🟨 letter is in the word but wrong spot, ⬛ letter is not in the word.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🟩 Wordle", "page_sub": "Guess the word · Lobby.gg", "lang_title": "🌍 Dictionary Language", "lang_ru": "🇷🇺 Rus", "lang_uk": "🇺🇦 Ukr", "lang_de": "🇩🇪 Ger", "diff_title": "🎚 Difficulty", "diff_easy": "Easy", "diff_easy_sub": "1 letter revealed", "diff_med": "Medium", "diff_med_sub": "classic, 6 tries", "diff_hard": "Hard", "diff_hard_sub": "must use hints", "play_btn": "🚀 Play", "how_to_play": "How to play", "back_btn": "← All games", "new_word_btn": "🔄 New word", "msg_hint": "Hint: letter #", "msg_short": "Not enough letters", "msg_win": "🎉 Solved in ", "msg_word": "! Word: ", "msg_lose": "😔 Failed. Word: "},
+const UI = {
+  uk: {
+    title: "Lobby.gg — 5 букв",
+    rules_title: "🟩 5 букв — правила",
+    rules_body: "Вгадай слово з 5 букв за 6 спроб. Після кожної: 🟩 буква на своєму місці, 🟨 буква є в слові, але не там, ⬛ букви немає. На клавіатурі видно, які букви вже відгадані.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "🎮 Ігри",
+    page_title: "🟩 5 букв",
+    page_sub: "Відгадай слово · Lobby.gg",
+    lang_title: "🌍 Мова словника",
+    lang_ru: "🇷🇺 Рос",
+    lang_uk: "🇺🇦 Укр",
+    lang_de: "🇩🇪 Нім",
+    lang_en: "🇬🇧 Англ",
+    diff_title: "🎚 Складність",
+    diff_easy: "Легкий",
+    diff_easy_sub: "1 буква відкрита",
+    diff_med: "Середній",
+    diff_med_sub: "класика, 6 спроб",
+    diff_hard: "Складний",
+    diff_hard_sub: "обов'язкове врахування підказок",
+    play_btn: "🚀 Грати",
+    how_to_play: "Як грати",
+    how_body: "🟩 буква на своєму місці · 🟨 буква є, але не там · ⬛ букви немає.<br>6 спроб. Натискай букви на клавіатурі нижче.",
+    back_btn: "← Усі ігри",
+    new_word_btn: "🔄 Нове слово",
+    msg_hint: "Підказка: буква №",
+    msg_short: "Мало букв",
+    msg_win: "🎉 Відгадав за ",
+    msg_word: "! Слово: ",
+    msg_lose: "😔 Не вийшло. Слово: ",
+    hard_pos: "Позиція {pos} має бути «{ch}»",
+    hard_use: "Використай букву «{ch}»"
+  },
+  ru: {
+    title: "Lobby.gg — 5 букв",
+    rules_title: "🟩 5 букв — правила",
+    rules_body: "Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.",
+    rules_ok: "Понятно 👍",
+    nav_games: "🎮 Игры",
+    page_title: "🟩 5 букв",
+    page_sub: "Отгадай слово · Lobby.gg",
+    lang_title: "🌍 Язык словаря",
+    lang_ru: "🇷🇺 Рус",
+    lang_uk: "🇺🇦 Укр",
+    lang_de: "🇩🇪 Нем",
+    lang_en: "🇬🇧 Англ",
+    diff_title: "🎚 Сложность",
+    diff_easy: "Лёгкий",
+    diff_easy_sub: "1 буква открыта",
+    diff_med: "Средний",
+    diff_med_sub: "классика, 6 попыток",
+    diff_hard: "Сложный",
+    diff_hard_sub: "обязателен учёт подсказок",
+    play_btn: "🚀 Играть",
+    how_to_play: "Как играть",
+    how_body: "🟩 буква на своём месте · 🟨 буква есть, но не там · ⬛ буквы нет.<br>6 попыток. Тапай буквы на клавиатуре ниже.",
+    back_btn: "← Все игры",
+    new_word_btn: "🔄 Новое слово",
+    msg_hint: "Подсказка: буква №",
+    msg_short: "Мало букв",
+    msg_win: "🎉 Отгадал за ",
+    msg_word: "! Слово: ",
+    msg_lose: "😔 Не вышло. Слово: ",
+    hard_pos: "Позиция {pos} должна быть «{ch}»",
+    hard_use: "Используй букву «{ch}»"
+  },
+  en: {
+    title: "Lobby.gg — Wordle",
+    rules_title: "🟩 Wordle — rules",
+    rules_body: "Guess the 5-letter word in 6 tries. After each guess: 🟩 letter is in the correct spot, 🟨 letter is in the word but wrong spot, ⬛ letter is not in the word.",
+    rules_ok: "Got it 👍",
+    nav_games: "🎮 Games",
+    page_title: "🟩 Wordle",
+    page_sub: "Guess the word · Lobby.gg",
+    lang_title: "🌍 Dictionary language",
+    lang_ru: "🇷🇺 Rus",
+    lang_uk: "🇺🇦 Ukr",
+    lang_de: "🇩🇪 Ger",
+    lang_en: "🇬🇧 Eng",
+    diff_title: "🎚 Difficulty",
+    diff_easy: "Easy",
+    diff_easy_sub: "1 letter revealed",
+    diff_med: "Medium",
+    diff_med_sub: "classic, 6 tries",
+    diff_hard: "Hard",
+    diff_hard_sub: "must use hints",
+    play_btn: "🚀 Play",
+    how_to_play: "How to play",
+    how_body: "🟩 right spot · 🟨 in the word, wrong spot · ⬛ not in the word.<br>6 tries. Tap the keyboard below.",
+    back_btn: "← All games",
+    new_word_btn: "🔄 New word",
+    msg_hint: "Hint: letter #",
+    msg_short: "Not enough letters",
+    msg_win: "🎉 Solved in ",
+    msg_word: "! Word: ",
+    msg_lose: "😔 Out of tries. Word: ",
+    hard_pos: "Spot {pos} must be '{ch}'",
+    hard_use: "Use letter '{ch}'"
+  },
   de: {
-    "title": "Lobby.gg — 5 Buchstaben",
-    "rules_title": "🟩 5 Buchstaben — Regeln",
-    "rules_body": "Errate das 5-Buchstaben-Wort in 6 Versuchen. Nach jedem Versuch: 🟩 Buchstabe an richtiger Stelle, 🟨 Buchstabe im Wort aber andere Stelle, ⬛ Buchstabe nicht im Wort.",
-    "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
-    "page_title": "🟩 5 Buchstaben",
-    "page_sub": "Wort erraten · Lobby.gg",
-    "lang_title": "🌍 Wörterbuch-Sprache",
-    "lang_ru": "🇷🇺 Rus",
-    "lang_uk": "🇺🇦 Ukr",
-    "lang_de": "🇩🇪 Deu",
-    "diff_title": "🎚 Schwierigkeit",
-    "diff_easy": "Leicht",
-    "diff_easy_sub": "1 Buchstabe aufgedeckt",
-    "diff_med": "Mittel",
-    "diff_med_sub": "Klassisch, 6 Versuche",
-    "diff_hard": "Schwer",
-    "diff_hard_sub": "Hinweise müssen genutzt werden",
-    "play_btn": "🚀 Spielen",
-    "how_to_play": "Spielanleitung",
-    "back_btn": "← Alle Spiele",
-    "new_word_btn": "🔄 Neues Wort",
-    "msg_hint": "Hinweis: Buchstabe #",
-    "msg_short": "Nicht genug Buchstaben",
-    "msg_win": "🎉 Gelöst in ",
-    "msg_word": "! Wort: ",
-    "msg_lose": "😔 Nicht geschafft. Wort: "
+    title: "Lobby.gg — 5 Buchstaben",
+    rules_title: "🟩 5 Buchstaben — Regeln",
+    rules_body: "Errate das Wort mit 5 Buchstaben in 6 Versuchen. Nach jedem Versuch: 🟩 richtige Stelle, 🟨 im Wort, aber falsche Stelle, ⬛ nicht im Wort.",
+    rules_ok: "Alles klar 👍",
+    nav_games: "🎮 Spiele",
+    page_title: "🟩 5 Buchstaben",
+    page_sub: "Wort erraten · Lobby.gg",
+    lang_title: "🌍 Wörterbuch",
+    lang_ru: "🇷🇺 Rus",
+    lang_uk: "🇺🇦 Ukr",
+    lang_de: "🇩🇪 Deu",
+    lang_en: "🇬🇧 Eng",
+    diff_title: "🎚 Schwierigkeit",
+    diff_easy: "Leicht",
+    diff_easy_sub: "1 Buchstabe sichtbar",
+    diff_med: "Mittel",
+    diff_med_sub: "Klassisch, 6 Versuche",
+    diff_hard: "Schwer",
+    diff_hard_sub: "Hinweise sind Pflicht",
+    play_btn: "🚀 Spielen",
+    how_to_play: "So geht's",
+    how_body: "🟩 richtige Stelle · 🟨 im Wort, falsche Stelle · ⬛ nicht dabei.<br>6 Versuche. Tippe unten auf die Tastatur.",
+    back_btn: "← Alle Spiele",
+    new_word_btn: "🔄 Neues Wort",
+    msg_hint: "Tipp: Buchstabe #",
+    msg_short: "Zu wenige Buchstaben",
+    msg_win: "🎉 Gelöst in ",
+    msg_word: "! Wort: ",
+    msg_lose: "😔 Knapp vorbei. Wort: ",
+    hard_pos: "Platz {pos} muss „{ch}“ sein",
+    hard_use: "Nutze den Buchstaben „{ch}“"
   }
 };
-let LANG = localStorage.getItem('jg_lang') || 'ru';
-if (!UI[LANG]) LANG = 'ru';
-function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
-function applyUI() {
-  document.documentElement.lang = LANG;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const v = t(el.dataset.i18n);
-    if (typeof v !== 'string') return;
-    if (el.dataset.i18n === 'rules_body') el.innerHTML = v;
-    else if (el.tagName.toLowerCase() === 'title') document.title = v;
-    else el.textContent = v;
-  });
-  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
-  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-}
-document.getElementById('langbar').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  LANG = b.dataset.lang;
-  localStorage.setItem('jg_lang', LANG);
-  applyUI();
-});
-applyUI();
 
+// ── Словари: 5 букв, для немецкого — реальные слова в начальной форме без умлаутов и ß ──
+const WORDS = {
+  ru: ["книга","город","мышка","зебра","столб","поезд","банан","ветер","лампа","метро","школа","песня","кошка","дождь","огонь","берег","мороз","булка","весна","гроза","дупло","крыло","лимон","магия","носок","океан","парус","салат","улица","чашка","шапка","ложка","вилка","туман","рынок","сумка","халат","пенал","замок","трава"],
+  uk: ["книга","місто","мишка","зебра","палац","стовп","поїзд","банан","вітер","лампа","камін","школа","пісня","кішка","дощик","берег","мороз","булка","весна","гроза","дупло","крило","лимон","магія","носок","океан","парус","салат","чашка","шапка","зошит","квіти","молот","річка","халат","пенал","ложка","вилка","сумка","трава"],
+  de: ["apfel","blume","tisch","stuhl","pferd","vogel","katze","tiger","milch","musik","nacht","regen","sonne","stern","traum","wagen","zebra","angel","beere","engel","feuer","gabel","hafen","insel","kerze","liebe","monat","nadel","optik","platz","quark","ruhig","salat","segel","wolke","brief","fisch","stein","strom","preis","kleid","licht","markt","sport","stadt","sturm","durst","angst","kraft","kunst","boden","decke","lampe","seife","suppe","torte","kamin","kabel","paket","radio","konto","honig","knopf","schuh","bauch","birne","gurke","sahne","kakao"],
+  en: ["apple","house","water","table","chair","mouse","tiger","bread","music","night","river","sunny","stone","dream","cloud","light","green","plant","brick","zebra","candy","dance","eagle","fruit","grape","honey","juice","knife","lemon","money","ocean","piano","queen","robot","sugar","train","urban","voice","whale","yacht"]
+};
 
-// ── Словари: WORDS = загадываемые (частые), для проверки допустимости берём тот же набор мягко ──
-const WORDS = {"ru": ["книга", "город", "мышка", "зебра", "столб", "водка", "поезд", "банан", "ветер", "лампа", "метро", "школа", "песня", "кошка", "дождь", "огонь", "берег", "мороз", "булка", "весна", "гроза", "дупло", "крыло", "лимон", "магия", "носок", "океан", "парус", "салат", "улица", "хлеба", "чашка", "шапка", "ложка", "вилка", "туман", "рынок", "сумка", "халат", "пенал"], "uk": ["книга", "місто", "мишка", "зебра", "палац", "стовп", "поїзд", "банан", "вітер", "лампа", "камін", "школа", "пісня", "кішка", "дощик", "берег", "мороз", "булка", "весна", "гроза", "дупло", "крило", "лимон", "магія", "носок", "океан", "парус", "салат", "хліба", "чашка", "шапка", "зошит", "квіти", "молот", "річка", "халат", "пенал", "ложка", "вилка", "сумка"], "de": ["hause", "tisch", "stuhl", "apfel", "blume", "pferd", "vogel", "katze", "tiger", "brote", "milch", "musik", "nacht", "regen", "sonne", "stern", "traum", "wagen", "zebra", "angel", "beere", "dosen", "engel", "feuer", "gabel", "hafen", "insel", "jahre", "kerze", "liebe", "monat", "nadel", "optik", "platz", "quark", "ruhig", "salat", "turme", "segel", "wolke"], "en": ["apple", "house", "water", "table", "chair", "mouse", "tiger", "bread", "music", "night", "river", "sunny", "stone", "dream", "cloud", "light", "green", "plant", "brick", "zebra", "candy", "dance", "eagle", "fruit", "grape", "honey", "juice", "knife", "lemon", "money", "ocean", "piano", "queen", "robot", "sugar", "train", "urban", "voice", "whale", "yacht"]};
 const KEYS = {
   ru:[["й","ц","у","к","е","н","г","ш","щ","з","х"],["ф","ы","в","а","п","р","о","л","д","ж","э"],["⏎","я","ч","с","м","и","т","ь","б","ю","⌫"]],
   uk:[["й","ц","у","к","е","н","г","ш","щ","з","х","ї"],["ф","і","в","а","п","р","о","л","д","ж","є","ґ"],["⏎","я","ч","с","м","и","т","ь","б","ю","⌫"]],
@@ -174,30 +272,114 @@ const KEYS = {
   en:[["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["⏎","z","x","c","v","b","n","m","⌫"]]
 };
 
-let lang="ru", diff="normal", answer="", row=0, col=0, guesses=[], over=false, cur="", busy=false;
-const keyState={};  // буква -> лучший статус (correct>present>absent)
-const keyBtns={};   // буква -> кнопка (кэш, чтобы не сканировать всю клаву при подсветке)
+let LANG = localStorage.getItem('jg_lang') || 'ru';
+if (!UI[LANG]) LANG = 'ru';
+let lang = WORDS[LANG] ? LANG : 'ru';
+let userPickedDict = false;
+let diff = "normal", answer = "", row = 0, col = 0, guesses = [], over = false, cur = "", busy = false;
+let msgState = null;
+const keyState = {};  // буква -> лучший статус (correct>present>absent)
+const keyBtns = {};   // буква -> кнопка
 
-// выбор опций
-document.querySelectorAll('#langopts .opt').forEach(o=>o.onclick=()=>{
-  document.querySelectorAll('#langopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');lang=o.dataset.lang;});
-document.querySelectorAll('#diffopts .opt').forEach(o=>o.onclick=()=>{
-  document.querySelectorAll('#diffopts .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');diff=o.dataset.diff;});
+function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+
+function syncDictButtons() {
+  document.querySelectorAll('#langopts .opt').forEach(x => x.classList.toggle('on', x.dataset.lang === lang));
+}
+
+function setMsgState(st) {
+  msgState = st;
+  renderMsg();
+}
+
+function renderMsg() {
+  const el = document.getElementById('msg');
+  if (!el) return;
+  if (!msgState) { el.textContent = ''; return; }
+  if (msgState.type === 'hint') {
+    const q1 = LANG === 'de' ? '„' : (LANG === 'en' ? "'" : '«');
+    const q2 = LANG === 'de' ? '“' : (LANG === 'en' ? "'" : '»');
+    el.textContent = t('msg_hint') + msgState.pos + ' — ' + q1 + msgState.ch + q2;
+  } else if (msgState.type === 'short') {
+    el.textContent = t('msg_short');
+  } else if (msgState.type === 'win') {
+    el.textContent = t('msg_win') + msgState.tries + t('msg_word') + msgState.word;
+  } else if (msgState.type === 'lose') {
+    el.textContent = t('msg_lose') + msgState.word;
+  } else if (msgState.type === 'hard_pos') {
+    el.textContent = t('hard_pos').replace('{pos}', msgState.pos).replace('{ch}', msgState.ch);
+  } else if (msgState.type === 'hard_use') {
+    el.textContent = t('hard_use').replace('{ch}', msgState.ch);
+  }
+}
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.dataset.i18n === 'rules_body' || el.dataset.i18n === 'how_body') el.innerHTML = v;
+    else if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  syncDictButtons();
+  renderMsg();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    const inSetup = document.getElementById('setup').style.display !== 'none';
+    if (inSetup && !userPickedDict && WORDS[LANG]) {
+      lang = LANG;
+    }
+    applyUI();
+  });
+
+  document.querySelectorAll('#langopts .opt').forEach(o => o.onclick = () => {
+    userPickedDict = true;
+    lang = o.dataset.lang;
+    syncDictButtons();
+  });
+
+  document.querySelectorAll('#diffopts .opt').forEach(o => o.onclick = () => {
+    document.querySelectorAll('#diffopts .opt').forEach(x => x.classList.remove('on'));
+    o.classList.add('on');
+    diff = o.dataset.diff;
+  });
+
+  applyUI();
+});
 
 function pool(){ return WORDS[lang].filter(w=>w.length===5); }
 
 function startGame(){
+  for (const k in keyState) delete keyState[k];
+  for (const k in keyBtns) delete keyBtns[k];
   const list=pool();
   answer=list[Math.floor(Math.random()*list.length)];
-  row=0;col=0;guesses=[];over=false;cur="";
+  row=0;col=0;guesses=[];over=false;cur="";busy=false;
+  document.getElementById('again').style.display='none';
   document.getElementById('setup').style.display='none';
   document.getElementById('game').style.display='flex';
-  document.body.classList.add('playing');  // прячем шапку/нижнюю ссылку → клавиатуре больше места
+  document.body.classList.add('playing');
   buildGrid(); buildKbd();
-  if(diff==='easy'){ // открыть одну случайную букву как подсказку в первой строке-призраке
+  if(diff==='easy'){
     const i=Math.floor(Math.random()*5);
-    msg(t('msg_hint')+(i+1)+' — «'+answer[i].toUpperCase()+'»');
-  } else msg('');
+    setMsgState({ type: 'hint', pos: i + 1, ch: answer[i].toUpperCase() });
+  } else {
+    setMsgState(null);
+  }
+}
+
+function resetToNewWord(){
+  if (!userPickedDict && WORDS[LANG]) lang = LANG;
+  startGame();
 }
 
 function buildGrid(){
@@ -222,47 +404,42 @@ function buildKbd(){
     k.appendChild(rd);
   });
 }
-function msg(t){document.getElementById('msg').textContent=t;}
 
 function press(key){
-  if(over||busy)return;  // блок ввода во время анимации переворота — иначе рассинхрон cur/col/row
+  if(over||busy)return;
   if(key==='⌫'){ if(col>0){col--;cur=cur.slice(0,-1);setTile(row,col,'');} return; }
   if(key==='⏎'){ submit(); return; }
-  if(keyState[key]==='absent'){ shake(); return; }  // выбывшую букву ввести нельзя (легче играть; на hard keyState пуст)
+  if(keyState[key]==='absent'){ shake(); return; }
   if(col>=5)return;
   setTile(row,col,key); cur+=key; col++;
 }
 function setTile(r,c,ch){const t=document.getElementById('t'+r+'_'+c);t.textContent=ch;t.classList.toggle('filled',!!ch);}
 
 function submit(){
-  if(cur.length<5){ shake(); msg(t('msg_short')); return; }
-  // hard mode: обязан использовать раскрытые подсказки
+  if(cur.length<5){ shake(); setMsgState({ type: 'short' }); return; }
   if(diff==='hard' && guesses.length){
     const req=hardCheck();
-    if(req){ shake(); msg(req); return; }
+    if(req){ shake(); setMsgState(req); return; }
   }
-  busy=true;  // блокируем клаву на время переворота
+  busy=true;
   const res=score(cur,answer);
-  // анимация переворота + раскраска
   for(let c=0;c<5;c++){
     const t=document.getElementById('t'+row+'_'+c);
-    const ch=cur[c];  // фиксируем букву СЕЙЧАС (cur обнуляется ниже до срабатывания таймера)
-    // на сложном уровне клавиатуру НЕ подсвечиваем — не видно какие буквы вышли
+    const ch=cur[c];
     setTimeout(()=>{ t.classList.add('flip','filled'); t.classList.add(res[c]); if(diff!=='hard') paintKey(ch,res[c]); }, c*140);
   }
   guesses.push({word:cur,res});
   const won=res.every(x=>x==='correct');
-  const guess=cur; cur=""; col=0;
+  cur=""; col=0;
   setTimeout(()=>{
-    busy=false;  // анимация закончилась — ввод снова открыт
-    if(won){ over=true; msg(t('msg_win')+(row+1)+t('msg_word')+answer.toUpperCase()); showAgain(); return; }
+    busy=false;
+    if(won){ over=true; setMsgState({ type: 'win', tries: row + 1, word: answer.toUpperCase() }); showAgain(); return; }
     row++;
-    if(row>=6){ over=true; msg(t('msg_lose')+answer.toUpperCase()); showAgain(); }
-    else msg('');
+    if(row>=6){ over=true; setMsgState({ type: 'lose', word: answer.toUpperCase() }); showAgain(); }
+    else setMsgState(null);
   }, 5*140+250);
 }
 
-// корректный Wordle-скоринг с учётом повторов букв
 function score(guess,ans){
   const res=Array(5).fill('absent');
   const cnt={};
@@ -272,11 +449,10 @@ function score(guess,ans){
   return res;
 }
 function hardCheck(){
-  // все зелёные позиции и жёлтые буквы прошлых догадок обязаны присутствовать
   const green={}, must={};
   for(const g of guesses){ for(let i=0;i<5;i++){ if(g.res[i]==='correct')green[i]=g.word[i]; if(g.res[i]==='present')must[g.word[i]]=true; } }
-  for(const i in green){ if(cur[i]!==green[i]) return 'Позиция '+(+i+1)+' должна быть «'+green[i].toUpperCase()+'»'; }
-  for(const ch in must){ if(!cur.includes(ch)) return 'Используй букву «'+ch.toUpperCase()+'»'; }
+  for(const i in green){ if(cur[i]!==green[i]) return { type: 'hard_pos', pos: +i + 1, ch: green[i].toUpperCase() }; }
+  for(const ch in must){ if(!cur.includes(ch)) return { type: 'hard_use', ch: ch.toUpperCase() }; }
   return null;
 }
 function paintKey(ch,st){
@@ -287,7 +463,6 @@ function paintKey(ch,st){
 function shake(){const r=document.getElementById('r'+row);r.classList.add('shake');setTimeout(()=>r.classList.remove('shake'),400);}
 function showAgain(){document.getElementById('again').style.display='inline-block';}
 
-// физическая клавиатура (desktop)
 window.addEventListener('keydown',e=>{
   if(document.getElementById('game').style.display==='none')return;
   if(e.key==='Enter')press('⏎');
