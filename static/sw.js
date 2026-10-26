@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v1";
+const CACHE = "lobby-static-v2";  // v2: мобильная вёрстка (сменить версию = сбросить старый кэш у установленных приложений)
 const OFFLINE = "/games/static/offline.html";
 
 self.addEventListener("install", (e) => {

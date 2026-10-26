@@ -5,6 +5,8 @@
 - service worker обслуживает область /games/ (он лежит в её корне);
 - теги в <head> вставляются в каждый HTML-ответ, чтобы не править 30+ страниц вручную.
 """
+import re
+
 from fastapi.responses import FileResponse
 
 STATIC = "/app/static"
@@ -13,12 +15,28 @@ HEAD_TAGS = (
     '<link rel="manifest" href="/games/manifest.webmanifest">'
     '<meta name="mobile-web-app-capable" content="yes">'
     '<meta name="apple-mobile-web-app-capable" content="yes">'
-    '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">'
+    # black, не black-translucent: iOS сам оставляет место под часами/вырезом, иначе верх страниц уходит под них
+    '<meta name="apple-mobile-web-app-status-bar-style" content="black">'
     '<meta name="apple-mobile-web-app-title" content="Lobby.gg">'
     '<link rel="apple-touch-icon" href="/games/static/icons/apple-touch-icon.png">'
     "<script>if('serviceWorker' in navigator)addEventListener('load',function(){"
     "navigator.serviceWorker.register('/games/sw.js',{scope:'/games/'}).catch(function(){})})</script>"
+    # страховка: страница никогда не шире экрана телефона, iOS не раздувает шрифт при повороте
+    "<style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{max-width:100%;overflow-x:clip}</style>"
 ).encode()
+
+_VIEWPORT = re.compile(rb'(<meta\s+name="viewport"\s+content=")([^"]*)(")', re.I)
+
+
+def _fit_viewport(body):
+    """maximum-scale=1 на всех страницах: иначе iOS увеличивает страницу при фокусе на поле ввода
+    (шрифт < 16px), и её приходится двигать пальцем вправо-влево."""
+    def fix(m):
+        content = m.group(2)
+        if b"maximum-scale" not in content:
+            content += b", maximum-scale=1"
+        return m.group(1) + content + m.group(3)
+    return _VIEWPORT.sub(fix, body, count=1)
 
 
 async def manifest():
@@ -54,7 +72,7 @@ class InjectPWAHead:
                 chunks.append(message.get("body", b""))
                 if message.get("more_body"):
                     return
-                body = b"".join(chunks)
+                body = _fit_viewport(b"".join(chunks))
                 if b'rel="manifest"' not in body:
                     i = body.lower().find(b"</head>")
                     if i != -1:
