@@ -1146,6 +1146,22 @@
 
     const nameInp = document.getElementById('acc-name-inp');
     if (nameInp) nameInp.value = state.user.display_name || state.user.username;
+    
+    if (state.user.role === 'root') {
+      apiGet('/api/support/unread').then(res => {
+        if (res && res.ok) {
+          const badge = document.getElementById('hp-badge');
+          if (badge) {
+            if (res.count > 0) {
+              badge.style.display = 'inline-block';
+              badge.textContent = res.count + ' 💬';
+            } else {
+              // Usually handled by the friends request logic on index page.
+            }
+          }
+        }
+      }).catch(()=>{});
+    }
 
     // Stats
     const st = state.user.stats || {};

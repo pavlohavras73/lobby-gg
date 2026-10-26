@@ -15,6 +15,7 @@
     background: radial-gradient(circle at 50% 20%, #151a2e, #07090f);
     color: #f0f4fc;
     min-height: 100vh;
+    padding: 48px 12px 32px;
     overflow-x: hidden;
     touch-action: manipulation;
   }
@@ -22,9 +23,12 @@
     position: fixed;
     top: 8px;
     z-index: 99999;
-    background: rgba(10, 12, 20, 0.75);
+    width: auto;
+    margin: 0;
+    background: rgba(10, 12, 20, 0.78);
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     cursor: pointer;
@@ -33,10 +37,11 @@
     align-items: center;
     justify-content: center;
   }
+  .top-btn::after { display: none; }
   .nav-back {
     left: 8px;
     border-radius: 20px;
-    padding: 7px 14px;
+    padding: 7px 13px;
     font-size: 13px;
     font-weight: 700;
   }
@@ -44,6 +49,7 @@
     right: 8px;
     width: 34px;
     height: 34px;
+    padding: 0;
     border-radius: 50%;
     font-size: 16px;
     font-weight: 800;
@@ -52,11 +58,11 @@
   }
   .title-wrap {
     text-align: center;
-    margin: 18px 0 10px;
+    margin: 4px 0 10px;
   }
   .title-wrap h1 {
-    font-size: 26px;
-    letter-spacing: 1.5px;
+    font-size: clamp(20px, 6vw, 26px);
+    letter-spacing: 1px;
     margin: 0;
     text-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
   }
@@ -153,25 +159,28 @@
   .hud {
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     align-items: center;
     justify-content: space-between;
     background: rgba(14, 18, 30, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 14px;
-    padding: 10px 18px;
+    padding: 10px 14px;
     margin-bottom: 8px;
     backdrop-filter: blur(8px);
   }
   .hud-turn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 15px;
+    gap: 8px;
+    font-size: 14px;
     font-weight: 700;
   }
   .hud-players {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
   }
   .hud-pchip {
     padding: 4px 10px;
@@ -207,15 +216,16 @@
     bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.68);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 12px;
+    padding: 6px 14px;
+    font-size: 11.5px;
     color: #cbd5e1;
     pointer-events: none;
     backdrop-filter: blur(6px);
-    white-space: nowrap;
+    max-width: calc(100% - 20px);
+    text-align: center;
   }
 
   /* Win Modal */
@@ -246,30 +256,25 @@
 
   .hide { display: none !important; }
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar{display:flex;gap:3px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:3px;width:max-content}
+  .langbar button{width:auto;margin:0;border:0;background:transparent;box-shadow:none;color:var(--muted);font:inherit;font-weight:800;font-size:11.5px;padding:4px 9px;border-radius:999px;cursor:pointer;letter-spacing:.3px}
+  .langbar button::after{display:none}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
 </style>
 </head>
 <body>
 
-<a class="top-btn nav-back" href="/games/" title="Все игры">🎮 Игры</a>
-<button class="top-btn nav-rules" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила">i</button>
+<a class="top-btn nav-back" href="/games/" title="Все игры" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
+<button type="button" class="top-btn nav-rules" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
-  <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8)">
-    <div style="font-size:20px;font-weight:800;color:var(--c4-neon);margin-bottom:12px">🌌 4 в ряд 3D — правила</div>
-    <div style="font-size:14px;line-height:1.6;color:#e2e8f0">
+  <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8);max-height:85vh;overflow-y:auto">
+    <div style="font-size:20px;font-weight:800;color:var(--c4-neon);margin-bottom:12px" data-i18n="rules_title">🌌 4 в ряд 3D — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#e2e8f0" data-i18n="rules_body">
       Игра в пространственном кубе <b>5 × 5 × 5</b> (125 ячеек) для <b>2–3 игроков</b>.<br><br>
-      • <b>Ход:</b> кликните/тапните по любой из 25 колонок сверху. Ваша фишка под действием гравитации упадёт вниз.<br>
-      • <b>Вращение:</b> зажмите и крутите куб пальцем или мышью, чтобы видеть фишки с любой стороны.<br>
-      • <b>Победа:</b> соберите <b>4 фишки своего цвета в линию</b> в любом направлении пространства:
-      <ul style="padding-left:18px;margin:8px 0">
-        <li>По горизонтали (по осям X или Y)</li>
-        <li>По вертикали (высота Z)</li>
-        <li>По диагоналям плоскостей</li>
-        <li>По пространственным 3D-диагоналям (через весь объём куба)</li>
-      </ul>
+      • <b>Ход:</b> кликни/тапни по любой из 25 колонок сверху. Фишка упадёт вниз.<br>
+      • <b>Вращение:</b> зажми и крути куб пальцем или мышью.<br>
+      • <b>Победа:</b> собери <b>4 фишки своего цвета в линию</b> в любом направлении (горизонталь, вертикаль или 3D-диагональ).
     </div>
     <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
   </div>
@@ -283,28 +288,28 @@
 
 <!-- 1. HOME SCREEN -->
 <div id="home" class="card-box">
-  <input id="name" placeholder="Твоё имя" maxlength="20">
-  <button onclick="createGame()">Создать игру</button>
-  <div style="display:flex;gap:8px;margin-top:10px">
-    <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase">
-    <button class="sec" style="flex:1" onclick="joinGame()">Войти</button>
+  <input id="name" placeholder="Твоё имя" data-i18n-ph="name_ph" maxlength="20">
+  <button onclick="createGame()" data-i18n="create_btn">Создать игру</button>
+  <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+    <input id="joincode" placeholder="КОД" data-i18n-ph="code_ph" maxlength="4" style="text-transform:uppercase;flex:1;margin:0">
+    <button class="sec" style="flex:1;margin:0" onclick="joinGame()" data-i18n="join_btn">Войти</button>
   </div>
 </div>
 
 <!-- 2. LOBBY SCREEN -->
 <div id="lobby" class="card-box hide" style="text-align:center">
-  <div class="sub" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8ba2c4">Код комнаты:</div>
+  <div class="sub" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8ba2c4" data-i18n="room_code">Код комнаты:</div>
   <div class="code" id="lcode" style="font-size:36px;font-weight:900;letter-spacing:6px;color:var(--c4-neon);margin:4px 0 12px">----</div>
   
-  <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#cbd5e1">Твой цвет фишки:</div>
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#cbd5e1" data-i18n="your_color">Твой цвет фишки:</div>
   <div class="palette-row" id="palette-picker"></div>
 
-  <div style="font-size:13px;font-weight:700;margin-bottom:8px;text-align:left;color:#cbd5e1">Игроки в лобби (до 3):</div>
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px;text-align:left;color:#cbd5e1" data-i18n="players_lobby">Игроки в лобби (до 3):</div>
   <div id="players-list"></div>
 
   <div id="host-actions" style="margin-top:18px">
-    <button id="start-btn" onclick="startGame()" style="background:linear-gradient(45deg,#00f0ff,#7928ca);display:none">🚀 Начать игру</button>
-    <div id="waitmsg" class="sub" style="margin-top:8px">Ожидаем игроков (минимум 2)…</div>
+    <button id="start-btn" onclick="startGame()" style="background:linear-gradient(45deg,#00f0ff,#7928ca);display:none" data-i18n="start_btn">🚀 Начать игру</button>
+    <div id="waitmsg" class="sub" style="margin-top:8px" data-i18n="wait_players">Ожидаем игроков (минимум 2)…</div>
   </div>
 </div>
 
@@ -313,18 +318,18 @@
   <div class="hud">
     <div class="hud-turn" id="turn-info">
       <div id="turn-dot" style="width:14px;height:14px;border-radius:50%"></div>
-      <span id="turn-text">Ходит: ...</span>
+      <span id="turn-text">...</span>
     </div>
     <div class="hud-players" id="hud-players"></div>
   </div>
 
   <div id="canvas-container">
-    <div class="canvas-hint">🖱️ Зажми и крути обзор · Тап по колонке для броска</div>
+    <div class="canvas-hint" data-i18n="hint_rot">🖱️ Зажми и крути обзор · Тап по колонке для броска</div>
 
     <div id="win-overlay" class="win-overlay hide">
-      <div class="win-title" id="win-heading">🏆 ПОБЕДА!</div>
-      <div class="win-sub" id="win-desc">Игрок собрал 4 в ряд!</div>
-      <button class="sec" onclick="restartGame()" style="padding:12px 28px;font-size:15px;font-weight:800">Играть снова</button>
+      <div class="win-title" id="win-heading">🏆</div>
+      <div class="win-sub" id="win-desc"></div>
+      <button class="sec" onclick="restartGame()" style="padding:12px 28px;font-size:15px;font-weight:800;width:auto" data-i18n="again_btn">Играть снова</button>
     </div>
   </div>
 </div>
@@ -339,34 +344,150 @@
 
 <script>
 
-const UI = {"uk": {"title": "4 в ряд 3D — Lobby.gg", "nav_games": "🎮 Ігри", "page_title": "🌌 4 В РЯД : 3D", "page_sub": "битва в об'ємному кубі 5×5×5 · до 3 гравців", "name_ph": "Ім'я", "create_btn": "Створити гру", "code_ph": "КОД", "join_btn": "Увійти", "room_code": "Код кімнати:", "wait_players": "Очікуємо гравців (мінімум 2)…", "players_lobby": "Гравці в лобі (до 3):", "start_btn": "🚀 Почати гру", "turn_lbl": "Хід: ", "your_turn": "ТВІЙ ХІД!", "your_color": "Твій колір фішки: ", "you_lbl": "(Ти)", "win_msg": "🏆 ПЕРЕМОГА!", "win_sub": "Гравець зібрав 4 в ряд!", "again_btn": "Грати знову", "hint_rot": "🖱️ Затисни й крути огляд · Тап по колонці для кидка", "rot_lbl": "Обертання: ", "rules_title": "🌌 4 в ряд 3D — правила", "rules_body": "Гра в просторовому кубі (125 комірок) для 2-3 гравців.<br><br><b>Мета:</b><br>Зберіть 4 фішки свого кольору в лінію в будь-якому напрямку простору:<br>• По горизонталі (по осях X або Y)<br>• По вертикалі (висота Z)<br>• По діагоналях площин<br>• По просторових 3D-діагоналях (через весь об'єм куба)<br><br><b>Як ходити:</b><br>У свій хід клікніть/тапніть по будь-якій з 25 колонок зверху. Ваша фішка під дією гравітації впаде вниз.<br><br><b>Огляд:</b><br>Затисніть і крутіть куб пальцем або мишею, щоб бачити фішки з будь-якого боку.", "rules_ok": "Зрозуміло 👍", "enter_code": "Введіть код кімнати", "code_copied": "Код скопійовано!"}, "ru": {"title": "4 в ряд 3D — Lobby.gg", "nav_games": "🎮 Игры", "page_title": "🌌 4 В РЯД : 3D", "page_sub": "битва в объёмном кубе 5×5×5 · до 3 игроков", "name_ph": "Имя", "create_btn": "Создать игру", "code_ph": "КОД", "join_btn": "Войти", "room_code": "Код комнаты:", "wait_players": "Ожидаем игроков (минимум 2)…", "players_lobby": "Игроки в лобби (до 3):", "start_btn": "🚀 Начать игру", "turn_lbl": "Ход: ", "your_turn": "ТВОЙ ХОД!", "your_color": "Твой цвет фишки: ", "you_lbl": "(Ты)", "win_msg": "🏆 ПОБЕДА!", "win_sub": "Игрок собрал 4 в ряд!", "again_btn": "Играть снова", "hint_rot": "🖱️ Зажми и крути обзор · Тап по колонке для броска", "rot_lbl": "Вращение: ", "rules_title": "🌌 4 в ряд 3D — правила", "rules_body": "Игра в пространственном кубе (125 ячеек) для 2–3 игроков.<br><br><b>Победа:</b><br>Соберите 4 фишки своего цвета в линию в любом направлении пространства:<br>• По горизонталі (по осям X или Y)<br>• По вертикали (высота Z)<br>• По диагоналям плоскостей<br>• По пространственным 3D-диагоналям (через весь объём куба)<br><br><b>Как ходить:</b><br>В свой ход кликните/тапните по любой из 25 колонок сверху. Ваша фишка под действием гравитации упадёт вниз.<br><br><b>Обзор:</b><br>Зажмите и крутите куб пальцем или мышью, чтобы видеть фишки с любой стороны.", "rules_ok": "Понятно 👍", "enter_code": "Введите код комнаты", "code_copied": "Код скопирован!"}, "en": {"title": "Connect 4 3D — Lobby.gg", "nav_games": "🎮 Games", "page_title": "🌌 CONNECT 4 : 3D", "page_sub": "battle in a 5×5×5 volume cube · up to 3 players", "name_ph": "Name", "create_btn": "Create game", "code_ph": "CODE", "join_btn": "Join", "room_code": "Room code:", "wait_players": "Waiting for players (min 2)…", "players_lobby": "Players in lobby (max 3):", "start_btn": "🚀 Start game", "turn_lbl": "Turn: ", "your_turn": "YOUR TURN!", "your_color": "Your chip color: ", "you_lbl": "(You)", "win_msg": "🏆 VICTORY!", "win_sub": "Player connected 4 in a row!", "again_btn": "Play again", "hint_rot": "🖱️ Hold & drag to rotate · Tap column to drop", "rot_lbl": "Rotation: ", "rules_title": "🌌 Connect 4 3D — rules", "rules_body": "Game in a spatial cube (125 cells) for 2-3 players.<br><br><b>Goal:</b><br>Connect 4 chips of your color in a line in any spatial direction:<br>• Horizontally (along X or Y axes)<br>• Vertically (Z height)<br>• Diagonally on planes<br>• Through spatial 3D diagonals (across the entire volume)<br><br><b>How to play:</b><br>On your turn, click/tap any of the 25 columns from the top. Your chip will drop down by gravity.<br><br><b>View:</b><br>Hold and rotate the cube with your finger or mouse to see chips from any angle.", "rules_ok": "Got it 👍", "enter_code": "Enter room code", "code_copied": "Code copied!"},
+const UI = {
+  uk: {
+    "title": "4 в ряд 3D — Lobby.gg",
+    "nav_games": "🎮 Ігри",
+    "page_title": "🌌 4 В РЯД : 3D",
+    "page_sub": "битва в об'ємному кубі 5×5×5 · до 3 гравців",
+    "name_ph": "Ім'я",
+    "create_btn": "Створити гру",
+    "code_ph": "КОД",
+    "join_btn": "Увійти",
+    "room_code": "Код кімнати:",
+    "wait_players": "Очікуємо гравців (мінімум 2)…",
+    "players_lobby": "Гравці в лобі (до 3):",
+    "start_btn": "🚀 Почати гру",
+    "turn_lbl": "Хід: ",
+    "your_turn": "ТВІЙ ХІД!",
+    "your_color": "Твій колір фішки: ",
+    "you_lbl": "(Ти)",
+    "win_msg": "🏆 ПЕРЕМОГА!",
+    "win_sub": "Гравець зібрав 4 в ряд!",
+    "again_btn": "Грати знову",
+    "hint_rot": "🖱️ Затисни й крути огляд · Тап по колонці для кидка",
+    "rot_lbl": "Обертання: ",
+    "rules_title": "🌌 4 в ряд 3D — правила",
+    "rules_body": "Гра в просторовому кубі (125 комірок) для 2-3 гравців.<br><br><b>Мета:</b><br>Зберіть 4 фішки свого кольору в лінію в будь-якому напрямку простору:<br>• По горизонталі (по осях X або Y)<br>• По вертикалі (висота Z)<br>• По діагоналях площин<br>• По просторових 3D-діагоналях (через весь об'єм куба)<br><br><b>Як ходити:</b><br>У свій хід клікніть/тапніть по будь-якій з 25 колонок зверху. Ваша фішка під дією гравітації впаде вниз.<br><br><b>Огляд:</b><br>Затисніть і крутіть куб пальцем або мишею, щоб бачити фішки з будь-якого боку.",
+    "rules_ok": "Зрозуміло 👍",
+    "enter_code": "Введіть код кімнати",
+    "code_copied": "Код скопійовано!",
+    "player_default": "Гравець",
+    "choose_column": "Оберіть колонку",
+    "draw_title": "🤝 НІЧИЯ!",
+    "draw_desc": "Куб заповнено повністю.",
+    "win_you": "🏆 ТИ ПЕРЕМІГ!",
+    "win_other": "Переміг",
+    "win_desc": "Зібрано 4 фішки в ряд у 3D просторі.",
+    "conn_lost": "Зв'язок втрачено, оновіть сторінку."
+  },
+  ru: {
+    "title": "4 в ряд 3D — Lobby.gg",
+    "nav_games": "🎮 Игры",
+    "page_title": "🌌 4 В РЯД : 3D",
+    "page_sub": "битва в объёмном кубе 5×5×5 · до 3 игроков",
+    "name_ph": "Имя",
+    "create_btn": "Создать игру",
+    "code_ph": "КОД",
+    "join_btn": "Войти",
+    "room_code": "Код комнаты:",
+    "wait_players": "Ожидаем игроков (минимум 2)…",
+    "players_lobby": "Игроки в лобби (до 3):",
+    "start_btn": "🚀 Начать игру",
+    "turn_lbl": "Ход: ",
+    "your_turn": "ТВОЙ ХОД!",
+    "your_color": "Твой цвет фишки: ",
+    "you_lbl": "(Ты)",
+    "win_msg": "🏆 ПОБЕДА!",
+    "win_sub": "Игрок собрал 4 в ряд!",
+    "again_btn": "Играть снова",
+    "hint_rot": "🖱️ Зажми и крути обзор · Тап по колонке для броска",
+    "rot_lbl": "Вращение: ",
+    "rules_title": "🌌 4 в ряд 3D — правила",
+    "rules_body": "Игра в пространственном кубе (125 ячеек) для 2–3 игроков.<br><br><b>Победа:</b><br>Соберите 4 фишки своего цвета в линию в любом направлении пространства:<br>• По горизонтали (по осях X или Y)<br>• По вертикали (высота Z)<br>• По диагоналям плоскостей<br>• По пространственным 3D-диагоналям (через весь объём куба)<br><br><b>Как ходить:</b><br>В свой ход кликните/тапните по любой из 25 колонок сверху. Ваша фишка под действием гравитации упадёт вниз.<br><br><b>Обзор:</b><br>Зажмите и крутите куб пальцем или мышью, чтобы видеть фишки с любой стороны.",
+    "rules_ok": "Понятно 👍",
+    "enter_code": "Введите код комнаты",
+    "code_copied": "Код скопирован!",
+    "player_default": "Игрок",
+    "choose_column": "Выберите колонку",
+    "draw_title": "🤝 НИЧЬЯ!",
+    "draw_desc": "Куб заполнен полностью.",
+    "win_you": "🏆 ТЫ ВЫИГРАЛ!",
+    "win_other": "Победил",
+    "win_desc": "Собрано 4 фишки в ряд в 3D пространстве.",
+    "conn_lost": "Связь потеряна, обнови страницу."
+  },
+  en: {
+    "title": "Connect 4 3D — Lobby.gg",
+    "nav_games": "🎮 Games",
+    "page_title": "🌌 CONNECT 4 : 3D",
+    "page_sub": "battle in a 5×5×5 volume cube · up to 3 players",
+    "name_ph": "Name",
+    "create_btn": "Create game",
+    "code_ph": "CODE",
+    "join_btn": "Join",
+    "room_code": "Room code:",
+    "wait_players": "Waiting for players (min 2)…",
+    "players_lobby": "Players in lobby (max 3):",
+    "start_btn": "🚀 Start game",
+    "turn_lbl": "Turn: ",
+    "your_turn": "YOUR TURN!",
+    "your_color": "Your chip color: ",
+    "you_lbl": "(You)",
+    "win_msg": "🏆 VICTORY!",
+    "win_sub": "Player connected 4 in a row!",
+    "again_btn": "Play again",
+    "hint_rot": "🖱️ Hold & drag to rotate · Tap column to drop",
+    "rot_lbl": "Rotation: ",
+    "rules_title": "🌌 Connect 4 3D — rules",
+    "rules_body": "Game in a spatial cube (125 cells) for 2-3 players.<br><br><b>Goal:</b><br>Connect 4 chips of your color in a line in any spatial direction:<br>• Horizontally (along X or Y axes)<br>• Vertically (Z height)<br>• Diagonally on planes<br>• Through spatial 3D diagonals (across the entire volume)<br><br><b>How to play:</b><br>On your turn, click/tap any of the 25 columns from the top. Your chip will drop down by gravity.<br><br><b>View:</b><br>Hold and rotate the cube with your finger or mouse to see chips from any angle.",
+    "rules_ok": "Got it 👍",
+    "enter_code": "Enter room code",
+    "code_copied": "Code copied!",
+    "player_default": "Player",
+    "choose_column": "Choose a column",
+    "draw_title": "🤝 DRAW!",
+    "draw_desc": "The cube is completely full.",
+    "win_you": "🏆 YOU WON!",
+    "win_other": "Winner",
+    "win_desc": "Connected 4 chips in a row in 3D space.",
+    "conn_lost": "Connection lost, refresh the page."
+  },
   de: {
     "title": "3D Vier gewinnt — Lobby.gg",
     "nav_games": "🎮 Spiele",
-    "page_title": "🎲 3D VIER GEWINNT",
-    "page_sub": "4×4×4 Stangen · 2–4 Spieler",
+    "page_title": "🌌 3D VIER GEWINNT",
+    "page_sub": "Schlacht im 5×5×5-Würfel · bis zu 3 Spieler",
     "name_ph": "Dein Name",
-    "create_btn": "Raum erstellen",
+    "create_btn": "Spiel erstellen",
     "code_ph": "CODE",
     "join_btn": "Beitreten",
     "room_code": "Raumcode:",
-    "wait_players": "Warte auf Spieler (2–4)...",
-    "players_lobby": "Spieler:",
-    "start_btn": "Spiel starten",
-    "turn_lbl": "Am Zug:",
-    "your_turn": "Du bist dran!",
-    "your_color": "Deine Farbe:",
+    "wait_players": "Warte auf Spieler (mindestens 2)...",
+    "players_lobby": "Spieler in der Lobby (bis zu 3):",
+    "start_btn": "🚀 Spiel starten",
+    "turn_lbl": "Am Zug: ",
+    "your_turn": "DU BIST DRAN!",
+    "your_color": "Deine Chipfarbe: ",
     "you_lbl": "(Du)",
-    "win_msg": "hat gewonnen!",
-    "win_sub": "4 Kugeln in einer Reihe!",
+    "win_msg": "🏆 SIEG!",
+    "win_sub": "Spieler hat 4 in einer Reihe!",
     "again_btn": "Nochmal spielen",
-    "hint_rot": "Klicke auf eine Stange, um eine Kugel zu platzieren · Ziehe zum Drehen",
-    "rot_lbl": "Drehung",
-    "rules_title": "3D Vier gewinnt — Regeln",
-    "rules_body": "Das Feld besteht aus 16 Stangen (4×4), auf jede passen bis zu 4 Kugeln.<br><br>Spieler setzen abwechselnd eine Kugel ihrer Farbe auf eine beliebige freie Stange.<br><br><b>Ziel:</b> Bringe als Erster <b>4 Kugeln in einer Reihe</b> an:<br>• horizontal (in einer Ebene oder diagonal)<br>• vertikal auf einer Stange<br>• im 3D-Raum (von Ecke zu Ecke durch alle Ebenen).<br><br>Unterstützt 2 bis 4 Spieler.",
+    "hint_rot": "🖱️ Halten und ziehen zum Drehen · Klick auf Spalte zum Einwerfen",
+    "rot_lbl": "Drehung: ",
+    "rules_title": "🌌 3D Vier gewinnt — Regeln",
+    "rules_body": "Spiel im 3D-Würfel <b>5 × 5 × 5</b> (125 Felder) für <b>2–3 Spieler</b>.<br><br>• <b>Zug:</b> Klicke/tippe oben auf eine der 25 Spalten. Dein Stein fällt durch Schwerkraft nach unten.<br>• <b>Drehung:</b> Halte und drehe den Würfel mit Finger oder Maus.<br>• <b>Sieg:</b> Bringe <b>4 Steine deiner Farbe in eine Reihe</b> in beliebiger Richtung (horizontal, vertikal oder 3D-Diagonale).",
     "rules_ok": "Verstanden 👍",
     "enter_code": "Gib den Raumcode ein",
-    "code_copied": "Code kopiert!"
+    "code_copied": "Code kopiert!",
+    "player_default": "Spieler",
+    "choose_column": "Wähle eine Spalte",
+    "draw_title": "🤝 UNENTSCHIEDEN!",
+    "draw_desc": "Der Würfel ist komplett voll.",
+    "win_you": "🏆 DU HAST GEWONNEN!",
+    "win_other": "Gewinner",
+    "win_desc": "4 Steine in einer Reihe im 3D-Raum.",
+    "conn_lost": "Verbindung verloren, Seite neu laden."
   }
 };
 const GT = {"Нужно минимум 2 игрока.": {"uk": "Потрібно мінімум 2 гравця.", "en": "Need at least 2 players.", "de": "Mindestens 2 Spieler erforderlich."}, "Нужно минимум 2 игрока (жми «Добавить бота» для теста).": {"uk": "Потрібно мінімум 2 гравця (тисни «Додати бота» для тесту).", "en": "Need at least 2 players (click «Add bot» for test).", "de": "Mindestens 2 Spieler erforderlich (klicke auf «Bot hinzufügen» zum Testen)."}};
@@ -432,17 +553,17 @@ function connect(cb) {
   ws.onmessage = e => handle(JSON.parse(e.data));
   ws.onclose = () => {
     const w = document.getElementById('waitmsg');
-    if (w) w.textContent = 'Связь потеряна, обнови страницу.';
+    if (w) w.textContent = t('conn_lost');
   };
 }
 
 function createGame() {
-  const n = document.getElementById('name').value.trim() || 'Игрок';
+  const n = document.getElementById('name').value.trim() || t('player_default');
   connect(() => send({action: 'create', name: n, game: 'c4_3d'}));
 }
 
 function joinGame() {
-  const n = document.getElementById('name').value.trim() || 'Игрок';
+  const n = document.getElementById('name').value.trim() || t('player_default');
   const c = document.getElementById('joincode').value.trim().toUpperCase();
   if (!c) return alert(t('enter_code'));
   connect(() => send({action: 'join', name: n, code: c}));
@@ -488,7 +609,7 @@ function handle(m) {
       <div class="player-pill">
         <div class="tag">
           <span>${p.id === m.host ? '👑' : '👤'}</span>
-          <span>${p.name} ${p.id === pid ? '<small style="color:var(--c4-neon)">(Ты)</small>' : ''}</span>
+          <span>${p.name} ${p.id === pid ? `<small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : ''}</span>
         </div>
       </div>
     `).join('');
@@ -534,7 +655,7 @@ function renderLobbyState() {
       <div class="player-pill">
         <div class="tag">
           <div class="pdot" style="background:${col}; color:${col}"></div>
-          <span>${isHostP ? '👑' : '👤'} ${st.names[p] || 'Игрок'} ${isMe ? '<small style="color:var(--c4-neon)">(Ты)</small>' : ''}</span>
+          <span>${isHostP ? '👑' : '👤'} ${st.names[p] || t('player_default')} ${isMe ? `<small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : ''}</span>
         </div>
       </div>
     `;
@@ -549,13 +670,13 @@ function renderGameState() {
   // HUD
   const isMyTurn = (st.turn_pid === pid);
   const turnCol = st.colors[st.turn_pid] || '#fff';
-  const turnName = isMyTurn ? 'ТВОЙ ХОД!' : `Ходит: ${st.names[st.turn_pid] || 'Игрок'}`;
+  const turnName = isMyTurn ? t('your_turn') : `${t('turn_lbl')}${st.names[st.turn_pid] || t('player_default')}`;
 
   const tDot = document.getElementById('turn-dot');
   tDot.style.background = turnCol;
   tDot.style.boxShadow = `0 0 10px ${turnCol}`;
   document.getElementById('turn-text').innerHTML = isMyTurn 
-    ? `<span style="color:${turnCol}; font-weight:800">ТВОЙ ХОД!</span> Выберите колонку`
+    ? `<span style="color:${turnCol}; font-weight:800">${t('your_turn')}</span> ${t('choose_column')}`
     : turnName;
 
   document.getElementById('hud-players').innerHTML = st.players.map(p => {
@@ -572,16 +693,16 @@ function renderGameState() {
   if (st.winner) {
     winOverlay.classList.remove('hide');
     if (st.winner === 'draw') {
-      document.getElementById('win-heading').textContent = '🤝 НИЧЬЯ!';
+      document.getElementById('win-heading').textContent = t('draw_title');
       document.getElementById('win-heading').style.color = '#fff';
-      document.getElementById('win-desc').textContent = 'Куб заполнен полностью.';
+      document.getElementById('win-desc').textContent = t('draw_desc');
     } else {
       const isWinner = (st.winner === pid);
-      const wName = st.names[st.winner] || 'Игрок';
+      const wName = st.names[st.winner] || t('player_default');
       const wCol = st.colors[st.winner] || '#fff';
-      document.getElementById('win-heading').textContent = isWinner ? '🏆 ТЫ ВЫИГРАЛ!' : `Победил: ${wName}!`;
+      document.getElementById('win-heading').textContent = isWinner ? t('win_you') : `${t('win_other')}: ${wName}!`;
       document.getElementById('win-heading').style.color = wCol;
-      document.getElementById('win-desc').textContent = 'Собрано 4 фишки в ряд в 3D пространстве.';
+      document.getElementById('win-desc').textContent = t('win_desc');
       if (isWinner && window.SFX) SFX.win();
     }
   } else {

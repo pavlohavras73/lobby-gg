@@ -4459,6 +4459,12 @@ try:
 except Exception as e:
     logging.exception(f"Failed to load learn module: {e}")
 
+try:
+    import support
+    app.include_router(support.router)
+except Exception as e:
+    logging.exception(f"Failed to load support module: {e}")
+
 # PWA: manifest, service worker и теги «на домашний экран» на всех страницах (см. pwa.py)
 import pwa
 pwa.install(app)

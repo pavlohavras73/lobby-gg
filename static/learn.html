@@ -836,8 +836,8 @@
 
   <!-- ════ BOTTOM SHEET FEEDBACK ════ -->
   <div id="feedback-sheet" class="sheet">
-    <div class="sheet-title" id="sheet-title">Красава!</div>
-    <div class="sheet-desc" id="sheet-desc">Чистая правда без преувеличений.</div>
+    <div class="sheet-title" id="sheet-title"></div>
+    <div class="sheet-desc" id="sheet-desc"></div>
     <button class="primary-btn" id="sheet-next-btn" onclick="app.nextStep()" data-i18n="sheet_next">Дальше</button>
   </div>
 
@@ -859,7 +859,28 @@
         sheet_next: "Далі",
         no_courses: "У цьому напрямку поки немає доступних курсів.",
         load_lesson_err: "Не вдалося завантажити урок.",
-        confirm_exit: "Вийти з уроку? Прогрес поточної сесії не збережеться."
+        confirm_exit: "Вийти з уроку? Прогрес поточної сесії не збережеться.",
+        btn_theory_ok: "Зрозумів, погнали ▶",
+        btn_check: "Перевірити",
+        btn_continue: "Продовжити",
+        btn_tts_example: "🔊 Озвучити приклад",
+        btn_tts_sound: "🔊 Послухати як звучить",
+        mic_status_ready: "Натисни мікрофон і говори",
+        btn_skip_mic: "Пропустити мікрофон",
+        mic_status_proc: "Обробляємо звук через Groq Whisper...",
+        mic_status_listening: "Слухаю... Натисни ще раз, коли закінчиш",
+        mic_status_blocked: "Доступ до мікрофона заблоковано в браузері.",
+        accuracy_label: "Точність:",
+        try_again_or_next: "Спробуй ще раз або натисни Далі",
+        audio_check_err: "Помилка з'єднання при перевірці аудіо.",
+        sheet_bullseye: "У яблучко!",
+        sheet_not_quite: "Не зовсім так",
+        sheet_perfect: "Ідеально!",
+        sheet_correct_order: "Правильний порядок:",
+        sheet_great: "Чудово!",
+        sheet_all_matched: "Усі пари зіставлено правильно.",
+        sheet_correct: "Вірно!",
+        sheet_correct_answer: "Правильна відповідь:"
       },
       ru: {
         title: "Lobby.gg Learn — Микрообучение",
@@ -876,7 +897,28 @@
         sheet_next: "Дальше",
         no_courses: "В этом направлении пока нет доступных курсов.",
         load_lesson_err: "Не удалось загрузить урок.",
-        confirm_exit: "Выйти из урока? Прогресс текущей сессии не сохранится."
+        confirm_exit: "Выйти из урока? Прогресс текущей сессии не сохранится.",
+        btn_theory_ok: "Понял, погнали ▶",
+        btn_check: "Проверить",
+        btn_continue: "Продолжить",
+        btn_tts_example: "🔊 Озвучить пример",
+        btn_tts_sound: "🔊 Послушать как звучит",
+        mic_status_ready: "Нажми микрофон и говори",
+        btn_skip_mic: "Пропустить микрофон",
+        mic_status_proc: "Обрабатываем звук через Groq Whisper...",
+        mic_status_listening: "Слушаю... Нажми ещё раз, когда закончишь",
+        mic_status_blocked: "Доступ к микрофону заблокирован в браузере.",
+        accuracy_label: "Точность:",
+        try_again_or_next: "Попробуй ещё раз или нажми Дальше",
+        audio_check_err: "Ошибка соединения при проверке аудио.",
+        sheet_bullseye: "В яблочко!",
+        sheet_not_quite: "Не совсем так",
+        sheet_perfect: "Идеально!",
+        sheet_correct_order: "Правильный порядок:",
+        sheet_great: "Отлично!",
+        sheet_all_matched: "Все пары сопоставлены правильно.",
+        sheet_correct: "Верно!",
+        sheet_correct_answer: "Правильный ответ:"
       },
       en: {
         title: "Lobby.gg Learn — Microlearning",
@@ -893,26 +935,68 @@
         sheet_next: "Next",
         no_courses: "No courses available in this track yet.",
         load_lesson_err: "Failed to load lesson.",
-        confirm_exit: "Exit lesson? Progress for this session will not be saved."
+        confirm_exit: "Exit lesson? Progress for this session will not be saved.",
+        btn_theory_ok: "Got it, let's go ▶",
+        btn_check: "Check",
+        btn_continue: "Continue",
+        btn_tts_example: "🔊 Listen to example",
+        btn_tts_sound: "🔊 Listen to pronunciation",
+        mic_status_ready: "Tap microphone and speak",
+        btn_skip_mic: "Skip microphone",
+        mic_status_proc: "Processing audio with Groq Whisper...",
+        mic_status_listening: "Listening... Tap again when finished",
+        mic_status_blocked: "Microphone access blocked in browser.",
+        accuracy_label: "Accuracy:",
+        try_again_or_next: "Try again or tap Next",
+        audio_check_err: "Connection error checking audio.",
+        sheet_bullseye: "Bullseye!",
+        sheet_not_quite: "Not quite",
+        sheet_perfect: "Perfect!",
+        sheet_correct_order: "Correct order:",
+        sheet_great: "Great!",
+        sheet_all_matched: "All pairs matched correctly.",
+        sheet_correct: "Correct!",
+        sheet_correct_answer: "Correct answer:"
       },
-  de: {
-    "title": "Lobby.gg Learn — Mikrolernen",
-    "learn_sub": "Kurze tägliche Lektionen · verbessere deine Fähigkeiten",
-    "track_english": "🇬🇧 Englisch",
-    "track_cs": "💻 Informatik",
-    "track_german": "🇩🇪 Deutsch",
-    "back_btn": "← Alle Spiele",
-    "victory_title": "Lektion abgeschlossen!",
-    "victory_sub": "Du hast deine Kenntnisse erweitert und die Grundlagen gefestigt.",
-    "stat_xp": "Erfahrung",
-    "stat_streak": "Serie",
-    "victory_continue": "Weiter",
-    "sheet_next": "Weiter",
-    "no_courses": "In diesem Bereich sind noch keine Kurse verfügbar.",
-    "load_lesson_err": "Lektion konnte nicht geladen werden.",
-    "confirm_exit": "Lektion verlassen? Der Fortschritt dieser Sitzung geht verloren."
-  }
-};
+      de: {
+        "title": "Lobby.gg Learn — Mikrolernen",
+        "learn_sub": "Kurze tägliche Lektionen · verbessere deine Fähigkeiten",
+        "track_english": "🇬🇧 Englisch",
+        "track_cs": "💻 Informatik",
+        "track_german": "🇩🇪 Deutsch",
+        "back_btn": "← Alle Spiele",
+        "victory_title": "Lektion abgeschlossen!",
+        "victory_sub": "Du hast deine Kenntnisse erweitert und die Grundlagen gefestigt.",
+        "stat_xp": "Erfahrung",
+        "stat_streak": "Serie",
+        "victory_continue": "Weiter",
+        "sheet_next": "Weiter",
+        "no_courses": "In diesem Bereich sind noch keine Kurse verfügbar.",
+        "load_lesson_err": "Lektion konnte nicht geladen werden.",
+        "confirm_exit": "Lektion verlassen? Der Fortschritt dieser Sitzung geht verloren.",
+        "btn_theory_ok": "Verstanden, los geht's ▶",
+        "btn_check": "Überprüfen",
+        "btn_continue": "Weiter",
+        "btn_tts_example": "🔊 Beispiel anhören",
+        "btn_tts_sound": "🔊 Aussprache anhören",
+        "mic_status_ready": "Mikrofon tippen und sprechen",
+        "btn_skip_mic": "Mikrofon überspringen",
+        "mic_status_proc": "Audio wird mit Groq Whisper verarbeitet...",
+        "mic_status_listening": "Höre zu... Tippe erneut, wenn du fertig bist",
+        "mic_status_blocked": "Mikrofonzugriff im Browser blockiert.",
+        "accuracy_label": "Genauigkeit:",
+        "try_again_or_next": "Versuche es nochmal oder tippe auf Weiter",
+        "audio_check_err": "Verbindungsfehler bei der Audioprüfung.",
+        "sheet_bullseye": "Volltreffer!",
+        "sheet_not_quite": "Nicht ganz",
+        "sheet_perfect": "Perfekt!",
+        "sheet_correct_order": "Richtige Reihenfolge:",
+        "sheet_great": "Ausgezeichnet!",
+        "sheet_all_matched": "Alle Paare richtig zugeordnet.",
+        "sheet_correct": "Richtig!",
+        "sheet_correct_answer": "Richtige Antwort:"
+      }
+    };
 
     let LANG = localStorage.getItem('jg_lang') || 'ru';
     if (!UI[LANG]) LANG = 'ru';
@@ -928,7 +1012,78 @@
       return v;
     }
 
-    const GT = {};
+    const GT = {
+      "Живой разговорный сленг, идиомы и реальные фразы без академической скуки.": {
+        "uk": "Живий розмовний сленг, ідіоми та реальні фрази без академічної нудьги.",
+        "en": "Lively conversational slang, idioms, and real phrases without academic boredom.",
+        "de": "Lebendiger Umgangsslang, Idiome und echte Phrasen ohne akademische Langeweile."
+      },
+      "CS50: Архитектура & Python": {
+        "uk": "CS50: Архітектура & Python",
+        "en": "CS50: Architecture & Python",
+        "de": "CS50: Architektur & Python"
+      },
+      "Как устроена память, указатели, структуры данных и сложность алгоритмов.": {
+        "uk": "Як влаштована пам'ять, вказівники, структури даних та складність алгоритмів.",
+        "en": "How memory, pointers, data structures, and algorithmic complexity work.",
+        "de": "Funktionsweise von Speicher, Zeigern, Datenstrukturen und algorithmischer Komplexität."
+      },
+      "Deutsch: Живая Речь A1-B2": {
+        "uk": "Deutsch: Живе Мовлення A1-B2",
+        "en": "Deutsch: Living Speech A1-B2",
+        "de": "Deutsch: Lebendige Sprache A1-B2"
+      },
+      "Плотный трек без лишней грамматики: реальные диалоги, Берлинский сленг и база.": {
+        "uk": "Щільний трек без зайвої граматики: реальні діалоги, берлінський сленг і база.",
+        "en": "Intensive track without extra grammar: real dialogues, Berlin slang, and basics.",
+        "de": "Intensiver Kurs ohne unnötige Grammatik: echte Dialoge, Berliner Slang und Grundlagen."
+      },
+      "Unit 1: Уличные реакции": {
+        "uk": "Unit 1: Вуличні реакції",
+        "en": "Unit 1: Street Reactions",
+        "de": "Unit 1: Straßenreaktionen"
+      },
+      "«For real» и «No cap»": {
+        "uk": "«For real» та «No cap»",
+        "en": "“For real” & “No cap”",
+        "de": "„For real“ & „No cap“"
+      },
+      "«Flex», «Bet» и «Lowkey»": {
+        "uk": "«Flex», «Bet» та «Lowkey»",
+        "en": "“Flex”, “Bet” & “Lowkey”",
+        "de": "„Flex“, „Bet“ & „Lowkey“"
+      },
+      "Unit 1: Железо и Память": {
+        "uk": "Unit 1: Залізо та Пам'ять",
+        "en": "Unit 1: Hardware & Memory",
+        "de": "Unit 1: Hardware & Speicher"
+      },
+      "Как устроена RAM и адресация": {
+        "uk": "Як влаштована RAM та адресація",
+        "en": "How RAM and Addressing Work",
+        "de": "Funktionsweise von RAM und Adressierung"
+      },
+      "Unit 1: Берлинский вайб": {
+        "uk": "Unit 1: Берлінський вайб",
+        "en": "Unit 1: Berlin Vibe",
+        "de": "Unit 1: Berliner Vibe"
+      },
+      "Как здороваться и заказывать без акцента": {
+        "uk": "Як вітатися та замовляти без акценту",
+        "en": "How to greet and order without an accent",
+        "de": "Grüßen und Bestellen ohne Akzent"
+      },
+      "Красава!": {
+        "uk": "Красава!",
+        "en": "Awesome!",
+        "de": "Super gemacht!"
+      },
+      "Чистая правда без преувеличений.": {
+        "uk": "Чиста правда без перебільшень.",
+        "en": "Pure truth without exaggeration.",
+        "de": "Reine Wahrheit ohne Übertreibung."
+      }
+    };
 
     function T(s) {
       if (s == null) return s;
@@ -948,6 +1103,9 @@
       document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
       document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
       document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+      if (typeof app !== 'undefined' && app.coursesData && app.coursesData.length) {
+        app.renderCatalog();
+      }
     }
 
     document.getElementById('langbar').addEventListener('click', e => {
@@ -1032,9 +1190,9 @@
             <div class="course-header">
               <div class="course-icon">${course.icon}</div>
               <div style="flex:1;">
-                <div class="course-title">${course.title}</div>
-                <div class="course-desc">${course.description}</div>
-                <span class="course-level">${course.level}</span>
+                <div class="course-title">${T(course.title)}</div>
+                <div class="course-desc">${T(course.description)}</div>
+                <span class="course-level">${T(course.level)}</span>
               </div>
             </div>
             
@@ -1071,8 +1229,8 @@
 
             nodeWrap.innerHTML = `
               <div class="${nodeClass}">${iconHtml}</div>
-              <div class="lesson-label">${l.title}</div>
-              <div class="lesson-sublabel">${l.unit_title} • ⚡ ${l.xp_reward} XP</div>
+              <div class="lesson-label">${T(l.title)}</div>
+              <div class="lesson-sublabel">${T(l.unit_title)} • ⚡ ${l.xp_reward} XP</div>
             `;
 
             if (isUnlocked) {
@@ -1165,11 +1323,11 @@
           ${step.example ? `
             <div class="step-example">${step.example}</div>
             <button class="secondary-btn" style="margin-bottom: 16px;" onclick="app.speak('${step.example.replace(/\n/g, ' ').replace(/'/g, "\\'")}')">
-              🔊 Озвучить пример
+              ${t('btn_tts_example')}
             </button>
           ` : ''}
           <div class="stage-footer">
-            <button class="primary-btn" onclick="app.submitTheory()">Понял, погнали ▶</button>
+            <button class="primary-btn" onclick="app.submitTheory()">${t('btn_theory_ok')}</button>
           </div>
         `;
       },
@@ -1196,7 +1354,7 @@
         html += `
           </div>
           <div class="stage-footer">
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">Проверить</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">${t('btn_check')}</button>
           </div>
         `;
         stage.innerHTML = html;
@@ -1218,14 +1376,14 @@
 
         if (isCorrect) {
           if (selectedBtn) selectedBtn.classList.add('correct');
-          this.showSheet(true, "В яблочко!", step.explanation);
+          this.showSheet(true, t('sheet_bullseye'), step.explanation);
         } else {
           if (selectedBtn) selectedBtn.classList.add('wrong');
           if (correctBtn) correctBtn.classList.add('correct');
           this.mistakesCount++;
           // Перемещаем в конец очереди на повтор
           this.stepsQueue.push(this.stepsQueue[0]);
-          this.showSheet(false, "Не совсем так", step.explanation);
+          this.showSheet(false, t('sheet_not_quite'), step.explanation);
         }
       },
 
@@ -1236,7 +1394,7 @@
           <div class="scramble-slots" id="slots-area"></div>
           <div class="scramble-bank" id="bank-area"></div>
           <div class="stage-footer">
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyScramble()">Проверить</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyScramble()">${t('btn_check')}</button>
           </div>
         `;
 
@@ -1274,11 +1432,11 @@
         const isCorrect = JSON.stringify(this.userAnswer) === JSON.stringify(step.correct_order);
 
         if (isCorrect) {
-          this.showSheet(true, "Идеально!", step.correct_order.join(" "));
+          this.showSheet(true, t('sheet_perfect'), step.correct_order.join(" "));
         } else {
           this.mistakesCount++;
           this.stepsQueue.push(this.stepsQueue[0]);
-          this.showSheet(false, "Правильный порядок:", step.correct_order.join(" "));
+          this.showSheet(false, t('sheet_correct_order'), step.correct_order.join(" "));
         }
       },
 
@@ -1290,7 +1448,7 @@
             <div id="right-col" style="display:flex; flex-direction:column; gap:10px;"></div>
           </div>
           <div class="stage-footer">
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyMatching()">Продолжить</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyMatching()">${t('btn_continue')}</button>
           </div>
         `;
 
@@ -1355,7 +1513,7 @@
       },
 
       verifyMatching() {
-        this.showSheet(true, "Отлично!", "Все пары сопоставлены правильно.");
+        this.showSheet(true, t('sheet_great'), t('sheet_all_matched'));
       },
 
       renderFillBlank(stage, step) {
@@ -1376,7 +1534,7 @@
         stage.innerHTML += `
           </div>
           <div class="stage-footer">
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyFillBlank()">Проверить</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyFillBlank()">${t('btn_check')}</button>
           </div>
         `;
       },
@@ -1392,11 +1550,11 @@
         const isCorrect = this.userAnswer.toLowerCase() === step.correct.toLowerCase();
 
         if (isCorrect) {
-          this.showSheet(true, "Верно!", step.explanation);
+          this.showSheet(true, t('sheet_correct'), step.explanation);
         } else {
           this.mistakesCount++;
           this.stepsQueue.push(this.stepsQueue[0]);
-          this.showSheet(false, `Правильный ответ: ${step.correct}`, step.explanation);
+          this.showSheet(false, `${t('sheet_correct_answer')} ${step.correct}`, step.explanation);
         }
       },
 
@@ -1416,7 +1574,7 @@
         stage.innerHTML += `
           </div>
           <div class="stage-footer">
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">Проверить</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyChoice()">${t('btn_check')}</button>
           </div>
         `;
       },
@@ -1429,19 +1587,19 @@
             <div class="sub">${step.hint || ''}</div>
             
             <button class="secondary-btn" style="padding: 8px 16px;" onclick="app.speak('${step.target_phrase.replace(/'/g, "\\'")}')">
-              🔊 Послушать как звучит
+              ${t('btn_tts_sound')}
             </button>
 
             <button class="mic-button" id="mic-btn" onclick="app.toggleRecording()">
               🎙
             </button>
-            <div id="mic-status" class="sub">Нажми микрофон и говори</div>
+            <div id="mic-status" class="sub">${t('mic_status_ready')}</div>
 
             <div id="voice-eval-box" class="voice-feedback hide"></div>
           </div>
           <div class="stage-footer">
-            <button class="secondary-btn" onclick="app.skipVoiceStep()">Пропустить микрофон</button>
-            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyVoiceStep()">Дальше</button>
+            <button class="secondary-btn" onclick="app.skipVoiceStep()">${t('btn_skip_mic')}</button>
+            <button class="primary-btn" id="check-btn" disabled onclick="app.verifyVoiceStep()">${t('sheet_next')}</button>
           </div>
         `;
       },
@@ -1457,7 +1615,7 @@
           }
           this.isRecording = false;
           micBtn.classList.remove('recording');
-          status.textContent = 'Обрабатываем звук через Groq Whisper...';
+          status.textContent = t('mic_status_proc');
           return;
         }
 
@@ -1480,9 +1638,9 @@
           this.mediaRecorder.start();
           this.isRecording = true;
           micBtn.classList.add('recording');
-          status.textContent = 'Слушаю... Нажми ещё раз, когда закончишь';
+          status.textContent = t('mic_status_listening');
         } catch (err) {
-          status.textContent = 'Доступ к микрофону заблокирован в браузере.';
+          status.textContent = t('mic_status_blocked');
           console.error("Mic error:", err);
         }
       },
@@ -1513,12 +1671,12 @@
               evalBox.classList.remove('hide');
               evalBox.innerHTML = `
                 <div style="font-weight:700; color:${resObj.pass ? 'var(--green)' : 'var(--red)'};">
-                  Точность: ${resObj.score}%
+                  ${t('accuracy_label')} ${resObj.score}%
                 </div>
                 <div>${resObj.feedback}</div>
               `;
               evalBox.style.background = resObj.pass ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 34, 56, 0.1)';
-              status.textContent = resObj.pass ? 'Отлично!' : 'Попробуй ещё раз или нажми Дальше';
+              status.textContent = resObj.pass ? t('sheet_great') : t('try_again_or_next');
 
               if (resObj.pass) {
                 document.getElementById('check-btn').disabled = false;
@@ -1528,7 +1686,7 @@
               }
             }
           } catch (e) {
-            status.textContent = 'Ошибка соединения при проверке аудио.';
+            status.textContent = t('audio_check_err');
             document.getElementById('check-btn').disabled = false;
           }
         };
@@ -1554,8 +1712,8 @@
         const descEl = document.getElementById('sheet-desc');
 
         sheet.className = `sheet active ${isCorrect ? 'correct' : 'wrong'}`;
-        titleEl.textContent = title;
-        descEl.textContent = desc || '';
+        titleEl.textContent = T(title);
+        descEl.textContent = desc ? T(desc) : '';
       },
 
       closeSheet() {

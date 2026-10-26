@@ -32,14 +32,14 @@
   .langbar button::after{display:none}
   .langbar button:hover{transform:none;color:#fff;box-shadow:none}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.45)}
-  .profile-card{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;color:var(--text);
+  .profile-card{position:relative;display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;color:var(--text);
     background:rgba(255,255,255,.045);border:1px solid var(--border);transition:border-color .25s,box-shadow .3s,background .25s;max-width:240px}
   .profile-card:hover{color:var(--text);border-color:rgba(255,34,56,.55);background:rgba(255,34,56,.07);box-shadow:0 0 22px -4px rgba(255,34,56,.4)}
   .pc-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,.08);flex-shrink:0}
   .pc-mid{min-width:0;line-height:1.15}
   .pc-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pc-stats{font-size:11px;color:var(--muted);white-space:nowrap}
-  .pc-badge{background:var(--crimson);color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;flex-shrink:0}
+  .pc-badge{background:var(--crimson);color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 
   /* ── hero ── */
   .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding:84px 0 56px}
@@ -184,12 +184,25 @@
     .room-wrap{max-width:440px;width:100%;margin:0 auto}
     .featured{grid-template-columns:1fr}
   }
+  @media (max-width:760px){
+    .pc-mid,.profile-card .pc-arrow{display:none !important}
+    .profile-card{position:relative;padding:2px;max-width:none}
+    .pc-badge{
+      position:absolute;top:-3px;right:-3px;
+      min-width:18px;height:18px;padding:0 4px;
+      border-radius:999px;font-size:10px;font-weight:800;
+      line-height:18px;text-align:center;
+      justify-content:center;
+      border:2px solid #07070a;box-sizing:border-box;z-index:2;
+    }
+    .pc-badge .pc-badge-lbl{display:none !important}
+  }
   @media (max-width:640px){
     .nav{padding:10px 16px}
     .logo .lgg-word{font-size:17px}
     .lgg-mark{width:30px;height:30px}
     .pc-mid,.profile-card .pc-arrow{display:none}
-    .profile-card{padding:3px}
+    .profile-card{padding:2px}
     .langbar button{padding:5px 8px;font-size:11px}
     .hero{padding:38px 0 28px;gap:40px}
     .h-title{letter-spacing:-1px}
@@ -400,6 +413,37 @@
       <div class="step"><div class="k">02</div><b data-i18n="h2t">Share the code</b><p data-i18n="h2p">Friends open the site on their phones and enter the code or accept your invite.</p></div>
       <div class="step"><div class="k">03</div><b data-i18n="h3t">Play in real time</b><p data-i18n="h3p">Every move syncs instantly over WebSockets. Dropped connection? You reconnect right back into the game.</p></div>
     </section>
+
+    <div class="gcard" style="margin:48px auto; max-width:600px" id="supportCard">
+      <h3 style="font-size:20px; font-weight:800; margin-bottom:8px" data-i18n="support_title">Support</h3>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:20px" data-i18n="support_sub">Found a bug, have a complaint or an idea? Write to us.</p>
+      
+      <div id="supportSuccess" class="hide" style="padding:16px; background:rgba(47,191,95,.1); border:1px solid rgba(47,191,95,.4); border-radius:12px; color:#2fbf5f; font-weight:700; margin-bottom:20px">
+        <span data-i18n="support_thanks">Thanks! We read every message.</span>
+      </div>
+
+      <form id="supportForm" onsubmit="submitSupport(event)">
+        <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:4px" data-i18n="support_cat">Category</label>
+        <select id="supportCat" style="width:100%; margin-bottom:16px; padding:10px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:10px; color:#fff">
+          <option value="Bug" data-i18n="support_cat_bug">Bug</option>
+          <option value="Complaint" data-i18n="support_cat_complaint">Complaint</option>
+          <option value="Idea" data-i18n="support_cat_idea">Idea</option>
+          <option value="Other" data-i18n="support_cat_other">Other</option>
+        </select>
+        
+        <label style="display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:4px">
+          <span data-i18n="support_msg">Message</span>
+          <span id="supportCharCnt" style="font-variant-numeric: tabular-nums">0/2000</span>
+        </label>
+        <textarea id="supportMsg" maxlength="2000" oninput="updateSupportChars()" rows="5" style="width:100%; margin-bottom:16px; padding:10px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:10px; color:#fff; resize:vertical"></textarea>
+        
+        <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:4px" data-i18n="support_contact">Contact (email or Telegram, optional)</label>
+        <input id="supportContact" maxlength="120" type="text" style="width:100%; margin-bottom:16px; padding:10px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:10px; color:#fff">
+        
+        <div id="supportErr" style="color:var(--crimson-soft); font-size:13px; margin-bottom:12px"></div>
+        <button type="submit" style="width:100%" data-i18n="support_send">Send</button>
+      </form>
+    </div>
 
     <footer class="ftr">
       <a class="logo" href="/games/" aria-label="Lobby.gg"><svg class="lgg-mark" style="width:28px;height:28px"><use href="#lggMark"/></svg><span class="lgg-word">Lobby<i>.gg</i></span></a>
@@ -692,6 +736,10 @@
       n_chess:"Шахи", d_chess:"Повні правила: рокіровка, взяття на проході, мат. Можна vs бот.",
       n_dots:"Крапки", d_dots:"Замикай квадрати. Можна vs бот.",
       n_bulls:"Бики і корови", d_bulls:"Зламай код. Можна vs бот.",
+      support_title:"Підтримка", support_sub:"Знайшли баг, маєте скаргу чи ідею? Напишіть нам.",
+      support_thanks:"Дякуємо! Ми читаємо кожне повідомлення.", support_cat:"Категорія", support_cat_bug:"Баг",
+      support_cat_complaint:"Скарга", support_cat_idea:"Ідея", support_cat_other:"Інше",
+      support_msg:"Повідомлення", support_contact:"Контакт (email або Telegram, необов'язково)", support_send:"Надіслати",
       n_guesswho:"Хто є хто", d_guesswho:"Тайтл → 20 персонажів від ІІ. Вгадай чужого.",
       n_wordle:"5 літер", d_wordle:"Вгадай слово за 6 спроб. 4 мови (рос/укр/нім/eng), 3 складності.",
       n_arrows:"Стрілки", d_arrows:"Звільни поле — стрілки відлітають, якщо шлях вільний. 100 рівнів.",
@@ -749,6 +797,10 @@
       n_chess:"Шахматы", d_chess:"Полные правила: рокировка, взятие на проходе, мат. Можно vs бот.",
       n_dots:"Точки", d_dots:"Замыкай квадраты. Можно vs бот.",
       n_bulls:"Быки и коровы", d_bulls:"Взломай код. Можно vs бот.",
+      support_title:"Поддержка", support_sub:"Нашли баг, есть жалоба или идея? Напишите нам.",
+      support_thanks:"Спасибо! Мы читаем каждое сообщение.", support_cat:"Категория", support_cat_bug:"Баг",
+      support_cat_complaint:"Жалоба", support_cat_idea:"Идея", support_cat_other:"Другое",
+      support_msg:"Сообщение", support_contact:"Контакт (email или Telegram, необязательно)", support_send:"Отправить",
       n_guesswho:"Кто есть кто", d_guesswho:"Тайтл → 20 персонажей от ИИ. Угадай чужого.",
       n_wordle:"5 букв", d_wordle:"Отгадай слово за 6 попыток. 4 языка (рус/укр/нім/eng), 3 сложности.",
       n_arrows:"Стрелки", d_arrows:"Освободи поле — стрелки улетают, если путь свободен. 100 уровней.",
@@ -807,6 +859,10 @@
       n_chess:"Chess", d_chess:"Full rules: castling, en passant, mate. Play vs bot too.",
       n_dots:"Dots & Boxes", d_dots:"Close the boxes. Play vs bot too.",
       n_bulls:"Bulls & Cows", d_bulls:"Crack the code. Play vs bot too.",
+      support_title:"Support", support_sub:"Found a bug, have a complaint or an idea? Write to us.",
+      support_thanks:"Thanks! We read every message.", support_cat:"Category", support_cat_bug:"Bug",
+      support_cat_complaint:"Complaint", support_cat_idea:"Idea", support_cat_other:"Other",
+      support_msg:"Message", support_contact:"Contact (email or Telegram, optional)", support_send:"Send",
       n_guesswho:"Guess Who", d_guesswho:"A title → 20 AI-generated characters. Guess your rival's.",
       n_wordle:"Wordle", d_wordle:"Guess the word in 6 tries. 4 languages (ru/uk/de/en), 3 difficulties.",
       n_arrows:"Arrows", d_arrows:"Clear the board — arrows fly off when the path is free. 100 levels.",
@@ -908,6 +964,10 @@
     "d_dots": "Kästchen und Punkte einkreisen. Auch gegen Bot spielbar.",
     "n_bulls": "Bullen und Kühe",
     "d_bulls": "Geheimcode knacken. Auch gegen Bot spielbar.",
+    "support_title":"Support", "support_sub":"Hast du einen Bug gefunden, eine Beschwerde oder eine Idee? Schreib uns.",
+    "support_thanks":"Danke! Wir lesen jede Nachricht.", "support_cat":"Kategorie", "support_cat_bug":"Bug",
+    "support_cat_complaint":"Beschwerde", "support_cat_idea":"Idee", "support_cat_other":"Anderes",
+    "support_msg":"Nachricht", "support_contact":"Kontakt (E-Mail oder Telegram, optional)", "support_send":"Senden",
     "n_guesswho": "Wer bin ich",
     "d_guesswho": "Ein Thema → 20 KI-generierte Figuren. Errate die Figur deines Gegners.",
     "n_wordle": "Wordle",
@@ -1011,6 +1071,7 @@
       b.setAttribute('aria-pressed', match ? 'true' : 'false');
     });
     renderPcStats();   // обновить динамические строки под язык
+    renderHpBadge();
     loadInvites();
   }
   window.I18N = I18N;
@@ -1080,10 +1141,59 @@
       window._pcFriends=(d.friends||[]).length;
       renderPcStats();
       const inc=(d.incoming||[]).length;
-      if(inc){const b=document.getElementById('hp-badge');b.textContent=inc+' '+t('req');b.style.display='inline-block';}
-      else{document.getElementById('hp-badge').style.display='none';}
+      renderHpBadge(inc);
     }
   }).catch(()=>{});
+
+  function formatRequests(n){
+    const lang = window.LANG || LANG || 'en';
+    let word = '';
+    if (lang === 'en') {
+      word = n === 1 ? 'request' : 'requests';
+    } else if (lang === 'de') {
+      word = n === 1 ? 'Anfrage' : 'Anfragen';
+    } else if (lang === 'uk') {
+      const mod10 = n % 10, mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) word = 'запит';
+      else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) word = 'запити';
+      else word = 'запитів';
+    } else {
+      const mod10 = n % 10, mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) word = 'заявка';
+      else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) word = 'заявки';
+      else word = 'заявок';
+    }
+    return { count: n, word: word };
+  }
+  let _pcRenderingBadge = false;
+  function renderHpBadge(inc){
+    const b = document.getElementById('hp-badge');
+    if(!b) return;
+    if(inc !== undefined) window._pcIncoming = parseInt(inc, 10) || 0;
+    const count = window._pcIncoming || 0;
+    if(count > 0){
+      const r = formatRequests(count);
+      b.innerHTML = '<span class="pc-badge-cnt">' + r.count + '</span> <span class="pc-badge-lbl">' + r.word + '</span>';
+      b.style.display = 'inline-flex';
+    } else {
+      b.style.display = 'none';
+      b.textContent = '0';
+    }
+  }
+  window.renderHpBadge = renderHpBadge;
+  (function initBadgeObserver(){
+    const b = document.getElementById('hp-badge');
+    if(!b || typeof MutationObserver === 'undefined') return;
+    const obs = new MutationObserver(()=>{
+      if(b.querySelector('.pc-badge-cnt')) return;
+      const txt = b.textContent.trim();
+      if(!txt || txt === '0') return;
+      const m = txt.match(/\d+/);
+      const cnt = m ? parseInt(m[0], 10) : 0;
+      renderHpBadge(cnt);
+    });
+    obs.observe(b, { childList: true });
+  })();
   function renderPcStats(){
     const played=window._pcPlayed, friends=window._pcFriends;
     const parts=[];
@@ -1141,6 +1251,51 @@
     }).catch(()=>{});
   }
   applyI18n();
+  function updateSupportChars() {
+    const el = document.getElementById('supportMsg');
+    const cnt = document.getElementById('supportCharCnt');
+    const len = el.value.length;
+    cnt.textContent = len + '/2000';
+    cnt.style.color = len > 1950 ? 'var(--crimson-soft)' : 'var(--muted)';
+  }
+
+  async function submitSupport(e) {
+    e.preventDefault();
+    const btn = document.querySelector('#supportForm button');
+    const err = document.getElementById('supportErr');
+    const succ = document.getElementById('supportSuccess');
+    
+    err.textContent = '';
+    btn.disabled = true;
+    
+    try {
+      const r = await fetch('/games/api/support', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          category: document.getElementById('supportCat').value,
+          message: document.getElementById('supportMsg').value,
+          contact: document.getElementById('supportContact').value,
+          page: 'index',
+          lang: LANG
+        })
+      });
+      const data = await r.json();
+      if (data.ok) {
+        document.getElementById('supportForm').reset();
+        updateSupportChars();
+        document.getElementById('supportForm').classList.add('hide');
+        succ.classList.remove('hide');
+      } else {
+        err.textContent = data.error || 'Error';
+      }
+    } catch(ex) {
+      err.textContent = 'Network error';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   setInterval(loadInvites,10000);
   </script>
 <script src="/games/static/sfx.js"></script>

@@ -150,7 +150,7 @@
             <div style="color: #ffcc00;">🪙 <span id="coinsVal">0</span></div>
         </div>
         <div class="bottom-bar">
-            <button class="hud-btn" onclick="openMenu('shop')">🚀 ПРОКАЧКА / МЕНЮ</button>
+            <button class="hud-btn" onclick="openMenu('shop')" data-i18n="menu_btn">🚀 ПРОКАЧКА / МЕНЮ</button>
         </div>
     </div>
 
@@ -490,18 +490,21 @@ document.addEventListener('DOMContentLoaded', applyUI);
             if(skinsData[idx].unlocked) { currentSkinIndex = idx; updateMenuUI(); }
         }
 
+        
         function spawnEnemy() {
             let size = Math.random() * 20 + 35;
-            let emojis = ['☄️', '🦠', '🌑', '👾', '🔥'];
-            let colors = ['#ff6600', '#00ff00', '#555555', '#cc00ff', '#ff3300'];
-            let randIdx = Math.floor(Math.random() * emojis.length);
+            let colors = ['#ff00ff', '#00ffff', '#ffff00', '#00ff00', '#ff0000'];
+            let shapes = [1, 2, 3];
+            let randShape = shapes[Math.floor(Math.random() * shapes.length)];
+            let randColor = colors[Math.floor(Math.random() * colors.length)];
             enemies.push({
                 x: Math.random() * (canvas.width - size), y: -50, width: size, height: size,
                 hp: Math.floor(1 + score / 500), maxHp: Math.floor(1 + score / 500),
                 speed: Math.random() * 1.5 + 1 + (score / 2000),
-                emoji: emojis[randIdx], color: colors[randIdx]
+                color: randColor, shape: randShape
             });
         }
+
 
         function createExplosion(x, y, color) {
             if(!settings.particles) return;
@@ -573,26 +576,75 @@ document.addEventListener('DOMContentLoaded', applyUI);
                 ctx.globalAlpha = 1.0;
             }
 
+            
             let img = skinImages[currentSkinIndex];
             if (img && img.complete && img.naturalHeight !== 0) {
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(img, player.x - player.width/2, player.y - player.height/2, player.width, player.height);
                 ctx.globalCompositeOperation = 'source-over';
             } else {
-                ctx.fillStyle = '#ff2238'; ctx.beginPath(); ctx.moveTo(player.x, player.y - player.height/2); ctx.lineTo(player.x + player.width/2, player.y + player.height/2); ctx.lineTo(player.x - player.width/2, player.y + player.height/2); ctx.fill();
+                ctx.save();
+                ctx.translate(player.x, player.y);
+                let w = player.width;
+                let h = player.height;
+                // Engine glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff2238';
+                ctx.fillStyle = '#ffcc00';
+                ctx.beginPath();
+                ctx.moveTo(-w*0.15, h*0.4);
+                ctx.lineTo(0, h*0.5 + Math.random()*h*0.3);
+                ctx.lineTo(w*0.15, h*0.4);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // Wings
+                ctx.fillStyle = '#900';
+                ctx.beginPath();
+                ctx.moveTo(0, -h*0.3);
+                ctx.lineTo(w*0.5, h*0.4);
+                ctx.lineTo(-w*0.5, h*0.4);
+                ctx.fill();
+                // Hull
+                ctx.fillStyle = '#ff2238';
+                ctx.beginPath();
+                ctx.moveTo(0, -h*0.5);
+                ctx.lineTo(w*0.25, h*0.3);
+                ctx.lineTo(-w*0.25, h*0.3);
+                ctx.fill();
+                // Cockpit
+                ctx.fillStyle = '#0ff';
+                ctx.beginPath();
+                ctx.moveTo(0, -h*0.1);
+                ctx.lineTo(w*0.1, h*0.1);
+                ctx.lineTo(-w*0.1, h*0.1);
+                ctx.fill();
+                ctx.restore();
             }
+
 
             for (let b of bullets) { ctx.fillStyle = b.color; ctx.shadowBlur = 10; ctx.shadowColor = b.color; ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height); }
             ctx.shadowBlur = 0;
 
+            
             for (let e of enemies) {
-                ctx.shadowBlur = 0; // Disable shadow for text
-                ctx.font = e.width + 'px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(e.emoji, e.x + e.width/2, e.y + e.height/2);
+                ctx.save();
+                ctx.translate(e.x + e.width/2, e.y + e.height/2);
+                let ew = e.width;
+                let eh = e.height;
+                ctx.fillStyle = e.color;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = e.color;
+                if (e.shape === 1) { // Diamond
+                    ctx.beginPath(); ctx.moveTo(0, -eh/2); ctx.lineTo(ew/2, 0); ctx.lineTo(0, eh/2); ctx.lineTo(-ew/2, 0); ctx.fill();
+                } else if (e.shape === 2) { // Hexagon
+                    ctx.beginPath(); ctx.moveTo(-ew/4, -eh/2); ctx.lineTo(ew/4, -eh/2); ctx.lineTo(ew/2, 0); ctx.lineTo(ew/4, eh/2); ctx.lineTo(-ew/4, eh/2); ctx.lineTo(-ew/2, 0); ctx.fill();
+                } else { // Spikey
+                    ctx.beginPath(); ctx.moveTo(0, -eh/2); ctx.lineTo(ew/4, -eh/4); ctx.lineTo(ew/2, 0); ctx.lineTo(ew/4, eh/4); ctx.lineTo(0, eh/2); ctx.lineTo(-ew/4, eh/4); ctx.lineTo(-ew/2, 0); ctx.lineTo(-ew/4, -eh/4); ctx.fill();
+                }
+                ctx.restore();
                 if (e.hp < e.maxHp) { ctx.fillStyle = '#333'; ctx.fillRect(e.x, e.y - 15, e.width, 4); ctx.fillStyle = '#0f0'; ctx.fillRect(e.x, e.y - 15, e.width * (e.hp / e.maxHp), 4); }
             }
+
             ctx.shadowBlur = 0;
 
             if(settings.particles) {

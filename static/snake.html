@@ -30,9 +30,9 @@
 </style>
 </head>
 <body>
-<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐍 Змейка — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя или стену — конец.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<button id="rulesBtn" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐍 Змейка — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя — конец. Стены можно проходить насквозь.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<a href="/games/" data-i18n-title="nav_games" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
 <h1 data-i18n="title">🐍 Змейка</h1>
 <div class="bar">
   <div class="score"><div class="l" data-i18n="score">Счёт</div><div class="v" id="score">0</div></div>
@@ -55,12 +55,12 @@
 
 <script>
 const UI={
- uk:{rules_title:"🐍 Змійка — правила",rules_body:"Керуй змійкою свайпами. Їж 🍎 — ростеш і набираєш очки. Врізався в себе чи стіну — кінець.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🐍 Змійка",score:"Рахунок",best:"Рекорд",slow:"Повільно",med:"Середньо",fast:"Швидко",again:"Ще раз",hint:"Свайпай, куди повзти. Їж 🍎, не врізайся в себе. (на пк — стрілки)",all_games:"← Усі ігри",over_score:"💀 Рахунок: "},
- ru:{rules_title:"🐍 Змейка — правила",rules_body:"Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя или стену — конец.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🐍 Змейка",score:"Счёт",best:"Рекорд",slow:"Медленно",med:"Средне",fast:"Быстро",again:"Ещё раз",hint:"Свайпай, куда ползти. Ешь 🍎, не врежься в себя. (на компе — стрелки)",all_games:"← Все игры",over_score:"💀 Счёт: "},
- en:{rules_title:"🐍 Snake — rules",rules_body:"Control the snake by swiping. Eat 🍎 to grow and score. Hit yourself or a wall — game over.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🐍 Snake",score:"Score",best:"Best",slow:"Slow",med:"Medium",fast:"Fast",again:"Again",hint:"Swipe where to go. Eat 🍎, don't hit yourself. (on PC — arrow keys)",all_games:"← All games",over_score:"💀 Score: "},
+ uk:{rules_title:"🐍 Змійка — правила",rules_body:"Керуй змійкою свайпами. Їж 🍎 — ростеш і набираєш очки. Врізався в себе — кінець. Стіни можна проходити наскрізь.",rules_ok:"Зрозуміло 👍",nav_games:"🎮 Ігри",title:"🐍 Змійка",score:"Рахунок",best:"Рекорд",slow:"Повільно",med:"Середньо",fast:"Швидко",again:"Ще раз",hint:"Свайпай, куди повзти. Їж 🍎, не врізайся в себе. (на пк — стрілки)",all_games:"← Усі ігри",over_score:"💀 Рахунок: "},
+ ru:{rules_title:"🐍 Змейка — правила",rules_body:"Управляй змейкой свайпами. Ешь 🍎 — растёшь и набираешь очки. Врезался в себя — конец. Стены можно проходить насквозь.",rules_ok:"Понятно 👍",nav_games:"🎮 Игры",title:"🐍 Змейка",score:"Счёт",best:"Рекорд",slow:"Медленно",med:"Средне",fast:"Быстро",again:"Ещё раз",hint:"Свайпай, куда ползти. Ешь 🍎, не врежься в себя. (на компе — стрелки)",all_games:"← Все игры",over_score:"💀 Счёт: "},
+ en:{rules_title:"🐍 Snake — rules",rules_body:"Control the snake by swiping. Eat 🍎 to grow and score. Hit yourself — game over. Walls are passable.",rules_ok:"Got it 👍",nav_games:"🎮 Games",title:"🐍 Snake",score:"Score",best:"Best",slow:"Slow",med:"Medium",fast:"Fast",again:"Again",hint:"Swipe where to go. Eat 🍎, don't hit yourself. (on PC — arrow keys)",all_games:"← All games",over_score:"💀 Score: "},
   de: {
     "rules_title": "🐍 Snake — Regeln",
-    "rules_body": "Steuere die Schlange mit Wischgesten. Friss 🍎, um zu wachsen und Punkte zu sammeln. Kollision mit der Wand oder dir selbst — Spiel vorbei.",
+    "rules_body":"Steuere die Schlange mit Wischgesten. Friss 🍎, um zu wachsen und Punkte zu sammeln. Kollision mit dir selbst — Spiel vorbei. Wände sind passierbar.",
     "rules_ok": "Verstanden 👍",
     "nav_games": "🎮 Spiele",
     "title": "🐍 Snake",
@@ -108,8 +108,10 @@ function placeFood(){
 }
 function tick(){
   dir=nextDir;
-  const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
-  if(h.x<0||h.x>=GRID||h.y<0||h.y>=GRID||snake.some(s=>s.x===h.x&&s.y===h.y)){return gameOver();}
+  let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(h.x<0)h.x=GRID-1; else if(h.x>=GRID)h.x=0;
+  if(h.y<0)h.y=GRID-1; else if(h.y>=GRID)h.y=0;
+  if(snake.some(s=>s.x===h.x&&s.y===h.y)){return gameOver();}
   snake.unshift(h);
   if(h.x===food.x&&h.y===food.y){score++;document.getElementById('score').textContent=score;
     if(score>best){best=score;localStorage.setItem('snake_best',best);document.getElementById('best').textContent=best;}
@@ -135,8 +137,9 @@ cv.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[
   if(Math.max(Math.abs(dx),Math.abs(dy))<20)return;
   if(Math.abs(dx)>Math.abs(dy))turn(dx>0?1:-1,0);else turn(0,dy>0?1:-1);sx=sy=null;},{passive:true});
 window.addEventListener('keydown',e=>{const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(m){e.preventDefault();turn(m[0],m[1]);}});
-window.addEventListener('resize',()=>{layout();if(!dead)draw();});
-applyUI();layout();restart();
+window.addEventListener('resize',()=>{layout();if(!dead&&food&&snake)draw();});  // до restart() еды ещё нет
+applyUI();
+window.addEventListener('DOMContentLoaded', ()=>{ layout(); restart(); });
 </script>
 <script src="/games/static/sfx.js"></script>
 </body>

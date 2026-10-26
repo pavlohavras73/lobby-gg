@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>БУНКЕР — Lobby.gg</title>
+<title data-i18n="title">БУНКЕР — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -24,10 +24,10 @@
 </style>
 </head>
 <body>
-<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<button id="rulesBtn" title="Правила" data-i18n-title="rules_btn_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">☢ Бункер — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1>☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Lobby.gg · кто достоин места</div>
+<a href="/games/" title="Ко всем играм" data-i18n-title="nav_games_title" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Lobby.gg · кто достоин места</div>
 <div class="langbar" id="langbar" role="group" aria-label="Language">
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
@@ -104,6 +104,7 @@
 // ═══════════ i18n Бункера: УКР / РУС / ENG ═══════════
 const UI={
   uk:{
+    title:"БУНКЕР — Lobby.gg", page_title:"☢ БУНКЕР ☢", rules_btn_title:"Правила", nav_games_title:"До всіх ігор",
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокаліпсис, у бункері мало місць. У кожного свої карти (професія, здоров'я, багаж…). Розкривайте їх, сперечайтеся й голосуйте, кого НЕ пускати в бункер.",
     rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Lobby.gg · хто гідний місця",
@@ -118,6 +119,7 @@ const UI={
     conn_lost:"Зв'язок втрачено, онови.", def_name:"Той, хто вижив", ask_seats:"Скільки місць?", ask_code:"Код?", time_up:"⏱ ЧАС!"
   },
   ru:{
+    title:"БУНКЕР — Lobby.gg", page_title:"☢ БУНКЕР ☢", rules_btn_title:"Правила", nav_games_title:"Ко всем играм",
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.",
     rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Lobby.gg · кто достоин места",
@@ -132,6 +134,7 @@ const UI={
     conn_lost:"Связь потеряна, обнови.", def_name:"Выживший", ask_seats:"Сколько мест?", ask_code:"Код?", time_up:"⏱ ВРЕМЯ!"
   },
   en:{
+    title:"BUNKER — Lobby.gg", page_title:"☢ BUNKER ☢", rules_btn_title:"Rules", nav_games_title:"All games",
     rules_title:"☢ Bunker — rules",
     rules_body:"Apocalypse, and the bunker has few seats. Everyone has their own cards (profession, health, baggage…). Reveal them, argue, and vote on who does NOT get in.",
     rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Lobby.gg · who deserves a spot",
@@ -146,6 +149,10 @@ const UI={
     conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!"
   },
   de: {
+    "title": "BUNKER — Lobby.gg",
+    "page_title": "☢ BUNKER ☢",
+    "rules_btn_title": "Regeln",
+    "nav_games_title": "Alle Spiele",
     "rules_title": "☢ Bunker — Regeln",
     "rules_body": "Apokalypse, und der Bunker hat nur wenige Plätze. Jeder hat eigene Karten (Beruf, Gesundheit, Gepäck…). Deckt sie auf, diskutiert und stimmt ab, wer NICHT hineindarf.",
     "rules_ok": "Verstanden 👍",
@@ -1103,16 +1110,27 @@ function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k)
 function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
 function msgTr(s){ // серверные строки итога голосования — перевод по шаблону
   if(LANG==='ru'||!s)return s;
-  const P={uk:{ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
-           en:{ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."}}[LANG];
+  const P={
+    uk:{ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
+    en:{ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."},
+    de:{ex:"🚫 Verbannt: ",vt:" Stimmen)",tie:" — niemand wurde verbannt.",tiepre:"Unentschieden (",none:"Niemand hat abgestimmt.",gone:"Spieler ist nicht mehr im Spiel."}
+  }[LANG];
+  if(!P)return s;
   s=s.replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
      .replace("Никто не проголосовал.",P.none).replace("Игрок уже не в игре.",P.gone);
   return s;
 }
 function applyUI(){
   document.documentElement.lang=LANG;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(v!=null)el.textContent=v;});
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v=t(el.dataset.i18n);
+    if(v!=null){
+      if(el.tagName.toLowerCase()==='title') document.title=v;
+      else el.textContent=v;
+    }
+  });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(v!=null)el.placeholder=v;});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{const v=t(el.dataset.i18nTitle);if(v!=null)el.title=v;});
   document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
   if(window._lastBunker)renderBunker(window._lastBunker); // перерисовать игру под язык
 }
@@ -1202,7 +1220,7 @@ function handle(m){
   else if(m.type==='vote_started'){/* доска придёт следом */}
   else if(m.type==='vote_result'){alert(msgTr(m.msg));}
   else if(m.type==='timer'){runTimer(m.secs);}
-  else if(m.type==='error'){alert(m.msg);}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 applyUI();
 

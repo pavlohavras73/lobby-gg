@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Lobby.gg — Мафия</title>
+<title data-i18n="title">Lobby.gg — Мафия</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <style>
@@ -57,10 +57,10 @@
 </style>
 </head>
 <body class="night">
-<button id="rulesBtn" title="Правила" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<button id="rulesBtn" title="Правила" data-i18n-title="rules_btn_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🔪 Мафия — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1>🔪 Мафия</h1><div class="sub" data-i18n="tagline">Lobby.gg · играй с друзьями</div>
+<a href="/games/" title="Ко всем играм" data-i18n-title="nav_games_title" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
+<h1 data-i18n="page_title">🔪 Мафия</h1><div class="sub" data-i18n="tagline">Lobby.gg · играй с друзьями</div>
 <div class="langbar" id="langbar" role="group" aria-label="Language">
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
@@ -130,6 +130,7 @@
 // ═══════════ i18n Мафии: УКР / РУС / ENG ═══════════
 const UI={
  uk:{
+  title:"Lobby.gg — Мафія", page_title:"🔪 Мафія", rules_btn_title:"Правила", nav_games_title:"До всіх ігор",
   rules_title:"🔪 Мафія — правила",
   rules_body:"Вночі мафія вбиває, лікар лікує, шериф перевіряє, патрульний охороняє. Удень місто обговорює та голосує, кого стратити. Місто перемагає, прибравши всю мафію; мафія — коли їх стане врівень із містом.",
   rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Lobby.gg · грай з друзями",
@@ -149,6 +150,7 @@ const UI={
   rid:{mafia:"мафія",doctor:"лікар",sheriff:"шериф",patrol:"патрульний",civilian:"мирний"}
  },
  ru:{
+  title:"Lobby.gg — Мафия", page_title:"🔪 Мафия", rules_btn_title:"Правила", nav_games_title:"Ко всем играм",
   rules_title:"🔪 Мафия — правила",
   rules_body:"Ночью мафия убивает, доктор лечит, шериф проверяет, патрульный охраняет. Днём город обсуждает и голосует, кого казнить. Город побеждает, убрав всю мафию; мафия — когда их станет вровень с городом.",
   rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Lobby.gg · играй с друзьями",
@@ -168,6 +170,7 @@ const UI={
   rid:{mafia:"мафия",doctor:"доктор",sheriff:"шериф",patrol:"патрульный",civilian:"мирный"}
  },
  en:{
+  title:"Lobby.gg — Mafia", page_title:"🔪 Mafia", rules_btn_title:"Rules", nav_games_title:"All games",
   rules_title:"🔪 Mafia — rules",
   rules_body:"At night the mafia kills, the doctor heals, the sheriff checks, the patrol guards. By day the town discusses and votes on who to execute. Town wins by eliminating all mafia; mafia wins once they equal the town.",
   rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Lobby.gg · play with friends",
@@ -187,6 +190,7 @@ const UI={
   rid:{mafia:"mafia",doctor:"doctor",sheriff:"sheriff",patrol:"patrol",civilian:"civilian"}
  },
   de:{
+    title:"Lobby.gg — Mafia", page_title:"🔪 Mafia", rules_btn_title:"Regeln", nav_games_title:"Alle Spiele",
     rules_title:"🔪 Mafia — Regeln",
     rules_body:"Nachts tötet die Mafia, der Doktor heilt, der Sheriff überprüft, der Wachmann schützt. Tagsüber diskutiert die Stadt und stimmt ab, wer hingerichtet wird. Die Bürger gewinnen, wenn alle Mafiosi eliminiert sind; die Mafia gewinnt bei Gleichstand.",
     rules_ok:"Verstanden 👍", nav_games:"🎮 Spiele", tagline:"Lobby.gg · Spiele mit Freunden",
@@ -273,21 +277,28 @@ function logTr(s){
  if(LANG==='ru'||!s)return s;
  let m;
  if(s.indexOf("🌙 Город засыпает. Ночь 1")===0) return LANG==='uk'?"🌙 Місто засинає. Ніч 1 — мафія виходить на полювання.":(LANG==='de'?"🌙 Die Stadt schläft ein. Nacht 1 — die Mafia geht auf die Jagd.":"🌙 The town falls asleep. Night 1 — the mafia goes hunting.");
- if(m=s.match(/^☠️ Ночью убит: (.+)\.$/)) return LANG==='uk'?"☠️ Уночі вбито: "+m[1]+".":"☠️ Killed at night: "+m[1]+".";
- if(s==="💉 Ночью было покушение, но доктор спас жертву!") return LANG==='uk'?"💉 Уночі був замах, але лікар врятував жертву!":"💉 There was an attack at night, but the doctor saved the victim!";
- if(s==="🌫️ Ночь прошла тихо — никто не погиб.") return LANG==='uk'?"🌫️ Ніч минула тихо — ніхто не загинув.":"🌫️ The night passed quietly — no one died.";
- if(s==="🎉 ПОБЕДА ГОРОДА! Вся мафия вычищена.") return LANG==='uk'?"🎉 ПЕРЕМОГА МІСТА! Уся мафія знищена.":"🎉 TOWN WINS! All mafia eliminated.";
- if(s==="🔪 ПОБЕДА МАФИИ! Город пал.") return LANG==='uk'?"🔪 ПЕРЕМОГА МАФІЇ! Місто впало.":"🔪 MAFIA WINS! The town has fallen.";
- if(m=s.match(/^☀️ Город просыпается\. День (\d+) — обсуждайте и голосуйте\.$/)) return LANG==='uk'?"☀️ Місто прокидається. День "+m[1]+" — обговорюйте та голосуйте.":"☀️ The town wakes up. Day "+m[1]+" — discuss and vote.";
- if(m=s.match(/^⚖️ Город казнил: (.+) — это был (.+)\.$/)){const rl=T(m[2]);return LANG==='uk'?"⚖️ Місто стратило: "+m[1]+" — це був "+rl+".":"⚖️ The town executed: "+m[1]+" — they were "+rl+".";}
- if(s==="🤝 Голоса разделились — никого не казнили.") return LANG==='uk'?"🤝 Голоси розділилися — нікого не стратили.":"🤝 The vote was split — no one was executed.";
- if(m=s.match(/^🌙 Наступает ночь (\d+)\. Город засыпает\.$/)) return LANG==='uk'?"🌙 Настає ніч "+m[1]+". Місто засинає.":"🌙 Night "+m[1]+" falls. The town goes to sleep.";
+ if(m=s.match(/^☠️ Ночью убит: (.+)\.$/)) return LANG==='uk'?"☠️ Уночі вбито: "+m[1]+".":(LANG==='de'?"☠️ Nachts getötet: "+m[1]+".":"☠️ Killed at night: "+m[1]+".");
+ if(s==="💉 Ночью было покушение, но доктор спас жертву!") return LANG==='uk'?"💉 Уночі був замах, але лікар врятував жертву!":(LANG==='de'?"💉 Nachts gab es einen Anschlag, aber der Arzt hat das Opfer gerettet!":"💉 There was an attack at night, but the doctor saved the victim!");
+ if(s==="🌫️ Ночь прошла тихо — никто не погиб.") return LANG==='uk'?"🌫️ Ніч минула тихо — ніхто не загинув.":(LANG==='de'?"🌫️ Die Nacht verging ruhig — niemand ist gestorben.":"🌫️ The night passed quietly — no one died.");
+ if(s==="🎉 ПОБЕДА ГОРОДА! Вся мафия вычищена.") return LANG==='uk'?"🎉 ПЕРЕМОГА МІСТА! Уся мафія знищена.":(LANG==='de'?"🎉 SIEG DER BÜRGER! Alle Mafiosi wurden eliminiert.":"🎉 TOWN WINS! All mafia eliminated.");
+ if(s==="🔪 ПОБЕДА МАФИИ! Город пал.") return LANG==='uk'?"🔪 ПЕРЕМОГА МАФІЇ! Місто впало.":(LANG==='de'?"🔪 SIEG DER MAFIA! Die Stadt ist gefallen.":"🔪 MAFIA WINS! The town has fallen.");
+ if(m=s.match(/^☀️ Город просыпается\. День (\d+) — обсуждайте и голосуйте\.$/)) return LANG==='uk'?"☀️ Місто прокидається. День "+m[1]+" — обговорюйте та голосуйте.":(LANG==='de'?"☀️ Die Stadt wacht auf. Tag "+m[1]+" — diskutiert und stimmt ab.":"☀️ The town wakes up. Day "+m[1]+" — discuss and vote.");
+ if(m=s.match(/^⚖️ Город казнил: (.+) — это был (.+)\.$/)){const rl=T(m[2]);return LANG==='uk'?"⚖️ Місто стратило: "+m[1]+" — це був "+rl+".":(LANG==='de'?"⚖️ Die Stadt hat hingerichtet: "+m[1]+" — Rolle: "+rl+".":"⚖️ The town executed: "+m[1]+" — they were "+rl+".");}
+ if(s==="🤝 Голоса разделились — никого не казнили.") return LANG==='uk'?"🤝 Голоси розділилися — нікого не стратили.":(LANG==='de'?"🤝 Stimmengleichheit — niemand wurde hingerichtet.":"🤝 The vote was split — no one was executed.");
+ if(m=s.match(/^🌙 Наступает ночь (\d+)\. Город засыпает\.$/)) return LANG==='uk'?"🌙 Настає ніч "+m[1]+". Місто засинає.":(LANG==='de'?"🌙 Es wird Nacht "+m[1]+". Die Stadt schläft ein.":"🌙 Night "+m[1]+" falls. The town goes to sleep.");
  return s;
 }
 function applyUI(){
  document.documentElement.lang=LANG;
- document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
+ document.querySelectorAll('[data-i18n]').forEach(el=>{
+   const v=t(el.dataset.i18n);
+   if(typeof v==='string'){
+     if(el.tagName.toLowerCase()==='title') document.title=v;
+     else el.textContent=v;
+   }
+ });
  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(typeof v==='string')el.placeholder=v;});
+ document.querySelectorAll('[data-i18n-title]').forEach(el=>{const v=t(el.dataset.i18nTitle);if(typeof v==='string')el.title=v;});
  document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
  if(window._lastMafiaState)applyState(window._lastMafiaState);
  if(window._lastMafiaRole)applyRole(window._lastMafiaRole);
