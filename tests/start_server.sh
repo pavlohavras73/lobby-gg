@@ -9,7 +9,7 @@ export LOBBY_BASE="http://127.0.0.1:$PORT" LOBBY_WS="ws://127.0.0.1:$PORT/ws"
 T="$(mktemp -d)"
 export LOBBY_SERVER_LOG="$T/server.log"
 export QUICKPLAY_TIMEOUT="${QUICKPLAY_TIMEOUT:-1.5}"
-trap 'pkill -P ${SRV:-0} 2>/dev/null; kill ${SRV:-0} 2>/dev/null; wait ${SRV:-0} 2>/dev/null; rm -rf "$T"' EXIT
+trap 'pkill -P ${SRV:-0} 2>/dev/null || true; kill ${SRV:-0} 2>/dev/null || true; wait ${SRV:-0} 2>/dev/null || true; rm -rf "$T"' EXIT  # || true: под bash -e (GitHub Actions) код 143 убитого сервера иначе валит шаг
 mkdir -p "$T/data"
 cp -r "$ROOT"/*.py "$ROOT/static" "$T/"
 sed -i "s#/app/static#$T/static#g; s#\"/data/#\"$T/data/#g; s#'/data/#'$T/data/#g" "$T"/*.py
