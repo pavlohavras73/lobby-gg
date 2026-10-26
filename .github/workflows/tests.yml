@@ -1,0 +1,32 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: i18n keys
+        run: node tests/check_i18n_keys.js
+      - name: Unit tests (ratings, helpers)
+        run: cd tests && uv run --python 3.11 --with fastapi==0.141.1 --with 'uvicorn[standard]==0.53.0' --with websockets --with pytest python -m pytest -q test_ratings.py test_perf_helpers.py
+      - name: WebSocket smoke
+        run: bash tests/run_smoke.sh
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install Chromium
+        run: uv run --with playwright playwright install --with-deps chromium
+      - name: Reconnect + i18n in a real browser
+        run: |
+          source tests/start_server.sh
+          cd tests
+          uv run --with playwright python browser_reconnect.py chess checkers durak uno
+          LOBBY_LANGS=uk,en,de uv run --with playwright python browser_i18n.py index chess durak profile leaderboard
