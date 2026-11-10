@@ -539,10 +539,55 @@
     return s;
   }
 
+  // Имена по умолчанию, которые приходят из кода страниц и с сервера по-русски («Игрок», «🤖 Бот (medium)»):
+  // переводим их прямо на экране, если весь текстовый узел — ровно такое имя (чужие ники не трогаем).
+  var NAME_RE = /^(🤖\s*)?(Игрок|Бот)(\s*\((easy|medium|hard)\)|\s+\d+)?$/;
+  var NAME_TR = {
+    "Игрок": { uk: "Гравець", en: "Player", de: "Spieler" },
+    "Бот": { uk: "Бот", en: "Bot", de: "Bot" }
+  };
+  var DIFF_TR = {
+    easy: { uk: "легкий", ru: "лёгкий", en: "easy", de: "leicht" },
+    medium: { uk: "середній", ru: "средний", en: "medium", de: "mittel" },
+    hard: { uk: "складний", ru: "сложный", en: "hard", de: "schwer" }
+  };
+  function localName(s) {
+    var m = NAME_RE.exec((s || "").trim());
+    if (!m) return null;
+    var l = lang();
+    var base = l === "ru" ? m[2] : ((NAME_TR[m[2]] || {})[l] || m[2]);
+    var tail = m[3] || "";
+    if (m[4]) tail = " (" + ((DIFF_TR[m[4]] || {})[l] || m[4]) + ")";
+    return (m[1] || "") + base + tail;
+  }
+  function fixNames(root) {
+    if (!root || !document.body) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (var n; (n = w.nextNode());) {
+      var v = n.nodeValue;
+      if (v.indexOf("Игрок") === -1 && v.indexOf("Бот") === -1) continue;
+      var r = localName(v);
+      if (r !== null && r !== v.trim()) n.nodeValue = v.replace(v.trim(), r);
+    }
+  }
+  if (typeof MutationObserver !== "undefined") {
+    var startNames = function () {
+      fixNames(document.body);
+      new MutationObserver(function (muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var t = muts[i].target;
+          fixNames(t.nodeType === 3 ? t.parentNode : t);
+        }
+      }).observe(document.body, { childList: true, subtree: true, characterData: true });
+    };
+    if (document.body) startNames(); else document.addEventListener("DOMContentLoaded", startNames);
+  }
+
   window.LOBBY_GT = LOBBY_GT;
   window.LobbyI18n = {
     LANGS: LANGS,
     lang: lang,
-    T: T
+    T: T,
+    name: function (s) { var r = localName(s); return r === null ? s : r; }
   };
 })();

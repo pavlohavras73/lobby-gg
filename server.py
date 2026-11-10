@@ -264,6 +264,7 @@ LOGIN_PAGE = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
       <input id="lu" placeholder="Username" data-i18n-ph="ph_user" maxlength="20" autocomplete="username">
       <input id="lp" type="password" placeholder="Password" data-i18n-ph="ph_pass" maxlength="40" autocomplete="current-password">
       <button onclick="doLogin()" data-i18n="b_login">Sign in →</button>
+      <button type="button" onclick="loginDemo()" style="margin-top:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:#fff;box-shadow:none;font-size:13px;padding:10px;width:100%" data-i18n="b_demo">⚡ 1-Click Demo Login</button>
     </div>
     <div id="regForm" class="hide">
       <input id="ru" placeholder="Pick a username" data-i18n-ph="ph_user2" maxlength="20" autocomplete="username">
@@ -280,25 +281,25 @@ var L10N={
  uk:{eyebrow:"Мультиплеєр у реальному часі · прямо в браузері",h1a:"Паті-ігри з друзями.",h1b:"Без встановлення — лише посилання.",
   lead:"Створи кімнату, поділись 4-літерним кодом — і кожен заходить зі свого телефона.",f1:"🎮 30+ ігор",f2:"⚡ Кімнати в реальному часі",f3:"🤖 Боти займуть вільні місця",
   welcome:"Ласкаво просимо в лобі",sub:"Увійди або створи акаунт, щоб грати з друзями",t_login:"Вхід",t_reg:"Реєстрація",
-  ph_user:"Ім'я користувача",ph_pass:"Пароль",b_login:"Увійти →",ph_user2:"Придумай ім'я користувача",ph_pass2:"Придумай пароль",
+  ph_user:"Ім'я користувача",ph_pass:"Пароль",b_login:"Увійти →",b_demo:"⚡ Демо-вхід (1 клік)",ph_user2:"Придумай ім'я користувача",ph_pass2:"Придумай пароль",
   b_reg:"Створити акаунт →",hint:"Ім'я: 3–20 символів — латиниця, цифри або _",built_by:"Створив",
   e_login:"Помилка входу",e_reg:"Помилка реєстрації"},
  ru:{eyebrow:"Мультиплеер в реальном времени · прямо в браузере",h1a:"Пати-игры с друзьями.",h1b:"Без установки — просто ссылка.",
   lead:"Создай комнату, поделись 4-буквенным кодом — и каждый заходит со своего телефона.",f1:"🎮 30+ игр",f2:"⚡ Комнаты в реальном времени",f3:"🤖 Боты займут свободные места",
   welcome:"Добро пожаловать в лобби",sub:"Войди или создай аккаунт, чтобы играть с друзьями",t_login:"Вход",t_reg:"Регистрация",
-  ph_user:"Имя пользователя",ph_pass:"Пароль",b_login:"Войти →",ph_user2:"Придумай имя пользователя",ph_pass2:"Придумай пароль",
+  ph_user:"Имя пользователя",ph_pass:"Пароль",b_login:"Войти →",b_demo:"⚡ Демо-вход (1 клик)",ph_user2:"Придумай имя пользователя",ph_pass2:"Придумай пароль",
   b_reg:"Создать аккаунт →",hint:"Имя: 3–20 символов — латиница, цифры или _",built_by:"Создал",
   e_login:"Ошибка входа",e_reg:"Ошибка регистрации"},
  en:{eyebrow:"Real-time multiplayer · right in your browser",h1a:"Party games with friends.",h1b:"No installs — just a link.",
   lead:"Create a room, share the 4-letter code, and everyone joins from their own phone.",f1:"🎮 30+ games",f2:"⚡ Live WebSocket rooms",f3:"🤖 Bots fill empty seats",
   welcome:"Welcome to the lobby",sub:"Sign in or create an account to play with friends",t_login:"Sign in",t_reg:"Sign up",
-  ph_user:"Username",ph_pass:"Password",b_login:"Sign in →",ph_user2:"Pick a username",ph_pass2:"Pick a password",
+  ph_user:"Username",ph_pass:"Password",b_login:"Sign in →",b_demo:"⚡ 1-Click Demo Login",ph_user2:"Pick a username",ph_pass2:"Pick a password",
   b_reg:"Create account →",hint:"Username: 3–20 latin letters, digits or _",built_by:"Built by",
   e_login:"Sign-in failed",e_reg:"Sign-up failed"},
  de:{eyebrow:"Echtzeit-Multiplayer · direkt im Browser",h1a:"Partyspiele mit Freunden.",h1b:"Kein Download — einfach per Link.",
   lead:"Erstelle einen Raum, teile den 4-stelligen Code — und alle spielen direkt vom Handy mit.",f1:"🎮 30+ Spiele",f2:"⚡ Live-Räume in Echtzeit",f3:"🤖 Bots füllen freie Plätze",
   welcome:"Willkommen in der Lobby",sub:"Melde dich an oder erstelle ein Konto, um mit Freunden zu spielen",t_login:"Anmelden",t_reg:"Registrieren",
-  ph_user:"Benutzername",ph_pass:"Passwort",b_login:"Anmelden →",ph_user2:"Benutzername wählen",ph_pass2:"Passwort wählen",
+  ph_user:"Benutzername",ph_pass:"Passwort",b_login:"Anmelden →",b_demo:"⚡ Demo-Zugang (1 Klick)",ph_user2:"Benutzername wählen",ph_pass2:"Passwort wählen",
   b_reg:"Konto erstellen →",hint:"Name: 3–20 Zeichen — Latein, Ziffern oder _",built_by:"Entwickelt von",
   e_login:"Anmeldung fehlgeschlagen",e_reg:"Registrierung fehlgeschlagen"}
 };
@@ -338,6 +339,16 @@ async function doLogin(){
   const d = await r.json();
   if(d.ok) location.href='/games'; else document.getElementById('status').textContent = serr(d.error,'e_login');
 }
+function loginDemo(){
+  document.getElementById('lu').value = 'demo';
+  document.getElementById('lp').value = 'lobby-demo-2026';
+  doLogin();
+}
+try {
+  if (new URLSearchParams(location.search).get('demo') === '1') {
+    setTimeout(loginDemo, 100);
+  }
+} catch(e){}
 async function doReg(){
   const r = await fetch('/games/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({username:document.getElementById('ru').value,password:document.getElementById('rp').value})});
@@ -2213,9 +2224,30 @@ async def quoridor_page():
 async def c4_3d_page():
     return FileResponse("/app/static/connect4_3d.html")
 
+@app.get("/connect4_3d")
+async def connect4_3d_alias():
+    return FileResponse("/app/static/connect4_3d.html")
+
 @app.get("/c4")
 async def c4_page():
     return FileResponse("/app/static/c4.html")
+
+@app.get("/connect4")
+async def connect4_alias():
+    return RedirectResponse("/games/c4")
+
+@app.get("/offline")
+async def offline_alias():
+    return FileResponse("/app/static/offline.html")
+
+@app.get("/manifest.json")
+@app.get("/static/manifest.json")
+async def manifest_json_alias():
+    return FileResponse("/app/static/manifest.webmanifest", media_type="application/manifest+json")
+
+@app.get("/api/leaderboard")
+async def api_leaderboard_alias(request: Request, game: str = None, limit: int = 50):
+    return await get_leaderboard(request, game=game, limit=limit)
 
 
 # ═══════════ РЕВЕРСИ (Othello) ═══════════

@@ -9,11 +9,12 @@
 <style>
   body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
     -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
-  h1{margin:2px 0 0;font-size:1.5em}
+  h1{margin:40px 0 0;font-size:1.5em}  /* ниже фиксированных кнопок «Игры» и «i» */
   .bar{display:flex;gap:8px;width:100%;max-width:420px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap}
   .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 12px;text-align:center}
   .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:17px;font-weight:800}
   select,button{width:auto;padding:7px 10px;margin:0;font-size:13px}
+  select{padding-right:30px;min-width:0}  /* место под стрелку из theme.css */
   .flagbtn{border:1px solid var(--border);border-radius:10px;padding:7px 12px;cursor:pointer;background:rgba(255,255,255,.05)}
   .flagbtn.on{border-color:var(--crimson);background:rgba(255,34,56,.18);box-shadow:0 0 10px var(--crimson-glow)}
   .board{display:grid;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:5px;position:relative}

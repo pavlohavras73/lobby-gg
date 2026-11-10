@@ -99,6 +99,11 @@
 <!-- LOBBY -->
 <div id="screen-lobby" class="screen">
   <div class="card">
+    <div id="roomCodeBadge" style="display:none;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:8px 12px;">
+      <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;" data-i18n="lobby_room">КОМНАТА:</span>
+      <span id="lcode" style="font-size:20px;font-weight:900;letter-spacing:3px;color:var(--crimson,#ff2238);">----</span>
+      <button type="button" onclick="copyInviteLink()" style="margin:0;width:auto;padding:5px 10px;font-size:12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;box-shadow:none;" data-i18n="copy_link">📋 Ссылка</button>
+    </div>
     <h2 data-i18n="lobby_title">Аукцион Лжи</h2>
     <div style="font-size:13.5px; color:#aaa; text-align:center; margin-bottom:16px;" data-i18n="lobby_sub">Генерируем безумные факты. Выбирай темы:</div>
     <div class="cats-grid" id="catsGrid">
@@ -184,6 +189,7 @@
 
 <script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/sfx.js"></script>
+<script src="/games/static/invite.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
@@ -222,7 +228,11 @@ const UI = {
     "next_round": "Наступний раунд",
     "host_study": "Хост дивиться результати...",
     "over_title": "Гру закінчено!",
-    "menu_btn": "У меню"
+    "menu_btn": "У меню",
+    "lobby_room": "КІМНАТА:",
+    "copy_link": "📋 Посилання",
+    "link_copied": "Посилання на гру скопійовано!",
+    "copy_prompt": "Скопіюй посилання для друзів:"
   },
   ru: {
     "title": "Аукцион лжи (Варианты)",
@@ -258,7 +268,11 @@ const UI = {
     "next_round": "Следующий раунд",
     "host_study": "Хост изучает результаты...",
     "over_title": "Игра окончена!",
-    "menu_btn": "В меню"
+    "menu_btn": "В меню",
+    "lobby_room": "КОМНАТА:",
+    "copy_link": "📋 Ссылка",
+    "link_copied": "Ссылка на игру скопирована!",
+    "copy_prompt": "Скопируй ссылку для друзей:"
   },
   en: {
     "title": "Fibbage (Variants)",
@@ -294,7 +308,11 @@ const UI = {
     "next_round": "Next round",
     "host_study": "Host is checking results...",
     "over_title": "Game over!",
-    "menu_btn": "Back to menu"
+    "menu_btn": "Back to menu",
+    "lobby_room": "ROOM:",
+    "copy_link": "📋 Link",
+    "link_copied": "Game link copied to clipboard!",
+    "copy_prompt": "Copy link for friends:"
   },
   de: {
     "title": "Fibbage (Varianten)",
@@ -330,7 +348,11 @@ const UI = {
     "next_round": "Nächste Runde",
     "host_study": "Host schaut sich die Punkte an...",
     "over_title": "Spiel vorbei!",
-    "menu_btn": "Zum Menü"
+    "menu_btn": "Zum Menü",
+    "lobby_room": "RAUM:",
+    "copy_link": "📋 Link",
+    "link_copied": "Spiellink in die Zwischenablage kopiert!",
+    "copy_prompt": "Link für Freunde kopieren:"
   }
 };
 
@@ -686,17 +708,39 @@ function applyUI() {
   if (state) updateUI();
 }
 
+let roomCode = null;
+let hasCreated = false;
+
+function copyInviteLink() {
+  const code = (document.getElementById('lcode')?.textContent || '').trim();
+  if (!code || code === '----') return;
+  const url = window.location.origin + '/games/variants?code=' + encodeURIComponent(code);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert(t('link_copied'));
+    }).catch(() => {
+      prompt(t('copy_prompt'), url);
+    });
+  } else {
+    prompt(t('copy_prompt'), url);
+  }
+}
+
 function connectWS() {
   let protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   let wsUrl = protocol + '//' + window.location.host + '/games/ws';
   wsInstance = JarvisWS(wsUrl, {
     onopen: () => {
-      let code = new URLSearchParams(window.location.search).get('code');
+      let code = roomCode || new URLSearchParams(window.location.search).get('code');
       let stored = '';
       try { stored = localStorage.getItem('jg_player_name') || localStorage.getItem('username') || ''; } catch (_) {}
       let name = stored.trim() || t('default_player');
-      if (code) wsSend({action: 'join', code: code, name: name});
-      else wsSend({action: 'create', game: 'variants', name: name});
+      if (code) {
+        wsSend({action: 'join', code: code, name: name});
+      } else if (!hasCreated) {
+        hasCreated = true;
+        wsSend({action: 'create', game: 'variants', name: name});
+      }
     },
     onmessage: (e) => {
       if (window.onWsMessage) window.onWsMessage(JSON.parse(e.data));
@@ -905,6 +949,20 @@ function updateUI() {
 window.onWsMessage = (msg) => {
   if (msg.type === "joined") {
     myId = msg.pid;
+    if (msg.code) {
+      roomCode = msg.code;
+      const el = document.getElementById('lcode');
+      if (el) el.textContent = msg.code;
+      const b = document.getElementById('roomCodeBadge');
+      if (b) b.style.display = 'inline-flex';
+      try {
+        const u = new URL(window.location);
+        if (u.searchParams.get('code') !== msg.code) {
+          u.searchParams.set('code', msg.code);
+          history.replaceState(null, '', u.toString());
+        }
+      } catch (e) {}
+    }
     document.getElementById('connectionStatus').style.display = 'none';
   }
   if (msg.type === "lobby") {

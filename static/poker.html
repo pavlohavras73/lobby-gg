@@ -155,6 +155,7 @@
   }
   .slider-val { font-size: 14px; font-weight: 900; color: #ffd700; min-width: 50px; text-align: right; }
 </style>
+<script src="/games/static/i18n_common.js"></script>
 </head>
 <body>
 
@@ -179,8 +180,8 @@
       <button onclick="create()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg, #ff2238, #c40f23);color:#fff;font-weight:900;font-size:14px;cursor:pointer;margin-bottom:12px" data-i18n="btn_create">Создать Стол 🎴</button>
       
       <div style="display:flex;gap:8px;margin-top:10px">
-        <input id="joincode" placeholder="КОД СТОЛА" maxlength="4" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center" data-i18n-ph="ph_code">
-        <button onclick="join()" style="padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer" data-i18n="btn_join">Войти</button>
+        <input id="joincode" placeholder="КОД СТОЛА" maxlength="4" style="flex:1;min-width:0;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.4);color:#fff;font-size:14px;text-transform:uppercase;text-align:center" data-i18n-ph="ph_code">
+        <button onclick="join()" style="width:auto;flex-shrink:0;padding:12px 20px;border-radius:14px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;cursor:pointer" data-i18n="btn_join">Войти</button>
       </div>
     </div>
 
@@ -252,7 +253,7 @@
   <script>
     const UI={
       uk:{
-        rules_title:"🂡 Покер — Правила",
+        poker_title:"🂡 ПОКЕР", rules_title:"🂡 Покер — Правила",
         rules_body:"Texas Hold'em. У тебе 2 карти + 5 спільних на столі. Збери найкращу комбінацію з 5. Ставки по колу: Чек, Кол, Рейз, Фолд, Олл-ін. Забирає банк найкраща рука або останній гравець, що не скинув карти.",
         rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Твоє ім'я", btn_create:"Створити Стіл 🎴", ph_code:"КОД СТОЛА", btn_join:"Увійти",
@@ -270,7 +271,7 @@
         conn_lost:"Зв'язок втрачено, онови сторінку.", ask_code:"Введіть код!", def_player:"Гравець"
       },
       ru:{
-        rules_title:"🂡 Покер — Правила",
+        poker_title:"🂡 ПОКЕР", rules_title:"🂡 Покер — Правила",
         rules_body:"Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.",
         rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Твое имя", btn_create:"Создать Стол 🎴", ph_code:"КОД СТОЛА", btn_join:"Войти",
@@ -288,7 +289,7 @@
         conn_lost:"Связь потеряна, обнови страницу.", ask_code:"Введите код!", def_player:"Игрок"
       },
       en:{
-        rules_title:"🂡 Poker — Rules",
+        poker_title:"🂡 POKER", rules_title:"🂡 Poker — Rules",
         rules_body:"Texas Hold'em. You have 2 private cards + 5 community cards on the board. Make the best 5-card combination. Betting rounds: Check, Call, Raise, Fold, All-in. The best hand or the last remaining player wins the pot.",
         rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Your name", btn_create:"Create Table 🎴", ph_code:"TABLE CODE", btn_join:"Join",
@@ -310,6 +311,7 @@
     "rules_body": "Texas Hold'em. Du hast 2 verdeckte Handkarten + 5 Gemeinschaftskarten auf dem Tisch. Bilde die beste 5-Karten-Kombination. Setzrunden: Check, Call, Raise, Fold, All-in. Das beste Blatt oder der letzte verbliebene Spieler gewinnt den Pot.",
     "rules_ok": "Verstanden 👍",
     "nav_games": "🎮 Spiele",
+    "poker_title": "🂡 POKER",
     "tagline": "Texas Hold'em · Discord Night Edition",
     "ph_name": "Dein Name",
     "btn_create": "Tisch erstellen 🎴",
