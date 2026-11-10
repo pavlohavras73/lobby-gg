@@ -439,6 +439,44 @@
     }
   };
 
+  // Кусочки ходов UNO, которые сервер склеивает в одну строку («Petya сыграл Пропуск×2 → blue»)
+  var UNO_TOK = [
+    [/Пропуск ВСЕХ/g, { uk: "Пропуск УСІХ", en: "Skip ALL", de: "ALLE aussetzen" }],
+    [/Пропуск/g, { uk: "Пропуск", en: "Skip", de: "Aussetzen" }],
+    [/Разворот/g, { uk: "Розворот", en: "Reverse", de: "Richtungswechsel" }],
+    [/обмен рук по кругу/g, { uk: "обмін руками по колу", en: "hands passed around", de: "Handkarten im Kreis getauscht" }],
+    [/обмен рук с /g, { uk: "обмін руками з ", en: "hands swapped with ", de: "Handkarten getauscht mit " }],
+    [/Сброс всех /g, { uk: "Скинуто всі ", en: "Discarded all ", de: "Alle abgeworfen: " }],
+    [/стак/g, { uk: "стек", en: "stack", de: "Stapel" }],
+    [/\bred\b/g, { uk: "червоний", ru: "красный", en: "red", de: "rot" }],
+    [/\byellow\b/g, { uk: "жовтий", ru: "жёлтый", en: "yellow", de: "gelb" }],
+    [/\bgreen\b/g, { uk: "зелений", ru: "зелёный", en: "green", de: "grün" }],
+    [/\bblue\b/g, { uk: "синій", ru: "синий", en: "blue", de: "blau" }]
+  ];
+  function unoTok(str, l) {
+    for (var i = 0; i < UNO_TOK.length; i++) {
+      var t = UNO_TOK[i][1][l];
+      if (t) str = str.replace(UNO_TOK[i][0], t);
+    }
+    return str;
+  }
+  var GAME_LOG_PATTERNS = [
+    { re: /^🃏 Дурак: (.+)$/, uk: "🃏 Дурень: $1", en: "🃏 The fool: $1", de: "🃏 Der Durak: $1" },
+    { re: /^(.+) подкинул (.+)$/, uk: "$1 підкинув $2", en: "$1 added $2", de: "$1 legt nach: $2" },
+    { re: /^(.+) отбил (.+)$/, uk: "$1 відбив $2", en: "$1 beat it with $2", de: "$1 schlägt mit $2" },
+    { re: /^(.+) забрал карты$/, uk: "$1 забрав карти", en: "$1 picked up the cards", de: "$1 nimmt die Karten" },
+    { re: /^🏆 (.+) выиграл!$/, uk: "🏆 $1 переміг!", en: "🏆 $1 won!", de: "🏆 $1 hat gewonnen!" },
+    { re: /^🏆 Игра окончена! Меньше всех очков у (.+)$/, uk: "🏆 Гру закінчено! Найменше очок у $1", en: "🏆 Game over! Fewest points: $1", de: "🏆 Spiel vorbei! Die wenigsten Punkte hat $1" },
+    { re: /^Раунд за (.+)\. Новая раздача — жми «Ещё раз»\.$/, uk: "Раунд за $1. Нова роздача — тисни «Ще раз».", en: "Round to $1. New deal — tap “Again”.", de: "Runde an $1. Neue Runde — tippe auf „Nochmal“." },
+    { re: /^(.+) взял карту \(можно сыграть\)$/, uk: "$1 взяв карту (можна зіграти)", en: "$1 drew a card (can be played)", de: "$1 zieht eine Karte (spielbar)" },
+    { re: /^(.+) взял карту$/, uk: "$1 взяв карту", en: "$1 drew a card", de: "$1 zieht eine Karte" },
+    { re: /^(.+) взял \+(\d+)( 💀 ВЫЛЕТЕЛ!)?( · 🏆 (.+) последний выживший!)?$/, uk: "$1 взяв +$2$3$4", en: "$1 drew +$2$3$4", de: "$1 zieht +$2$3$4",
+      post: { uk: [[" 💀 ВЫЛЕТЕЛ!", " 💀 ВИБУВ!"], [" последний выживший!", " — останній, хто вижив!"]],
+              en: [[" 💀 ВЫЛЕТЕЛ!", " 💀 OUT!"], [" последний выживший!", " is the last one standing!"]],
+              de: [[" 💀 ВЫЛЕТЕЛ!", " 💀 RAUS!"], [" последний выживший!", " bleibt als Letzter übrig!"]] } },
+    { re: /^(.+) сыграл (.+)$/, fn: true }
+  ];
+
   var LOBBY_GT_PATTERNS = [
     {
       re: /^Лимит вскрытий за раунд: (\d+)\. Ждите новый раунд\.$/,
@@ -534,6 +572,19 @@
           var tpl = p[l];
           if (tpl) return s.replace(p.re, tpl);
         }
+      }
+      for (var j = 0; j < GAME_LOG_PATTERNS.length; j++) {
+        var g = GAME_LOG_PATTERNS[j], mm = g.re.exec(s);
+        if (!mm) continue;
+        if (g.fn) {
+          var played = { uk: "зіграв", en: "played", de: "spielt" }[l];
+          return played ? mm[1] + " " + played + " " + unoTok(mm[2], l) : s;
+        }
+        if (!g[l]) return s;
+        var out = s.replace(g.re, g[l]);
+        var post = g.post && g.post[l];
+        for (var k = 0; post && k < post.length; k++) out = out.split(post[k][0]).join(post[k][1]);
+        return out;
       }
     }
     return s;

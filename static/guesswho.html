@@ -131,11 +131,13 @@ function tap(i){
   if(guessMode){ if(confirm(t('confirm_guess'))){send({action:'gw_guess',idx:i});guessMode=false;} }
   else send({action:'gw_flip',idx:i});
 }
+// имя персонажа на языке интерфейса (сервер присылает name по-русски + uk/en/de)
+function chName(c){var l=(window.LobbyI18n&&LobbyI18n.lang())||'ru';return String((l!=='ru'&&c[l])||c.name||'').replace(/[&<>"]/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x];});}
 function render(){
   if(!st)return;
   document.getElementById('board').innerHTML=st.chars.map((c,i)=>{
     const fl=st.flipped.includes(i);
-    return '<div class="ch'+(fl?' flip':'')+(guessMode?' guess':'')+'" onclick="tap('+i+')"><div class="em">'+c.emoji+'</div><div class="nm">'+c.name+'</div></div>';
+    return '<div class="ch'+(fl?' flip':'')+(guessMode?' guess':'')+'" onclick="tap('+i+')"><div class="em">'+c.emoji+'</div><div class="nm">'+chName(c)+'</div></div>';
   }).join('');
 }
 function handle(m){
@@ -148,7 +150,7 @@ function handle(m){
   else if(m.type==='gw_loading'){show('loading');document.getElementById('ltitle').textContent='«'+m.title+'»';}
   else if(m.type==='gw_state'){st=m;show('game');
     const sec=m.chars[m.my_secret];
-    document.getElementById('myem').textContent=sec.emoji;document.getElementById('myname').textContent=sec.name;
+    document.getElementById('myem').textContent=sec.emoji;document.getElementById('myname').textContent=(((window.LobbyI18n&&LobbyI18n.lang())!=='ru'&&sec[LobbyI18n.lang()])||sec.name);
     render();
     const ov=document.getElementById('over');
     if(m.winner){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner===pid?t('win_msg'):t('lose_msg');}

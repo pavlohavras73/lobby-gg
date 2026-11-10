@@ -108,7 +108,7 @@
   // ─── кнопка «Позвать» + модалка ───
   function el(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
 
-  var btn = el('<button id="inviteBtn" style="position:fixed;bottom:14px;right:14px;z-index:99998;display:none;' +
+  var btn = el('<button id="inviteBtn" style="position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:14px;z-index:99998;display:none;width:auto;margin:0;' +
     'padding:11px 16px;border-radius:22px;border:none;font-weight:800;font-size:14px;cursor:pointer;' +
     'background:linear-gradient(135deg,#e0102e,#a00d22);color:#fff;box-shadow:0 4px 16px rgba(224,16,46,.5)">' + invT('btn') + '</button>');
   var modal = el('<div id="inviteModal" style="display:none;position:fixed;inset:0;z-index:100000;' +
@@ -146,7 +146,9 @@
 
   function curCode() {
     var e = document.getElementById('lcode');
-    var c = e ? (e.textContent || '').trim().toUpperCase() : '';
+    // в игре блок лобби с кодом скрыт — тогда и кнопку прячем, чтобы не закрывала кнопки игры
+    if (!e || !e.getClientRects().length) return '';
+    var c = (e.textContent || '').trim().toUpperCase();
     return (c && c !== '----' && c.length >= 3) ? c : '';
   }
   // показывать кнопку только когда есть код комнаты

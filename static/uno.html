@@ -436,7 +436,7 @@
       document.getElementById('topcard').innerHTML = cardHTML(m.top);
       document.getElementById('curcolor').style.backgroundColor = ['#ff2238', '#ffcc00', '#22c55e', '#3b82f6'][m.cur_color];
       document.getElementById('turninfo').textContent = myturn ? t('your_turn') : (typeof t('turn_of')==='function'?t('turn_of')(m.names[m.turn_pid]||'?'):('Turn: '+(m.names[m.turn_pid]||'?')));
-      document.getElementById('log').textContent = m.last_action || '';
+      document.getElementById('log').textContent = window.LobbyI18n ? LobbyI18n.T(m.last_action || '') : (m.last_action || '');
       document.getElementById('deckpile').onclick = () => { if (myturn) send({ action: 'uno_draw' }); };
 
       renderHandActions();

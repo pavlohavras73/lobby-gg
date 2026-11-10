@@ -1152,13 +1152,13 @@ async def push_c4_3d_resync(room):
 # ═══════════ КТО ЕСТЬ КТО (Guess Who, Gemini-генерация) ═══════════
 # Осмысленный дефолт если ВСЕ провайдеры недоступны — не безликие «Персонаж N»
 DEFAULT_CHARS = [
-    {"name": "Марио", "emoji": "🍄"}, {"name": "Бэтмен", "emoji": "🦇"}, {"name": "Пикачу", "emoji": "⚡"},
-    {"name": "Дарт Вейдер", "emoji": "🌑"}, {"name": "Гарри Поттер", "emoji": "⚡"}, {"name": "Шрек", "emoji": "🧅"},
-    {"name": "Соник", "emoji": "💨"}, {"name": "Человек-паук", "emoji": "🕷️"}, {"name": "Эльза", "emoji": "❄️"},
-    {"name": "Йода", "emoji": "🟢"}, {"name": "Джокер", "emoji": "🃏"}, {"name": "Халк", "emoji": "💚"},
-    {"name": "Микки Маус", "emoji": "🐭"}, {"name": "Губка Боб", "emoji": "🧽"}, {"name": "Волан-де-Морт", "emoji": "🐍"},
-    {"name": "Железный человек", "emoji": "🤖"}, {"name": "Гомер Симпсон", "emoji": "🍩"}, {"name": "Наруто", "emoji": "🍥"},
-    {"name": "Кратос", "emoji": "🪓"}, {"name": "Марж Симпсон", "emoji": "💙"},
+    {"name": "Марио", "uk": "Маріо", "en": "Mario", "de": "Mario", "emoji": "🍄"}, {"name": "Бэтмен", "uk": "Бетмен", "en": "Batman", "de": "Batman", "emoji": "🦇"}, {"name": "Пикачу", "uk": "Пікачу", "en": "Pikachu", "de": "Pikachu", "emoji": "⚡"},
+    {"name": "Дарт Вейдер", "uk": "Дарт Вейдер", "en": "Darth Vader", "de": "Darth Vader", "emoji": "🌑"}, {"name": "Гарри Поттер", "uk": "Гаррі Поттер", "en": "Harry Potter", "de": "Harry Potter", "emoji": "⚡"}, {"name": "Шрек", "uk": "Шрек", "en": "Shrek", "de": "Shrek", "emoji": "🧅"},
+    {"name": "Соник", "uk": "Сонік", "en": "Sonic", "de": "Sonic", "emoji": "💨"}, {"name": "Человек-паук", "uk": "Людина-павук", "en": "Spider-Man", "de": "Spider-Man", "emoji": "🕷️"}, {"name": "Эльза", "uk": "Ельза", "en": "Elsa", "de": "Elsa", "emoji": "❄️"},
+    {"name": "Йода", "uk": "Йода", "en": "Yoda", "de": "Yoda", "emoji": "🟢"}, {"name": "Джокер", "uk": "Джокер", "en": "Joker", "de": "Joker", "emoji": "🃏"}, {"name": "Халк", "uk": "Галк", "en": "Hulk", "de": "Hulk", "emoji": "💚"},
+    {"name": "Микки Маус", "uk": "Міккі Маус", "en": "Mickey Mouse", "de": "Micky Maus", "emoji": "🐭"}, {"name": "Губка Боб", "uk": "Губка Боб", "en": "SpongeBob", "de": "SpongeBob", "emoji": "🧽"}, {"name": "Волан-де-Морт", "uk": "Волдеморт", "en": "Voldemort", "de": "Voldemort", "emoji": "🐍"},
+    {"name": "Железный человек", "uk": "Залізна людина", "en": "Iron Man", "de": "Iron Man", "emoji": "🤖"}, {"name": "Гомер Симпсон", "uk": "Гомер Сімпсон", "en": "Homer Simpson", "de": "Homer Simpson", "emoji": "🍩"}, {"name": "Наруто", "uk": "Наруто", "en": "Naruto", "de": "Naruto", "emoji": "🍥"},
+    {"name": "Кратос", "uk": "Кратос", "en": "Kratos", "de": "Kratos", "emoji": "🪓"}, {"name": "Марж Симпсон", "uk": "Мардж Сімпсон", "en": "Marge Simpson", "de": "Marge Simpson", "emoji": "💙"},
 ]
 
 def _parse_chars(txt, n):
@@ -1166,7 +1166,9 @@ def _parse_chars(txt, n):
     if not m:
         return None
     arr = json.loads(m.group(0))
-    out = [{"name": str(x.get("name", ""))[:28], "emoji": str(x.get("emoji", "🙂"))[:4]}
+    # name — русское (ключ), uk/en/de — переводы для показа (у игроков могут быть разные языки)
+    out = [dict({"name": str(x.get("name", ""))[:28], "emoji": str(x.get("emoji", "🙂"))[:4]},
+                **{k: str(x[k])[:28] for k in ("uk", "en", "de") if isinstance(x.get(k), str) and x.get(k).strip()})
            for x in arr if isinstance(x, dict) and x.get("name")][:n]
     return out if len(out) >= 8 else None
 
@@ -1177,7 +1179,7 @@ def _openrouter_chars(title, n=20):
         return None
     prompt = (f"Назови ровно {n} разных узнаваемых персонажей из «{title}». "
               f"Если не хватает — добавь связанных по теме. Верни СТРОГО JSON-массив "
-              f'[{{"name":"короткое имя","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
+              f'[{{"name":"короткое имя по-русски","uk":"по-украински","en":"in English","de":"auf Deutsch","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
     body = json.dumps({"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
                        "messages": [{"role": "user", "content": prompt}],
                        "temperature": 0.8}).encode()
@@ -1194,8 +1196,8 @@ def _openrouter_chars(title, n=20):
 def gemini_chars(title, n=20):
     prompt = (f"Назови ровно {n} разных узнаваемых персонажей из «{title}». "
               f"Если не хватает — добавь связанных по теме. Верни СТРОГО JSON-массив "
-              f'[{{"name":"короткое имя","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
-    txt = llm.ask(prompt, temperature=0.8, max_tokens=1500, timeout=30)   # Gemini → Groq
+              f'[{{"name":"короткое имя по-русски","uk":"по-украински","en":"in English","de":"auf Deutsch","emoji":"один эмодзи"}}], ровно {n} элементов, без обрамления и текста.')
+    txt = llm.ask(prompt, temperature=0.8, max_tokens=2600, timeout=30)   # Gemini → Groq
     res = _parse_chars(txt, n) if txt else None
     if res:
         return res
@@ -3906,12 +3908,15 @@ async def ws(websocket: WebSocket):
                         two_p = {"c4":start_c4,"reversi":start_rv,"dots":start_db,"bulls":start_bc,"battleship":start_bs,"checkers":start_ck,"chess":start_chess}
                         party = {"bunker","spy","variants","alias","durak","uno","poker","mafia","quoridor"}
                         diff = msg.get("diff", "medium")
+                        if diff not in ("easy", "medium", "hard"):   # попадает в имя бота — только из белого списка
+                            diff = "medium"
+                        party_max = {"quoridor": 4, "durak": 6}.get(g, 8)
                         if g in two_p and len(room["players"]) < 2:
                             botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
                             room["players"][botid] = {"name": "🤖 Бот (" + diff + ")", "ws": None, "role": None, "alive": True, "bot": diff}
                             await broadcast(room, lobby_state(room))
                             await two_p[g](room)
-                        elif g in party and len(room["players"]) < 8:
+                        elif g in party and len(room["players"]) < party_max:
                             botid = "bot_" + "".join(random.choices(string.ascii_lowercase, k=6))
                             room["players"][botid] = {"name": "🤖 Бот", "ws": None, "role": None, "alive": True, "bot": diff}
                             await broadcast(room, lobby_state(room))   # старт жмёт хост вручную

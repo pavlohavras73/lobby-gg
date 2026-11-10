@@ -256,7 +256,7 @@ function renderState(m){
   document.getElementById('table').innerHTML=m.table.map((pr,idx)=>
     '<div class="pair" onclick="onTableClick('+idx+')">'+cardHTML(pr.a)+(pr.d?'<div class="d">'+cardHTML(pr.d)+'</div>':'')+'</div>').join('')
     || ('<span class="badge">'+t('empty_table')+'</span>');
-  document.getElementById('log').textContent=m.log||'';
+  document.getElementById('log').textContent=window.LobbyI18n?LobbyI18n.T(m.log||''):(m.log||'');
 
   const allDef=m.table.length&&m.table.every(p=>p.d);
   let btns='';
