@@ -2,11 +2,22 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title data-i18n="doc_title">Коридор — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
+  .lobby-card {
+    background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    border:1px solid var(--border-hi); border-radius:26px; padding:22px 18px;
+    max-width:400px; width:100%; margin:8px auto; text-align:center;
+    box-shadow:var(--inner), var(--shadow-lg), 0 0 50px -18px rgba(255,209,102,.2);
+  }
+  .or-sep { display:flex; align-items:center; gap:10px; margin:14px 0 10px; color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
+  .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
   :root {
     --q-board-bg: #0e111a;
     --q-cell-bg: #181c28;
@@ -223,19 +234,22 @@
 <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
 <!-- 1. Экран Создания / Входа -->
-<div id="home" class="card" style="max-width:390px;margin:0 auto">
-  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="name_ph">
-  <button onclick="create()" data-i18n="create_btn">Создать комнату</button>
-  <div style="height:10px"></div>
-  <input id="joincode" placeholder="КОД КОМНАТЫ" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph">
-  <button class="sec" onclick="join()" data-i18n="join_btn">Войти по коду</button>
+<div id="home" class="lobby-card">
+  <input id="name" class="inp" placeholder="Твоё имя" maxlength="20" data-i18n-ph="name_ph">
+  <button class="btn-primary" style="width:100%;margin-top:10px" onclick="create()" data-i18n="create_btn">Создать комнату</button>
+  <div class="or-sep" data-i18n="or_code">или по коду</div>
+  <div class="pin-row">
+    <input id="joincode" class="pin-hidden-src" placeholder="КОД КОМНАТЫ" maxlength="4" autocomplete="off" data-i18n-ph="code_ph">
+    <div id="pinBoxes" class="pin-boxes"></div>
+  </div>
+  <button class="sec btn-secondary" style="width:100%;margin-top:10px" onclick="join()" data-i18n="join_btn">Войти по коду</button>
   <div class="sub" style="margin-top:12px"><a href="/games" data-i18n="all_games">← ко всем играм</a></div>
 </div>
 
 <!-- 2. Экран Лобби -->
-<div id="lobby" class="card hide" style="max-width:390px;margin:0 auto;text-align:center">
-  <div class="sub" data-i18n="room_code">Код комнаты:</div>
-  <div class="code" id="lcode" onclick="navigator.clipboard.writeText(this.textContent);if(window.SFX)SFX.tap();alert(t('code_copied'))" title="" data-i18n-title="click_copy">----</div>
+<div id="lobby" class="lobby-card hide">
+  <div class="sub" data-i18n="room_code" style="margin-bottom:8px">Код комнаты</div>
+  <div class="pin-display" id="lcode" onclick="navigator.clipboard.writeText(this.dataset.code||this.textContent.replace(/\s+/g,''));if(window.SFX)SFX.tap();if(window.LobbyUI)LobbyUI.toast(t('code_copied'))" title="" data-i18n-title="click_copy"></div>
 
   <div style="margin:14px 0 6px;text-align:left;font-size:13px;font-weight:700;color:var(--muted)" data-i18n="players_in_room">Игроки в комнате:</div>
   <div id="players" style="margin-bottom:12px"></div>
@@ -361,7 +375,7 @@ const UI={
   }
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
-function t(k,vars){let v=UI[LANG]&&UI[LANG][k];if(v===undefined)v=UI.ru[k]||k;if(vars)for(const key in vars)v=v.replace('{'+key+'}',vars[key]);return v;}
+function t(k,vars){const fb={or_code:{uk:"або за кодом",ru:"или по коду",en:"or with code",de:"oder mit Code"},host_tag:{uk:"Хост",ru:"Хост",en:"Host",de:"Host"}};let v=UI[LANG]&&UI[LANG][k];if(v===undefined&&fb[k])v=fb[k][LANG]||fb[k].ru;if(v===undefined)v=UI.ru[k]||k;if(vars)for(const key in vars)v=v.replace('{'+key+'}',vars[key]);return v;}
 // GT: канонические русские строки с сервера/движка -> {uk,en}
 const GT={
  "У вас не осталось стенок.":{uk:"У вас не залишилось стінок.",en:"You have no walls left.",
@@ -438,11 +452,24 @@ function handle(msg) {
     isHost = msg.host;
     document.getElementById("home").classList.add("hide");
     document.getElementById("lobby").classList.remove("hide");
-    document.getElementById("lcode").textContent = roomCode;
+    const ld = document.getElementById("lcode");
+    if (ld) {
+      ld.dataset.code = roomCode;
+      if (window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(roomCode);
+      else ld.textContent = roomCode;
+    }
   } else if (msg.type === "lobby" || msg.type === "lobby_state") {
     document.getElementById("home").classList.add("hide");
     document.getElementById("game").classList.add("hide");
     document.getElementById("lobby").classList.remove("hide");
+    if (msg.code) {
+      const ld = document.getElementById("lcode");
+      if (ld) {
+        ld.dataset.code = msg.code;
+        if (window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(msg.code);
+        else ld.textContent = msg.code;
+      }
+    }
     lastLobbyMsg = msg;
     renderLobby(msg);
   } else if (msg.type === "quoridor_state") {
@@ -525,10 +552,12 @@ function renderLobby(st) {
   let html = "";
   pList.forEach((pData, idx) => {
     const isMe = (pData.id === pid);
-    html += `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;margin-bottom:6px">
+    const nm = pData.bot ? String(pData.name).replace(/^🤖\s*/, '') : pData.name;
+    const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, !!pData.bot) : '';
+    html += `<div class="player-row-item">
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">${pData.bot ? '🤖' : '👤'}</span>
-        <span style="font-weight:700;color:${isMe ? '#ffd166' : '#fff'}">${qEsc(pData.bot ? String(pData.name).replace(/^🤖\s*/, '') : pData.name)} ${isMe ? t('you_label') : ''}</span>
+        ${av}
+        <span style="font-weight:700;color:${isMe ? '#ffd166' : '#fff'}">${qEsc(nm)} ${isMe ? t('you_label') : ''}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:11px;font-weight:800;color:var(--muted)">${t('slot',{n:idx+1})}</span>
@@ -566,6 +595,7 @@ function renderGame() {
     document.getElementById("overtext").textContent = isMeWin ? t('you_won') : t('someone_won',{n:winName});
     document.getElementById("oversub").textContent = isMeWin ? t('you_won_sub') : t('you_lost_sub');
     if (isMeWin && window.SFX) SFX.win();
+    if (isMeWin && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
     turnBanner.innerHTML = `<span style="color:#ffd166">${t('game_over')}</span>`;
   } else {
     document.getElementById("overbox").classList.add("hide");
@@ -754,6 +784,12 @@ if (autoCode) {
   const jc = document.getElementById('joincode');
   if (jc) jc.value = autoCode;
 }
+</script>
+<script src="/games/static/ui.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', () => join());
+});
 </script>
 </body>
 </html>

@@ -2,10 +2,12 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title data-i18n="title">4 в ряд 3D — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   :root {
     --c4-neon: #00f0ff;
@@ -288,18 +290,20 @@
 
 <!-- 1. HOME SCREEN -->
 <div id="home" class="card-box">
-  <input id="name" placeholder="Твоё имя" data-i18n-ph="name_ph" maxlength="20">
-  <button onclick="createGame()" data-i18n="create_btn">Создать игру</button>
-  <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-    <input id="joincode" placeholder="КОД" data-i18n-ph="code_ph" maxlength="4" style="text-transform:uppercase;flex:1;margin:0">
-    <button class="sec" style="flex:1;margin:0" onclick="joinGame()" data-i18n="join_btn">Войти</button>
+  <input id="name" class="inp" placeholder="Твоё имя" data-i18n-ph="name_ph" maxlength="20">
+  <button class="btn-primary" style="width:100%;margin-top:10px" onclick="createGame()" data-i18n="create_btn">Создать игру</button>
+  <div style="margin:14px 0 10px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px" data-i18n="or_code">или по коду</div>
+  <div class="pin-row">
+    <input id="joincode" class="pin-hidden-src" placeholder="КОД" data-i18n-ph="code_ph" maxlength="4" autocomplete="off">
+    <div id="pinBoxes" class="pin-boxes"></div>
   </div>
+  <button class="sec btn-secondary" style="width:100%;margin-top:10px" onclick="joinGame()" data-i18n="join_btn">Войти</button>
 </div>
 
 <!-- 2. LOBBY SCREEN -->
 <div id="lobby" class="card-box hide" style="text-align:center">
-  <div class="sub" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8ba2c4" data-i18n="room_code">Код комнаты:</div>
-  <div class="code" id="lcode" style="font-size:36px;font-weight:900;letter-spacing:6px;color:var(--c4-neon);margin:4px 0 12px">----</div>
+  <div class="sub" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8ba2c4;margin-bottom:8px" data-i18n="room_code">Код комнаты</div>
+  <div class="pin-display" id="lcode" style="margin-bottom:14px"></div>
   
   <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#cbd5e1" data-i18n="your_color">Твой цвет фишки:</div>
   <div class="palette-row" id="palette-picker"></div>
@@ -335,9 +339,10 @@
 </div>
 
 <!-- SCRIPTS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -493,7 +498,13 @@ const UI = {
 const GT = {"Нужно минимум 2 игрока.": {"uk": "Потрібно мінімум 2 гравця.", "en": "Need at least 2 players.", "de": "Mindestens 2 Spieler erforderlich."}, "Нужно минимум 2 игрока (жми «Добавить бота» для теста).": {"uk": "Потрібно мінімум 2 гравця (тисни «Додати бота» для тесту).", "en": "Need at least 2 players (click «Add bot» for test).", "de": "Mindestens 2 Spieler erforderlich (klicke auf «Bot hinzufügen» zum Testen)."}};
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
-function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function t(k) {
+  const fb={or_code:{uk:"або за кодом",ru:"или по коду",en:"or with code",de:"oder mit Code"},host_tag:{uk:"Хост",ru:"Хост",en:"Host",de:"Host"}};
+  if (UI[LANG] && UI[LANG][k] !== undefined) return UI[LANG][k];
+  if (fb[k]) return fb[k][LANG] || fb[k].ru;
+  return UI.ru[k] || k;
+}
 function T(s) { if(s==null)return s; if(LANG==='ru')return s; const e=GT[s]; return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s); }
 function applyUI() {
   document.documentElement.lang = LANG;
@@ -521,7 +532,10 @@ document.getElementById('langbar').addEventListener('click', e => {
   applyUI();
 });
 // Язык применяем, когда весь скрипт страницы выполнен (раньше переменные игры ещё не объявлены)
-document.addEventListener('DOMContentLoaded', applyUI);
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', joinGame);
+  applyUI();
+});
 
 let ws, pid = null, st = null;
 let scene, camera, renderer, controls, raycaster, mouse;
@@ -599,20 +613,21 @@ function handle(m) {
     pid = m.pid;
   } else if (m.type === 'lobby') {
     show('lobby');
-    document.getElementById('lcode').textContent = m.code;
+    const ld = document.getElementById('lcode');
+    if (ld && window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(m.code);
+    else if (ld) ld.textContent = m.code;
     const isHost = (m.host === pid);
     document.getElementById('start-btn').style.display = (isHost && m.players.length >= 2) ? 'block' : 'none';
     document.getElementById('waitmsg').style.display = (m.players.length >= 2) ? 'none' : 'block';
 
     const pDiv = document.getElementById('players-list');
-    pDiv.innerHTML = m.players.map(p => `
-      <div class="player-pill">
-        <div class="tag">
-          <span>${p.id === m.host ? '👑' : '👤'}</span>
-          <span>${p.name} ${p.id === pid ? `<small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : ''}</span>
-        </div>
-      </div>
-    `).join('');
+    pDiv.innerHTML = m.players.map(p => {
+      const nm = T(p.name);
+      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p.id || '').startsWith('bot_')) : '';
+      const tag = p.id === m.host ? '<span class="player-tag">👑 ' + t('host_tag') + '</span>' : '';
+      const me = p.id === pid ? ` <small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : '';
+      return `<div class="player-row-item">${av}<span style="font-weight:700">${esc(nm)}${me}</span>${tag}</div>`;
+    }).join('');
   } else if (m.type === 'c4_3d_state') {
     st = m;
     if (!st.started && !st.winner) {
@@ -724,6 +739,12 @@ function init3D() {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if (THREE.ACESFilmicToneMapping) {
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+  }
   container.appendChild(renderer.domElement);
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -735,15 +756,16 @@ function init3D() {
   controls.maxPolarAngle = Math.PI / 2 + 0.1;
 
   // Lights
-  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+  const ambient = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.9);
   scene.add(ambient);
 
-  const dirLight1 = new THREE.DirectionalLight(0x00f0ff, 0.8);
-  dirLight1.position.set(15, 25, 10);
+  const dirLight1 = new THREE.DirectionalLight(0x00f0ff, 1.1);
+  dirLight1.position.set(15, 28, 12);
+  dirLight1.castShadow = true;
   scene.add(dirLight1);
 
-  const dirLight2 = new THREE.DirectionalLight(0xa259ff, 0.6);
-  dirLight2.position.set(-15, -10, -15);
+  const dirLight2 = new THREE.DirectionalLight(0xa259ff, 0.75);
+  dirLight2.position.set(-15, 10, -15);
   scene.add(dirLight2);
 
   boardGroup = new THREE.Group();
@@ -845,12 +867,17 @@ function sync3DScene() {
 
         if (!chipsMap[key]) {
           const geo = new THREE.SphereGeometry(0.85, 32, 32);
-          const mat = new THREE.MeshPhongMaterial({
+          const MatCls = THREE.MeshPhysicalMaterial || THREE.MeshPhongMaterial;
+          const mat = new MatCls({
             color: new THREE.Color(hexColor),
-            shininess: 90,
-            specular: 0x444444
+            roughness: 0.22,
+            metalness: 0.15,
+            clearcoat: 0.85,
+            clearcoatRoughness: 0.1
           });
           const mesh = new THREE.Mesh(geo, mat);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
           mesh.position.copy(getPos(x, y, z));
           scene.add(mesh);
           chipsMap[key] = mesh;

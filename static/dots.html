@@ -1,42 +1,145 @@
 <!DOCTYPE html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title data-i18n="title">Точки — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  .grid{display:grid;gap:0;width:300px;margin:14px auto}
-  .dot{width:10px;height:10px;border-radius:50%;background:#888;justify-self:center;align-self:center}
-  .he{height:10px;align-self:center;border-radius:5px;background:rgba(255,255,255,.07);cursor:pointer}
-  .he.on{background:var(--crimson);box-shadow:0 0 8px var(--crimson-glow)}
-  .ve{width:10px;justify-self:center;border-radius:5px;background:rgba(255,255,255,.07);cursor:pointer}
-  .ve.on{background:var(--crimson);box-shadow:0 0 8px var(--crimson-glow)}
-  .box{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
-  .box.p1{background:rgba(255,34,56,.18);color:#ff7a88}.box.p2{background:rgba(90,160,255,.18);color:#7ab0ff}
-  .turn{text-align:center;font-weight:700;margin:8px 0}.me{color:var(--crimson)}
-  .score{display:flex;justify-content:space-around;text-align:center;margin:6px 0}.score b{font-size:24px}
+  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) 12px max(64px,calc(var(--sab)+56px)); }
+  .dt-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .dt-brand-mini { font-family:var(--display); font-size:16px; font-weight:800; background:linear-gradient(95deg,#fff 20%,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lobby-card {
+    background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    border:1px solid var(--border-hi); border-radius:26px; padding:22px 18px;
+    max-width:400px; width:100%; margin:auto; text-align:center;
+    box-shadow:var(--inner), var(--shadow-lg), 0 0 50px -18px rgba(139,92,246,.24);
+  }
+  .dt-hero-svg { width:76px; height:64px; margin:0 auto 6px; display:block; filter:drop-shadow(0 10px 18px rgba(139,92,246,.28)); transition:transform .2s var(--ease); }
+  .lobby-title { font-family:var(--display); font-size:28px; font-weight:800; margin-bottom:4px; background:linear-gradient(95deg,#fff 25%,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lobby-sub { font-size:12.5px; color:var(--muted); margin-bottom:14px; font-weight:600; }
+  .or-sep { display:flex; align-items:center; gap:10px; margin:14px 0 10px; color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
+  .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
-</style></head><body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">▦ Точки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">По очереди рисуй линии между точками. Замкнул квадрат — он твой, и ходишь ещё раз. У кого больше квадратов в конце — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
-<h1 data-i18n="page_title">▦ ТОЧКИ</h1><div class="sub" data-i18n="page_sub">замкни квадрат — он твой, и ходишь ещё · на двоих</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-<div id="home" class="card" style="max-width:340px;margin:0 auto">
-  <input id="name" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph"><button onclick="create()" data-i18n="create_btn">Создать</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="code_ph"><button class="sec" onclick="join()" data-i18n="join_btn">Войти</button>
-  <div class="sub" style="margin-top:10px"><a href="/games" data-i18n="back_btn">← все игры</a></div></div>
-<div id="lobby" class="card hide" style="max-width:340px;margin:0 auto;text-align:center">
-  <div class="sub" data-i18n="room_code">Код:</div><div class="code" id="lcode">----</div><div id="players"></div><div class="row" style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div><div class="sub" id="waitmsg" data-i18n="wait_msg">Ждём второго…</div></div>
-<div id="game" class="hide">
-  <div class="score"><div style="color:#ff7a88">🟥 <b id="s1">0</b></div><div style="color:#7ab0ff">🟦 <b id="s2">0</b></div></div>
-  <div class="turn" id="turninfo"></div><div class="grid" id="grid"></div>
-  <div id="over" class="card hide" style="max-width:340px;margin:8px auto;text-align:center"><h1 id="ot"></h1><button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Заново</button></div>
+  .board-wrap {
+    background:rgba(16,17,24,.92); border:1px solid var(--border-hi); border-radius:20px;
+    padding:16px 12px; width:max-content; max-width:100%; margin:8px auto;
+    box-shadow:var(--shadow-lg), inset 0 0 24px rgba(0,0,0,.45);
+  }
+  .grid { display:grid; gap:0; margin:0 auto; }
+  .dot {
+    width:11px; height:11px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, #94a3b8);
+    box-shadow:0 0 6px rgba(255,255,255,.35);
+    justify-self:center; align-self:center; z-index:2;
+  }
+  .he {
+    height:12px; align-self:center; border-radius:6px;
+    background:rgba(255,255,255,.07); cursor:pointer; transition:background .15s, box-shadow .15s;
+  }
+  .he:hover { background:rgba(255,255,255,.22); }
+  .he.on { background:linear-gradient(90deg, #ff3b54, #ff6b7d); box-shadow:0 0 10px var(--crimson-glow); }
+  .ve {
+    width:12px; justify-self:center; border-radius:6px;
+    background:rgba(255,255,255,.07); cursor:pointer; transition:background .15s, box-shadow .15s;
+  }
+  .ve:hover { background:rgba(255,255,255,.22); }
+  .ve.on { background:linear-gradient(180deg, #ff3b54, #ff6b7d); box-shadow:0 0 10px var(--crimson-glow); }
+  .box {
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:20px; border-radius:8px; margin:2px;
+    transition:transform .2s var(--ease), background .2s;
+  }
+  .box.p1 { background:rgba(255,34,56,.22); border:1px solid rgba(255,34,56,.45); color:#ff7a88; animation:boxPop .25s var(--ease); }
+  .box.p2 { background:rgba(90,160,255,.22); border:1px solid rgba(90,160,255,.45); color:#7ab0ff; animation:boxPop .25s var(--ease); }
+  @keyframes boxPop { 0% { transform:scale(.7); opacity:.4; } 100% { transform:scale(1); opacity:1; } }
+
+  .turn { text-align:center; font-weight:800; margin:8px 0; font-size:14px; }
+  .me { color:#a78bfa; }
+  .score { display:flex; justify-content:space-between; align-items:center; gap:10px; max-width:340px; width:100%; margin:4px auto 8px; }
+  .score-pill {
+    flex:1; display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:rgba(22,22,29,.88); border:1px solid var(--border); border-radius:14px;
+    padding:7px 10px; font-size:12.5px; font-weight:700;
+  }
+  .score-pill .player-av { width:24px; height:24px; font-size:11px; }
+  .score-pill b { font-size:20px; font-family:var(--display); }
+  .opts { display:flex; gap:6px; justify-content:center; margin:6px 0; }
+  .opt { flex:1; padding:8px 6px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.04); cursor:pointer; font-weight:700; font-size:12.5px; text-align:center; }
+  .opt.on { border-color:var(--crimson); background:rgba(255,34,56,.18); color:#fff; }
+</style>
+</head>
+<body>
+<header class="dt-header">
+  <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
+  <div class="dt-brand-mini" data-i18n="page_title">ТОЧКИ</div>
+  <button class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+</header>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left">
+    <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">▦ Точки — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">По очереди рисуй линии между точками. Замкнул квадрат — он твой, и ходишь ещё раз. У кого больше квадратов в конце — победил.</div>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+  </div>
 </div>
+
+<div id="home" class="lobby-card">
+  <svg id="dotsLogo" class="dt-hero-svg" viewBox="0 0 88 72" fill="none" aria-hidden="true">
+    <rect x="20" y="14" width="44" height="44" rx="8" fill="rgba(139,92,246,.22)" stroke="#a78bfa" stroke-width="3"/>
+    <circle cx="20" cy="14" r="6" fill="#fff"/>
+    <circle cx="64" cy="14" r="6" fill="#fff"/>
+    <circle cx="20" cy="58" r="6" fill="#fff"/>
+    <circle cx="64" cy="58" r="6" fill="#fff"/>
+  </svg>
+  <div class="lobby-title" data-i18n="page_title">ТОЧКИ</div>
+  <div class="lobby-sub" data-i18n="page_sub">замкни квадрат — он твой, и ходишь ещё · на двоих</div>
+  <div class="langbar" id="langbar" style="margin-bottom:14px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+  <input id="name" class="inp" placeholder="Имя" maxlength="20" data-i18n-ph="name_ph">
+  <button class="btn-primary" style="width:100%;margin-top:10px" onclick="create()" data-i18n="create_btn">Создать</button>
+  <div class="or-sep" data-i18n="or_code">или по коду</div>
+  <div class="pin-row">
+    <input id="joincode" class="pin-hidden-src" maxlength="4" autocomplete="off" data-i18n-ph="code_ph">
+    <div id="pinBoxes" class="pin-boxes"></div>
+  </div>
+  <button class="sec btn-secondary" style="width:100%;margin-top:10px" onclick="join()" data-i18n="join_btn">Войти</button>
+</div>
+
+<div id="lobby" class="lobby-card hide">
+  <div class="sub" data-i18n="room_code" style="margin-bottom:8px">Код</div>
+  <div class="pin-display" id="lcode"></div>
+  <div id="players" style="margin:14px 0"></div>
+  <div id="fullBanner" class="room-full-banner hide" data-i18n="room_full">Комната заполнена (2/2)</div>
+  <div style="margin-top:8px">
+    <div class="opts botdiff" style="margin:6px 0">
+      <div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div>
+      <div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div>
+      <div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div>
+    </div>
+    <button class="sec btn-secondary" style="width:100%" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button>
+  </div>
+  <div class="sub" id="waitmsg" style="margin-top:10px" data-i18n="wait_msg">Ждём второго…</div>
+</div>
+
+<div id="game" class="hide" style="width:100%;max-width:420px;margin:0 auto">
+  <div class="score">
+    <div class="score-pill"><div style="display:flex;align-items:center;gap:6px"><span id="p1-av"></span><span id="p1-name">🟥</span></div><b id="s1" style="color:#ff7a88">0</b></div>
+    <div class="score-pill"><div style="display:flex;align-items:center;gap:6px"><span id="p2-av"></span><span id="p2-name">🟦</span></div><b id="s2" style="color:#7ab0ff">0</b></div>
+  </div>
+  <div class="turn" id="turninfo"></div>
+  <div class="board-wrap"><div class="grid" id="grid"></div></div>
+  <div id="over" class="lobby-card hide" style="margin-top:12px;padding:18px">
+    <h2 id="ot" style="margin:0 0 12px;font-family:var(--display)"></h2>
+    <button class="btn-primary" style="width:100%" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="restart_btn">Заново</button>
+  </div>
+</div>
+
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -46,142 +149,57 @@ let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opene
 
 const UI = {
   uk: {
-    title: "Крапки — Lobby.gg",
-    rules_btn: "Правила",
-    rules_title: "▦ Крапки — правила",
+    title: "Крапки — Lobby.gg", rules_btn: "Правила", rules_title: "▦ Крапки — правила",
     rules_body: "По черзі малюйте лінії між крапками. Замкнув квадрат — він твій, і ходиш ще раз. У кого більше квадратів наприкінці — переміг.",
-    rules_ok: "Зрозуміло 👍",
-    nav_games: "🎮 Ігри",
-    page_title: "▦ КРАПКИ",
-    page_sub: "замкни квадрат — він твій, і ходиш ще · на двох",
-    name_ph: "Ім'я",
-    create_btn: "Створити",
-    code_ph: "КОД",
-    join_btn: "Увійти",
-    back_btn: "← всі ігри",
-    room_code: "Код:",
-    diff_easy: "🤖 Легкий",
-    diff_medium: "Середній",
-    diff_hard: "Складний",
-    add_bot_btn: "🤖 Додати",
-    wait_msg: "Чекаємо другого…",
-    restart_btn: "Заново",
-    you_won: "🏆 Ти виграв!",
-    someone_won: "Переміг {n}",
-    draw: "🤝 Нічия",
-    your_turn: "ТВІЙ ХІД",
-    your_turn_sub: " — тапни лінію",
-    turn_of: "Хід: {n}",
-    alert_code: "Код?"
+    rules_ok: "Зрозуміло 👍", nav_games: "‹ Ігри", page_title: "КРАПКИ", page_sub: "замкни квадрат — він твій, і ходиш ще · на двоих",
+    name_ph: "Ім'я", create_btn: "Створити", or_code: "або за кодом", code_ph: "КОД", join_btn: "Увійти",
+    room_code: "Код", diff_easy: "🤖 Легкий", diff_medium: "Середній", diff_hard: "Складний", add_bot_btn: "🤖 Додати",
+    wait_msg: "Чекаємо другого…", restart_btn: "Заново", you_won: "🏆 Ти виграв!", someone_won: "Переміг {n}",
+    draw: "🤝 Нічия", your_turn: "ТВІЙ ХІД", your_turn_sub: " — тапни лінію", turn_of: "Хід: {n}", alert_code: "Код?",
+    room_full: "Кімната заповнена (2/2)", host_tag: "Хост"
   },
   ru: {
-    title: "Точки — Lobby.gg",
-    rules_btn: "Правила",
-    rules_title: "▦ Точки — правила",
+    title: "Точки — Lobby.gg", rules_btn: "Правила", rules_title: "▦ Точки — правила",
     rules_body: "По очереди рисуй линии между точками. Замкнул квадрат — он твой, и ходишь ещё раз. У кого больше квадратов в конце — победил.",
-    rules_ok: "Понятно 👍",
-    nav_games: "🎮 Игры",
-    page_title: "▦ ТОЧКИ",
-    page_sub: "замкни квадрат — он твой, и ходишь ещё · на двоих",
-    name_ph: "Имя",
-    create_btn: "Создать",
-    code_ph: "КОД",
-    join_btn: "Войти",
-    back_btn: "← все игры",
-    room_code: "Код:",
-    diff_easy: "🤖 Лёгкий",
-    diff_medium: "Средний",
-    diff_hard: "Сложный",
-    add_bot_btn: "🤖 Добавить",
-    wait_msg: "Ждём второго…",
-    restart_btn: "Заново",
-    you_won: "🏆 Ты выиграл!",
-    someone_won: "Победил {n}",
-    draw: "🤝 Ничья",
-    your_turn: "ТВОЙ ХОД",
-    your_turn_sub: " — тапни линию",
-    turn_of: "Ходит {n}",
-    alert_code: "Код?"
+    rules_ok: "Понятно 👍", nav_games: "‹ Игры", page_title: "ТОЧКИ", page_sub: "замкни квадрат — он твой, и ходишь ещё · на двоих",
+    name_ph: "Имя", create_btn: "Создать", or_code: "или по коду", code_ph: "КОД", join_btn: "Войти",
+    room_code: "Код", diff_easy: "🤖 Лёгкий", diff_medium: "Средний", diff_hard: "Сложный", add_bot_btn: "🤖 Добавить",
+    wait_msg: "Ждём второго…", restart_btn: "Заново", you_won: "🏆 Ты выиграл!", someone_won: "Победил {n}",
+    draw: "🤝 Ничья", your_turn: "ТВОЙ ХОД", your_turn_sub: " — тапни линию", turn_of: "Ходит {n}", alert_code: "Код?",
+    room_full: "Комната заполнена (2/2)", host_tag: "Хост"
   },
   en: {
-    title: "Dots & Boxes — Lobby.gg",
-    rules_btn: "Rules",
-    rules_title: "▦ Dots & Boxes — rules",
+    title: "Dots & Boxes — Lobby.gg", rules_btn: "Rules", rules_title: "▦ Dots & Boxes — rules",
     rules_body: "Take turns connecting adjacent dots with lines. Complete a box to claim it and get an extra turn. The player with the most boxes wins.",
-    rules_ok: "Got it 👍",
-    nav_games: "🎮 Games",
-    page_title: "▦ DOTS & BOXES",
-    page_sub: "close a box to claim it and move again · 2 players",
-    name_ph: "Name",
-    create_btn: "Create",
-    code_ph: "CODE",
-    join_btn: "Join",
-    back_btn: "← all games",
-    room_code: "Code:",
-    diff_easy: "🤖 Easy",
-    diff_medium: "Medium",
-    diff_hard: "Hard",
-    add_bot_btn: "🤖 Add",
-    wait_msg: "Waiting for opponent…",
-    restart_btn: "Restart",
-    you_won: "🏆 You won!",
-    someone_won: "{n} won",
-    draw: "🤝 Draw",
-    your_turn: "YOUR TURN",
-    your_turn_sub: " — tap a line",
-    turn_of: "Turn: {n}",
-    alert_code: "Code?"
+    rules_ok: "Got it 👍", nav_games: "‹ Games", page_title: "DOTS & BOXES", page_sub: "close a box to claim it and move again · 2 players",
+    name_ph: "Name", create_btn: "Create", or_code: "or with code", code_ph: "CODE", join_btn: "Join",
+    room_code: "Code", diff_easy: "🤖 Easy", diff_medium: "Medium", diff_hard: "Hard", add_bot_btn: "🤖 Add",
+    wait_msg: "Waiting for opponent…", restart_btn: "Restart", you_won: "🏆 You won!", someone_won: "{n} won",
+    draw: "🤝 Draw", your_turn: "YOUR TURN", your_turn_sub: " — tap a line", turn_of: "Turn: {n}", alert_code: "Code?",
+    room_full: "Room full (2/2)", host_tag: "Host"
   },
   de: {
-    "title": "Punkte — Lobby.gg",
-    "rules_btn": "Regeln",
-    "rules_title": "🟣 Punkte — Regeln",
-    "rules_body": "Verbindet abwechselnd zwei benachbarte Punkte mit einer Linie. Wer ein Kästchen schließt, bekommt es und ist nochmal dran. Wer am Ende die meisten Kästchen hat, gewinnt.",
-    "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
-    "page_title": "🟣 PUNKTE",
-    "page_sub": "Taktik · Einkreisen · 2 Spieler",
-    "name_ph": "Name",
-    "create_btn": "Spiel erstellen",
-    "code_ph": "CODE",
-    "join_btn": "Beitreten",
-    "back_btn": "← Alle Spiele",
-    "room_code": "Code:",
-    "diff_easy": "🤖 Leicht",
-    "diff_medium": "Mittel",
-    "diff_hard": "Schwer",
-    "add_bot_btn": "🤖 Hinzufügen",
-    "wait_msg": "Warte auf Gegner…",
-    "restart_btn": "Neustart",
-    "you_won": "🏆 Du hast gewonnen!",
-    "someone_won": "{n} hat gewonnen!",
-    "draw": "🤝 Unentschieden!",
-    "your_turn": "DU BIST DRAN",
-    "your_turn_sub": " — tippe auf eine Linie",
-    "turn_of": "Am Zug: {n}",
-    "alert_code": "Code?"
+    title: "Punkte — Lobby.gg", rules_btn: "Regeln", rules_title: "🟣 Punkte — Regeln",
+    rules_body: "Verbindet abwechselnd zwei benachbarte Punkte mit einer Linie. Wer ein Kästchen schließt, bekommt es und ist nochmal dran. Wer am Ende die meisten Kästchen hat, gewinnt.",
+    rules_ok: "Verstanden 👍", nav_games: "‹ Spiele", page_title: "PUNKTE", page_sub: "Taktik · Einkreisen · 2 Spieler",
+    name_ph: "Name", create_btn: "Spiel erstellen", or_code: "oder mit Code", code_ph: "CODE", join_btn: "Beitreten",
+    room_code: "Code", diff_easy: "🤖 Leicht", diff_medium: "Mittel", diff_hard: "Schwer", add_bot_btn: "🤖 Hinzufügen",
+    wait_msg: "Warte auf Gegner…", restart_btn: "Neustart", you_won: "🏆 Du hast gewonnen!", someone_won: "{n} hat gewonnen!",
+    draw: "🤝 Unentschieden!", your_turn: "DU BIST DRAN", your_turn_sub: " — tippe auf eine Linie", turn_of: "Am Zug: {n}", alert_code: "Code?",
+    room_full: "Raum voll (2/2)", host_tag: "Host"
   }
 };
 
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
-
+function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 function t(k, vars) {
   let v = UI[LANG] && UI[LANG][k];
   if (v === undefined) v = UI.ru[k] || k;
-  if (vars) {
-    for (const key in vars) {
-      v = v.replace('{' + key + '}', vars[key]);
-    }
-  }
+  if (vars) for (const key in vars) v = v.replace('{' + key + '}', vars[key]);
   return v;
 }
-
-const GT = {
-  "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players.",
-    de: "2 Spieler erforderlich." }
-};
-
+const GT = { "Нужно 2 игрока.": { uk: "Потрібно 2 гравці.", en: "Need 2 players.", de: "2 Spieler erforderlich." } };
 function T(s) {
   if (s == null) return s;
   if (LANG === 'ru') return s;
@@ -202,29 +220,18 @@ function applyUI() {
   document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   if (st) {
-    const ov = document.getElementById('over');
     if (st.done) {
-      document.getElementById('ot').textContent = st.winner ? (st.winner === pid ? t('you_won') : t('someone_won', { n: st.names[st.winner] || '?' })) : t('draw');
+      document.getElementById('ot').textContent = st.winner ? (st.winner === pid ? t('you_won') : t('someone_won', { n: T(st.names[st.winner] || '?') })) : t('draw');
     } else {
       const my = st.turn_pid === pid;
-      document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: st.names[st.turn_pid] || '?' });
+      document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: esc(T(st.names[st.turn_pid] || '?')) });
     }
   }
 }
 
-document.getElementById('langbar').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  LANG = b.dataset.lang;
-  localStorage.setItem('jg_lang', LANG);
-  applyUI();
-});
-
-document.addEventListener('DOMContentLoaded', applyUI);
-
-function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){if(ws)ws.send(o);}
-function connect(cb){
+function show(id) { for (const s of ['home', 'lobby', 'game']) document.getElementById(s).classList.add('hide'); document.getElementById(id).classList.remove('hide'); }
+function send(o) { if (ws) ws.send(o); }
+function connect(cb) {
   if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
   firstOpenCb = cb;
   ws = JarvisWS("/games/ws", {
@@ -235,38 +242,84 @@ function connect(cb){
     onmessage: (e) => handle(JSON.parse(e.data))
   });
 }
-function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'dots'}));}
-function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
-function edge(t,r,c){if(st&&st.turn_pid===pid)send({action:'db_edge',t:t,r:r,c:c});}
-function handle(m){
-  if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_dots_code',m.code);}
-  else if(m.type==='lobby'){show('lobby');document.getElementById('lcode').textContent=m.code;
-    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">👤 '+p.name+'</div>').join('');}
-  else if(m.type==='db_state'){st=m;show('game');
-    document.getElementById('s1').textContent=m.scores[0];document.getElementById('s2').textContent=m.scores[1];
-    const my=m.turn_pid===pid;
-    // 9x9: чередуем dot/edge/box. колонки: dot 14px, edge 56px чередуясь
-    const g=document.getElementById('grid');
-    g.style.gridTemplateColumns='14px 56px 14px 56px 14px 56px 14px 56px 14px';
-    g.style.gridTemplateRows='14px 56px 14px 56px 14px 56px 14px 56px 14px';
-    let h='';
-    for(let gr=0;gr<9;gr++)for(let gc=0;gc<9;gc++){
-      const er=gr%2,ec=gc%2;
-      if(!er&&!ec)h+='<div class="dot"></div>';
-      else if(!er&&ec){const r=gr/2,c=(gc-1)/2;const on=m.h[r][c];h+='<div class="he '+(on?'on':'')+'" style="height:'+(on?10:8)+'px" '+(!on&&my?'onclick="edge(\'h\','+r+','+c+')"':'')+'></div>';}
-      else if(er&&!ec){const r=(gr-1)/2,c=gc/2;const on=m.v[r][c];h+='<div class="ve '+(on?'on':'')+'" style="width:'+(on?10:8)+'px" '+(!on&&my?'onclick="edge(\'v\','+r+','+c+')"':'')+'></div>';}
-      else{const r=(gr-1)/2,c=(gc-1)/2;const o=m.boxes[r][c];h+='<div class="box '+(o===1?'p1':o===2?'p2':'')+'">'+(o?(o===1?'🟥':'🟦'):'')+'</div>';}
+function create() { connect(() => send({ action: 'create', name: document.getElementById('name').value || 'Игрок', game: 'dots' })); }
+function join() {
+  const c = document.getElementById('joincode').value.trim().toUpperCase();
+  if (!c) return alert(t('alert_code'));
+  connect(() => send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: c }));
+}
+function edge(type, r, c) {
+  if (st && st.turn_pid === pid) {
+    try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {}
+    send({ action: 'db_edge', t: type, r: r, c: c });
+  }
+}
+
+function handle(m) {
+  if (m.type === 'joined') { pid = m.pid; roomCode = m.code; sessionStorage.setItem('jg_dots_code', m.code); }
+  else if (m.type === 'lobby') {
+    show('lobby');
+    const ld = document.getElementById('lcode');
+    if (ld && window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(m.code);
+    else if (ld) ld.textContent = m.code;
+    document.getElementById('players').innerHTML = m.players.map(p => {
+      const nm = T(p.name);
+      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p.id || '').startsWith('bot_')) : '';
+      const tag = p.id === m.host ? '<span class="player-tag">👑 ' + t('host_tag') + '</span>' : '';
+      return '<div class="player-row-item">' + av + '<span style="font-weight:700">' + esc(nm) + '</span>' + tag + '</div>';
+    }).join('');
+    document.getElementById('fullBanner').classList.toggle('hide', m.players.length < 2);
+  } else if (m.type === 'db_state') {
+    st = m; show('game');
+    document.getElementById('s1').textContent = m.scores[0];
+    document.getElementById('s2').textContent = m.scores[1];
+    if (m.players && m.names && window.LobbyUI) {
+      const n1 = T(m.names[m.players[0]] || '');
+      const n2 = T(m.names[m.players[1]] || '');
+      document.getElementById('p1-name').textContent = n1;
+      document.getElementById('p2-name').textContent = n2;
+      document.getElementById('p1-av').innerHTML = LobbyUI.avatarHtml(n1, String(m.players[0]||'').startsWith('bot_'));
+      document.getElementById('p2-av').innerHTML = LobbyUI.avatarHtml(n2, String(m.players[1]||'').startsWith('bot_'));
     }
-    g.innerHTML=h;
-    const ov=document.getElementById('over');
-    if(m.done){ov.classList.remove('hide');document.getElementById('ot').textContent=m.winner?(m.winner===pid?t('you_won'):t('someone_won',{n:m.names[m.winner]||'?'})):t('draw');}
-    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:m.names[m.turn_pid]||'?'});}}
-  else if(m.type==='error'){alert(T(m.msg));}
+    const my = m.turn_pid === pid;
+    const g = document.getElementById('grid');
+    g.style.gridTemplateColumns = '14px 52px 14px 52px 14px 52px 14px 52px 14px';
+    g.style.gridTemplateRows = '14px 52px 14px 52px 14px 52px 14px 52px 14px';
+    let h = '';
+    for (let gr = 0; gr < 9; gr++) for (let gc = 0; gc < 9; gc++) {
+      const er = gr % 2, ec = gc % 2;
+      if (!er && !ec) h += '<div class="dot"></div>';
+      else if (!er && ec) { const r = gr / 2, c = (gc - 1) / 2; const on = m.h[r][c]; h += '<div class="he ' + (on ? 'on' : '') + '" ' + (!on && my ? 'onclick="edge(\'h\',' + r + ',' + c + ')"' : '') + '></div>'; }
+      else if (er && !ec) { const r = (gr - 1) / 2, c = gc / 2; const on = m.v[r][c]; h += '<div class="ve ' + (on ? 'on' : '') + '" ' + (!on && my ? 'onclick="edge(\'v\',' + r + ',' + c + ')"' : '') + '></div>'; }
+      else { const r = (gr - 1) / 2, c = (gc - 1) / 2; const o = m.boxes[r][c]; h += '<div class="box ' + (o === 1 ? 'p1' : o === 2 ? 'p2' : '') + '">' + (o ? (o === 1 ? '🟥' : '🟦') : '') + '</div>'; }
+    }
+    g.innerHTML = h;
+    const ov = document.getElementById('over');
+    if (m.done) {
+      ov.classList.remove('hide');
+      const win = (m.winner === pid);
+      document.getElementById('ot').textContent = m.winner ? (win ? t('you_won') : t('someone_won', { n: T(m.names[m.winner] || '?') })) : t('draw');
+      if (win && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
+    } else {
+      ov.classList.add('hide');
+      document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: esc(T(m.names[m.turn_pid] || '?')) });
+    }
+  } else if (m.type === 'error') {
+    alert(T(m.msg));
+  }
 }
-const autoCode = sessionStorage.getItem('jg_dots_code');
-if (autoCode) {
-  const jc = document.getElementById('joincode');
-  if (jc) jc.value = autoCode;
-}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    LANG = b.dataset.lang; localStorage.setItem('jg_lang', LANG); applyUI();
+  });
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
+  if (window.LobbyUI && LobbyUI.enableParallax) LobbyUI.enableParallax(document.getElementById('dotsLogo'), 10);
+  const autoCode = sessionStorage.getItem('jg_dots_code');
+  if (autoCode) document.getElementById('joincode').value = autoCode;
+  applyUI();
+});
 </script>
-</body></html>
+</body>
+</html>

@@ -5,23 +5,39 @@
 :root{
   --bg:#050507;
   --bg-2:#0b0b10;
+  --surface-1:rgba(16,16,21,.62);
+  --surface-2:rgba(26,26,35,.72);
+  --surface-3:rgba(36,36,48,.82);
   --crimson:#ff2238;
   --crimson-deep:#c40f23;
   --crimson-soft:#ff6b7a;
   --crimson-glow:rgba(255,34,56,.55);
   --ember:#ff7a45;
   --violet:#8b5cf6;
+  --emerald:#22c55e;
+  --gold:#ffcc00;
   --text:#f4f4f7;
   --muted:#8d8d98;
   --faint:#5c5c66;
   --glass:rgba(16,16,21,.58);
-  --glass-2:rgba(26,26,33,.62);
-  --border:rgba(255,255,255,.075);
-  --border-hi:rgba(255,255,255,.14);
-  --inner:inset 0 1px 0 rgba(255,255,255,.07), inset 0 0 0 1px rgba(255,255,255,.025);
+  --glass-2:rgba(26,26,33,.66);
+  --border:rgba(255,255,255,.08);
+  --border-hi:rgba(255,255,255,.16);
+  --inner:inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.025);
+  --shadow-sm:0 6px 18px -6px rgba(0,0,0,.6);
+  --shadow-md:0 16px 36px -12px rgba(0,0,0,.78);
+  --shadow-lg:0 26px 60px -14px rgba(0,0,0,.88);
+  --shadow-crimson:0 10px 28px -6px rgba(255,34,56,.58);
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:20px;
+  --radius-xl:26px;
+  --sat:env(safe-area-inset-top, 0px);
+  --sab:env(safe-area-inset-bottom, 0px);
   --font:'Inter',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
   --display:'Unbounded','Inter',system-ui,sans-serif;
   --ease:cubic-bezier(.2,.7,.3,1);
+  --spring:cubic-bezier(.22,1.28,.36,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html{background:var(--bg);-webkit-text-size-adjust:100%}
@@ -181,3 +197,24 @@ input:focus,select:focus{transform:translateY(-1px)}
 .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content;max-width:100%}
 .langbar :where(button){width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;min-height:0}
 .langbar :where(button.active){background:var(--crimson);color:#fff}
+
+/* ── Design System v2: tactile targets, toasts & screen transitions ── */
+button:not(.langbar button):not(#rulesBtn):not(.rules-btn),.btn,.opt{min-height:44px;touch-action:manipulation}
+.screen-enter{animation:riseIn .32s var(--ease) both}
+
+.ui-toast-wrap{
+  position:fixed;left:50%;bottom:calc(22px + var(--sab));transform:translateX(-50%);
+  z-index:100500;display:flex;flex-direction:column;align-items:center;gap:8px;
+  pointer-events:none;width:min(360px,calc(100vw - 28px));
+}
+.ui-toast{
+  pointer-events:auto;padding:11px 18px;border-radius:14px;font-size:13.5px;font-weight:700;
+  color:#fff;background:rgba(20,20,28,.92);border:1px solid var(--border-hi);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:var(--shadow-md);text-align:center;
+  animation:toastIn .28s var(--spring) both;
+}
+.ui-toast.ok{border-color:rgba(34,197,94,.5);box-shadow:var(--shadow-md),0 0 22px -6px rgba(34,197,94,.45)}
+.ui-toast.err{border-color:rgba(255,34,56,.6);box-shadow:var(--shadow-md),0 0 22px -6px var(--crimson-glow)}
+.ui-toast.out{opacity:0;transform:translateY(8px) scale(.96);transition:opacity .2s,transform .2s}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}

@@ -2,83 +2,329 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Lobby.gg — Дурак</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title data-i18n="doc_title">Lobby.gg — Дурак</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  body{display:flex;flex-direction:column;align-items:center}
-  .pcard{display:inline-flex;flex-direction:column;justify-content:space-between;width:52px;height:74px;border-radius:8px;
-        background:#f4f4f6;color:#111;font-weight:800;padding:5px;margin:0 2px;box-shadow:0 3px 8px #000a;
-        font-size:15px;transition:transform .18s;cursor:pointer;flex:0 0 auto}
-  .pcard.red{color:#d22}
-  .pcard .b{align-self:flex-end;transform:rotate(180deg)}
-  .pcard.sel{transform:translateY(-14px);box-shadow:0 0 0 3px var(--crimson),0 0 18px var(--crimson-glow)}
-  .back{background:repeating-linear-gradient(45deg,#3a0a12,#3a0a12 6px,#5a121f 6px,#5a121f 12px);border:1px solid #fff2}
-  .opp{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
-  .trumprow{display:flex;align-items:center;gap:10px;justify-content:center;margin:6px 0}
-  .table{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:84px;padding:8px;
-         background:rgba(255,255,255,.03);border-radius:12px;border:1px dashed var(--border);margin:8px 0}
-  .pair{position:relative;width:52px;height:74px}
-  .pair .d{position:absolute;top:14px;left:14px}
-  .hand{display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:8px}
-  .turn{text-align:center;font-size:14px;margin:6px 0;color:var(--crimson);font-weight:700}
-  .log{text-align:center;font-size:12px;color:var(--muted);min-height:16px}
-  .opts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 6px}
-  .opt{flex:1;min-width:70px;padding:8px 6px;border-radius:10px;border:1px solid var(--border);
-    background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:13px;text-align:center;transition:.15s}
-  .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 10px var(--crimson-glow)}
+  html, body {
+    margin: 0; padding: 0; width: 100%; min-height: 100dvh;
+    user-select: none; -webkit-user-select: none; color: #fff;
+    overflow-x: hidden;
+  }
+  .game-layout {
+    width: 100%; min-height: 100dvh; display: flex; flex-direction: column;
+    align-items: center;
+    padding: max(10px, var(--sat)) 12px max(64px, calc(var(--sab) + 56px));
+    background: radial-gradient(circle at 50% 35%, rgba(255, 34, 56, 0.14), transparent 60%), var(--bg);
+  }
+  .durak-header {
+    width: 100%; max-width: 540px; margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .durak-brand-mini {
+    font-family: var(--display); font-size: 16px; font-weight: 800; letter-spacing: -.3px;
+    background: linear-gradient(95deg, #fff 0%, #ffb4be 55%, #ff2238 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .lobby-card {
+    background: linear-gradient(180deg, rgba(28, 28, 36, 0.92), rgba(14, 14, 19, 0.96));
+    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    border: 1px solid var(--border-hi); border-radius: 26px; padding: 22px 18px;
+    max-width: 400px; width: 100%; margin: auto; text-align: center;
+    box-shadow: var(--inner), var(--shadow-lg), 0 0 50px -18px rgba(255, 34, 56, 0.25);
+  }
+  .durak-hero-svg {
+    width: 82px; height: 68px; margin: 0 auto 8px; display: block;
+    filter: drop-shadow(0 10px 18px rgba(255, 34, 56, 0.28));
+    transition: transform .2s var(--ease);
+  }
+  .lobby-title {
+    font-family: var(--display); font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(95deg, #fff 0%, #ffd2d8 55%, #ff2238 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 4px;
+  }
+  .lobby-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+
+  .or-sep {
+    display: flex; align-items: center; gap: 10px; margin: 14px 0 10px;
+    color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  }
+  .or-sep::before, .or-sep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 8px 0; }
+  .opt {
+    flex: 1; min-width: 72px; padding: 9px 6px; border-radius: 11px;
+    border: 1px solid var(--border); background: rgba(255,255,255,.04);
+    cursor: pointer; font-weight: 700; font-size: 12.5px; text-align: center; transition: .15s;
+  }
+  .opt.on {
+    border-color: var(--crimson); background: rgba(255,34,56,.18);
+    box-shadow: 0 0 12px var(--crimson-glow); color: #fff;
+  }
+
+  /* ── Game Arena ── */
+  #game {
+    width: 100%; max-width: 540px; flex: 1; display: flex;
+    flex-direction: column; justify-content: space-between; gap: 8px;
+  }
+  .opps-bar {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%;
+  }
+  .opp-chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px 5px 6px;
+    border-radius: 999px; background: rgba(22, 22, 29, 0.85);
+    border: 1px solid var(--border); font-size: 12px; font-weight: 700;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .opp-chip.att { border-color: rgba(255, 80, 96, 0.65); box-shadow: 0 0 12px rgba(255, 34, 56, 0.25); }
+  .opp-chip.def { border-color: rgba(74, 222, 128, 0.65); box-shadow: 0 0 12px rgba(74, 222, 128, 0.22); }
+  .opp-chip .player-av { width: 24px; height: 24px; font-size: 11px; }
+  .opp-cnt {
+    padding: 1px 6px; border-radius: 999px; background: rgba(255,255,255,0.08);
+    font-size: 11px; color: #fff; font-weight: 800;
+  }
+
+  .durak-felt {
+    position: relative; width: 100%; border-radius: 24px; padding: 14px 12px;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(28, 92, 62, 0.34) 0%, rgba(15, 42, 30, 0.25) 55%, rgba(14, 15, 22, 0.92) 100%),
+      linear-gradient(180deg, rgba(24, 26, 35, 0.95), rgba(14, 15, 20, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.55), var(--shadow-lg);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+
+  .table-top-row {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+  }
+  .deck-cluster {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .deck-stack {
+    position: relative; width: 46px; height: 64px; flex-shrink: 0;
+  }
+  .trump-under {
+    position: absolute; top: 8px; left: 12px; transform: rotate(90deg);
+    transform-origin: center center; z-index: 1; opacity: 0.95;
+  }
+  .deck-top {
+    position: relative; z-index: 2; width: 42px; height: 60px; border-radius: 8px;
+    background: repeating-linear-gradient(45deg, #4b0c18, #4b0c18 5px, #6e1526 5px, #6e1526 10px);
+    border: 2px solid rgba(255,255,255,0.75);
+    box-shadow: -2px 2px 0 #26060d, -4px 4px 0 #180408, 0 8px 16px rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 1px 4px #000;
+  }
+  .deck-stack.empty .deck-top { opacity: 0.25; box-shadow: none; }
+
+  .turn-pill {
+    padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 800;
+    background: rgba(255, 255, 255, 0.07); border: 1px solid var(--border-hi);
+    letter-spacing: 0.2px; transition: all .2s;
+  }
+  .turn-pill.att { background: rgba(255, 34, 56, 0.22); border-color: rgba(255, 68, 88, 0.7); color: #ffd4d8; }
+  .turn-pill.def { background: rgba(52, 211, 153, 0.2); border-color: rgba(52, 211, 153, 0.65); color: #d1fae5; }
+  .turn-pill.toss { background: rgba(251, 191, 36, 0.16); border-color: rgba(251, 191, 36, 0.55); color: #fef3c7; }
+
+  .table-slots {
+    display: flex; flex-wrap: wrap; gap: 14px 18px; justify-content: center;
+    align-items: center; min-height: 98px; width: 100%; padding: 8px 4px;
+  }
+  .pair {
+    position: relative; width: 58px; height: 82px;
+    animation: cardPop .22s var(--ease) both;
+  }
+  .pair.can-defend { cursor: pointer; }
+  .pair.can-defend .pcard:not(.def-card) {
+    box-shadow: 0 0 0 2.5px #4ade80, 0 0 18px rgba(74, 222, 128, 0.5);
+    animation: pulseTarget 1.1s ease-in-out infinite;
+  }
+  .pair .d {
+    position: absolute; top: 14px; left: 16px; z-index: 3;
+    transform: rotate(7deg);
+    animation: cardPop .2s var(--ease) both;
+  }
+
+  /* ── Playing Card v2 ── */
+  .pcard {
+    position: relative; display: inline-flex; flex-direction: column; justify-content: space-between;
+    width: 58px; height: 84px; border-radius: 10px;
+    background: linear-gradient(160deg, #ffffff 0%, #f1f2f6 100%);
+    color: #161822; font-weight: 800; padding: 5px 6px;
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 #fff;
+    transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+    cursor: pointer; flex: 0 0 auto;
+  }
+  .pcard.sm { width: 44px; height: 62px; padding: 3px 4px; border-radius: 8px; }
+  .pcard.red { color: #d61f36; }
+  .pcard.trump {
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.85), 0 8px 18px rgba(251, 191, 36, 0.25);
+  }
+  .pcard .corner {
+    display: flex; flex-direction: column; align-items: center; line-height: 1;
+    font-size: 13px; width: 14px;
+  }
+  .pcard.sm .corner { font-size: 10px; width: 11px; }
+  .pcard .corner.bot { align-self: flex-end; transform: rotate(180deg); }
+  .pcard .center-suit {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; line-height: 1; pointer-events: none; opacity: 0.92;
+  }
+  .pcard.sm .center-suit { font-size: 18px; }
+  .pcard .trump-star {
+    position: absolute; top: 3px; right: 4px; font-size: 10px; color: #f59e0b;
+  }
+  .pcard.sel {
+    transform: translateY(-16px) scale(1.06); z-index: 15;
+    box-shadow: 0 0 0 3px var(--crimson), 0 14px 26px rgba(255, 34, 56, 0.45);
+  }
+
+  .log-line {
+    font-size: 12px; color: var(--muted); min-height: 18px; text-align: center; font-weight: 600;
+  }
+  .action-row {
+    display: flex; gap: 10px; justify-content: center; width: 100%; flex-wrap: wrap;
+  }
+  .action-row button { min-width: 140px; min-height: 44px; }
+
+  .hand-tray {
+    width: 100%; background: rgba(18, 19, 26, 0.88);
+    border: 1px solid var(--border); border-radius: 20px; padding: 10px 10px 14px;
+    box-shadow: var(--shadow-md);
+  }
+  .hand-hint {
+    text-align: center; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px;
+  }
+  .hand-fan {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 6px;
+    padding-top: 6px;
+  }
+  .hand-fan .pcard:hover { transform: translateY(-6px); }
+  .hand-fan .pcard.sel:hover { transform: translateY(-16px) scale(1.06); }
+
+  @keyframes cardPop {
+    0% { opacity: 0; transform: scale(0.82) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes pulseTarget {
+    0%, 100% { box-shadow: 0 0 0 2px #4ade80, 0 0 12px rgba(74, 222, 128, 0.4); }
+    50% { box-shadow: 0 0 0 3px #86efac, 0 0 22px rgba(74, 222, 128, 0.75); }
+  }
+
+  @media (max-width: 375px) {
+    .pcard { width: 50px; height: 74px; padding: 4px 5px; }
+    .pcard .corner { font-size: 11.5px; }
+    .pcard .center-suit { font-size: 22px; }
+    .pair { width: 50px; height: 74px; }
+    .pair .d { top: 12px; left: 13px; }
+  }
 </style>
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 </head>
 <body>
-<button id="rulesBtn" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🃏 Дурак — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" data-i18n-title="nav_games" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1 data-i18n="title">🃏 ДУРАК</h1><div class="sub" data-i18n="tagline">подкидной · 2-6 игроков</div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+<div class="game-layout">
+  <header class="durak-header">
+    <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
+    <div class="durak-brand-mini" data-i18n="mini_brand">ДУРАК</div>
+    <button id="rulesBtn" class="top-icon-btn" type="button" data-i18n-title="rules_btn">i</button>
+  </header>
 
-<div id="home" class="card">
-  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
-  <button onclick="create()" data-i18n="btn_create">Создать стол</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="ph_code">
-  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
-  <div class="sub" style="margin-top:10px"><a href="/games" style="color:#9bbfa9" data-i18n="all_games">← все игры</a></div>
-</div>
-
-<div id="lobby" class="card hide">
-  <div class="sub" data-i18n="lobby_code">Код стола:</div><div class="code" id="lcode">----</div>
-  <div id="players"></div>
-  <div id="botrow" class="row hide" style="margin-bottom:6px">
-    <div class="opts botdiff" style="margin:6px 0">
-      <div class="opt" data-d="easy" onclick="setBotDiff(this)"><span data-i18n="bot_easy">🤖 Лёгкий</span></div>
-      <div class="opt on" data-d="medium" onclick="setBotDiff(this)"><span data-i18n="bot_med">Средний</span></div>
-      <div class="opt" data-d="hard" onclick="setBotDiff(this)"><span data-i18n="bot_hard">Сложный</span></div>
+  <div id="home" class="lobby-card">
+    <svg id="durakLogo" class="durak-hero-svg" viewBox="0 0 96 76" fill="none" aria-hidden="true">
+      <g transform="rotate(-10 34 40)">
+        <rect x="14" y="10" width="40" height="56" rx="7" fill="#4b0c18" stroke="#fff" stroke-opacity="0.7" stroke-width="2"/>
+        <rect x="19" y="15" width="30" height="46" rx="4" fill="#6e1526" stroke="#ff5c72" stroke-opacity="0.4"/>
+      </g>
+      <g transform="rotate(8 58 38)">
+        <rect x="38" y="8" width="42" height="58" rx="7" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+        <text x="44" y="21" fill="#d61f36" font-size="11" font-weight="900" font-family="sans-serif">A</text>
+        <text x="59" y="45" fill="#d61f36" font-size="24" text-anchor="middle">♥</text>
+      </g>
+    </svg>
+    <div class="lobby-title" data-i18n="title">ДУРАК</div>
+    <div class="lobby-sub" data-i18n="tagline">подкидной · 2–6 игроков</div>
+    <div class="langbar" id="langbar" style="margin-bottom:14px">
+      <button type="button" data-lang="uk">УКР</button>
+      <button type="button" data-lang="ru">РУС</button>
+      <button type="button" data-lang="en">ENG</button>
+      <button type="button" data-lang="de">DEU</button>
     </div>
-    <button class="sec" style="margin:0" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="btn_addbot">🤖 +Бот</button>
+
+    <input id="name" class="inp" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
+    <button class="btn-primary" style="margin-top:10px;width:100%" onclick="create()" data-i18n="btn_create">Создать стол</button>
+
+    <div class="or-sep" data-i18n="or_code">или по коду</div>
+    <div class="pin-row">
+      <input id="joincode" class="pin-hidden-src" maxlength="4" autocomplete="off" data-i18n-ph="ph_code">
+      <div id="pinBoxes" class="pin-boxes"></div>
+    </div>
+    <button class="sec btn-secondary" style="margin-top:10px;width:100%" onclick="join()" data-i18n="btn_join">Войти по коду</button>
   </div>
-  <button id="startbtn" class="hide" onclick="send({action:'start'})" data-i18n="btn_start">🃏 Раздать карты</button>
-  <div class="sub" id="waitmsg" data-i18n="wait_host">Ждём ведущего…</div>
+
+  <div id="lobby" class="lobby-card hide">
+    <div class="sub" data-i18n="lobby_code" style="margin-bottom:8px">Код стола</div>
+    <div class="pin-display" id="lcode"></div>
+    <div id="players" style="margin:14px 0"></div>
+    <div id="botrow" class="hide" style="margin-bottom:10px">
+      <div class="opts botdiff">
+        <div class="opt" data-d="easy" onclick="setBotDiff(this)"><span data-i18n="bot_easy">🤖 Лёгкий</span></div>
+        <div class="opt on" data-d="medium" onclick="setBotDiff(this)"><span data-i18n="bot_med">Средний</span></div>
+        <div class="opt" data-d="hard" onclick="setBotDiff(this)"><span data-i18n="bot_hard">Сложный</span></div>
+      </div>
+      <button class="sec btn-secondary" style="width:100%" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="btn_addbot">🤖 +Бот</button>
+    </div>
+    <button id="startbtn" class="btn-primary hide" style="width:100%" onclick="send({action:'start'})" data-i18n="btn_start">🃏 Раздать карты</button>
+    <div class="sub" id="waitmsg" style="margin-top:10px" data-i18n="wait_host">Ждём ведущего…</div>
+  </div>
+
+  <div id="game" class="hide">
+    <div id="opponents" class="opps-bar"></div>
+    <div class="durak-felt">
+      <div class="table-top-row">
+        <div class="deck-cluster">
+          <div class="deck-stack" id="deckStack">
+            <div class="trump-under" id="trumpcard"></div>
+            <div class="deck-top" id="deckn">0</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);font-weight:700">
+            <div data-i18n="lbl_trump">Козырь</div>
+            <div id="trumpSuitText" style="font-size:16px;color:#fff"></div>
+          </div>
+        </div>
+        <div class="turn-pill" id="turninfo"></div>
+      </div>
+      <div class="table-slots" id="table"></div>
+      <div class="log-line" id="log"></div>
+      <div class="action-row" id="actions"></div>
+    </div>
+    <div class="hand-tray">
+      <div class="hand-hint" id="handhint"></div>
+      <div class="hand-fan" id="hand"></div>
+    </div>
+  </div>
+
+  <div id="over" class="lobby-card hide">
+    <div style="font-size:48px;margin-bottom:8px" id="overEmoji">🃏</div>
+    <h2 id="overtext" style="margin:0 0 16px;font-family:var(--display)"></h2>
+    <button class="btn-primary" style="width:100%" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="btn_restart">Новая партия</button>
+    <a href="/games/" class="btn-secondary" style="display:block;margin-top:10px;text-decoration:none;padding:12px;border-radius:14px" data-i18n="all_games">← все игры</a>
+  </div>
 </div>
 
-<div id="game" class="hide">
-  <div id="opponents" class="card"></div>
-  <div class="card">
-    <div class="trumprow"><span class="badge" data-i18n="lbl_trump">Козырь:</span><span id="trumpcard"></span><span class="badge"><span data-i18n="lbl_deck">колода:</span> <b id="deckn">0</b></span></div>
-    <div class="turn" id="turninfo"></div>
-    <div class="table" id="table"></div>
-    <div class="log" id="log"></div>
-    <div class="row" id="actions"></div>
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left">
+    <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🃏 Дурак — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.</div>
+    <button id="rulesOk" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
   </div>
-  <div class="card">
-    <div class="badge" style="text-align:center" id="handhint"></div>
-    <div class="hand" id="hand"></div>
-  </div>
-</div>
-
-<div id="over" class="card hide" style="text-align:center">
-  <h1 id="overtext"></h1>
-  <button class="sec" onclick="(typeof ws!=='undefined'&&ws&&ws.readyState===1?ws.send(JSON.stringify({action:'restart'})):location.reload())" data-i18n="btn_restart">Новая партия</button>
 </div>
 
 <script src="/games/static/invite.js"></script>
@@ -86,110 +332,114 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
-const UI={
-  uk:{
-    rules_title:"🃏 Дурень — правила",
-    rules_body:"Відбивайся картою старше тієї ж масті або козирем. Не можеш відбити — береш карти. Підкидати можна карти тих самих значень. Хто останнім залишився з картами — дурень.",
-    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", title:"🃏 ДУРЕНЬ", tagline:"підкидний · 2-6 гравців",
-    ph_name:"Твоє ім'я", btn_create:"Створити стіл", ph_code:"КОД", btn_join:"Увійти за кодом", all_games:"← усі ігри",
-    lobby_code:"Код стола:", bot_easy:"🤖 Легкий", bot_med:"Середній", bot_hard:"Складний", btn_addbot:"🤖 +Бот",
-    btn_start:"🃏 Роздати карти", wait_host:"Чекаємо ведучого…",
-    lbl_trump:"Козир:", lbl_deck:"колода:", empty_table:"стіл порожній",
-    turn_attack:"⚔️ Ти атакуєш", turn_defend:"🛡️ Ти захищаєшся", turn_toss:"⏳ Можеш підкидати",
-    btn_take:"Взяти", btn_done:"Бито ✓", btn_restart:"Нова партія",
-    hint_defend:"🛡 Тапни свою карту, потім карту на столі — відбити. Або «Взяти».",
-    hint_attack:"⚔️ Тапни карту, щоб підкинути. «Бито» коли все відбито.",
-    res_draw:"🤝 Нічия", res_you_durak:"😭 Ти ДУРЕНЬ!", res_durak:name=>"🃏 Дурень: "+name,
-    conn_lost:"Зв'язок втрачено, онови.", ask_code:"Код?", def_player:"Гравець"
+const UI = {
+  uk: {
+    doc_title: "Lobby.gg — Дурень",
+    rules_title: "🃏 Дурень — правила",
+    rules_body: "Відбивайся картою старше тієї ж масті або козирем. Не можеш відбити — береш карти. Підкидати можна карти тих самих значень. Хто останнім залишився з картами — дурень.",
+    rules_ok: "Зрозуміло 👍", nav_games: "‹ Ігри", mini_brand: "ДУРЕНЬ",
+    title: "ДУРЕНЬ", tagline: "підкидний · 2–6 гравців",
+    ph_name: "Твоє ім'я", btn_create: "Створити стіл", or_code: "або за кодом", ph_code: "КОД",
+    btn_join: "Увійти за кодом", all_games: "← усі ігри",
+    lobby_code: "Код стола", bot_easy: "🤖 Легкий", bot_med: "Средній", bot_hard: "Складний", btn_addbot: "🤖 +Бот",
+    btn_start: "🃏 Роздати карти", wait_host: "Чекаємо ведучого…",
+    lbl_trump: "Козир", empty_table: "стіл порожній",
+    turn_attack: "⚔️ Ти атакуєш", turn_defend: "🛡️ Ти захищаєшся", turn_toss: "⏳ Можеш підкидати",
+    btn_take: "Взяти", btn_done: "Бито ✓", btn_restart: "Нова партія",
+    hint_defend: "🛡 Обери свою карту, потім тапни по карті на столі — відбити.",
+    hint_attack: "⚔️ Тапни карту, щоб підкинути. «Бито» коли все відбито.",
+    res_draw: "🤝 Нічия", res_you_durak: "😭 Ти ДУРЕНЬ!", res_durak: name => "🏆 Перемога! Дурень: " + name,
+    ask_code: "Код?", def_player: "Гравець", host_tag: "Хост"
   },
-  ru:{
-    rules_title:"🃏 Дурак — правила",
-    rules_body:"Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.",
-    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", title:"🃏 ДУРАК", tagline:"подкидной · 2-6 игроков",
-    ph_name:"Твоё имя", btn_create:"Создать стол", ph_code:"КОД", btn_join:"Войти по коду", all_games:"← все игры",
-    lobby_code:"Код стола:", bot_easy:"🤖 Лёгкий", bot_med:"Средний", bot_hard:"Сложный", btn_addbot:"🤖 +Бот",
-    btn_start:"🃏 Раздать карты", wait_host:"Ждём ведущего…",
-    lbl_trump:"Козырь:", lbl_deck:"колода:", empty_table:"стол пуст",
-    turn_attack:"⚔️ Ты атакуешь", turn_defend:"🛡️ Ты защищаешься", turn_toss:"⏳ Можешь подкидывать",
-    btn_take:"Взять", btn_done:"Бито ✓", btn_restart:"Новая партия",
-    hint_defend:"🛡 Тапни свою карту, потом карту на столе — отбить. Или «Взять».",
-    hint_attack:"⚔️ Тапни карту чтобы подкинуть. «Бито» когда всё отбито.",
-    res_draw:"🤝 Ничья", res_you_durak:"😭 Ты ДУРАК!", res_durak:name=>"🃏 Дурак: "+name,
-    conn_lost:"Связь потеряна, обнови.", ask_code:"Код?", def_player:"Игрок"
+  ru: {
+    doc_title: "Lobby.gg — Дурак",
+    rules_title: "🃏 Дурак — правила",
+    rules_body: "Отбивайся картой старше той же масти или козырем. Не можешь отбить — берёшь карты. Подкидывать можно карты тех же значений. Кто последним остался с картами — дурак.",
+    rules_ok: "Понятно 👍", nav_games: "‹ Игры", mini_brand: "ДУРАК",
+    title: "ДУРАК", tagline: "подкидной · 2–6 игроков",
+    ph_name: "Твоё имя", btn_create: "Создать стол", or_code: "или по коду", ph_code: "КОД",
+    btn_join: "Войти по коду", all_games: "← все игры",
+    lobby_code: "Код стола", bot_easy: "🤖 Лёгкий", bot_med: "Средний", bot_hard: "Сложный", btn_addbot: "🤖 +Бот",
+    btn_start: "🃏 Раздать карты", wait_host: "Ждём ведущего…",
+    lbl_trump: "Козырь", empty_table: "стол пуст",
+    turn_attack: "⚔️ Ты атакуешь", turn_defend: "🛡️ Ты защищаешься", turn_toss: "⏳ Можеш подкидывать",
+    btn_take: "Взять", btn_done: "Бито ✓", btn_restart: "Новая партия",
+    hint_defend: "🛡 Выбери свою карту, затем тапни по карте на столе — отбить.",
+    hint_attack: "⚔️ Тапни карту, чтобы подкинуть. «Бито» когда всё отбито.",
+    res_draw: "🤝 Ничья", res_you_durak: "😭 Ты ДУРАК!", res_durak: name => "🏆 Победа! Дурак: " + name,
+    ask_code: "Код?", def_player: "Игрок", host_tag: "Хост"
   },
-  en:{
-    rules_title:"🃏 Durak (Fool) — rules",
-    rules_body:"Defend with a higher card of the same suit or a trump card. If you cannot defend, you must take the cards. Players may add cards matching the ranks on the table. The last player left with cards is the fool.",
-    rules_ok:"Got it 👍", nav_games:"🎮 Games", title:"🃏 DURAK", tagline:"classic card game · 2-6 players",
-    ph_name:"Your name", btn_create:"Create table", ph_code:"CODE", btn_join:"Join by code", all_games:"← all games",
-    lobby_code:"Table code:", bot_easy:"🤖 Easy", bot_med:"Medium", bot_hard:"Hard", btn_addbot:"🤖 +Bot",
-    btn_start:"🃏 Deal cards", wait_host:"Waiting for host…",
-    lbl_trump:"Trump:", lbl_deck:"deck:", empty_table:"table is empty",
-    turn_attack:"⚔️ You are attacking", turn_defend:"🛡️ You are defending", turn_toss:"⏳ You can add cards",
-    btn_take:"Take", btn_done:"Done ✓", btn_restart:"New game",
-    hint_defend:"🛡 Tap your card, then the table card to defend. Or 'Take'.",
-    hint_attack:"⚔️ Tap a card to add. 'Done' when everything is beaten.",
-    res_draw:"🤝 Draw", res_you_durak:"😭 You are the FOOL!", res_durak:name=>"🃏 The Fool: "+name,
-    conn_lost:"Connection lost, refresh.", ask_code:"Code?", def_player:"Player"
+  en: {
+    doc_title: "Lobby.gg — Durak",
+    rules_title: "🃏 Durak (Fool) — rules",
+    rules_body: "Defend with a higher card of the same suit or a trump card. If you cannot defend, you must take the cards. Players may add cards matching the ranks on the table. The last player left with cards is the fool.",
+    rules_ok: "Got it 👍", nav_games: "‹ Games", mini_brand: "DURAK",
+    title: "DURAK", tagline: "classic card game · 2–6 players",
+    ph_name: "Your name", btn_create: "Create table", or_code: "or join with code", ph_code: "CODE",
+    btn_join: "Join by code", all_games: "← all games",
+    lobby_code: "Table code", bot_easy: "🤖 Easy", bot_med: "Medium", bot_hard: "Hard", btn_addbot: "🤖 +Bot",
+    btn_start: "🃏 Deal cards", wait_host: "Waiting for host…",
+    lbl_trump: "Trump", empty_table: "table is empty",
+    turn_attack: "⚔️ You are attacking", turn_defend: "🛡️ You are defending", turn_toss: "⏳ You can add cards",
+    btn_take: "Take", btn_done: "Done ✓", btn_restart: "New game",
+    hint_defend: "🛡 Pick your card, then tap the table card to defend.",
+    hint_attack: "⚔️ Tap a card to add. 'Done' when everything is beaten.",
+    res_draw: "🤝 Draw", res_you_durak: "😭 You are the FOOL!", res_durak: name => "🏆 You win! Fool: " + name,
+    ask_code: "Code?", def_player: "Player", host_tag: "Host"
   },
   de: {
-    "rules_title": "🃏 Durak — Regeln",
-    "rules_body": "Verteidige mit einer höheren Karte derselben Farbe oder einem Trumpf. Kannst du nicht verteidigen, musst du aufnehmen. Mitspieler dürfen Karten passenden Rangs dazulegen. Wer zuletzt Karten auf der Hand hat, ist der Durak (Verlierer).",
-    "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
-    "title": "🃏 DURAK",
-    "tagline": "Klassisches Kartenspiel · 2-6 Spieler",
-    "ph_name": "Dein Name",
-    "btn_create": "Tisch erstellen",
-    "ph_code": "CODE",
-    "btn_join": "Mit Code beitreten",
-    "all_games": "← Alle Spiele",
-    "lobby_code": "Tischcode:",
-    "bot_easy": "🤖 Leicht",
-    "bot_med": "Mittel",
-    "bot_hard": "Schwer",
-    "btn_addbot": "🤖 +Bot",
-    "btn_start": "🃏 Karten austeilen",
-    "wait_host": "Warte auf Host…",
-    "lbl_trump": "Trumpf:",
-    "lbl_deck": "Stapel:",
-    "empty_table": "Tisch ist leer",
-    "turn_attack": "⚔️ Du greifst an",
-    "turn_defend": "🛡️ Du verteidigst",
-    "turn_toss": "⏳ Du kannst nachlegen",
-    "btn_take": "Nehmen",
-    "btn_done": "Fertig ✓",
-    "btn_restart": "Neues Spiel",
-    "hint_defend": "🛡 Tippe deine Karte, dann die Tischkarte zum Schlagen an. Oder 'Nehmen'.",
-    "hint_attack": "⚔️ Tippe eine Karte zum Nachlegen an. 'Fertig', wenn alles geschlagen ist.",
-    "res_draw": "🤝 Unentschieden",
-    "res_you_durak": "😭 Du bist der DURAK!",
-    "res_durak": name => "🃏 Der Durak: " + name,
-    "conn_lost": "Verbindung verloren, bitte aktualisieren.",
-    "ask_code": "Code?",
-    "def_player": "Spieler"
+    doc_title: "Lobby.gg — Durak",
+    rules_title: "🃏 Durak — Regeln",
+    rules_body: "Verteidige mit einer höheren Karte derselben Farbe oder einem Trumpf. Kannst du nicht verteidigen, musst du aufnehmen. Mitspieler dürfen Karten passenden Rangs dazulegen. Wer zuletzt Karten auf der Hand hat, ist der Durak (Verlierer).",
+    rules_ok: "Verstanden 👍", nav_games: "‹ Spiele", mini_brand: "DURAK",
+    title: "DURAK", tagline: "Klassisches Kartenspiel · 2–6 Spieler",
+    ph_name: "Dein Name", btn_create: "Tisch erstellen", or_code: "oder mit Code", ph_code: "CODE",
+    btn_join: "Mit Code beitreten", all_games: "← Alle Spiele",
+    lobby_code: "Tischcode", bot_easy: "🤖 Leicht", bot_med: "Mittel", bot_hard: "Schwer", btn_addbot: "🤖 +Bot",
+    btn_start: "🃏 Karten austeilen", wait_host: "Warte auf Host…",
+    lbl_trump: "Trumpf", empty_table: "Tisch ist leer",
+    turn_attack: "⚔️ Du greifst an", turn_defend: "🛡️ Du verteidigst", turn_toss: "⏳ Du kannst nachlegen",
+    btn_take: "Nehmen", btn_done: "Fertig ✓", btn_restart: "Neues Spiel",
+    hint_defend: "🛡 Wähle deine Karte und tippe zum Schlagen auf die Tischkarte.",
+    hint_attack: "⚔️ Tippe eine Karte zum Nachlegen an. 'Fertig', wenn alles geschlagen ist.",
+    res_draw: "🤝 Unentschieden", res_you_durak: "😭 Du bist der DURAK!", res_durak: name => "🏆 Gewonnen! Durak: " + name,
+    ask_code: "Code?", def_player: "Spieler", host_tag: "Host"
   }
 };
 
-const SUITS=["♠","♥","♦","♣"],RANKS={6:"6",7:"7",8:"8",9:"9",10:"10",11:"J",12:"Q",13:"K",14:"A"};
-let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
-function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
+const SUITS = ["♠", "♥", "♦", "♣"];
+const RANKS = { 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "J", 12: "Q", 13: "K", 14: "A" };
+let LANG = localStorage.getItem('jg_lang');
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { const v = UI[LANG] && UI[LANG][k]; return v !== undefined ? v : (UI.ru[k] || k); }
+function T(s) { return window.LobbyI18n ? LobbyI18n.T(String(s || '')) : String(s || ''); }
+function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (_) {} }
 
 let ws = null, pid = null, isHost = false, sel = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
-function applyUI(){
-  document.documentElement.lang=LANG;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
-  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.dataset.i18nPh);if(typeof v==='string')el.placeholder=v;});
-  document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
-  if(st)renderState(st);
-}
-document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
-document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
-document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
+let overCelebrated = false;
 
-function show(id){for(const s of['home','lobby','game','over'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
-function send(o){if(ws)ws.send(o);}
-function connect(cb){
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.title = t('doc_title');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v === 'string') el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const v = t(el.dataset.i18nPh);
+    if (typeof v === 'string') el.placeholder = v;
+  });
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (st) renderState(st);
+}
+
+function show(id) {
+  for (const s of ['home', 'lobby', 'game', 'over']) document.getElementById(s).classList.add('hide');
+  document.getElementById(id).classList.remove('hide');
+}
+function send(o) { if (ws) ws.send(o); }
+function connect(cb) {
   if (ws && ws.getSocket && ws.getSocket().readyState === 1) { if (cb) cb(); return; }
   firstOpenCb = cb;
   ws = JarvisWS("/games/ws", {
@@ -200,99 +450,181 @@ function connect(cb){
     onmessage: (e) => handle(JSON.parse(e.data))
   });
 }
-function create(){const n=document.getElementById('name').value||t('def_player');connect(()=>send({action:'create',name:n,game:'durak'}));}
-function join(){const n=document.getElementById('name').value||t('def_player');const c=document.getElementById('joincode').value;if(!c)return alert(t('ask_code'));connect(()=>send({action:'join',name:n,code:c}));}
+function create() {
+  haptic(14);
+  const n = document.getElementById('name').value || t('def_player');
+  connect(() => send({ action: 'create', name: n, game: 'durak' }));
+}
+function join() {
+  haptic(14);
+  const n = document.getElementById('name').value || t('def_player');
+  const c = (document.getElementById('joincode').value || '').trim().toUpperCase();
+  if (!c) return alert(t('ask_code'));
+  connect(() => send({ action: 'join', name: n, code: c }));
+}
 
-function setBotDiff(el){
-  el.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));
+function setBotDiff(el) {
+  el.parentNode.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
   el.classList.add('on');
 }
 
-function cardHTML(c,cls){
-  if(!c)return '';
-  const red=(c.s===1||c.s===2);
-  return '<div class="pcard '+(red?'red':'')+' '+(cls||'')+'"><div>'+RANKS[c.r]+SUITS[c.s]+'</div><div class="b">'+RANKS[c.r]+SUITS[c.s]+'</div></div>';
-}
-function onHandCard(i){
-  if(!st)return;
-  if(st.you===st.defender){
-    sel=(sel===i?null:i); renderHand();
-  } else {
-    send({action:'dk_attack',card:st.hand[i]}); sel=null;
-  }
-}
-function onTableClick(idx){
-  if(!st||st.you!==st.defender||sel===null)return;
-  if(st.table[idx]&&!st.table[idx].d)send({action:'dk_defend',idx:idx,card:st.hand[sel]});
-  sel=null;
-}
-function renderHand(){
-  if(!st)return;
-  document.getElementById('hand').innerHTML=st.hand.map((c,i)=>cardHTML(c,sel===i?'sel':'')).join('');
-  [...document.querySelectorAll('#hand .pcard')].forEach((el,i)=>el.onclick=()=>onHandCard(i));
+function cardHTML(c, cls, trumpSuit) {
+  if (!c) return '';
+  const red = (c.s === 1 || c.s === 2);
+  const isTrump = (trumpSuit !== undefined && trumpSuit !== null && c.s === trumpSuit);
+  const r = RANKS[c.r] || c.r;
+  const s = SUITS[c.s] || '';
+  const center = (c.r >= 11) ? ('<span style="font-size:15px;font-weight:900">' + r + '</span>' + s) : s;
+  return '<div class="pcard ' + (red ? 'red' : '') + (isTrump ? ' trump' : '') + ' ' + (cls || '') + '">' +
+    (isTrump ? '<span class="trump-star">★</span>' : '') +
+    '<div class="corner"><span>' + r + '</span><span>' + s + '</span></div>' +
+    '<div class="center-suit">' + center + '</div>' +
+    '<div class="corner bot"><span>' + r + '</span><span>' + s + '</span></div>' +
+  '</div>';
 }
 
-function renderState(m){
-  st=m;
-  if(m.durak){
+function onHandCard(i) {
+  if (!st) return;
+  haptic(10);
+  if (st.you === st.defender) {
+    sel = (sel === i ? null : i);
+    renderHand();
+    renderTable(st);
+  } else {
+    send({ action: 'dk_attack', card: st.hand[i] });
+    sel = null;
+  }
+}
+function onTableClick(idx) {
+  if (!st || st.you !== st.defender || sel === null) return;
+  if (st.table[idx] && !st.table[idx].d) {
+    haptic(16);
+    send({ action: 'dk_defend', idx: idx, card: st.hand[sel] });
+  }
+  sel = null;
+}
+
+function renderHand() {
+  if (!st) return;
+  const trumpSuit = st.trump_card ? st.trump_card.s : null;
+  document.getElementById('hand').innerHTML = st.hand.map((c, i) => cardHTML(c, sel === i ? 'sel' : '', trumpSuit)).join('');
+  [...document.querySelectorAll('#hand .pcard')].forEach((el, i) => el.onclick = () => onHandCard(i));
+}
+
+function renderTable(m) {
+  const trumpSuit = m.trump_card ? m.trump_card.s : null;
+  const canDef = (m.you === m.defender && sel !== null);
+  document.getElementById('table').innerHTML = m.table.map((pr, idx) =>
+    '<div class="pair ' + (canDef && !pr.d ? 'can-defend' : '') + '" onclick="onTableClick(' + idx + ')">' +
+      cardHTML(pr.a, '', trumpSuit) +
+      (pr.d ? '<div class="d">' + cardHTML(pr.d, 'def-card', trumpSuit) + '</div>' : '') +
+    '</div>'
+  ).join('') || ('<span class="badge">' + t('empty_table') + '</span>');
+}
+
+function renderState(m) {
+  st = m;
+  if (m.durak) {
     show('over');
-    document.getElementById('overtext').textContent=m.durak==='draw'?t('res_draw'):(m.durak===pid?t('res_you_durak'):(typeof t('res_durak')==='function'?t('res_durak')(m.names[m.durak]||'?'):'Durak: '+(m.names[m.durak]||'?')));
+    const won = (m.durak !== 'draw' && m.durak !== pid);
+    document.getElementById('overEmoji').textContent = m.durak === 'draw' ? '🤝' : (won ? '🏆' : '🃏');
+    const durakName = T(m.names[m.durak] || '?');
+    document.getElementById('overtext').textContent = m.durak === 'draw'
+      ? t('res_draw')
+      : (m.durak === pid ? t('res_you_durak') : (typeof t('res_durak') === 'function' ? t('res_durak')(durakName) : durakName));
+    if (won && !overCelebrated && typeof confetti === 'function') {
+      overCelebrated = true;
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+    }
     return;
   }
+  overCelebrated = false;
   show('game');
-  const opps=m.order.filter(p=>p!==pid);
-  document.getElementById('opponents').innerHTML=opps.map(p=>{
-    const role=p===m.attacker?'⚔️':p===m.defender?'🛡️':'';
-    const backs='<div class="back mini pcard" style="display:inline-block;width:18px;height:26px;margin:0 -6px 0 0"></div>'.repeat(Math.min(m.counts[p],6));
-    return '<div class="opp"><b>'+role+' '+(m.names[p]||'?')+'</b> <span class="badge">('+m.counts[p]+')</span> '+backs+'</div>';
+
+  const opps = m.order.filter(p => p !== pid);
+  document.getElementById('opponents').innerHTML = opps.map(p => {
+    const isAtt = p === m.attacker, isDef = p === m.defender;
+    const role = isAtt ? '⚔️ ' : isDef ? '🛡️ ' : '';
+    const cls = isAtt ? 'att' : (isDef ? 'def' : '');
+    const nm = T(m.names[p] || '?');
+    const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p).startsWith('bot_')) : '';
+    return '<div class="opp-chip ' + cls + '">' + av + '<span>' + role + esc(nm) + '</span><span class="opp-cnt">' + (m.counts[p] || 0) + '</span></div>';
   }).join('');
 
-  document.getElementById('trumpcard').innerHTML=cardHTML(m.trump_card);
-  document.getElementById('deckn').textContent=m.deck;
-
-  const role=m.you===m.attacker?t('turn_attack'):m.you===m.defender?t('turn_defend'):t('turn_toss');
-  document.getElementById('turninfo').textContent=role;
-
-  document.getElementById('table').innerHTML=m.table.map((pr,idx)=>
-    '<div class="pair" onclick="onTableClick('+idx+')">'+cardHTML(pr.a)+(pr.d?'<div class="d">'+cardHTML(pr.d)+'</div>':'')+'</div>').join('')
-    || ('<span class="badge">'+t('empty_table')+'</span>');
-  document.getElementById('log').textContent=window.LobbyI18n?LobbyI18n.T(m.log||''):(m.log||'');
-
-  const allDef=m.table.length&&m.table.every(p=>p.d);
-  let btns='';
-  if(m.you===m.defender){
-    btns+='<button class="danger" onclick="send({action:\'dk_take\'})">'+t('btn_take')+'</button>';
-  } else if(allDef){
-    btns+='<button class="sec" onclick="send({action:\'dk_done\'})">'+t('btn_done')+'</button>';
+  const trumpSuit = m.trump_card ? m.trump_card.s : null;
+  document.getElementById('trumpcard').innerHTML = m.trump_card ? cardHTML(m.trump_card, 'sm', trumpSuit) : '';
+  document.getElementById('deckn').textContent = m.deck;
+  document.getElementById('deckStack').classList.toggle('empty', m.deck === 0);
+  const suitEl = document.getElementById('trumpSuitText');
+  if (m.trump_card) {
+    suitEl.textContent = SUITS[m.trump_card.s] || '';
+    suitEl.style.color = (m.trump_card.s === 1 || m.trump_card.s === 2) ? '#ff5c72' : '#fff';
   }
-  document.getElementById('actions').innerHTML=btns;
-  document.getElementById('handhint').textContent=m.you===m.defender?t('hint_defend'):t('hint_attack');
+
+  const ti = document.getElementById('turninfo');
+  ti.className = 'turn-pill ' + (m.you === m.attacker ? 'att' : m.you === m.defender ? 'def' : 'toss');
+  ti.textContent = m.you === m.attacker ? t('turn_attack') : m.you === m.defender ? t('turn_defend') : t('turn_toss');
+
+  renderTable(m);
+  document.getElementById('log').textContent = T(m.log || '');
+
+  const allDef = m.table.length && m.table.every(p => p.d);
+  let btns = '';
+  if (m.you === m.defender) {
+    btns += '<button class="danger btn-primary" onclick="haptic(14);send({action:\'dk_take\'})">' + t('btn_take') + '</button>';
+  } else if (allDef) {
+    btns += '<button class="sec btn-secondary" onclick="haptic(14);send({action:\'dk_done\'})">' + t('btn_done') + '</button>';
+  }
+  document.getElementById('actions').innerHTML = btns;
+  document.getElementById('handhint').textContent = m.you === m.defender ? t('hint_defend') : t('hint_attack');
   renderHand();
 }
 
-function handle(m){
-  if(m.type==='joined'){
-    pid=m.pid;isHost=m.host;roomCode=m.code;
-    sessionStorage.setItem('jg_durak_code',m.code);
+function handle(m) {
+  if (m.type === 'joined') {
+    pid = m.pid; isHost = m.host; roomCode = m.code;
+    sessionStorage.setItem('jg_durak_code', m.code);
+  } else if (m.type === 'lobby') {
+    show('lobby');
+    const ld = document.getElementById('lcode');
+    if (ld && window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(m.code);
+    else if (ld) ld.textContent = m.code;
+    document.getElementById('players').innerHTML = m.players.map(p => {
+      const nm = T(p.name);
+      const isBot = String(p.id || '').startsWith('bot_');
+      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, isBot) : '';
+      const tag = p.id === m.host ? '<span class="player-tag">👑 ' + t('host_tag') + '</span>' : '';
+      return '<div class="player-row-item">' + av + '<span style="font-weight:700">' + esc(nm) + '</span>' + tag + '</div>';
+    }).join('');
+    isHost = (m.host === pid);
+    document.getElementById('startbtn').classList.toggle('hide', !isHost);
+    document.getElementById('botrow').classList.toggle('hide', !isHost);
+    document.getElementById('waitmsg').classList.toggle('hide', isHost);
+  } else if (m.type === 'durak_state') {
+    renderState(m);
+  } else if (m.type === 'error') {
+    alert(T(m.msg));
   }
-  else if(m.type==='lobby'){
-    show('lobby');document.getElementById('lcode').textContent=m.code;
-    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
-    isHost=(m.host===pid);
-    document.getElementById('startbtn').classList.toggle('hide',!isHost);
-    document.getElementById('botrow').classList.toggle('hide',!isHost);
-    document.getElementById('waitmsg').classList.toggle('hide',isHost);
-  }
-  else if(m.type==='durak_state'){renderState(m);}
-  else if(m.type==='error'){alert(m.msg);}
 }
-applyUI();
 
-const autoCode = sessionStorage.getItem('jg_durak_code');
-if (autoCode) {
-  const jc = document.getElementById('joincode');
-  if (jc) jc.value = autoCode;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    LANG = b.dataset.lang; localStorage.setItem('jg_lang', LANG); applyUI();
+  });
+  document.getElementById('rulesBtn').onclick = () => document.getElementById('rulesModal').style.display = 'flex';
+  document.getElementById('rulesOk').onclick = () => document.getElementById('rulesModal').style.display = 'none';
+
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
+  if (window.LobbyUI && LobbyUI.enableParallax) LobbyUI.enableParallax(document.getElementById('durakLogo'), 10);
+
+  const autoCode = sessionStorage.getItem('jg_durak_code');
+  if (autoCode) {
+    const jc = document.getElementById('joincode');
+    if (jc) jc.value = autoCode;
+  }
+  applyUI();
+});
 </script>
 </body>
 </html>

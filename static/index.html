@@ -42,7 +42,26 @@
   .pc-badge{background:var(--crimson);color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 
   /* ── hero ── */
-  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding:84px 0 56px}
+  .hero{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;padding:84px 0 56px}
+  #heroBg{position:absolute;inset:-40px -16px 0;width:calc(100% + 32px);height:100%;pointer-events:none;z-index:-1;opacity:.75}
+  .showcase{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:26px;transform-style:preserve-3d;transition:transform .2s var(--ease);animation:fadein .75s .18s var(--ease) both}
+  .sc-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:18px;color:#fff;
+    background:linear-gradient(160deg,rgba(32,32,44,.78),rgba(14,14,20,.84));border:1px solid var(--border-hi);
+    box-shadow:var(--inner),0 14px 28px -12px rgba(0,0,0,.8);overflow:hidden;min-height:92px;transition:transform .2s var(--spring),border-color .25s}
+  .sc-card:hover{transform:translateY(-4px) scale(1.02);border-color:var(--crimson);color:#fff}
+  .sc-card:active{transform:scale(.96)}
+  .sc-lbl{font-size:11px;font-weight:800;letter-spacing:.3px;color:#e4e4ec}
+  .sc-uno{position:relative;width:54px;height:42px}
+  .sc-uno i{position:absolute;width:24px;height:34px;border-radius:5px;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.6);font-style:normal;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+  .sc-uno i:nth-child(1){left:4px;top:4px;background:linear-gradient(135deg,#ff3347,#b9071a);transform:rotate(-16deg)}
+  .sc-uno i:nth-child(2){left:15px;top:1px;background:linear-gradient(135deg,#ffd426,#d49800);color:#111;z-index:2;transform:rotate(-2deg)}
+  .sc-uno i:nth-child(3){left:26px;top:5px;background:linear-gradient(135deg,#4389ff,#1a49c9);z-index:3;transform:rotate(14deg)}
+  .sc-c4{display:grid;grid-template-columns:repeat(3,12px);gap:4px;padding:6px;border-radius:10px;background:rgba(30,58,138,.45);border:1px solid rgba(96,165,250,.35)}
+  .sc-c4 i{width:12px;height:12px;border-radius:50%;display:block;box-shadow:inset 0 -2px 2px rgba(0,0,0,.4)}
+  .sc-c4 i.r{background:radial-gradient(circle at 35% 30%,#ff6b7a,#ff2238 65%,#990a19)}
+  .sc-c4 i.y{background:radial-gradient(circle at 35% 30%,#fff08a,#ffcc00 65%,#a67c00)}
+  .sc-c4 i.e{background:rgba(5,5,10,.6)}
+  .btn-p{animation:glowpulse 2.8s ease-in-out infinite}
   .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 11px;border-radius:999px;font-size:12.5px;font-weight:600;
     color:#e9e9ee;background:rgba(255,255,255,.04);border:1px solid var(--border);letter-spacing:.2px;animation:fadein .6s var(--ease) both}
   .live{width:8px;height:8px;border-radius:50%;background:#2fd86f;box-shadow:0 0 0 0 rgba(47,216,111,.6);animation:ping 1.8s infinite}
@@ -125,7 +144,12 @@
   .feat:hover{color:#fff;transform:translateY(-4px);border-color:color-mix(in srgb,var(--c) 70%,transparent);
     box-shadow:var(--inner),0 24px 60px -20px rgba(0,0,0,.9),0 0 50px -12px var(--c)}
   .feat:hover::after{opacity:1}
-  .feat .ico{font-size:52px;filter:drop-shadow(0 0 18px var(--c));position:relative;z-index:1}
+  .feat .ico{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--c) 32%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
+    border:1px solid color-mix(in srgb,var(--c) 40%,transparent);
+    box-shadow:0 12px 28px -8px var(--c),inset 0 1px 0 rgba(255,255,255,.18);
+    color:var(--c);position:relative;z-index:1}
+  .feat .ico svg{width:36px;height:36px;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--c) 60%,transparent))}
   .feat .tx{position:relative;z-index:1}
   .feat .pill{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:4px 9px;border-radius:999px;
     background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);color:#fff}
@@ -150,9 +174,10 @@
   .game:hover{color:#fff;transform:translateY(-5px);border-color:color-mix(in srgb,var(--c) 55%,transparent);
     box-shadow:var(--inner),0 22px 44px -16px rgba(0,0,0,.9),0 0 36px -10px var(--c)}
   .game:hover::before{opacity:1}
-  .game .ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;
-    background:linear-gradient(135deg,color-mix(in srgb,var(--c) 30%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
-    border:1px solid color-mix(in srgb,var(--c) 35%,transparent);box-shadow:0 8px 22px -8px var(--c),inset 0 1px 0 rgba(255,255,255,.12)}
+  .game .ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;color:var(--c);
+    background:linear-gradient(135deg,color-mix(in srgb,var(--c) 28%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
+    border:1px solid color-mix(in srgb,var(--c) 38%,transparent);box-shadow:0 8px 22px -8px var(--c),inset 0 1px 0 rgba(255,255,255,.14)}
+  .game .ico svg{width:26px;height:26px;display:block}
   .game .gt{margin-top:16px;min-width:0}
   .game .nm{font-size:17px;font-weight:700;letter-spacing:-.1px}
   .game .ds{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5}
@@ -219,15 +244,17 @@
     .btn-p,.btn-g{padding:14px 16px;white-space:nowrap}
     main.wrap{overflow-x:clip}
     .feat{padding:20px;gap:16px;min-height:0}
-    .feat .ico{font-size:40px}
+    .feat .ico{width:54px;height:54px;border-radius:16px}
+    .feat .ico svg{width:30px;height:30px}
     .feat .nm{font-size:18px}
     .grid{grid-template-columns:1fr;gap:10px}
-    .game{flex-direction:row;align-items:center;gap:14px;min-height:0;padding:14px 16px}
+    .game{flex-direction:row;align-items:center;gap:14px;min-height:64px;padding:13px 14px}
     .game .ico{width:48px;height:48px;font-size:24px;border-radius:14px}
-    .game .gt{margin-top:0}
+    .game .ico svg{width:24px;height:24px}
+    .game .gt{margin-top:0;flex:1}
     .game .nm{font-size:15.5px}
     .game .ds{font-size:12.5px;margin-top:3px}
-    .game .go{display:none}
+    .game .go{position:static;opacity:.55;transform:none;width:28px;height:28px;flex-shrink:0;font-size:14px}
     .how{grid-template-columns:1fr;margin-top:56px}
     .ftr .tech{margin-left:0}
   }
@@ -305,6 +332,7 @@
 
   <main class="wrap">
     <section class="hero">
+      <canvas id="heroBg" aria-hidden="true"></canvas>
       <div class="hero-l">
         <div class="eyebrow"><span class="live"></span><span data-i18n="eyebrow">Live multiplayer rooms · in your browser</span></div>
         <h1 class="h-title"><span data-i18n="h1a">Party games with friends.</span><span class="grad" data-i18n="h1b">No installs — just a link.</span></h1>
@@ -313,6 +341,25 @@
           <a class="btn-p" href="#games"><span data-i18n="cta_play">Browse games</span><span class="arr">↓</span></a>
           <a class="btn-g" href="/games/profile"><span data-i18n="cta_friends">Friends &amp; profile</span></a>
           <a class="btn-g" href="/games/leaderboard"><span data-i18n="cta_leaderboard">🏆 Рейтинг</span></a>
+        </div>
+        <div class="showcase" id="showcase3d">
+          <a class="sc-card" href="/games/uno">
+            <div class="sc-uno"><i>7</i><i>+2</i><i>★</i></div>
+            <span class="sc-lbl" data-i18n="n_uno">UNO</span>
+          </a>
+          <a class="sc-card" href="/games/chess">
+            <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
+              <defs><linearGradient id="scKg" x1="12" y1="8" x2="36" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#fff8e8"/><stop offset="1" stop-color="#d4b88c"/></linearGradient></defs>
+              <path d="M24 6v6M21 9h6" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M24 14c-4.5 0-8 3-8 7.5 0 3.5 2 6.5 3.5 9.5h9c1.5-3 3.5-6 3.5-9.5 0-4.5-3.5-7.5-8-7.5z" fill="url(#scKg)" stroke="#5c4328" stroke-width="1.5"/>
+              <rect x="14" y="34" width="20" height="6" rx="2.5" fill="url(#scKg)" stroke="#5c4328" stroke-width="1.5"/>
+            </svg>
+            <span class="sc-lbl" data-i18n="n_chess">Chess</span>
+          </a>
+          <a class="sc-card" href="/games/c4_3d">
+            <div class="sc-c4"><i class="e"></i><i class="r"></i><i class="e"></i><i class="y"></i><i class="r"></i><i class="y"></i></div>
+            <span class="sc-lbl" data-i18n="n_c4_3d">Connect 4 · 3D</span>
+          </a>
         </div>
         <div class="stats">
           <div class="stat"><b id="st-games">30+</b><span data-i18n="s_games">games</span></div>
@@ -347,8 +394,8 @@
         <div><div class="kicker" data-i18n="k_featured">Featured</div><h2 data-i18n="h_featured">Fresh drops</h2></div>
       </div>
       <div class="featured">
-        <a class="feat" href="/games/geobunker" style="--c:#22c55e"><div class="ico">🌍</div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_geobunker">GeoBunker</div><div class="ds" data-i18n="d_geobunker">Guess locations on 360° panoramas. Ukraine, capitals, nature, the whole world.</div></div></a>
-        <a class="feat" href="/games/space_invaders" style="--c:#ff2238"><div class="ico">🚀</div><div class="tx"><span class="pill" data-i18n="p_arcade">Arcade</span><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Neon shooter with weapon and skin upgrades.</div></div></a>
+        <a class="feat" href="/games/geobunker" style="--c:#22c55e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a13.5 13.5 0 0 1 0 18M12 3a13.5 13.5 0 0 0 0 18"/></svg></div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_geobunker">GeoBunker</div><div class="ds" data-i18n="d_geobunker">Guess locations on 360° panoramas. Ukraine, capitals, nature, the whole world.</div></div></a>
+        <a class="feat" href="/games/space_invaders" style="--c:#ff2238"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3.5 3.5 4.5 7.5 4.5 11.5L19 16v3l-4-1.5-3 2.5-3-2.5L5 19v-3l2.5-2.5C7.5 9.5 8.5 5.5 12 2z"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/></svg></div><div class="tx"><span class="pill" data-i18n="p_arcade">Arcade</span><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Neon shooter with weapon and skin upgrades.</div></div></a>
       </div>
 
       <div class="section-head" style="margin-top:56px">
@@ -364,44 +411,44 @@
       <div class="cat" data-cat="party">
         <div class="cat-h"><h3 data-i18n="sect_party">🎉 Party · 3+ players</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/variants" style="--c:#a855f7"><div class="ico">🎭</div><div class="gt"><div class="nm" data-i18n="n_variants">Variants</div><div class="ds" data-i18n="d_variants">Bluffing auction (Fibbage-style) with an AI host.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/bunker" style="--c:#eab308"><div class="ico">☢</div><div class="gt"><div class="nm" data-i18n="n_bunker">Bunker</div><div class="ds" data-i18n="d_bunker">Who deserves a spot. Cards, voting, host.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/mafia" style="--c:#ff2238"><div class="ico">🔪</div><div class="gt"><div class="nm" data-i18n="n_mafia">Mafia</div><div class="ds" data-i18n="d_mafia">Night/day, roles, voting.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/spy" style="--c:#64748b"><div class="ico">🕵️</div><div class="gt"><div class="nm" data-i18n="n_spy">Spy</div><div class="ds" data-i18n="d_spy">Find the spy.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/alias" style="--c:#38bdf8"><div class="ico">💬</div><div class="gt"><div class="nm" data-i18n="n_alias">Alias</div><div class="ds" data-i18n="d_alias">Explain the word to your team.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/durak" style="--c:#f97316"><div class="ico">🃏</div><div class="gt"><div class="nm" data-i18n="n_durak">Durak</div><div class="ds" data-i18n="d_durak">Classic card game.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/uno" style="--c:#facc15"><div class="ico">🎴</div><div class="gt"><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">By color or number.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/poker" style="--c:#10b981"><div class="ico">🂡</div><div class="gt"><div class="nm" data-i18n="n_poker">Poker</div><div class="ds" data-i18n="d_poker">Texas Hold'em.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/variants" style="--c:#a855f7"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4V5z"/><path d="M9 9.5h.01M12 9.5h.01M15 9.5h.01"/></svg></div><div class="gt"><div class="nm" data-i18n="n_variants">Variants</div><div class="ds" data-i18n="d_variants">Bluffing auction (Fibbage-style) with an AI host.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/bunker" style="--c:#eab308"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 7V3a9 9 0 0 1 7.8 4.5l-3.4 2A5 5 0 0 0 12 7zM7.6 14.5l-3.4 2A9 9 0 0 0 12 21v-4a5 5 0 0 1-4.4-2.5zM16.4 14.5A5 5 0 0 1 12 17v4a9 9 0 0 0 7.8-4.5l-3.4-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bunker">Bunker</div><div class="ds" data-i18n="d_bunker">Who deserves a spot. Cards, voting, host.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/mafia" style="--c:#ff2238"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15h16l-2-7-6-3-6 3-2 7z"/><path d="M2 15h20"/><path d="M8 19a2 2 0 1 0 4 0M12 19a2 2 0 1 0 4 0"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mafia">Mafia</div><div class="ds" data-i18n="d_mafia">Night/day, roles, voting.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/spy" style="--c:#64748b"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-4.7-4.7"/><circle cx="10.5" cy="10.5" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_spy">Spy</div><div class="ds" data-i18n="d_spy">Find the spy.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/alias" style="--c:#38bdf8"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1.1-4.3A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg></div><div class="gt"><div class="nm" data-i18n="n_alias">Alias</div><div class="ds" data-i18n="d_alias">Explain the word to your team.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/durak" style="--c:#f97316"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M12 9l2.5 3-2.5 3-2.5-3z" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_durak">Durak</div><div class="ds" data-i18n="d_durak">Classic card game.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/uno" style="--c:#facc15"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="11" height="16" rx="2.5" transform="rotate(-8 10.5 12)"/><rect x="8" y="4" width="11" height="16" rx="2.5" fill="rgba(250,204,21,.15)"/><ellipse cx="13.5" cy="12" rx="3.2" ry="5" transform="rotate(-20 13.5 12)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">By color or number.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/poker" style="--c:#10b981"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 4-7 6.5-7 10.5a4 4 0 0 0 6.2 3.3L10 21h4l-1.2-4.2A4 4 0 0 0 19 13.5C19 9.5 15 7 12 3z" fill="rgba(16,185,129,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_poker">Poker</div><div class="ds" data-i18n="d_poker">Texas Hold'em.</div></div><span class="go">→</span></a>
         </div>
       </div>
 
       <div class="cat" data-cat="duo">
         <div class="cat-h"><h3 data-i18n="sect_duo">👥 Head-to-head · or vs bot</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/quoridor" style="--c:#00e5ff"><div class="ico">🧱</div><div class="gt"><div class="nm" data-i18n="n_quoridor">Quoridor</div><div class="ds" data-i18n="d_quoridor">Maze strategy.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/c4" style="--c:#ef4444"><div class="ico">🔴</div><div class="gt"><div class="nm" data-i18n="n_c4">Connect 4</div><div class="ds" data-i18n="d_c4">Line up 4 in a row.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/c4_3d" style="--c:#8b5cf6"><div class="ico">🌌</div><div class="gt"><div class="nm" data-i18n="n_c4_3d">Connect 4 · 3D</div><div class="ds" data-i18n="d_c4_3d">5×5×5 volumetric mode for 3 players.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/battleship" style="--c:#3b82f6"><div class="ico">🚢</div><div class="gt"><div class="nm" data-i18n="n_battleship">Battleship</div><div class="ds" data-i18n="d_battleship">Place your fleet, sink them.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/reversi" style="--c:#a3a3a3"><div class="ico">⚫</div><div class="gt"><div class="nm" data-i18n="n_reversi">Reversi</div><div class="ds" data-i18n="d_reversi">Flip the discs.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/checkers" style="--c:#f43f5e"><div class="ico">🏁</div><div class="gt"><div class="nm" data-i18n="n_checkers">Checkers</div><div class="ds" data-i18n="d_checkers">Forced capture, chain jumps, kings.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/chess" style="--c:#e5e7eb"><div class="ico">♟️</div><div class="gt"><div class="nm" data-i18n="n_chess">Chess</div><div class="ds" data-i18n="d_chess">Full rules.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/dots" style="--c:#14b8a6"><div class="ico">▦</div><div class="gt"><div class="nm" data-i18n="n_dots">Dots &amp; Boxes</div><div class="ds" data-i18n="d_dots">Close the boxes.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/bulls" style="--c:#d97706"><div class="ico">🐂</div><div class="gt"><div class="nm" data-i18n="n_bulls">Bulls &amp; Cows</div><div class="ds" data-i18n="d_bulls">Crack the code.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/guesswho" style="--c:#ec4899"><div class="ico">🎭</div><div class="gt"><div class="nm" data-i18n="n_guesswho">Guess Who</div><div class="ds" data-i18n="d_guesswho">AI-generated characters.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/quoridor" style="--c:#00e5ff"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h9M12 14h9M10 3v7M14 14v7"/></svg></div><div class="gt"><div class="nm" data-i18n="n_quoridor">Quoridor</div><div class="ds" data-i18n="d_quoridor">Maze strategy.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/c4" style="--c:#ef4444"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8" cy="15" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="16" cy="9" r="1.8" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4">Connect 4</div><div class="ds" data-i18n="d_c4">Line up 4 in a row.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/c4_3d" style="--c:#8b5cf6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4_3d">Connect 4 · 3D</div><div class="ds" data-i18n="d_c4_3d">5×5×5 volumetric mode for 3 players.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/battleship" style="--c:#3b82f6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l2 3h14l2-3-9-4-9 4z"/><path d="M7 14V8h5v4M12 8V5h3v3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_battleship">Battleship</div><div class="ds" data-i18n="d_battleship">Place your fleet, sink them.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/reversi" style="--c:#a3a3a3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9.5" cy="9.5" r="4.5" fill="currentColor"/><circle cx="14.5" cy="14.5" r="4.5" fill="rgba(255,255,255,.15)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_reversi">Reversi</div><div class="ds" data-i18n="d_reversi">Flip the discs.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/checkers" style="--c:#f43f5e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><ellipse cx="12" cy="14" rx="7" ry="3.2"/><path d="M5 10.5v3.5c0 1.8 3.1 3.2 7 3.2s7-1.4 7-3.2v-3.5"/><ellipse cx="12" cy="10.5" rx="7" ry="3.2" fill="rgba(244,63,94,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_checkers">Checkers</div><div class="ds" data-i18n="d_checkers">Forced capture, chain jumps, kings.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/chess" style="--c:#e5e7eb"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a2.2 2.2 0 1 1 0 4.4A2.2 2.2 0 0 1 12 4z"/><path d="M9.5 9h5l1 5H8.5l1-5z"/><path d="M7 18h10l-1-4H8l-1 4z"/><path d="M6 20h12"/></svg></div><div class="gt"><div class="nm" data-i18n="n_chess">Chess</div><div class="ds" data-i18n="d_chess">Full rules.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/dots" style="--c:#14b8a6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/><path d="M8 6h8M6 8v8M18 8v8M8 18h8"/></svg></div><div class="gt"><div class="nm" data-i18n="n_dots">Dots &amp; Boxes</div><div class="ds" data-i18n="d_dots">Close the boxes.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/bulls" style="--c:#d97706"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 10h2v4H8zM14 10h2v4h-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bulls">Bulls &amp; Cows</div><div class="ds" data-i18n="d_bulls">Crack the code.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/guesswho" style="--c:#ec4899"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="M18 5l1.5 1.5L21 5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_guesswho">Guess Who</div><div class="ds" data-i18n="d_guesswho">AI-generated characters.</div></div><span class="go">→</span></a>
         </div>
       </div>
 
       <div class="cat" data-cat="solo">
         <div class="cat-h"><h3 data-i18n="sect_solo">🕹️ Solo</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/wordle" style="--c:#22c55e"><div class="ico">🟩</div><div class="gt"><div class="nm" data-i18n="n_wordle">Wordle</div><div class="ds" data-i18n="d_wordle">Guess the word in 6 tries.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/arrows" style="--c:#06b6d4"><div class="ico">➡️</div><div class="gt"><div class="nm" data-i18n="n_arrows">Arrows</div><div class="ds" data-i18n="d_arrows">Clear the board.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/g2048" style="--c:#f59e0b"><div class="ico">🔢</div><div class="gt"><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Swipe, merge tiles.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/snake" style="--c:#84cc16"><div class="ico">🐍</div><div class="gt"><div class="nm" data-i18n="n_snake">Snake</div><div class="ds" data-i18n="d_snake">Eat apples, grow.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/fifteen" style="--c:#6366f1"><div class="ico">🧩</div><div class="gt"><div class="nm" data-i18n="n_fifteen">15 Puzzle</div><div class="ds" data-i18n="d_fifteen">Slide tiles into order.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/mines" style="--c:#94a3b8"><div class="ico">💣</div><div class="gt"><div class="nm" data-i18n="n_mines">Minesweeper</div><div class="ds" data-i18n="d_mines">Open all cells without mines.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/tetris" style="--c:#d946ef"><div class="ico">🧱</div><div class="gt"><div class="nm" data-i18n="n_tetris">Tetris</div><div class="ds" data-i18n="d_tetris">Classic Tetris.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/race" style="--c:#fb7185"><div class="ico">🏎️</div><div class="gt"><div class="nm" data-i18n="n_race">Race</div><div class="ds" data-i18n="d_race">Dodge obstacles.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/wordle" style="--c:#22c55e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="5" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="9.75" y="5" width="4.5" height="4.5" rx="1"/><rect x="15.5" y="5" width="4.5" height="4.5" rx="1" fill="rgba(34,197,94,.35)"/><rect x="4" y="11" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="11" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="15.5" y="11" width="4.5" height="4.5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_wordle">Wordle</div><div class="ds" data-i18n="d_wordle">Guess the word in 6 tries.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/arrows" style="--c:#06b6d4"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="gt"><div class="nm" data-i18n="n_arrows">Arrows</div><div class="ds" data-i18n="d_arrows">Clear the board.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/g2048" style="--c:#f59e0b"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="8" height="8" rx="2" fill="rgba(245,158,11,.25)"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Swipe, merge tiles.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/snake" style="--c:#84cc16"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17c0-3 3-3 5-3s4-1 4-4-2-4-5-4"/><circle cx="17" cy="17" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_snake">Snake</div><div class="ds" data-i18n="d_snake">Eat apples, grow.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/fifteen" style="--c:#6366f1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="9.5" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="rgba(99,102,241,.35)"/><rect x="16" y="9.5" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><rect x="9.5" y="16" width="5" height="5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_fifteen">15 Puzzle</div><div class="ds" data-i18n="d_fifteen">Slide tiles into order.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/mines" style="--c:#94a3b8"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="5" fill="rgba(148,163,184,.25)"/><path d="M12 5v3M12 18v3M4 13h3M17 13h3M6.3 7.3l2.1 2.1M15.6 16.6l2.1 2.1M17.7 7.3l-2.1 2.1M8.4 16.6l-2.1 2.1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mines">Minesweeper</div><div class="ds" data-i18n="d_mines">Open all cells without mines.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/tetris" style="--c:#d946ef"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 15h4v4H4zM8 15h4v4H8zM12 15h4v4h-4zM8 11h4v4H8z" fill="rgba(217,70,239,.25)"/><path d="M14 5h4v4h-4zM14 9h4v4h-4z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_tetris">Tetris</div><div class="ds" data-i18n="d_tetris">Classic Tetris.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/race" style="--c:#fb7185"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14l2-5h10l2 5v4H5v-4z"/><circle cx="7.5" cy="18" r="1.5" fill="currentColor"/><circle cx="16.5" cy="18" r="1.5" fill="currentColor"/><path d="M7 9l2-3h6l2 3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_race">Race</div><div class="ds" data-i18n="d_race">Dodge obstacles.</div></div><span class="go">→</span></a>
         </div>
       </div>
 
@@ -1298,7 +1345,69 @@
 
   setInterval(loadInvites,10000);
   </script>
+<script src="/games/static/ui.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/shell.js" defer></script>
+<script>
+  (function () {
+    const rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const sc = document.getElementById('showcase3d');
+    if (sc && window.LobbyUI && LobbyUI.enableParallax) LobbyUI.enableParallax(sc, 8);
+
+    const stEl = document.getElementById('st-games');
+    if (stEl && !rm) {
+      const target = parseInt(stEl.textContent, 10) || 28;
+      const start = performance.now();
+      const dur = 850;
+      const tick = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        stEl.textContent = Math.round(eased * target) + (p >= 1 && stEl.textContent.includes('+') ? '+' : '');
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    const cv = document.getElementById('heroBg');
+    if (!cv || rm) return;
+    const ctx = cv.getContext('2d');
+    let W = 0, H = 0, raf = 0, visible = true;
+    const cols = ['#ff2238', '#ff7a45', '#8b5cf6', '#38bdf8'];
+    const pts = Array.from({ length: 24 }, (_, i) => ({
+      x: Math.random(), y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.00045, vy: (Math.random() - 0.5) * 0.00045,
+      r: 1.5 + Math.random() * 2.4, c: cols[i % cols.length], a: 0.25 + Math.random() * 0.45
+    }));
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = cv.clientWidth; H = cv.clientHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0.05 }).observe(cv);
+    }
+    const draw = () => {
+      if (visible && W && H) {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of pts) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > 1) p.vx *= -1;
+          if (p.y < 0 || p.y > 1) p.vy *= -1;
+          const px = p.x * W, py = p.y * H;
+          ctx.globalAlpha = p.a;
+          ctx.fillStyle = p.c;
+          ctx.beginPath();
+          ctx.arc(px, py, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+  })();
+</script>
 </body>
 </html>

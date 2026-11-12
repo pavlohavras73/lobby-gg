@@ -48,6 +48,11 @@ def fill_name(pg, name):
 
 
 def room_code(pg):
+    digits = pg.locator(".pin-digit:visible")
+    if digits.count() >= 4:   # дизайн-система v2: код показан ячейками
+        code = "".join(digits.nth(i).inner_text().strip() for i in range(digits.count()))
+        if CODE_RE.fullmatch(code):
+            return code
     for sel in ("#roomcode", "#roomCode", "#code", ".code", ".room-code", "#lcode", "#rcode"):
         el = pg.locator(sel + ":visible").first
         if el.count():
@@ -76,7 +81,10 @@ def run_game(b, tokens, game):
         g.goto(f"{BASE}/{game}" + (f"?join={code}" if code else ""), wait_until="networkidle")
         fill_name(g, f"Gast{i + 1}")
         code_inp = g.locator("input:visible:not([type=range]):not([type=hidden]):not([type=checkbox])").nth(1)
-        if code and code_inp.count():
+        pins = g.locator(".pin-box:visible")
+        if code and pins.count() >= 4:   # ввод кода по ячейкам: печатаем как человек
+            pins.first.click(); g.keyboard.type(code, delay=60)
+        elif code and code_inp.count():
             code_inp.fill(code)
         if not click(g, JOIN):
             steps.append(f"guest{i + 1}: нет «beitreten»")

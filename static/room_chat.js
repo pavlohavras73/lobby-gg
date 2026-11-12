@@ -470,6 +470,62 @@
 
     document.body.appendChild(rootEl);
     renderMessages();
+    watchOverlap();
+  }
+
+  // ── Плашка чата не должна закрывать игровые кнопки (FOLD в покере, рука в UNO и т. п.):
+  // если под ней что-то нажимаемое — поднимаемся над ним (не выше 45% экрана). ──
+  var lift = 0, liftRaf = 0;
+  function overlapsClickable(r) {
+    var top = Infinity;
+    var els = document.querySelectorAll("button, a[href], input, select, textarea, [onclick], [role=button], .card, .pin-box");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (rootEl.contains(el)) continue;
+      var b = el.getBoundingClientRect();
+      if (!b.width || !b.height || b.height > window.innerHeight * 0.5) continue;
+      if (b.right <= r.left || b.left >= r.right || b.bottom <= r.top || b.top >= r.bottom) continue;
+      var cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.pointerEvents === "none" || +cs.opacity === 0) continue;
+      if (b.top < top) top = b.top;
+    }
+    return top;
+  }
+  function avoidOverlap() {
+    liftRaf = 0;
+    if (!rootEl || !toggleBtn || isOpen || rootEl.classList.contains("rc-hidden")) return;
+    var r0 = toggleBtn.getBoundingClientRect();
+    if (!r0.width) return;
+    var base = { left: r0.left, right: r0.right, top: r0.top + lift, bottom: r0.bottom + lift };
+    var want = 0;
+    for (var k = 0; k < 4; k++) {   // поднялись — проверяем, не легли ли на следующий ряд кнопок
+      var r = { left: base.left, right: base.right, top: base.top - want, bottom: base.bottom - want };
+      var top = overlapsClickable(r);
+      if (top === Infinity) break;
+      want = base.bottom - top + 8;
+    }
+    if (want > window.innerHeight * 0.45) want = 0;   // некуда подниматься — остаёмся на месте
+    if (want !== lift) {
+      lift = want;
+      rootEl.style.transform = lift ? "translateY(" + -lift + "px)" : "";
+    }
+  }
+  function scheduleOverlap() {
+    if (!liftRaf) liftRaf = requestAnimationFrame(avoidOverlap);
+  }
+  function watchOverlap() {
+    rootEl.style.transition = "transform .2s ease";
+    window.addEventListener("resize", scheduleOverlap);
+    window.addEventListener("scroll", scheduleOverlap, true);
+    if (window.MutationObserver) {
+      new MutationObserver(function (list) {
+        for (var i = 0; i < list.length; i++) {
+          if (!rootEl.contains(list[i].target)) { scheduleOverlap(); return; }
+        }
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    }
+    setInterval(scheduleOverlap, 1500);   // анимации/переходы без мутаций DOM
+    scheduleOverlap();
   }
 
   function updateLabels() {
@@ -488,6 +544,7 @@
     }
     ensureDOM();
     rootEl.classList.remove("rc-hidden");
+    scheduleOverlap();
     if (roomCode && codeEl) {
       codeEl.textContent = roomCode;
       codeEl.style.display = "inline-block";
@@ -498,6 +555,7 @@
     ensureDOM();
     isOpen = !!flag;
     panelEl.classList.toggle("rc-open", isOpen);
+    if (!isOpen) scheduleOverlap();
     if (isOpen) {
       unreadCount = 0;
       updateBadge();
