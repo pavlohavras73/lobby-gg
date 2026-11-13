@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) 12px max(64px,calc(var(--sab)+56px)); }
+  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(64px,calc(var(--sab)+56px)) max(14px,env(safe-area-inset-left,0px)); }
   .dt-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   .dt-brand-mini { font-family:var(--display); font-size:16px; font-weight:800; background:linear-gradient(95deg,#fff 20%,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .lobby-card {
@@ -74,10 +74,10 @@
 </style>
 </head>
 <body>
-<header class="dt-header">
+<header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
-  <div class="dt-brand-mini" data-i18n="page_title">ТОЧКИ</div>
-  <button class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <div class="topbar-title" data-i18n="page_title">ТОЧКИ</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">

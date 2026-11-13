@@ -6,11 +6,9 @@
 <title data-i18n="title">Аукцион лжи (Варианты)</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body { display:flex; flex-direction:column; min-height:100vh; padding:12px; }
-  .topbar { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; max-width:480px; margin:0 auto 10px; }
-  .nav-pill { background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; }
-  .nav-pill:hover { border-color:var(--crimson); color:#fff; }
+  body { display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal)); }
   .conn-status { text-align:center; font-size:12px; color:var(--muted); margin-bottom:8px; }
   .screen { display:none; flex-direction:column; gap:14px; width:100%; max-width:480px; margin:0 auto; animation:fadeIn 0.3s; }
   .screen.active { display:flex; }
@@ -90,19 +88,21 @@
 </style>
 </head>
 <body>
-<div class="topbar">
-  <a href="/games/" class="nav-pill" data-i18n="nav_games">🎮 Игры</a>
-  <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-</div>
+<header class="game-topbar" style="max-width:480px">
+  <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
+  <div class="topbar-title" data-i18n="lobby_title">Аукцион Лжи</div>
+  <span style="width:44px"></span>
+</header>
+<div class="langbar" id="langbar" style="margin:0 auto 10px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div id="connectionStatus" class="conn-status" data-i18n="connecting">Подключение...</div>
 
 <!-- LOBBY -->
 <div id="screen-lobby" class="screen">
   <div class="card">
-    <div id="roomCodeBadge" style="display:none;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:8px 12px;">
+    <div id="roomCodeBadge" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:12px;">
       <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;" data-i18n="lobby_room">КОМНАТА:</span>
-      <span id="lcode" style="font-size:20px;font-weight:900;letter-spacing:3px;color:var(--crimson,#ff2238);">----</span>
-      <button type="button" onclick="copyInviteLink()" style="margin:0;width:auto;padding:5px 10px;font-size:12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;box-shadow:none;" data-i18n="copy_link">📋 Ссылка</button>
+      <div class="pin-display" id="lcode"></div>
+      <button type="button" onclick="copyInviteLink()" style="margin:0;width:auto;padding:6px 12px;font-size:12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;box-shadow:none;" data-i18n="copy_link">📋 Ссылка</button>
     </div>
     <h2 data-i18n="lobby_title">Аукцион Лжи</h2>
     <div style="font-size:13.5px; color:#aaa; text-align:center; margin-bottom:16px;" data-i18n="lobby_sub">Генерируем безумные факты. Выбирай темы:</div>
@@ -188,6 +188,7 @@
 </div>
 
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -196,7 +197,7 @@
 const UI = {
   uk: {
     "title": "Аукціон брехні (Варіанти)",
-    "nav_games": "🎮 Ігри",
+    "nav_games": "‹ Ігри",
     "connecting": "Підключення...",
     "lobby_title": "Аукціон Брехні",
     "lobby_sub": "Божевільні факти й блеф. Обирай теми:",
@@ -236,7 +237,7 @@ const UI = {
   },
   ru: {
     "title": "Аукцион лжи (Варианты)",
-    "nav_games": "🎮 Игры",
+    "nav_games": "‹ Игры",
     "connecting": "Подключение...",
     "lobby_title": "Аукцион Лжи",
     "lobby_sub": "Безумные факты и блеф. Выбирай темы:",
@@ -276,7 +277,7 @@ const UI = {
   },
   en: {
     "title": "Fibbage (Variants)",
-    "nav_games": "🎮 Games",
+    "nav_games": "‹ Games",
     "connecting": "Connecting...",
     "lobby_title": "Fibbage",
     "lobby_sub": "Wild facts & bluffs. Pick your topics:",
@@ -316,7 +317,7 @@ const UI = {
   },
   de: {
     "title": "Fibbage (Varianten)",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "connecting": "Verbinde...",
     "lobby_title": "Fibbage",
     "lobby_sub": "Verrückte Fakten & Bluffs. Wähle deine Themen:",
@@ -834,8 +835,10 @@ function updateUI() {
 
     let html = '';
     (state.players || []).forEach(p => {
-      let hostStar = p.id === state.host ? '👑 ' : '';
-      html += `<div class="lb-row"><div>${hostStar}${esc(trName(p.name))}</div></div>`;
+      const nm = trName(p.name);
+      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p.id || '').startsWith('bot_')) : '';
+      const tag = p.id === state.host ? '<span class="player-tag">👑</span>' : '';
+      html += `<div class="player-row-item">${av}<span style="font-weight:700">${esc(nm)}</span>${tag}</div>`;
     });
     document.getElementById('lobbyPlayers').innerHTML = html;
   }
@@ -952,9 +955,10 @@ window.onWsMessage = (msg) => {
     if (msg.code) {
       roomCode = msg.code;
       const el = document.getElementById('lcode');
-      if (el) el.textContent = msg.code;
+      if (el && window.LobbyUI) el.innerHTML = LobbyUI.renderCodeDigits(msg.code);
+      else if (el) el.textContent = msg.code;
       const b = document.getElementById('roomCodeBadge');
-      if (b) b.style.display = 'inline-flex';
+      if (b) b.style.display = 'flex';
       try {
         const u = new URL(window.location);
         if (u.searchParams.get('code') !== msg.code) {

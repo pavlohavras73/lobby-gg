@@ -22,12 +22,13 @@
   }
 
   .uno-header {
-    width: 100%; max-width: 520px; margin: 0 auto 6px;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%; max-width: 520px; margin: 0 auto 6px; padding: 0 2px;
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
     flex-shrink: 0; z-index: 20;
   }
   .uno-brand-mini {
-    font-family: var(--display); font-size: 16px; font-weight: 800; letter-spacing: -.3px;
+    font-family: var(--display); font-size: 16px; font-weight: 800; letter-spacing: -.3px; text-align: center;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     background: linear-gradient(90deg, #ffcc00, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
@@ -310,12 +311,12 @@
 
   <div class="game-layout">
     <header class="uno-header">
-      <a href="/games/" class="game-nav-back" data-i18n="nav_games">
+      <a href="/games/" class="game-nav-back" style="min-height:44px;padding:0 14px" data-i18n="nav_games">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         <span>Игры</span>
       </a>
-      <span class="uno-brand-mini">UNO</span>
-      <button id="rulesBtn" class="rules-btn" data-i18n-title="rules_btn" title="Правила">i</button>
+      <span class="uno-brand-mini">🃏 UNO</span>
+      <button id="rulesBtn" class="rules-btn" style="width:44px;height:44px;min-width:44px" data-i18n-title="rules_btn" title="Правила">i</button>
     </header>
 
     <div id="home" class="lobby-card screen-enter">

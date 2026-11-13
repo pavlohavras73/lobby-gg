@@ -6,8 +6,13 @@
 <title data-i18n="title">БУНКЕР — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
+  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal))}
   h1{letter-spacing:3px}
+  .lobby-card{background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-hi);border-radius:26px;padding:22px 18px;max-width:440px;width:100%;margin:8px auto;text-align:center;box-shadow:var(--inner),var(--shadow-lg),0 0 50px -18px rgba(255,34,56,.22)}
+  .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
   body > .card{max-width:560px;margin-left:auto;margin-right:auto}
   .scen{background:rgba(255,34,56,.07);border-left:3px solid var(--crimson);padding:11px;font-size:13px;margin:8px 0;color:#e8d8d8;border-radius:8px}
   .cell{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:11px;margin:5px 0;font-size:13px}
@@ -24,10 +29,13 @@
 </style>
 </head>
 <body>
-<button id="rulesBtn" title="Правила" data-i18n-title="rules_btn_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<header class="game-topbar">
+  <a href="/games/" class="top-back" title="Ко всем играм" data-i18n-title="nav_games_title" data-i18n="nav_games">‹ Игры</a>
+  <div class="topbar-title" data-i18n="page_title">☢ БУНКЕР ☢</div>
+  <button type="button" id="rulesBtn" class="top-icon-btn" title="Правила" data-i18n-title="rules_btn_title">i</button>
+</header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">☢ Бункер — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" data-i18n-title="nav_games_title" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1 data-i18n="page_title">☢ БУНКЕР ☢</h1><div class="sub" data-i18n="tagline">Lobby.gg · кто достоин места</div>
+<div class="sub" data-i18n="tagline" style="margin-bottom:6px">Lobby.gg · кто достоин места</div>
 <div class="langbar" id="langbar" role="group" aria-label="Language">
   <button type="button" data-lang="uk">УКР</button>
   <button type="button" data-lang="ru">РУС</button>
@@ -35,26 +43,30 @@
   <button type="button" data-lang="de">DEU</button>
 </div>
 
-<div id="home" class="card">
-  <input id="name" placeholder="Твой позывной" data-i18n-ph="ph_name" maxlength="20">
-  <button onclick="create()" data-i18n="btn_create">Создать бункер</button>
-  <input id="joincode" placeholder="КОД" data-i18n-ph="ph_code" maxlength="4" style="text-transform:uppercase">
-  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
+<div id="home" class="lobby-card">
+  <input id="name" class="inp" placeholder="Твой позывной" data-i18n-ph="ph_name" maxlength="20">
+  <button class="btn-primary" style="width:100%;margin-top:10px" onclick="create()" data-i18n="btn_create">Создать бункер</button>
+  <div class="or-sep" data-i18n="or_code">или</div>
+  <div class="pin-row">
+    <input id="joincode" class="pin-hidden-src" placeholder="КОД" data-i18n-ph="ph_code" maxlength="4" autocomplete="off">
+    <div id="pinBoxes" class="pin-boxes"></div>
+  </div>
+  <button class="sec btn-secondary" style="width:100%;margin-top:10px" onclick="join()" data-i18n="btn_join">Войти по коду</button>
   <div class="sub" style="margin-top:10px"><a href="/games" style="color:#8a8568" data-i18n="link_spy">→ играть в Шпиона</a></div>
 </div>
 
-<div id="lobby" class="card hide">
-  <div class="sub" data-i18n="lobby_code">Код бункера:</div><div class="code" id="lcode">----</div>
-  <div id="players"></div>
+<div id="lobby" class="lobby-card hide">
+  <div class="sub" data-i18n="lobby_code" style="margin-bottom:8px">Код бункера:</div><div class="pin-display" id="lcode"></div>
+  <div id="players" style="margin:12px 0"></div>
   <div id="hostlobby" class="hide">
     <div style="color:#f5c518;font-weight:700;margin:8px 0 4px" data-i18n="settings">⚙ НАСТРОЙКИ</div>
     <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_seats">Мест в бункере (0=авто)</span><input id="s_seats" type="number" value="0" style="flex:1"></div>
     <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_timer">Таймер раунда, сек (0=выкл)</span><input id="s_timer" type="number" value="0" style="flex:1"></div>
     <div class="row"><span class="sub" style="flex:2;text-align:left;padding-top:10px" data-i18n="set_rev">Вскрытий за раунд (0=∞)</span><input id="s_rev" type="number" value="0" style="flex:1"></div>
-    <button class="sec" onclick="send({action:'add_bot'})" data-i18n="btn_bot">🤖 Добавить бота</button>
-    <button onclick="startGame()" data-i18n="btn_start">🚪 Запустить игру</button>
+    <button class="sec btn-secondary" style="width:100%;margin-bottom:8px" onclick="send({action:'add_bot'})" data-i18n="btn_bot">🤖 Добавить бота</button>
+    <button class="btn-primary" style="width:100%" onclick="startGame()" data-i18n="btn_start">🚪 Запустить игру</button>
   </div>
-  <div class="sub" id="waitmsg" data-i18n="wait_host">Ждём ведущего…</div>
+  <div class="sub" id="waitmsg" style="margin-top:10px" data-i18n="wait_host">Ждём ведущего…</div>
 </div>
 
 <div id="game" class="hide">
@@ -96,6 +108,7 @@
 </div>
 
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
@@ -107,7 +120,7 @@ const UI={
     title:"БУНКЕР — Lobby.gg", page_title:"☢ БУНКЕР ☢", rules_btn_title:"Правила", nav_games_title:"До всіх ігор",
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокаліпсис, у бункері мало місць. У кожного свої карти (професія, здоров'я, багаж…). Розкривайте їх, сперечайтеся й голосуйте, кого НЕ пускати в бункер.",
-    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Lobby.gg · хто гідний місця",
+    rules_ok:"Зрозуміло 👍", nav_games:"‹ Ігри", tagline:"Lobby.gg · хто гідний місця", or_code:"або за кодом",
     ph_name:"Твій позивний", btn_create:"Створити бункер", ph_code:"КОД", btn_join:"Увійти за кодом", link_spy:"→ грати у Шпигуна",
     lobby_code:"Код бункера:", settings:"⚙ НАЛАШТУВАННЯ", set_seats:"Місць у бункері (0=авто)", set_timer:"Таймер раунду, сек (0=вимк)", set_rev:"Розкриттів за раунд (0=∞)",
     btn_bot:"🤖 Додати бота", btn_start:"🚪 Запустити гру", wait_host:"Чекаємо ведучого…",
@@ -122,7 +135,7 @@ const UI={
     title:"БУНКЕР — Lobby.gg", page_title:"☢ БУНКЕР ☢", rules_btn_title:"Правила", nav_games_title:"Ко всем играм",
     rules_title:"☢ Бункер — правила",
     rules_body:"Апокалипсис, в бункере мало мест. У каждого свои карты (профессия, здоровье, багаж…). Раскрывайте их, спорьте и голосуйте, кого НЕ пускать в бункер.",
-    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Lobby.gg · кто достоин места",
+    rules_ok:"Понятно 👍", nav_games:"‹ Игры", tagline:"Lobby.gg · кто достоин места", or_code:"или по коду",
     ph_name:"Твой позывной", btn_create:"Создать бункер", ph_code:"КОД", btn_join:"Войти по коду", link_spy:"→ играть в Шпиона",
     lobby_code:"Код бункера:", settings:"⚙ НАСТРОЙКИ", set_seats:"Мест в бункере (0=авто)", set_timer:"Таймер раунда, сек (0=выкл)", set_rev:"Вскрытий за раунд (0=∞)",
     btn_bot:"🤖 Добавить бота", btn_start:"🚪 Запустить игру", wait_host:"Ждём ведущего…",
@@ -137,7 +150,7 @@ const UI={
     title:"BUNKER — Lobby.gg", page_title:"☢ BUNKER ☢", rules_btn_title:"Rules", nav_games_title:"All games",
     rules_title:"☢ Bunker — rules",
     rules_body:"Apocalypse, and the bunker has few seats. Everyone has their own cards (profession, health, baggage…). Reveal them, argue, and vote on who does NOT get in.",
-    rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Lobby.gg · who deserves a spot",
+    rules_ok:"Got it 👍", nav_games:"‹ Games", tagline:"Lobby.gg · who deserves a spot", or_code:"or by code",
     ph_name:"Your callsign", btn_create:"Create bunker", ph_code:"CODE", btn_join:"Join by code", link_spy:"→ play Spy",
     lobby_code:"Bunker code:", settings:"⚙ SETTINGS", set_seats:"Seats in bunker (0=auto)", set_timer:"Round timer, sec (0=off)", set_rev:"Reveals per round (0=∞)",
     btn_bot:"🤖 Add bot", btn_start:"🚪 Start game", wait_host:"Waiting for the host…",
@@ -156,7 +169,8 @@ const UI={
     "rules_title": "☢ Bunker — Regeln",
     "rules_body": "Apokalypse, und der Bunker hat nur wenige Plätze. Jeder hat eigene Karten (Beruf, Gesundheit, Gepäck…). Deckt sie auf, diskutiert und stimmt ab, wer NICHT hineindarf.",
     "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
+    "or_code": "oder per Code",
     "tagline": "Lobby.gg · Wer verdient einen Platz",
     "ph_name": "Dein Rufzeichen",
     "btn_create": "Bunker erstellen",
@@ -1203,14 +1217,23 @@ function renderBunker(m){
   }).join('');
 }
 
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function handle(m){
   if(m.type==='joined'){
     pid=m.pid;isHost=m.host;roomCode=m.code;
     sessionStorage.setItem('jg_bunker_code',m.code);
   }
   else if(m.type==='lobby'){
-    show('lobby');document.getElementById('lcode').textContent=m.code;
-    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
+    show('lobby');
+    const ld=document.getElementById('lcode');
+    if(ld&&window.LobbyUI)ld.innerHTML=LobbyUI.renderCodeDigits(m.code||'');
+    else if(ld)ld.textContent=m.code||'----';
+    document.getElementById('players').innerHTML=m.players.map(p=>{
+      const nm=T(p.name);
+      const av=window.LobbyUI?LobbyUI.avatarHtml(nm,String(p.id||'').startsWith('bot_')):'';
+      const tag=p.id===m.host?'<span class="player-tag">👑</span>':'';
+      return '<div class="player-row-item">'+av+'<span style="font-weight:700">'+esc(nm)+'</span>'+tag+'</div>';
+    }).join('');
     isHost=(m.host===pid);
     document.getElementById('hostlobby').classList.toggle('hide',!isHost);
     document.getElementById('waitmsg').classList.toggle('hide',isHost);
@@ -1222,13 +1245,15 @@ function handle(m){
   else if(m.type==='timer'){runTimer(m.secs);}
   else if(m.type==='error'){alert(T(m.msg));}
 }
-applyUI();
-
-const autoCode = sessionStorage.getItem('jg_bunker_code');
-if (autoCode) {
-  const jc = document.getElementById('joincode');
-  if (jc) jc.value = autoCode;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
+  const autoCode = sessionStorage.getItem('jg_bunker_code');
+  if (autoCode) {
+    const jc = document.getElementById('joincode');
+    if (jc) jc.value = autoCode;
+  }
+  applyUI();
+});
 </script>
 </body>
 </html>

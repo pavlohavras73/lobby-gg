@@ -17,46 +17,9 @@
     background: radial-gradient(circle at 50% 20%, #151a2e, #07090f);
     color: #f0f4fc;
     min-height: 100vh;
-    padding: 48px 12px 32px;
+    padding: max(12px, var(--sat)) max(14px, var(--sar)) max(32px, var(--sab)) max(14px, var(--sal));
     overflow-x: hidden;
     touch-action: manipulation;
-  }
-  .top-btn {
-    position: fixed;
-    top: 8px;
-    z-index: 99999;
-    width: auto;
-    margin: 0;
-    background: rgba(10, 12, 20, 0.78);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: none;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .top-btn::after { display: none; }
-  .nav-back {
-    left: 8px;
-    border-radius: 20px;
-    padding: 7px 13px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .nav-rules {
-    right: 8px;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border-radius: 50%;
-    font-size: 16px;
-    font-weight: 800;
-    font-style: italic;
-    font-family: Georgia, serif;
   }
   .title-wrap {
     text-align: center;
@@ -266,8 +229,11 @@
 </head>
 <body>
 
-<a class="top-btn nav-back" href="/games/" title="Все игры" data-i18n="nav_games" data-i18n-title="nav_games">🎮 Игры</a>
-<button type="button" class="top-btn nav-rules" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+<header class="game-topbar" style="max-width:520px">
+  <a href="/games/" class="top-back" title="Все игры" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
+  <div class="topbar-title" data-i18n="page_title">🌌 4 В РЯД : 3D</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+</header>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8);max-height:85vh;overflow-y:auto">
@@ -339,8 +305,21 @@
 </div>
 
 <!-- SCRIPTS -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script>
+window._threeReady = Promise.all([
+  import('three'),
+  import('three/addons/controls/OrbitControls.js')
+]).then(([THREE, mod]) => {
+  window.THREE = THREE;
+  window.OrbitControls = mod.OrbitControls;
+});
+</script>
 <script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/ui.js"></script>
 <script src="/games/static/invite.js"></script>
@@ -352,7 +331,7 @@
 const UI = {
   uk: {
     "title": "4 в ряд 3D — Lobby.gg",
-    "nav_games": "🎮 Ігри",
+    "nav_games": "‹ Ігри",
     "page_title": "🌌 4 В РЯД : 3D",
     "page_sub": "битва в об'ємному кубі 5×5×5 · до 3 гравців",
     "name_ph": "Ім'я",
@@ -388,7 +367,7 @@ const UI = {
   },
   ru: {
     "title": "4 в ряд 3D — Lobby.gg",
-    "nav_games": "🎮 Игры",
+    "nav_games": "‹ Игры",
     "page_title": "🌌 4 В РЯД : 3D",
     "page_sub": "битва в объёмном кубе 5×5×5 · до 3 игроков",
     "name_ph": "Имя",
@@ -424,7 +403,7 @@ const UI = {
   },
   en: {
     "title": "Connect 4 3D — Lobby.gg",
-    "nav_games": "🎮 Games",
+    "nav_games": "‹ Games",
     "page_title": "🌌 CONNECT 4 : 3D",
     "page_sub": "battle in a 5×5×5 volume cube · up to 3 players",
     "name_ph": "Name",
@@ -460,7 +439,7 @@ const UI = {
   },
   de: {
     "title": "3D Vier gewinnt — Lobby.gg",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "page_title": "🌌 3D VIER GEWINNT",
     "page_sub": "Schlacht im 5×5×5-Würfel · bis zu 3 Spieler",
     "name_ph": "Dein Name",
@@ -729,6 +708,7 @@ function renderGameState() {
 function init3D() {
   const container = document.getElementById('canvas-container');
   if (renderer) return; // already initialized
+  if (!window.THREE && window._threeReady) { window._threeReady.then(() => init3D()); return; }
 
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x050811, 0.015);
@@ -747,7 +727,7 @@ function init3D() {
   }
   container.appendChild(renderer.domElement);
 
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls = new (window.OrbitControls || THREE.OrbitControls)(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.target.set(0, 4.5, 0);

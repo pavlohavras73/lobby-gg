@@ -37,7 +37,7 @@ for (const f of files) {
   }
 
   // 2. Syntax check for inline scripts
-  const scriptRegex = /<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi;
+  const scriptRegex = /<script(?![^>]*src=)(?![^>]*type="(?:importmap|application\/(?:ld\+)?json)")[^>]*>([\s\S]*?)<\/script>/gi;  // importmap/JSON — не JS
   let match;
   let scriptIdx = 0;
   while ((match = scriptRegex.exec(html)) !== null) {

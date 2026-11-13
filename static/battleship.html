@@ -7,9 +7,7 @@
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) 12px max(64px,calc(var(--sab)+56px)); }
-  .bs-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .bs-brand-mini { font-family:var(--display); font-size:16px; font-weight:800; background:linear-gradient(95deg,#fff 20%,#38bdf8); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(64px,calc(var(--sab)+56px)) max(14px,env(safe-area-inset-left,0px)); }
   .lobby-card {
     background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
@@ -24,18 +22,50 @@
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
 
   .bd {
-    display:grid; grid-template-columns:repeat(10,1fr); gap:2.5px; max-width:320px; width:100%; margin:6px auto;
-    background:linear-gradient(160deg,#092038,#061526); border:2px solid rgba(56,189,248,.28);
-    border-radius:14px; padding:6px; box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 20px rgba(0,0,0,.5);
+    position:relative; overflow:hidden;
+    display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); grid-auto-rows:auto; gap:2px; max-width:320px; width:100%; margin:6px auto;
+    background:linear-gradient(160deg,#082038,#051526); border:2px solid rgba(56,189,248,.32);
+    border-radius:16px; padding:7px; box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 24px rgba(14,165,233,.18);
   }
-  .c { aspect-ratio:1; border-radius:4px; background:#0c2947; font-size:12px; display:flex; align-items:center; justify-content:center; transition:transform .12s, background .15s; }
-  .c.ship { background:linear-gradient(135deg,#64748b,#334155); border:1px solid rgba(255,255,255,.25); box-shadow:inset 0 1px 2px rgba(255,255,255,.3); }
-  .c.hit { background:radial-gradient(circle,#ff5c72,#c40f23); color:#fff; font-weight:900; box-shadow:0 0 10px rgba(255,34,56,.65); animation:hitBoom .25s ease both; }
-  .c.miss { background:#102236; color:#64748b; font-weight:900; }
+  .bd::before {
+    content:""; position:absolute; inset:-40%; pointer-events:none;
+    background:radial-gradient(circle at 30% 30%, rgba(56,189,248,.12), transparent 55%), radial-gradient(circle at 70% 70%, rgba(14,165,233,.1), transparent 55%);
+    animation:waterDrift 7s ease-in-out infinite alternate;
+  }
+  @keyframes waterDrift { 0%{transform:translate(-4%,-3%)} 100%{transform:translate(4%,3%)} }
+  .c { position:relative; z-index:1; aspect-ratio:1; min-width:0; box-sizing:border-box; border-radius:4px; background:rgba(12,41,71,.78); font-size:12px; display:flex; align-items:center; justify-content:center; transition:transform .12s, background .15s; }
+  .c.ship {
+    background:linear-gradient(165deg,#94a3b8 0%,#475569 65%,#334155 100%);
+    border:1px solid rgba(255,255,255,.35);
+    box-shadow:inset 0 2px 3px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.5);
+    border-radius:7px;
+  }
+  .c.ship::after {
+    content:""; width:44%; height:44%; border-radius:50%;
+    background:radial-gradient(circle,#e2e8f0,#64748b); opacity:.65;
+  }
+  .c.ship.conn-l { border-top-left-radius:1px; border-bottom-left-radius:1px; border-left-color:transparent; margin-left:-2px; padding-left:2px; }
+  .c.ship.conn-r { border-top-right-radius:1px; border-bottom-right-radius:1px; border-right-color:transparent; }
+  .c.ship.conn-t { border-top-left-radius:1px; border-top-right-radius:1px; border-top-color:transparent; margin-top:-2px; padding-top:2px; }
+  .c.ship.conn-b { border-bottom-left-radius:1px; border-bottom-right-radius:1px; border-bottom-color:transparent; }
+  .c.ship.sunk {
+    background:linear-gradient(165deg,#3f1d24,#1e1418); border-color:rgba(255,92,114,.75);
+    box-shadow:inset 0 0 8px rgba(255,34,56,.45);
+  }
+  .c.hit {
+    background:radial-gradient(circle at 50% 45%,#fbbf24 0%,#ef4444 45%,#7f1d1d 100%);
+    color:#fff; font-weight:900; box-shadow:0 0 12px rgba(239,68,68,.75);
+    animation:hitBoom .3s ease both;
+  }
+  .c.miss {
+    background:rgba(16,38,62,.85); color:#7dd3fc; font-weight:900;
+    animation:missRipple .35s ease both;
+  }
   .c.fire { cursor:pointer; }
-  .c.fire:hover { background:#17426e; box-shadow:inset 0 0 0 1.5px rgba(56,189,248,.75); }
+  .c.fire:hover { background:#17426e; box-shadow:inset 0 0 0 1.5px rgba(56,189,248,.8); }
   .c.fire:active { transform:scale(.9); background:#1d4ed8; }
-  @keyframes hitBoom { 0% { transform:scale(1.25); } 100% { transform:scale(1); } }
+  @keyframes hitBoom { 0% { transform:scale(1.28); filter:brightness(1.4); } 100% { transform:scale(1); filter:brightness(1); } }
+  @keyframes missRipple { 0% { box-shadow:inset 0 0 0 6px rgba(125,211,252,.5); } 100% { box-shadow:inset 0 0 0 0 rgba(125,211,252,0); } }
   .lbl2 { text-align:center; font-size:12px; color:var(--muted); margin-top:8px; font-weight:700; }
   .turn { text-align:center; font-weight:800; margin:8px 0; font-size:14px; }
   .me { color:#38bdf8; }
@@ -43,10 +73,10 @@
   .opt{flex:1;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:12.5px;text-align:center}
   .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.18);color:#fff}
 </style></head><body>
-<header class="bs-header">
+<header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
-  <div class="bs-brand-mini" data-i18n="page_title">МОРСКОЙ БОЙ</div>
-  <button class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <div class="topbar-title" data-i18n="page_title">🚢 МОРСКОЙ БОЙ</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🚢 Морской бой — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Расставь корабли на своём поле. По очереди стреляй по полю соперника. Попал — стреляешь ещё раз. Кто первым потопит весь флот врага — победил.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <div id="home" class="lobby-card">
@@ -330,11 +360,30 @@ function connect(cb){
 function create(){connect(()=>send({action:'create',name:document.getElementById('name').value||'Игрок',game:'battleship'}));}
 function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function fire(r,c){if(st&&st.turn_pid===pid)send({action:'bs_fire',r:r,c:c});}
-function renderBoard(el,grid,fireable){let h='';for(let r=0;r<10;r++)for(let c=0;c<10;c++){const v=grid[r][c];
-  let cls='c';if(v===1)cls+=' ship';else if(v===2)cls+=' hit';else if(v===3)cls+=' miss';
-  const f=fireable&&v===0;if(f)cls+=' fire';
-  h+='<div class="'+cls+'" '+(f?'onclick="fire('+r+','+c+')"':'')+'>'+(v===2?'✶':v===3?'·':'')+'</div>';}
-  document.getElementById(el).innerHTML=h;}
+function renderBoard(el, grid, fireable) {
+  const isShip = (r, c) => r >= 0 && r < 10 && c >= 0 && c < 10 && (grid[r][c] === 1 || grid[r][c] === 2);
+  let h = '';
+  for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
+    const v = grid[r][c];
+    let cls = 'c';
+    if (v === 1) {
+      cls += ' ship';
+      if (isShip(r, c - 1)) cls += ' conn-l';
+      if (isShip(r, c + 1)) cls += ' conn-r';
+      if (isShip(r - 1, c)) cls += ' conn-t';
+      if (isShip(r + 1, c)) cls += ' conn-b';
+    } else if (v === 2) {
+      cls += ' hit';
+      if (el === 'own' || el === 'ownplace') cls += ' ship sunk';
+    } else if (v === 3) {
+      cls += ' miss';
+    }
+    const f = fireable && v === 0;
+    if (f) cls += ' fire';
+    h += '<div class="' + cls + '" ' + (f ? 'onclick="fire(' + r + ',' + c + ')"' : '') + '>' + (v === 2 ? '🔥' : v === 3 ? '•' : '') + '</div>';
+  }
+  document.getElementById(el).innerHTML = h;
+}
 function handle(m){
   if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_battleship_code',m.code);}
   else if(m.type==='lobby'){

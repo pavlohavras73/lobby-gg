@@ -34,7 +34,7 @@
 
   .game-layout {
     width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
-    padding: max(50px, calc(var(--sat) + 42px)) 12px max(14px, var(--sab));
+    padding: max(12px, var(--sat)) max(14px, env(safe-area-inset-right, 0px)) max(14px, var(--sab)) max(14px, env(safe-area-inset-left, 0px));
     background: radial-gradient(circle at 50% 40%, rgba(20, 80, 45, 0.35), #060609 75%);
   }
 
@@ -167,9 +167,6 @@
 </head>
 <body>
 
-  <a href="/games/" class="top-btn btn-back" data-i18n="nav_games">🎮 Игры</a>
-  <button id="rulesBtn" class="top-btn btn-rules" data-i18n-title="rules_btn">i</button>
-
   <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)">
     <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:22px;text-align:left">
       <div style="font-size:20px;font-weight:900;margin-bottom:10px" data-i18n="rules_title">🂡 Покер — Правила</div>
@@ -179,6 +176,11 @@
   </div>
 
   <div class="game-layout">
+    <header class="game-topbar">
+      <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
+      <div class="topbar-title" data-i18n="poker_title">🂡 ПОКЕР</div>
+      <button id="rulesBtn" type="button" class="top-icon-btn" data-i18n-title="rules_btn">i</button>
+    </header>
     
     <div id="home" class="lobby-card">
       <svg id="pokerLogo" class="poker-hero-svg" viewBox="0 0 96 76" fill="none" aria-hidden="true">
@@ -279,7 +281,7 @@
       uk:{
         poker_title:"🂡 ПОКЕР", rules_title:"🂡 Покер — Правила",
         rules_body:"Texas Hold'em. У тебе 2 карти + 5 спільних на столі. Збери найкращу комбінацію з 5. Ставки по колу: Чек, Кол, Рейз, Фолд, Олл-ін. Забирає банк найкраща рука або останній гравець, що не скинув карти.",
-        rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", tagline:"Texas Hold'em · Discord Night Edition",
+        rules_ok:"Зрозуміло 👍", nav_games:"‹ Ігри", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Твоє ім'я", btn_create:"Створити Стіл 🎴", ph_code:"КОД СТОЛА", btn_join:"Увійти",
         lobby_table:"СТІЛ", wait_players:"Очікування гравців...",
         opt_blinds_10:"Блайнди 5/10", opt_blinds_20:"Блайнди 10/20", opt_blinds_50:"Блайнди 25/50",
@@ -297,7 +299,7 @@
       ru:{
         poker_title:"🂡 ПОКЕР", rules_title:"🂡 Покер — Правила",
         rules_body:"Texas Hold'em. У тебя 2 карты + 5 общих на столе. Собери лучшую комбинацию из 5. Ставки по кругу: Чек, Колл, Рейз, Фолд, Олл-ин. Забирает банк лучшая рука или последний не сбросивший игрок.",
-        rules_ok:"Понятно 👍", nav_games:"🎮 Игры", tagline:"Texas Hold'em · Discord Night Edition",
+        rules_ok:"Понятно 👍", nav_games:"‹ Игры", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Твое имя", btn_create:"Создать Стол 🎴", ph_code:"КОД СТОЛА", btn_join:"Войти",
         lobby_table:"СТОЛ", wait_players:"Ожидание игроков...",
         opt_blinds_10:"Блайнды 5/10", opt_blinds_20:"Блайнды 10/20", opt_blinds_50:"Блайнды 25/50",
@@ -315,7 +317,7 @@
       en:{
         poker_title:"🂡 POKER", rules_title:"🂡 Poker — Rules",
         rules_body:"Texas Hold'em. You have 2 private cards + 5 community cards on the board. Make the best 5-card combination. Betting rounds: Check, Call, Raise, Fold, All-in. The best hand or the last remaining player wins the pot.",
-        rules_ok:"Got it 👍", nav_games:"🎮 Games", tagline:"Texas Hold'em · Discord Night Edition",
+        rules_ok:"Got it 👍", nav_games:"‹ Games", tagline:"Texas Hold'em · Discord Night Edition",
         ph_name:"Your name", btn_create:"Create Table 🎴", ph_code:"TABLE CODE", btn_join:"Join",
         lobby_table:"TABLE", wait_players:"Waiting for players...",
         opt_blinds_10:"Blinds 5/10", opt_blinds_20:"Blinds 10/20", opt_blinds_50:"Blinds 25/50",
@@ -334,7 +336,7 @@
     "rules_title": "🂡 Poker — Regeln",
     "rules_body": "Texas Hold'em. Du hast 2 verdeckte Handkarten + 5 Gemeinschaftskarten auf dem Tisch. Bilde die beste 5-Karten-Kombination. Setzrunden: Check, Call, Raise, Fold, All-in. Das beste Blatt oder der letzte verbliebene Spieler gewinnt den Pot.",
     "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "poker_title": "🂡 POKER",
     "tagline": "Texas Hold'em · Discord Night Edition",
     "ph_name": "Dein Name",

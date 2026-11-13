@@ -9,9 +9,7 @@
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) 12px max(64px,calc(var(--sab)+56px)); }
-  .c4-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .c4-brand-mini { font-family:var(--display); font-size:16px; font-weight:800; background:linear-gradient(95deg,#fff 20%,#fbbf24); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal)); }
   .lobby-card {
     background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
@@ -25,34 +23,64 @@
   .or-sep { display:flex; align-items:center; gap:10px; margin:14px 0 10px; color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
 
+  .ghost-row {
+    display:grid; grid-template-columns:repeat(7,1fr); gap:4px; max-width:390px; width:100%; margin:2px auto 0; padding:0 12px; height:34px; align-items:center;
+  }
+  .ghost-slot { display:flex; align-items:center; justify-content:center; height:100%; }
+  .ghost-chip {
+    width:28px; height:28px; border-radius:50%; opacity:0; transform:translateY(-4px) scale(.85);
+    transition:opacity .15s var(--ease), transform .15s var(--ease); pointer-events:none;
+  }
+  .ghost-chip.on { opacity:.82; transform:translateY(0) scale(1); }
+  .ghost-chip.p1 { background:radial-gradient(circle at 32% 28%,#ff8a99,#d81030 70%,#8c081d); box-shadow:0 4px 12px rgba(216,16,48,.5), inset 0 2px 3px rgba(255,255,255,.45); }
+  .ghost-chip.p2 { background:radial-gradient(circle at 32% 28%,#fef08a,#eab308 70%,#a16207); box-shadow:0 4px 12px rgba(234,179,8,.5), inset 0 2px 3px rgba(255,255,255,.55); }
   .board {
     display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-    background:linear-gradient(160deg,#1e4480,#10264a);
-    border:2px solid #3b6ec2; border-radius:18px; padding:10px; max-width:390px; width:100%; margin:6px auto;
-    box-shadow:0 16px 38px rgba(0,0,0,.65), inset 0 2px 4px rgba(255,255,255,.15);
-  }
-  .col {
-    display:grid; grid-template-rows:repeat(6,1fr); gap:5px; cursor:pointer; border-radius:10px;
-    padding:3px; transition:background .15s; background:rgba(255,255,255,.02);
-  }
-  .col:nth-child(even) { background:rgba(255,255,255,.05); }
-  .col:hover, .col:active { background:rgba(96,165,250,.28); }
-  .cell {
-    aspect-ratio:1; border-radius:50%; background:#0a162c;
-    box-shadow:inset 0 4px 7px rgba(0,0,0,.7), inset 0 -1px 2px rgba(255,255,255,.08);
+    background:linear-gradient(165deg,#25549e 0%,#163569 52%,#0d2042 100%);
+    border:2px solid #4c82d6; border-bottom:6px solid #0b1c3b; border-radius:20px; padding:10px; max-width:390px; width:100%; margin:4px auto 6px;
+    box-shadow:0 20px 44px rgba(0,0,0,.72), 0 6px 0 #09152c, inset 0 2px 3px rgba(255,255,255,.22), inset 0 -4px 8px rgba(0,0,0,.45);
     position:relative;
   }
+  .col {
+    display:grid; grid-template-rows:repeat(6,1fr); gap:5px; cursor:pointer; border-radius:11px;
+    padding:3px; transition:background .15s, box-shadow .15s; background:rgba(255,255,255,.02);
+  }
+  .col:nth-child(even) { background:rgba(255,255,255,.045); }
+  .col:hover, .col.hover, .col:active { background:rgba(96,165,250,.22); box-shadow:inset 0 0 0 1px rgba(147,197,253,.38); }
+  .cell {
+    aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 50% 55%,#091429,#060d1c 80%);
+    box-shadow:inset 0 5px 8px rgba(0,0,0,.85), inset 0 -1px 2px rgba(255,255,255,.1), 0 1px 0 rgba(255,255,255,.12);
+    position:relative; overflow:hidden;
+  }
+  .cell.p1, .cell.p2 {
+    box-shadow:inset 0 3px 4px rgba(255,255,255,.42), inset 0 -4px 6px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.45);
+  }
   .cell.p1 {
-    background:radial-gradient(circle at 35% 30%,#ff6b7a,#d81030 72%,#8c081d);
-    box-shadow:0 0 14px rgba(255,60,90,.55), inset 0 2px 3px rgba(255,255,255,.35);
+    background:radial-gradient(circle at 32% 28%,#ff8a99,#e11d48 58%,#881337 100%);
+    box-shadow:0 0 12px rgba(244,63,94,.42), inset 0 3px 4px rgba(255,255,255,.45), inset 0 -4px 6px rgba(0,0,0,.45);
   }
   .cell.p2 {
-    background:radial-gradient(circle at 35% 30%,#ffe484,#eab308 72%,#a16207);
-    box-shadow:0 0 14px rgba(250,204,21,.55), inset 0 2px 3px rgba(255,255,255,.45);
+    background:radial-gradient(circle at 32% 28%,#fef08a,#eab308 58%,#92400e 100%);
+    box-shadow:0 0 12px rgba(250,204,21,.42), inset 0 3px 4px rgba(255,255,255,.55), inset 0 -4px 6px rgba(0,0,0,.4);
+  }
+  .cell.p1::after, .cell.p2::after {
+    content:""; position:absolute; inset:14%; border-radius:50%;
+    border:1.5px solid rgba(255,255,255,.28);
+    background:linear-gradient(145deg,rgba(255,255,255,.28) 0%,transparent 48%);
+    pointer-events:none;
   }
   .cell.last {
-    outline:2.5px solid #fff; outline-offset:-1px;
-    animation:chipDrop .32s cubic-bezier(.22,.9,.36,1) both;
+    outline:2.5px solid rgba(255,255,255,.9); outline-offset:-1px;
+    animation:chipDrop .34s cubic-bezier(.22,.9,.36,1) both;
+  }
+  .cell.win {
+    outline:3px solid #fff; outline-offset:-1px;
+    animation:winPulse 1s ease-in-out infinite;
+    z-index:2;
+  }
+  @keyframes winPulse {
+    0%, 100% { transform:scale(1); box-shadow:0 0 14px rgba(255,255,255,.75), inset 0 3px 4px rgba(255,255,255,.6); }
+    50% { transform:scale(1.08); box-shadow:0 0 26px rgba(255,255,255,.95), inset 0 3px 4px rgba(255,255,255,.8); }
   }
   @keyframes chipDrop {
     0% { transform:translateY(-220%); opacity:.7; }
@@ -70,10 +98,10 @@
 </style>
 </head>
 <body>
-<header class="c4-header">
+<header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
-  <div class="c4-brand-mini" data-i18n="page_title">4 В РЯД</div>
-  <button class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <div class="topbar-title" data-i18n="page_title">🔴 4 В РЯД</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
@@ -126,6 +154,7 @@
 <div id="game" class="hide" style="width:100%;max-width:420px;margin:0 auto">
   <div class="turn" id="turninfo"></div>
   <div class="colnums"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div></div>
+  <div class="ghost-row" id="ghostRow"></div>
   <div class="board" id="board"></div>
   <div id="overbox" class="lobby-card hide" style="margin-top:12px;padding:18px">
     <h2 id="overtext" style="margin:0 0 12px;font-family:var(--display)"></h2>
@@ -256,7 +285,34 @@ function join() {
   if (!c) return alert(t('alert_code'));
   connect(() => send({ action: 'join', name: n, code: c }));
 }
+function findWinCells(board) {
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  const set = new Set();
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 7; c++) {
+      const v = board[r][c];
+      if (!v) continue;
+      for (const [dr, dc] of dirs) {
+        const line = [[r, c]];
+        for (let k = 1; k < 4; k++) {
+          const nr = r + dr * k, nc = c + dc * k;
+          if (nr < 0 || nr >= 6 || nc < 0 || nc >= 7 || board[nr][nc] !== v) break;
+          line.push([nr, nc]);
+        }
+        if (line.length === 4) line.forEach(([rr, cc]) => set.add(rr + ',' + cc));
+      }
+    }
+  }
+  return set;
+}
+function hoverCol(col, on) {
+  const row = document.getElementById('ghostRow');
+  if (!row) return;
+  const chips = row.querySelectorAll('.ghost-chip');
+  chips.forEach((el, idx) => el.classList.toggle('on', on && idx === col && st && st.turn_pid === pid && !st.winner && !st.draw));
+}
 function drop(col) {
+  hoverCol(col, false);
   if (st && st.turn_pid === pid && !st.winner && !st.draw) {
     try { if (navigator.vibrate) navigator.vibrate(12); } catch (_) {}
     send({ action: 'c4_drop', col: col });
@@ -279,13 +335,20 @@ function handle(m) {
     document.getElementById('fullBanner').classList.toggle('hide', m.players.length < 2);
   } else if (m.type === 'c4_state') {
     st = m; show('game');
+    const myIdx = m.players ? m.players.indexOf(pid) : 0;
+    const pCls = myIdx === 1 ? 'p2' : 'p1';
+    let ghostHtml = '';
+    for (let c = 0; c < 7; c++) ghostHtml += '<div class="ghost-slot"><div class="ghost-chip ' + pCls + '"></div></div>';
+    document.getElementById('ghostRow').innerHTML = ghostHtml;
+    const winSet = m.winner ? findWinCells(m.board) : new Set();
     let html = '';
     for (let c = 0; c < 7; c++) {
-      html += '<div class="col" onclick="drop(' + c + ')">';
+      html += '<div class="col" onmouseenter="hoverCol(' + c + ',true)" onmouseleave="hoverCol(' + c + ',false)" ontouchstart="hoverCol(' + c + ',true)" onclick="drop(' + c + ')">';
       for (let r = 0; r < 6; r++) {
         const v = m.board[r][c];
         const last = m.last && m.last[0] === r && m.last[1] === c;
-        html += '<div class="cell ' + (v === 1 ? 'p1' : v === 2 ? 'p2' : '') + (last ? ' last' : '') + '"></div>';
+        const win = winSet.has(r + ',' + c);
+        html += '<div class="cell ' + (v === 1 ? 'p1' : v === 2 ? 'p2' : '') + (last ? ' last' : '') + (win ? ' win' : '') + '"></div>';
       }
       html += '</div>';
     }

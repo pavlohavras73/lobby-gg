@@ -17,7 +17,7 @@
   .game-layout {
     width: 100%; min-height: 100dvh; display: flex; flex-direction: column;
     align-items: center;
-    padding: max(10px, var(--sat)) 12px max(64px, calc(var(--sab) + 56px));
+    padding: max(12px, var(--sat)) max(14px, env(safe-area-inset-right, 0px)) max(64px, calc(var(--sab) + 56px)) max(14px, env(safe-area-inset-left, 0px));
     background: radial-gradient(circle at 50% 35%, rgba(255, 34, 56, 0.14), transparent 60%), var(--bg);
   }
   .durak-header {
@@ -104,13 +104,13 @@
     gap: 10px; flex-wrap: wrap;
   }
   .deck-cluster {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 14px;
   }
   .deck-stack {
-    position: relative; width: 46px; height: 64px; flex-shrink: 0;
+    position: relative; width: 76px; height: 64px; flex-shrink: 0;
   }
   .trump-under {
-    position: absolute; top: 8px; left: 12px; transform: rotate(90deg);
+    position: absolute; top: 4px; left: 24px; transform: rotate(90deg);
     transform-origin: center center; z-index: 1; opacity: 0.95;
   }
   .deck-top {
@@ -203,9 +203,13 @@
     text-align: center; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px;
   }
   .hand-fan {
-    display: flex; justify-content: center; flex-wrap: wrap; gap: 6px;
-    padding-top: 6px;
+    display: flex; flex-wrap: nowrap; justify-content: safe center; align-items: flex-end;
+    overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; padding: 18px 8px 6px; gap: 0;
   }
+  .hand-fan::-webkit-scrollbar { display: none; }
+  .hand-fan .pcard:not(:first-child) { margin-left: -12px; }
+  .hand-fan.few .pcard:not(:first-child) { margin-left: 6px; }
   .hand-fan .pcard:hover { transform: translateY(-6px); }
   .hand-fan .pcard.sel:hover { transform: translateY(-16px) scale(1.06); }
 
@@ -231,9 +235,9 @@
 </head>
 <body>
 <div class="game-layout">
-  <header class="durak-header">
+  <header class="game-topbar">
     <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
-    <div class="durak-brand-mini" data-i18n="mini_brand">ДУРАК</div>
+    <div class="topbar-title" data-i18n="mini_brand">🃏 ДУРАК</div>
     <button id="rulesBtn" class="top-icon-btn" type="button" data-i18n-title="rules_btn">i</button>
   </header>
 
@@ -507,7 +511,9 @@ function onTableClick(idx) {
 function renderHand() {
   if (!st) return;
   const trumpSuit = st.trump_card ? st.trump_card.s : null;
-  document.getElementById('hand').innerHTML = st.hand.map((c, i) => cardHTML(c, sel === i ? 'sel' : '', trumpSuit)).join('');
+  const fan = document.getElementById('hand');
+  fan.classList.toggle('few', st.hand.length <= 4);
+  fan.innerHTML = st.hand.map((c, i) => cardHTML(c, sel === i ? 'sel' : '', trumpSuit)).join('');
   [...document.querySelectorAll('#hand .pcard')].forEach((el, i) => el.onclick = () => onHandCard(i));
 }
 

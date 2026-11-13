@@ -6,8 +6,12 @@
 <title>Lobby.gg — Элиас</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center}
+  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal))}
+  .lobby-card{background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-hi);border-radius:26px;padding:22px 18px;max-width:400px;width:100%;margin:8px auto;text-align:center;box-shadow:var(--inner),var(--shadow-lg),0 0 50px -18px rgba(255,34,56,.22)}
+  .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
   button.ok{background:linear-gradient(135deg,#1fbf4f,#0f7a32)}
   button.ok:hover{box-shadow:0 0 22px rgba(31,191,79,.5)}
   button.skip{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
@@ -24,25 +28,33 @@
   .opt .d{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
 </style>
 <script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
 </head>
 <body>
-<button id="rulesBtn" data-i18n-title="rules_btn" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<header class="game-topbar">
+  <a href="/games/" class="top-back" data-i18n-title="nav_games" data-i18n="nav_games">‹ Игры</a>
+  <div class="topbar-title" data-i18n="title">💬 ЭЛИАС</div>
+  <button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn">i</button>
+</header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💬 Элиас — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Объясни слово команде <b>не называя его</b> и однокоренные. Команда угадывает. Больше угаданных слов за раунд — победа.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" data-i18n-title="nav_games" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games">🎮 Игры</a>
-<h1 data-i18n="title">💬 ЭЛИАС</h1><div class="sub" data-i18n="tagline">объясни слово команде</div>
+<div class="sub" data-i18n="tagline" style="margin-bottom:6px">объясни слово команде</div>
 <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 
-<div id="home" class="card">
-  <input id="name" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
-  <button onclick="create()" data-i18n="btn_create">Создать игру</button>
-  <input id="joincode" placeholder="КОД" maxlength="4" style="text-transform:uppercase" data-i18n-ph="ph_code">
-  <button class="sec" onclick="join()" data-i18n="btn_join">Войти по коду</button>
+<div id="home" class="lobby-card">
+  <input id="name" class="inp" placeholder="Твоё имя" maxlength="20" data-i18n-ph="ph_name">
+  <button class="btn-primary" style="width:100%;margin-top:10px" onclick="create()" data-i18n="btn_create">Создать игру</button>
+  <div class="or-sep" data-i18n="or_code">или</div>
+  <div class="pin-row">
+    <input id="joincode" class="pin-hidden-src" placeholder="КОД" maxlength="4" autocomplete="off" data-i18n-ph="ph_code">
+    <div id="pinBoxes" class="pin-boxes"></div>
+  </div>
+  <button class="sec btn-secondary" style="width:100%;margin-top:10px" onclick="join()" data-i18n="btn_join">Войти по коду</button>
   <div class="sub" style="margin-top:10px"><a href="/games" style="color:#9b9170" data-i18n="all_games">← все игры</a></div>
 </div>
 
-<div id="lobby" class="card hide">
-  <div class="sub" data-i18n="lobby_code">Код игры:</div><div class="code" id="lcode">----</div>
-  <div id="players"></div>
+<div id="lobby" class="lobby-card hide">
+  <div class="sub" data-i18n="lobby_code" style="margin-bottom:8px">Код игры:</div><div class="pin-display" id="lcode"></div>
+  <div id="players" style="margin:12px 0"></div>
   <div id="hostlobby" class="hide">
     <div class="lbl" data-i18n="lbl_wordlang">Язык слов</div>
     <div class="opts" id="langopts">
@@ -106,7 +118,7 @@ const UI={
   uk:{
     rules_title:"💬 Еліас — правила",
     rules_body:"Поясни слово команді <b>не називаючи його</b> та спільнокореневих. Команда вгадує. Більше вгаданих слів за раунд — перемога.",
-    rules_ok:"Зрозуміло 👍", nav_games:"🎮 Ігри", title:"💬 ЕЛІАС", tagline:"поясни слово команді",
+    rules_ok:"Зрозуміло 👍", nav_games:"‹ Ігри", title:"💬 ЕЛІАС", tagline:"поясни слово команді", or_code:"або за кодом",
     ph_name:"Твоє ім'я", btn_create:"Створити гру", ph_code:"КОД", btn_join:"Увійти за кодом", all_games:"← усі ігри",
     lobby_code:"Код гри:", lbl_wordlang:"Мова слів", lbl_diff:"Складність",
     diff_easy:"Легкий", diff_easy_desc:"прості слова", diff_med:"Середній", diff_med_desc:"звичайні", diff_hard:"Складний", diff_hard_desc:"рідкісні, важкі",
@@ -124,7 +136,7 @@ const UI={
   ru:{
     rules_title:"💬 Элиас — правила",
     rules_body:"Объясни слово команде <b>не называя его</b> и однокоренные. Команда угадывает. Больше угаданных слов за раунд — победа.",
-    rules_ok:"Понятно 👍", nav_games:"🎮 Игры", title:"💬 ЭЛИАС", tagline:"объясни слово команде",
+    rules_ok:"Понятно 👍", nav_games:"‹ Игры", title:"💬 ЭЛИАС", tagline:"объясни слово команде", or_code:"или по коду",
     ph_name:"Твоё имя", btn_create:"Создать игру", ph_code:"КОД", btn_join:"Войти по коду", all_games:"← все игры",
     lobby_code:"Код игры:", lbl_wordlang:"Язык слов", lbl_diff:"Сложность",
     diff_easy:"Лёгкий", diff_easy_desc:"простые слова", diff_med:"Средний", diff_med_desc:"обычные", diff_hard:"Сложный", diff_hard_desc:"редкие, трудные",
@@ -142,7 +154,7 @@ const UI={
   en:{
     rules_title:"💬 Alias — rules",
     rules_body:"Explain the word to your team <b>without saying it</b> or its root words. Your team guesses. The team with the most guessed words wins.",
-    rules_ok:"Got it 👍", nav_games:"🎮 Games", title:"💬 ALIAS", tagline:"explain the word to your team",
+    rules_ok:"Got it 👍", nav_games:"‹ Games", title:"💬 ALIAS", tagline:"explain the word to your team", or_code:"or by code",
     ph_name:"Your name", btn_create:"Create game", ph_code:"CODE", btn_join:"Join by code", all_games:"← all games",
     lobby_code:"Game code:", lbl_wordlang:"Word language", lbl_diff:"Difficulty",
     diff_easy:"Easy", diff_easy_desc:"simple words", diff_med:"Medium", diff_med_desc:"standard", diff_hard:"Hard", diff_hard_desc:"rare & tough",
@@ -160,7 +172,7 @@ const UI={
   de:{
     rules_title:"💬 Alias — Regeln",
     rules_body:"Erkläre das Wort deinem Team, <b>ohne es oder Wortstämme zu nennen</b>. Dein Team rät. Das Team mit den meisten erratenen Wörtern gewinnt.",
-    rules_ok:"Verstanden 👍", nav_games:"🎮 Spiele", title:"💬 ALIAS", tagline:"Erkläre das Wort deinem Team",
+    rules_ok:"Verstanden 👍", nav_games:"‹ Spiele", title:"💬 ALIAS", tagline:"Erkläre das Wort deinem Team", or_code:"oder per Code",
     ph_name:"Dein Name", btn_create:"Spiel erstellen", ph_code:"CODE", btn_join:"Mit Code beitreten", all_games:"← Alle Spiele",
     lobby_code:"Spielcode:", lbl_wordlang:"Wortsprache", lbl_diff:"Schwierigkeit",
     diff_easy:"Leicht", diff_easy_desc:"einfache Wörter", diff_med:"Mittel", diff_med_desc:"Standard",
@@ -276,8 +288,16 @@ function handle(m){
     sessionStorage.setItem('jg_alias_code',m.code);
   }
   else if(m.type==='lobby'){
-    show('lobby');document.getElementById('lcode').textContent=m.code;
-    document.getElementById('players').innerHTML=m.players.map(p=>'<div class="pl">'+(p.id===m.host?'👑 ':'👤 ')+p.name+'</div>').join('');
+    show('lobby');
+    const ld=document.getElementById('lcode');
+    if(ld&&window.LobbyUI)ld.innerHTML=LobbyUI.renderCodeDigits(m.code||'');
+    else if(ld)ld.textContent=m.code||'----';
+    document.getElementById('players').innerHTML=m.players.map(p=>{
+      const nm=(window.LobbyI18n?LobbyI18n.T(p.name):p.name);
+      const av=window.LobbyUI?LobbyUI.avatarHtml(nm,String(p.id||'').startsWith('bot_')):'';
+      const tag=p.id===m.host?'<span class="player-tag">👑</span>':'';
+      return '<div class="player-row-item">'+av+'<span style="font-weight:700">'+esc(nm)+'</span>'+tag+'</div>';
+    }).join('');
     isHost=(m.host===pid);
     document.getElementById('hostlobby').classList.toggle('hide',!isHost);
     document.getElementById('waitmsg').classList.toggle('hide',isHost);
@@ -287,13 +307,16 @@ function handle(m){
   else if(m.type==='alias_state'){renderState(m);}
   else if(m.type==='error'){alert(m.msg);}
 }
-applyUI();
-
-const autoCode = sessionStorage.getItem('jg_alias_code');
-if (autoCode) {
-  const jc = document.getElementById('joincode');
-  if (jc) jc.value = autoCode;
-}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
+  const autoCode = sessionStorage.getItem('jg_alias_code');
+  if (autoCode) {
+    const jc = document.getElementById('joincode');
+    if (jc) jc.value = autoCode;
+  }
+  applyUI();
+});
 </script>
 </body>
 </html>
