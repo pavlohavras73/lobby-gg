@@ -1271,7 +1271,7 @@ async def gw_page():
 # Иначе не-залогиненный/друг по коду открывал страницу, WS отбивался 403 → «Связь потеряна».
 _GATED_GAME_PAGES = {"/poker","/spy","/mafia","/bunker","/alias","/durak","/variants",
                      "/guesswho","/uno","/checkers","/chess","/reversi","/dots","/bulls",
-                     "/battleship","/geobunker"}
+                     "/battleship","/geobunker","/geostake"}
 
 @app.middleware("http")
 async def _gate_multiplayer_pages(request: Request, call_next):
@@ -4480,13 +4480,17 @@ async def ws(websocket: WebSocket):
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")
 
 
+@app.get("/geostake")
+async def geostake_page():
+    return FileResponse("/app/static/geostake.html")
+
 @app.get("/geobunker")
 async def geobunker_page():
-    return FileResponse("/app/static/geobunker.html")
+    return RedirectResponse("/games/geostake")
 
 @app.get("/geoguessr")
 async def geoguessr_page():
-    return RedirectResponse("/games/geobunker")
+    return RedirectResponse("/games/geostake")
 
 
 # Jarvis Learn — интерактивный тренажер
@@ -4501,6 +4505,12 @@ try:
     app.include_router(support.router)
 except Exception as e:
     logging.exception(f"Failed to load support module: {e}")
+
+try:
+    import geostake
+    app.include_router(geostake.router)
+except Exception as e:
+    logging.exception(f"Failed to load geostake module: {e}")
 
 # PWA: manifest, service worker и теги «на домашний экран» на всех страницах (см. pwa.py)
 import pwa

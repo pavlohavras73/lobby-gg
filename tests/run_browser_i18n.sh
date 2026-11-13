@@ -14,7 +14,7 @@ for i in $(seq 1 90); do curl -s -o /dev/null http://127.0.0.1:18090/auth/check 
 
 PAGES=("$@")
 if [ ${#PAGES[@]} -eq 0 ]; then
-  PAGES=(alias arrows battleship bulls bunker c4 checkers chess connect4_3d dots durak fifteen g2048 geobunker guesswho index learn mafia mines poker profile quoridor race reversi snake space_invaders spy tetris uno variants wordle)
+  PAGES=(alias arrows battleship bulls bunker c4 checkers chess connect4_3d dots durak fifteen g2048 geostake guesswho index learn mafia mines poker profile quoridor race reversi snake space_invaders spy tetris uno variants wordle)
 fi
 
 cd "$ROOT/tests"

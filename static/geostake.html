@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title data-i18n="page_title">Lobby.gg — Geo$take</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
+<link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/games/static/ui.js"></script>
+<style>
+  :root {
+    --gold: #fbbf24;
+    --emerald: #22c55e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; min-height: 100dvh;
+    background: #07070c; color: var(--text, #f4f4f8);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex; flex-direction: column; align-items: center;
+    padding: max(8px, var(--sat, 0px)) max(10px, var(--sal, 0px)) max(14px, var(--sab, 0px)) max(10px, var(--sar, 0px));
+  }
+  .game-topbar { max-width: 720px; width: 100%; margin-bottom: 6px; z-index: 30; }
+  .brand-dollar { color: var(--emerald); text-shadow: 0 0 12px rgba(34,197,94,.55); }
+
+  /* Compact HUD strip */
+  .geo-hud {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    width: 100%; max-width: 720px; margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .hud-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,.06); border: 1px solid var(--border, rgba(255,255,255,.12));
+    border-radius: 999px; padding: 5px 11px; font-size: 12.5px; font-weight: 800;
+    white-space: nowrap;
+  }
+  .hud-pill.coins { border-color: rgba(251,191,36,.35); color: var(--gold); }
+  .hud-pill.timer { border-color: rgba(255,34,56,.35); font-variant-numeric: tabular-nums; }
+  .hud-pill.timer.warn { background: rgba(255,34,56,.18); color: #ff6b7d; animation: pulseWarn 1s infinite; }
+  @keyframes pulseWarn { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+
+  .langbar {
+    display: flex; gap: 2px; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 999px; padding: 3px;
+    width: max-content;
+  }
+  .langbar button {
+    width: auto; margin: 0; border: 0; background: transparent; color: var(--muted, #9aa);
+    font: inherit; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 999px; cursor: pointer;
+  }
+  .langbar button.active { background: var(--crimson, #e0102e); color: #fff; }
+
+  /* Cards & screens */
+  .screen { display: none; width: 100%; max-width: 720px; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; animation: fadeIn .22s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    width: 100%; background: rgba(18, 18, 24, .88);
+    border: 1px solid var(--border, rgba(255,255,255,.12));
+    border-radius: 20px; padding: 18px 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.55);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 800; letter-spacing: .4px;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(34,197,94,.14); border: 1px solid rgba(34,197,94,.35); color: #86efac;
+    margin-bottom: 8px;
+  }
+  .bet-title { font-size: 20px; font-weight: 900; margin: 0 0 4px; }
+  .bet-sub { font-size: 13px; color: var(--muted, #a1a1aa); margin-bottom: 14px; }
+
+  .bet-display {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .bet-val { font-size: 26px; font-weight: 900; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .bet-chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+  .chip-btn {
+    min-height: 44px; margin: 0; padding: 8px 4px; border-radius: 12px;
+    border: 1px solid var(--border); background: rgba(255,255,255,.05);
+    color: #fff; font-weight: 800; font-size: 13px; cursor: pointer;
+    transition: transform .1s, border-color .15s, background .15s;
+  }
+  .chip-btn:active { transform: scale(.95); }
+  .chip-btn.on { border-color: var(--gold); background: rgba(251,191,36,.16); color: var(--gold); }
+  .bet-range { width: 100%; accent-color: var(--crimson, #e0102e); margin: 4px 0 14px; height: 28px; cursor: pointer; }
+
+  .tiers-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 16px;
+  }
+  .tier-box {
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px; padding: 7px 6px; text-align: center; font-size: 11.5px;
+  }
+  .tier-box .km { color: var(--muted, #a1a1aa); font-weight: 600; }
+  .tier-box .mx { font-size: 14px; font-weight: 900; color: #86efac; margin-top: 2px; }
+
+  .btn-main {
+    width: 100%; min-height: 48px; border: 0; border-radius: 14px;
+    background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
+    font-size: 15.5px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(255,34,56,.35); transition: transform .12s, opacity .15s;
+  }
+  .btn-main:active { transform: scale(.97); }
+  .btn-main:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-ghost {
+    width: 100%; min-height: 44px; margin-top: 8px; border-radius: 12px;
+    border: 1px solid var(--border); background: rgba(255,255,255,.05);
+    color: #fff; font-weight: 800; font-size: 13.5px; cursor: pointer;
+  }
+
+  /* Play screen: Panorama + Drawer Map */
+  #playScreen {
+    position: relative; width: 100%; max-width: 900px;
+    height: calc(100dvh - 116px - var(--sat, 0px) - var(--sab, 0px));
+    min-height: 420px; border-radius: 18px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.12); background: #040407;
+  }
+  #panoWrap { position: relative; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #panoWrap:active { cursor: grabbing; }
+  #panoCanvas { width: 100%; height: 100%; display: block; }
+
+  .pano-loader {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    background: rgba(7,7,12,.82); z-index: 5; font-weight: 700; font-size: 14px;
+  }
+  .pano-loader.hide { display: none; }
+  .spinner {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.15); border-top-color: var(--crimson, #e0102e);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Compass & Zoom controls */
+  .compass-btn {
+    position: absolute; top: 10px; left: 10px; z-index: 6;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(10,10,16,.78); border: 1px solid rgba(255,255,255,.2);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; color: #fff; padding: 0;
+  }
+  .compass-arrow {
+    font-size: 15px; line-height: 1; transition: transform .08s linear; color: #ff4757;
+  }
+  .compass-lbl { font-size: 9px; font-weight: 900; letter-spacing: .4px; color: #cbd5e1; margin-top: 1px; }
+
+  .zoom-stack {
+    position: absolute; top: 10px; right: 10px; z-index: 6;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .zoom-btn {
+    width: 44px; height: 44px; border-radius: 12px; margin: 0; padding: 0;
+    background: rgba(10,10,16,.78); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; font-size: 20px; font-weight: 800; cursor: pointer;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+
+  .pano-hint {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;
+    background: rgba(10,10,16,.72); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 999px; padding: 4px 10px; font-size: 11px; color: #cbd5e1;
+    pointer-events: none; white-space: nowrap; max-width: calc(100% - 126px);
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Map Drawer */
+  .open-map-fab {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 7;
+    min-height: 46px; padding: 10px 20px; border-radius: 999px; border: 0;
+    background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
+    font-weight: 900; font-size: 14px; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 10px 28px rgba(0,0,0,.65), 0 0 20px rgba(255,34,56,.4);
+  }
+  .map-drawer {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 12;
+    height: 64%; min-height: 280px;
+    background: #101018; border-top: 1px solid rgba(255,255,255,.18);
+    border-radius: 18px 18px 0 0;
+    transform: translateY(105%); transition: transform .26s cubic-bezier(.22,1,.36,1);
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 -14px 40px rgba(0,0,0,.75);
+  }
+  .map-drawer.open { transform: translateY(0); }
+  .drawer-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.08);
+    font-size: 13px; font-weight: 800;
+  }
+  .drawer-close {
+    width: auto; flex: none; min-width: 38px; min-height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.06); color: #fff; font-weight: 800; cursor: pointer; padding: 4px 10px; margin: 0;
+  }
+  #guessMap { flex: 1; width: 100%; min-height: 170px; background: #161b26; }
+  .drawer-foot { padding: 8px 10px; background: #101018; border-top: 1px solid rgba(255,255,255,.08); }
+
+  /* Result & Summary */
+  #resultMap { width: 100%; height: 220px; border-radius: 14px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,.12); }
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .res-stat {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px; padding: 9px 6px; text-align: center;
+  }
+  .res-stat .l { font-size: 11px; color: var(--muted, #a1a1aa); }
+  .res-stat .v { font-size: 17px; font-weight: 900; margin-top: 2px; }
+  .attrib-box {
+    font-size: 11.5px; color: #94a3b8; background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+    padding: 8px 10px; margin-bottom: 12px; word-break: break-word;
+  }
+
+  /* Custom Leaflet pins */
+  .geo-pin-guess {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #ff2238; border: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgba(255,34,56,.28), 0 4px 12px rgba(0,0,0,.6);
+  }
+  .geo-pin-ans {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #22c55e; border: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgba(34,197,94,.28), 0 4px 12px rgba(0,0,0,.6);
+  }
+
+  /* Leaderboard modal */
+  .modal-bg {
+    position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,.78);
+    display: none; align-items: center; justify-content: center; padding: 16px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .modal-bg.open { display: flex; }
+  .modal-box {
+    width: 100%; max-width: 420px; max-height: 85dvh; overflow-y: auto;
+    background: #14141c; border: 1px solid rgba(255,255,255,.15);
+    border-radius: 18px; padding: 18px;
+  }
+  .lb-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.04);
+    margin-bottom: 6px; font-size: 13.5px; font-weight: 700;
+  }
+  .lb-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .lb-tab {
+    flex: 1; min-height: 38px; border-radius: 10px; border: 1px solid var(--border);
+    background: rgba(255,255,255,.04); color: var(--muted); font-weight: 800; cursor: pointer;
+  }
+  .lb-tab.on { background: var(--crimson, #e0102e); border-color: transparent; color: #fff; }
+
+  @media (max-width: 360px) {
+    .bet-chips { gap: 4px; }
+    .chip-btn { font-size: 12px; }
+    .hud-pill { padding: 4px 8px; font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="game-topbar">
+  <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
+  <div class="top-title">🌍 Geo<span class="brand-dollar">$</span>take</div>
+  <button id="rulesBtn" type="button" class="top-icon-btn" data-i18n-title="rules_btn" aria-label="Info">i</button>
+</header>
+
+<div class="geo-hud">
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <div class="hud-pill coins">🪙 <span id="hudCoins">—</span></div>
+    <div class="hud-pill"><span data-i18n="round_lbl">Раунд</span> <span id="hudRound">0/5</span></div>
+    <div class="hud-pill timer" id="hudTimer" style="display:none">⏱ 03:00</div>
+  </div>
+  <div class="langbar" id="langbar">
+    <button type="button" data-lang="uk">УКР</button>
+    <button type="button" data-lang="ru">РУС</button>
+    <button type="button" data-lang="en">ENG</button>
+    <button type="button" data-lang="de">DEU</button>
+  </div>
+</div>
+
+<!-- BET SCREEN -->
+<section id="betScreen" class="screen active">
+  <div class="card">
+    <div class="hero-badge" data-i18n="badge_360">360° панорамы · ставки монетами</div>
+    <h1 class="bet-title" data-i18n="bet_title">Сделай ставку на раунд</h1>
+    <div class="bet-sub" data-i18n="bet_sub">Чем точнее метка на карте мира, тем выше множитель.</div>
+
+    <div class="bet-display">
+      <span style="font-size:13px;color:var(--muted);font-weight:700" data-i18n="your_bet">Твоя ставка</span>
+      <span class="bet-val">🪙 <span id="betValue">50</span></span>
+    </div>
+
+    <div class="bet-chips" id="betChips">
+      <button type="button" class="chip-btn" data-amt="10">10</button>
+      <button type="button" class="chip-btn on" data-amt="50">50</button>
+      <button type="button" class="chip-btn" data-amt="100">100</button>
+      <button type="button" class="chip-btn" data-amt="250">250</button>
+      <button type="button" class="chip-btn" data-amt="all" data-i18n="chip_all">Всё</button>
+    </div>
+
+    <input id="betSlider" class="bet-range" type="range" min="10" max="1000" step="10" value="50">
+
+    <div class="tiers-grid">
+      <div class="tier-box"><div class="km">&lt; 1 km</div><div class="mx">×5.0</div></div>
+      <div class="tier-box"><div class="km">&lt; 25 km</div><div class="mx">×3.0</div></div>
+      <div class="tier-box"><div class="km">&lt; 200 km</div><div class="mx">×2.0</div></div>
+      <div class="tier-box"><div class="km">&lt; 750 km</div><div class="mx">×1.0</div></div>
+      <div class="tier-box"><div class="km">&lt; 2000 km</div><div class="mx">×0.5</div></div>
+      <div class="tier-box"><div class="km">&ge; 2000 km</div><div class="mx" style="color:#f87171">×0</div></div>
+    </div>
+
+    <button id="startRoundBtn" type="button" class="btn-main" data-i18n="start_round_btn">🚀 Начать раунд</button>
+    <button id="openLbBtn" type="button" class="btn-ghost" data-i18n="lb_btn">🏆 Лидерборд богачей</button>
+  </div>
+</section>
+
+<!-- PLAY SCREEN -->
+<section id="playScreen" class="screen">
+  <div id="panoWrap">
+    <canvas id="panoCanvas"></canvas>
+    <div id="panoLoader" class="pano-loader">
+      <div class="spinner"></div>
+      <div data-i18n="loading_pano">Загрузка 360° панорамы…</div>
+    </div>
+    <button type="button" class="compass-btn" id="compassBtn" data-i18n-title="compass_tip">
+      <span class="compass-arrow" id="compassArrow">▲</span>
+      <span class="compass-lbl" id="compassLbl">N</span>
+    </button>
+    <div class="pano-hint" data-i18n="pano_hint">Свайп — обзор · Щипок — зум</div>
+    <div class="zoom-stack">
+      <button type="button" class="zoom-btn" id="zoomInBtn">+</button>
+      <button type="button" class="zoom-btn" id="zoomOutBtn">−</button>
+    </div>
+  </div>
+
+  <button type="button" class="open-map-fab" id="openMapBtn" data-i18n="open_map_btn">🗺 Открыть карту</button>
+
+  <div class="map-drawer" id="mapDrawer">
+    <div class="drawer-head">
+      <span data-i18n="map_pick_lbl">Тапни по карте, чтобы поставить метку</span>
+      <button type="button" class="drawer-close" id="closeMapBtn">✕</button>
+    </div>
+    <div id="guessMap"></div>
+    <div class="drawer-foot">
+      <button type="button" class="btn-main" id="confirmGuessBtn" disabled data-i18n="confirm_guess">✓ Подтвердить выбор</button>
+    </div>
+  </div>
+</section>
+
+<!-- ROUND RESULT SCREEN -->
+<section id="resultScreen" class="screen">
+  <div class="card">
+    <div id="resultMap"></div>
+    <div class="res-grid">
+      <div class="res-stat"><div class="l" data-i18n="res_dist">Расстояние</div><div class="v" id="resDist">—</div></div>
+      <div class="res-stat"><div class="l" data-i18n="res_mult">Множитель</div><div class="v" id="resMult" style="color:var(--emerald)">—</div></div>
+      <div class="res-stat"><div class="l" data-i18n="res_payout">Выигрыш</div><div class="v" id="resPayout" style="color:var(--gold)">—</div></div>
+    </div>
+    <div class="attrib-box" id="resAttrib"></div>
+    <button type="button" class="btn-main" id="nextRoundBtn" data-i18n="next_round_btn">Следующий раунд →</button>
+  </div>
+</section>
+
+<!-- SUMMARY SCREEN -->
+<section id="summaryScreen" class="screen">
+  <div class="card" style="text-align:center">
+    <div style="font-size:42px;margin-bottom:4px">🏁</div>
+    <h2 style="margin:0 0 6px;font-size:22px;font-weight:900" data-i18n="summary_title">Игра завершена!</h2>
+    <div class="bet-sub" data-i18n="summary_sub">Итог за 5 раундов Geo$take</div>
+    <div class="res-grid">
+      <div class="res-stat"><div class="l" data-i18n="sum_bet">Поставлено</div><div class="v" id="sumBet">0</div></div>
+      <div class="res-stat"><div class="l" data-i18n="sum_won">Выиграно</div><div class="v" id="sumWon" style="color:var(--gold)">0</div></div>
+      <div class="res-stat"><div class="l" data-i18n="sum_best">Лучший выстрел</div><div class="v" id="sumBest">—</div></div>
+    </div>
+    <button type="button" class="btn-main" id="playAgainBtn" data-i18n="play_again_btn">🔄 Новая игра</button>
+    <button type="button" class="btn-ghost" id="summaryLbBtn" data-i18n="lb_btn">🏆 Лидерборд богачей</button>
+  </div>
+</section>
+
+<!-- RULES MODAL -->
+<div class="modal-bg" id="rulesModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div style="font-size:19px;font-weight:900;margin-bottom:10px" data-i18n="rules_title">🌍 Geo$take — правила</div>
+    <div style="font-size:13.5px;line-height:1.6;color:#d4d4d8" data-i18n="rules_body">
+      Перед каждым из 5 раундов ставь виртуальные монеты. Осмотри 360°-панораму, открой карту и поставь метку. На раунд даётся 3 минуты. Чем ближе к точке — тем больше множитель (до ×5.0)! Если монеты упали ниже 1000 — каждый день начисляется +100 бонусных монет.
+    </div>
+    <button type="button" class="btn-main" style="margin-top:14px" onclick="document.getElementById('rulesModal').classList.remove('open')" data-i18n="rules_ok">Понятно 👍</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD MODAL -->
+<div class="modal-bg" id="lbModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:18px;font-weight:900" data-i18n="lb_title">🏆 Топ Geo$take</div>
+      <button type="button" class="drawer-close" onclick="document.getElementById('lbModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="lb-tabs">
+      <button type="button" class="lb-tab on" data-lb="coins" data-i18n="lb_coins">🪙 Монеты</button>
+      <button type="button" class="lb-tab" data-lb="best" data-i18n="lb_best">🔥 Лучшая игра</button>
+    </div>
+    <div id="lbList"></div>
+  </div>
+</div>
+
+<script>
+const UI = {
+  uk: {
+    page_title: "Lobby.gg — Geo$take",
+    nav_games: "‹ Ігри",
+    rules_btn: "Правила",
+    rules_title: "🌍 Geo$take — правила",
+    rules_body: "Перед кожним із 5 раундів став віртуальні монети. Оглянь 360°-панораму, відкрий карту й постав мітку. На раунд є 3 хвилини. Що ближче до точки — то вищий множник (до ×5.0)! Якщо монет менше 1000 — щодня нараховується +100 бонусних монет.",
+    rules_ok: "Зрозуміло 👍",
+    round_lbl: "Раунд",
+    badge_360: "360° панорами · ставки монетами",
+    bet_title: "Зроби ставку на раунд",
+    bet_sub: "Що точніша мітка на карті світу, то вищий множник.",
+    your_bet: "Твоя ставка",
+    chip_all: "Все",
+    start_round_btn: "🚀 Почати раунд",
+    lb_btn: "🏆 Таблиця лідерів",
+    loading_pano: "Завантаження 360° панорами…",
+    compass_tip: "Скинути напрямок погляду",
+    pano_hint: "Свайп — огляд · Щипок — зум",
+    open_map_btn: "🗺 Відкрити карту",
+    map_pick_lbl: "Тапни по карті, щоб поставити мітку",
+    confirm_guess: "✓ Підтвердити вибір",
+    res_dist: "Відстань",
+    res_mult: "Множник",
+    res_payout: "Виграш",
+    next_round_btn: "Наступний раунд →",
+    finish_btn: "Підсумки гри 🏆",
+    summary_title: "Гру завершено!",
+    summary_sub: "Підсумок за 5 раундів Geo$take",
+    sum_bet: "Поставлено",
+    sum_won: "Виграно",
+    sum_best: "Найкращий постріл",
+    play_again_btn: "🔄 Нова гра",
+    lb_title: "🏆 Топ Geo$take",
+    lb_coins: "🪙 Монети",
+    lb_best: "🔥 Найкраща гра",
+    lb_empty: "Поки немає зіграних ігор.",
+    bonus_daily: "🎁 Щоденний бонус: +100 монет!",
+    bonus_rescue: "🛟 Рятувальний бонус: +200 монет!",
+    timeout_msg: "⏱ Час вийшов — ставка згоріла.",
+    timeup_pin: "⏱ Час вийшов — постав мітку, щоб побачити відповідь.",
+    km_unit: "км",
+    author_lbl: "Автор",
+    license_lbl: "Ліцензія",
+  },
+  ru: {
+    page_title: "Lobby.gg — Geo$take",
+    nav_games: "‹ Игры",
+    rules_btn: "Правила",
+    rules_title: "🌍 Geo$take — правила",
+    rules_body: "Перед каждым из 5 раундов ставь виртуальные монеты. Осмотри 360°-панораму, открой карту и поставь метку. На раунд даётся 3 минуты. Чем ближе к точке — тем больше множитель (до ×5.0)! Если монет меньше 1000 — каждый день начисляется +100 бонусных монет.",
+    rules_ok: "Понятно 👍",
+    round_lbl: "Раунд",
+    badge_360: "360° панорамы · ставки монетами",
+    bet_title: "Сделай ставку на раунд",
+    bet_sub: "Чем точнее метка на карте мира, тем выше множитель.",
+    your_bet: "Твоя ставка",
+    chip_all: "Всё",
+    start_round_btn: "🚀 Начать раунд",
+    lb_btn: "🏆 Лидерборд богачей",
+    loading_pano: "Загрузка 360° панорамы…",
+    compass_tip: "Сбросить направление взгляда",
+    pano_hint: "Свайп — обзор · Щипок — зум",
+    open_map_btn: "🗺 Открыть карту",
+    map_pick_lbl: "Тапни по карте, чтобы поставить метку",
+    confirm_guess: "✓ Подтвердить выбор",
+    res_dist: "Расстояние",
+    res_mult: "Множитель",
+    res_payout: "Выигрыш",
+    next_round_btn: "Следующий раунд →",
+    finish_btn: "Итоги игры 🏆",
+    summary_title: "Игра завершена!",
+    summary_sub: "Итог за 5 раундов Geo$take",
+    sum_bet: "Поставлено",
+    sum_won: "Выиграно",
+    sum_best: "Лучший выстрел",
+    play_again_btn: "🔄 Новая игра",
+    lb_title: "🏆 Топ Geo$take",
+    lb_coins: "🪙 Монеты",
+    lb_best: "🔥 Лучшая игра",
+    lb_empty: "Пока нет сыгранных игр.",
+    bonus_daily: "🎁 Ежедневный бонус: +100 монет!",
+    bonus_rescue: "🛟 Спасательный бонус: +200 монет!",
+    timeout_msg: "⏱ Время вышло — ставка сгорела.",
+    timeup_pin: "⏱ Время вышло — поставь метку, чтобы увидеть ответ.",
+    km_unit: "км",
+    author_lbl: "Автор",
+    license_lbl: "Лицензия",
+  },
+  en: {
+    page_title: "Lobby.gg — Geo$take",
+    nav_games: "‹ Games",
+    rules_btn: "Rules",
+    rules_title: "🌍 Geo$take — Rules",
+    rules_body: "Bet virtual coins before each of the 5 rounds. Look around the 360° panorama, open the map, and drop your pin within 3 minutes. Closer guesses pay higher multipliers (up to ×5.0). Below 1000 coins you get +100 daily bonus coins.",
+    rules_ok: "Got it 👍",
+    round_lbl: "Round",
+    badge_360: "360° panoramas · coin stakes",
+    bet_title: "Place your round stake",
+    bet_sub: "The closer your pin is on the world map, the higher your multiplier.",
+    your_bet: "Your stake",
+    chip_all: "All",
+    start_round_btn: "🚀 Start round",
+    lb_btn: "🏆 Leaderboard",
+    loading_pano: "Loading 360° panorama…",
+    compass_tip: "Reset view heading",
+    pano_hint: "Drag to look · Pinch to zoom",
+    open_map_btn: "🗺 Open map",
+    map_pick_lbl: "Tap the map to place your pin",
+    confirm_guess: "✓ Confirm guess",
+    res_dist: "Distance",
+    res_mult: "Multiplier",
+    res_payout: "Payout",
+    next_round_btn: "Next round →",
+    finish_btn: "Final summary 🏆",
+    summary_title: "Game complete!",
+    summary_sub: "5-round Geo$take summary",
+    sum_bet: "Total staked",
+    sum_won: "Total won",
+    sum_best: "Closest guess",
+    play_again_btn: "🔄 Play again",
+    lb_title: "🏆 Geo$take Top",
+    lb_coins: "🪙 Coins",
+    lb_best: "🔥 Best game",
+    lb_empty: "No completed games yet.",
+    bonus_daily: "🎁 Daily bonus: +100 coins!",
+    bonus_rescue: "🛟 Rescue bonus: +200 coins!",
+    timeout_msg: "⏱ Time is up — stake lost.",
+    timeup_pin: "⏱ Time is up — drop a pin to see the answer.",
+    km_unit: "km",
+    author_lbl: "Author",
+    license_lbl: "License",
+  },
+  de: {
+    page_title: "Lobby.gg — Geo$take",
+    nav_games: "‹ Spiele",
+    rules_btn: "Regeln",
+    rules_title: "🌍 Geo$take — Regeln",
+    rules_body: "Setze vor jeder der 5 Runden virtuelle Münzen. Schau dich im 360°-Panorama um, öffne die Karte und setze deinen Pin innerhalb von 3 Minuten. Je näher du dran bist, desto höher dein Multiplikator (bis ×5.0). Unter 1000 Münzen gibt es täglich +100 Bonusmünzen.",
+    rules_ok: "Verstanden 👍",
+    round_lbl: "Runde",
+    badge_360: "360°-Panoramen · Münzeinsätze",
+    bet_title: "Wähle deinen Rundeneinsatz",
+    bet_sub: "Je genauer dein Pin auf der Weltkarte liegt, desto höher der Multiplikator.",
+    your_bet: "Dein Einsatz",
+    chip_all: "Alles",
+    start_round_btn: "🚀 Runde starten",
+    lb_btn: "🏆 Bestenliste",
+    loading_pano: "360°-Panorama wird geladen…",
+    compass_tip: "Blickrichtung zurücksetzen",
+    pano_hint: "Ziehen — umschauen · Pinch — zoomen",
+    open_map_btn: "🗺 Karte öffnen",
+    map_pick_lbl: "Tippe auf die Karte für deinen Pin",
+    confirm_guess: "✓ Tipp bestätigen",
+    res_dist: "Entfernung",
+    res_mult: "Multiplikator",
+    res_payout: "Gewinn",
+    next_round_btn: "Nächste Runde →",
+    finish_btn: "Endergebnis 🏆",
+    summary_title: "Spiel beendet!",
+    summary_sub: "Dein Ergebnis aus 5 Runden Geo$take",
+    sum_bet: "Eingesetzt",
+    sum_won: "Gewonnen",
+    sum_best: "Bester Tipp",
+    play_again_btn: "🔄 Neues Spiel",
+    lb_title: "🏆 Geo$take Top",
+    lb_coins: "🪙 Münzen",
+    lb_best: "🔥 Bestes Spiel",
+    lb_empty: "Noch keine abgeschlossenen Spiele.",
+    bonus_daily: "🎁 Tagesbonus: +100 Münzen!",
+    bonus_rescue: "🛟 Rettungsbonus: +200 Münzen!",
+    timeout_msg: "⏱ Zeit abgelaufen — Einsatz verloren.",
+    timeup_pin: "⏱ Zeit abgelaufen — setze eine Markierung, um die Lösung zu sehen.",
+    km_unit: "km",
+    author_lbl: "Autor",
+    license_lbl: "Lizenz",
+  }
+};
+
+let LANG = localStorage.getItem('jg_lang');
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { return (UI[LANG] && UI[LANG][k]) || UI.ru[k] || k; }
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+
+const esc = s => (window.LobbyUI ? LobbyUI.esc(s) : String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
+function toast(msg, type='info') {
+  if (window.LobbyUI && LobbyUI.toast) LobbyUI.toast(msg, type);
+}
+
+const state = {
+  coins: 1000,
+  minBet: 10,
+  bet: 50,
+  gameId: null,
+  roundId: null,
+  roundNum: 0,
+  roundsTotal: 5,
+  heading: 0,
+  expiresAt: 0,
+  timerInt: null,
+  guessLat: null,
+  guessLng: null,
+  guessMap: null,
+  guessMarker: null,
+  resultMap: null,
+  lbMode: 'coins',
+  lbData: null,
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+}
+
+function updateHud() {
+  document.getElementById('hudCoins').textContent = state.coins;
+  document.getElementById('hudRound').textContent = `${state.roundNum}/${state.roundsTotal}`;
+}
+
+function syncBet(val) {
+  const maxB = Math.max(state.minBet, state.coins);
+  const clamped = Math.max(state.minBet, Math.min(maxB, Math.round(val / 10) * 10 || state.minBet));
+  state.bet = Math.min(clamped, state.coins || state.minBet);
+  document.getElementById('betValue').textContent = state.bet;
+  const slider = document.getElementById('betSlider');
+  slider.min = state.minBet;
+  slider.max = maxB;
+  slider.value = state.bet;
+  document.getElementById('startRoundBtn').disabled = state.coins < state.minBet;
+}
+
+async function apiJson(url, opts = {}) {
+  const res = await fetch(url, { credentials: 'include', ...opts });
+  if (res.status === 401) {
+    location.href = '/games/login';
+    throw new Error('auth_required');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+  return data;
+}
+
+async function initGame() {
+  try {
+    const w = await apiJson('/games/api/geo/wallet');
+    state.coins = w.coins;
+    state.minBet = w.min_bet || 10;
+    state.roundsTotal = w.rounds_per_game || 5;
+    if (w.bonus_given > 0) {
+      toast(w.bonus_type === 'rescue' ? t('bonus_rescue') : t('bonus_daily'), 'ok');
+    }
+    const st = await apiJson('/games/api/geo/start', { method: 'POST' });
+    state.gameId = st.game_id;
+    state.roundNum = 0;
+    updateHud();
+    syncBet(Math.min(50, state.coins));
+    showScreen('betScreen');
+  } catch (e) {
+    if (e.message !== 'auth_required') toast(e.message, 'err');
+  }
+}
+
+function startTimer(expiresAt) {
+  clearInterval(state.timerInt);
+  const el = document.getElementById('hudTimer');
+  el.style.display = 'inline-flex';
+  const tick = () => {
+    const rem = Math.max(0, Math.ceil(expiresAt - Date.now() / 1000));
+    const m = String(Math.floor(rem / 60)).padStart(2, '0');
+    const s = String(rem % 60).padStart(2, '0');
+    el.textContent = `⏱ ${m}:${s}`;
+    el.classList.toggle('warn', rem <= 25);
+    if (rem <= 0) { clearInterval(state.timerInt); onTimeUp(); }
+  };
+  tick();
+  state.timerInt = setInterval(tick, 500);
+}
+
+// Время вышло: метка стоит → отправляем её; нет → открываем карту и просим поставить метку, чтобы увидеть ответ.
+function onTimeUp() {
+  if (!state.roundId || !document.getElementById('playScreen').classList.contains('active')) return;
+  if (state.guessLat != null) { submitGuess(); return; }
+  document.getElementById('mapDrawer').classList.add('open');
+  ensureGuessMap();
+  toast(t('timeup_pin'), 'err');
+}
+
+function stopTimer() {
+  clearInterval(state.timerInt);
+  document.getElementById('hudTimer').style.display = 'none';
+}
+
+function ensureGuessMap() {
+  if (!state.guessMap) {
+    state.guessMap = L.map('guessMap', { worldCopyJump: true, zoomControl: false }).setView([20, 10], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(state.guessMap);
+    state.guessMap.on('click', e => {
+      state.guessLat = e.latlng.lat;
+      state.guessLng = e.latlng.lng;
+      const icon = L.divIcon({ className: 'geo-pin-guess', iconSize: [24, 24], iconAnchor: [12, 12] });
+      if (state.guessMarker) state.guessMarker.setLatLng(e.latlng);
+      else state.guessMarker = L.marker(e.latlng, { icon }).addTo(state.guessMap);
+      document.getElementById('confirmGuessBtn').disabled = false;
+      try { navigator.vibrate?.(10); } catch (_) {}
+    });
+  }
+  setTimeout(() => state.guessMap.invalidateSize(), 260);
+}
+
+async function startRound() {
+  const btn = document.getElementById('startRoundBtn');
+  btn.disabled = true;
+  try {
+    const rd = await apiJson('/games/api/geo/round', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game_id: state.gameId, bet: state.bet })
+    });
+    state.roundId = rd.round_id;
+    state.roundNum = rd.round_num;
+    state.coins = rd.coins;
+    state.heading = rd.heading || 0;
+    state.guessLat = null;
+    state.guessLng = null;
+    if (state.guessMarker && state.guessMap) {
+      state.guessMap.removeLayer(state.guessMarker);
+      state.guessMarker = null;
+    }
+    document.getElementById('confirmGuessBtn').disabled = true;
+    document.getElementById('mapDrawer').classList.remove('open');
+    updateHud();
+    startTimer(rd.expires_at);
+    showScreen('playScreen');
+    if (window.loadGeoPanorama) {
+      window.loadGeoPanorama(rd.img_url, state.heading);
+    }
+  } catch (e) {
+    toast(e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function submitGuess() {
+  if (state.guessLat == null || !state.roundId) return;
+  const btn = document.getElementById('confirmGuessBtn');
+  btn.disabled = true;
+  stopTimer();
+  try {
+    const res = await apiJson('/games/api/geo/guess', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ round_id: state.roundId, lat: state.guessLat, lng: state.guessLng })
+    });
+    state.coins = res.coins;
+    updateHud();
+    renderRoundResult(res);
+  } catch (e) {
+    toast(e.message, 'err');
+    btn.disabled = false;
+  }
+}
+
+function renderRoundResult(res) {
+  showScreen('resultScreen');
+  if (res.timed_out) toast(t('timeout_msg'), 'err');
+  document.getElementById('resDist').textContent = `${res.distance_km} ${t('km_unit')}`;
+  document.getElementById('resMult').textContent = `×${res.multiplier}`;
+  document.getElementById('resPayout').textContent = `+${res.payout} 🪙`;
+
+  const attr = res.attribution || {};
+  document.getElementById('resAttrib').innerHTML =
+    `${esc(t('author_lbl'))}: <b>${esc(attr.author)}</b> · ${esc(t('license_lbl'))}: <b>${esc(attr.license)}</b> (${esc(attr.source)} ${esc(attr.captured_at)})`;
+
+  const nextBtn = document.getElementById('nextRoundBtn');
+  if (res.game_over) {
+    nextBtn.textContent = t('finish_btn');
+    nextBtn.onclick = () => showSummary(res.game_summary);
+  } else {
+    nextBtn.textContent = t('next_round_btn');
+    nextBtn.onclick = () => {
+      syncBet(Math.min(state.bet, state.coins || state.minBet));
+      showScreen('betScreen');
+    };
+  }
+
+  if (res.multiplier >= 3 && window.LobbyUI?.confetti) {
+    LobbyUI.confetti();
+  }
+
+  setTimeout(() => {
+    if (!state.resultMap) {
+      state.resultMap = L.map('resultMap', { zoomControl: false, attributionControl: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18, attribution: '&copy; OpenStreetMap'
+      }).addTo(state.resultMap);
+    }
+    state.resultMap.eachLayer(l => { if (!(l instanceof L.TileLayer)) state.resultMap.removeLayer(l); });
+    const gPt = [state.guessLat, state.guessLng];
+    const aPt = [res.answer.lat, res.answer.lng];
+    L.marker(gPt, { icon: L.divIcon({ className: 'geo-pin-guess', iconSize: [24,24], iconAnchor: [12,12] }) }).addTo(state.resultMap);
+    L.marker(aPt, { icon: L.divIcon({ className: 'geo-pin-ans', iconSize: [24,24], iconAnchor: [12,12] }) }).addTo(state.resultMap);
+    L.polyline([gPt, aPt], { color: '#fbbf24', weight: 3, dashArray: '8 8' }).addTo(state.resultMap);
+    state.resultMap.invalidateSize();
+    state.resultMap.fitBounds(L.latLngBounds([gPt, aPt]), { padding: [36, 36], maxZoom: 12 });
+  }, 80);
+}
+
+function showSummary(sum) {
+  showScreen('summaryScreen');
+  if (sum) {
+    document.getElementById('sumBet').textContent = `🪙 ${sum.total_bet}`;
+    document.getElementById('sumWon').textContent = `🪙 ${sum.total_won}`;
+    document.getElementById('sumBest').textContent = sum.best_dist_km != null ? `${sum.best_dist_km} ${t('km_unit')}` : '—';
+    if (sum.net_profit > 0 && window.LobbyUI?.confetti) LobbyUI.confetti();
+  }
+}
+
+async function openLeaderboard() {
+  document.getElementById('lbModal').classList.add('open');
+  try {
+    state.lbData = await apiJson('/games/api/geo/leaderboard');
+    renderLeaderboard();
+  } catch (e) {
+    if (e.message !== 'auth_required') toast(e.message, 'err');
+  }
+}
+
+function renderLeaderboard() {
+  const box = document.getElementById('lbList');
+  const rows = state.lbData ? (state.lbMode === 'coins' ? state.lbData.top_coins : state.lbData.top_best) : [];
+  if (!rows.length) {
+    box.innerHTML = `<div style="text-align:center;color:var(--muted);padding:16px">${esc(t('lb_empty'))}</div>`;
+    return;
+  }
+  box.innerHTML = rows.map((r, i) => `
+    <div class="lb-row">
+      <span>${i + 1}. ${esc(r.username)}</span>
+      <span style="color:var(--gold)">${state.lbMode === 'coins' ? '🪙 ' + r.coins : '🔥 ' + r.best_game}</span>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyUI();
+
+  document.getElementById('langbar').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LANG = b.dataset.lang;
+    localStorage.setItem('jg_lang', LANG);
+    applyUI();
+  });
+
+  document.getElementById('rulesBtn').onclick = () => document.getElementById('rulesModal').classList.add('open');
+  document.getElementById('openLbBtn').onclick = openLeaderboard;
+  document.getElementById('summaryLbBtn').onclick = openLeaderboard;
+  document.querySelectorAll('.lb-tab').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.lb-tab').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    state.lbMode = b.dataset.lb;
+    renderLeaderboard();
+  });
+
+  document.getElementById('betChips').addEventListener('click', e => {
+    const b = e.target.closest('.chip-btn');
+    if (!b) return;
+    document.querySelectorAll('.chip-btn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    syncBet(b.dataset.amt === 'all' ? state.coins : Number(b.dataset.amt));
+  });
+  document.getElementById('betSlider').addEventListener('input', e => syncBet(Number(e.target.value)));
+
+  document.getElementById('startRoundBtn').onclick = startRound;
+  document.getElementById('openMapBtn').onclick = () => {
+    document.getElementById('mapDrawer').classList.add('open');
+    ensureGuessMap();
+  };
+  document.getElementById('closeMapBtn').onclick = () => document.getElementById('mapDrawer').classList.remove('open');
+  document.getElementById('confirmGuessBtn').onclick = submitGuess;
+  document.getElementById('playAgainBtn').onclick = initGame;
+
+  initGame();
+});
+</script>
+
+<!-- Three.js 360° Equirectangular Viewer with inertia, pinch-zoom & live compass -->
+<script>
+let THREE = null;
+const threeReady = import('three').then(m => { THREE = m; }).catch(() => {});
+
+const wrap = document.getElementById('panoWrap');
+const canvas = document.getElementById('panoCanvas');
+const loader = document.getElementById('panoLoader');
+const compassArrow = document.getElementById('compassArrow');
+const compassLbl = document.getElementById('compassLbl');
+
+let renderer, scene, camera, sphereMat, currentTex = null;
+let lon = 0, lat = 0, fov = 75, baseHeading = 0;
+let vx = 0, vy = 0, dragging = false, lastX = 0, lastY = 0, pinchDist = 0;
+
+function initThree() {
+  if (renderer) return;
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 1100);
+  const geo = new THREE.SphereGeometry(500, 60, 40);
+  geo.scale(-1, 1, 1);
+  sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  scene.add(new THREE.Mesh(geo, sphereMat));
+  resize();
+  window.addEventListener('resize', resize);
+  animate();
+}
+
+function resize() {
+  if (!renderer) return;
+  const w = wrap.clientWidth || 320, h = wrap.clientHeight || 400;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+
+function updateCompass() {
+  const deg = ((baseHeading + lon) % 360 + 360) % 360;
+  compassArrow.style.transform = `rotate(${-deg}deg)`;
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  compassLbl.textContent = dirs[Math.round(deg / 45) % 8];
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (!dragging) {
+    lon += vx;
+    lat = Math.max(-85, Math.min(85, lat + vy));
+    vx *= 0.92;
+    vy *= 0.92;
+    if (Math.abs(vx) < 0.005) vx = 0;
+    if (Math.abs(vy) < 0.005) vy = 0;
+  }
+  const phi = THREE.MathUtils.degToRad(90 - lat);
+  const theta = THREE.MathUtils.degToRad(lon);
+  camera.lookAt(
+    500 * Math.sin(phi) * Math.cos(theta),
+    500 * Math.cos(phi),
+    500 * Math.sin(phi) * Math.sin(theta)
+  );
+  updateCompass();
+  renderer.render(scene, camera);
+}
+
+function setFov(next) {
+  fov = Math.max(35, Math.min(100, next));
+  if (camera) { camera.fov = fov; camera.updateProjectionMatrix(); }
+}
+
+wrap.addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  dragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  vx = 0; vy = 0;
+});
+window.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  const sens = fov / 420;
+  vx = -dx * sens;
+  vy = dy * sens;
+  lon += vx;
+  lat = Math.max(-85, Math.min(85, lat + vy));
+});
+window.addEventListener('pointerup', () => { dragging = false; });
+
+wrap.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    dragging = false;
+    pinchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
+}, { passive: true });
+wrap.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && pinchDist > 0) {
+    const d = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    setFov(fov - (d - pinchDist) * 0.14);
+    pinchDist = d;
+  }
+}, { passive: true });
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  setFov(fov + e.deltaY * 0.05);
+}, { passive: false });
+
+document.getElementById('zoomInBtn').onclick = () => setFov(fov - 12);
+document.getElementById('zoomOutBtn').onclick = () => setFov(fov + 12);
+document.getElementById('compassBtn').onclick = () => { lon = 0; lat = 0; vx = 0; vy = 0; };
+
+window.loadGeoPanorama = async function(url, heading) {
+  await threeReady;
+  if (!THREE) { loader.classList.add('hide'); return; }
+  initThree();
+  baseHeading = Number(heading) || 0;
+  lon = 0; lat = 0; vx = 0; vy = 0; setFov(75);
+  loader.classList.remove('hide');
+  const tl = new THREE.TextureLoader();
+  tl.setCrossOrigin('anonymous');
+  tl.load(url, tex => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    if (currentTex) currentTex.dispose();
+    currentTex = tex;
+    sphereMat.map = tex;
+    sphereMat.needsUpdate = true;
+    resize();
+    loader.classList.add('hide');
+  }, undefined, () => {
+    loader.classList.add('hide');
+  });
+};
+</script>
+<script src="/games/static/sfx.js"></script>
+</body>
+</html>

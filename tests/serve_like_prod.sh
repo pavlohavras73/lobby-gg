@@ -5,6 +5,7 @@ PORT="${1:-18098}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 T="$(mktemp -d)"; mkdir -p "$T/data"
 cp -r "$ROOT"/*.py "$ROOT/static" "$ROOT/tests/caddy_like.py" "$T/"
+[ -f "$ROOT/geo_pool.json" ] && cp "$ROOT/geo_pool.json" "$T/"   # пул Geo$take лежит рядом с кодом, как /app/geo_pool.json на проде
 sed -i "s#/app/static#$T/static#g; s#\"/data/#\"$T/data/#g; s#'/data/#'$T/data/#g" "$T"/*.py
 (cd "$T" && exec uv run -q --offline --python 3.11 --with fastapi==0.141.1 --with 'uvicorn[standard]==0.53.0' --with websockets \
    uvicorn caddy_like:app --host 127.0.0.1 --port "$PORT" > "$T/server.log" 2>&1) &

@@ -317,7 +317,7 @@
     mines: 'Minesweeper', tetris: 'Tetris', race: 'Race', c4: 'Connect 4', chess: 'Chess',
     checkers: 'Checkers', battleship: 'Battleship', poker: 'Poker', reversi: 'Reversi',
     dots: 'Dots', bulls: 'Bulls & Cows', guesswho: 'Guess Who', quoridor: 'Quoridor',
-    geobunker: 'GeoBunker', variants: 'Variants', space_invaders: 'Shuttle Cruiser'
+    geostake: 'Geo$take', geobunker: 'Geo$take', variants: 'Variants', space_invaders: 'Shuttle Cruiser'
   };
 
   function gName(g) {

@@ -11,7 +11,7 @@ from browser_reconnect import BASE, CHROMIUM, register
 from playwright.sync_api import sync_playwright
 
 ALL = ("index profile leaderboard learn alias arrows battleship bulls bunker c4 c4_3d checkers chess dots durak "
-       "fifteen g2048 geobunker guesswho mafia mines poker quoridor race reversi snake space_invaders spy tetris uno "
+       "fifteen g2048 geostake guesswho mafia mines poker quoridor race reversi snake space_invaders spy tetris uno "
        "variants wordle").split()
 LANG = os.environ.get("LOBBY_LANG", "de")
 SHOTS = os.environ.get("SHOTS", "qa_shots")
