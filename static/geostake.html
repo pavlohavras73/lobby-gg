@@ -453,6 +453,17 @@ const UI = {
     bonus_rescue: "🛟 Рятувальний бонус: +200 монет!",
     timeout_msg: "⏱ Час вийшов — ставка згоріла.",
     timeup_pin: "⏱ Час вийшов — постав мітку, щоб побачити відповідь.",
+    round_resumed: "🔄 Продовжуємо незавершений раунд!",
+    err_insufficient_coins: "Недостатньо монет для ставки.",
+    err_round_in_progress: "Спочатку заверши поточний раунд.",
+    err_round_not_found: "Раунд не знайдено або він закінчився.",
+    err_already_guessed: "Відповідь уже зарахована.",
+    err_invalid_bet: "Некоректна сума ставки.",
+    err_invalid_coords: "Некоректні координати на карті.",
+    err_empty_pool: "Пул панорам тимчасово недоступний.",
+    err_game_not_found: "Гру не знайдено.",
+    err_game_finished: "Ця гра вже завершена.",
+    err_upstream: "Не вдалося завантажити панораму.",
     km_unit: "км",
     author_lbl: "Автор",
     license_lbl: "Ліцензія",
@@ -497,6 +508,17 @@ const UI = {
     bonus_rescue: "🛟 Спасательный бонус: +200 монет!",
     timeout_msg: "⏱ Время вышло — ставка сгорела.",
     timeup_pin: "⏱ Время вышло — поставь метку, чтобы увидеть ответ.",
+    round_resumed: "🔄 Продолжаем незаконченный раунд!",
+    err_insufficient_coins: "Недостаточно монет для ставки.",
+    err_round_in_progress: "Сначала заверши текущий раунд.",
+    err_round_not_found: "Раунд не найден или уже истёк.",
+    err_already_guessed: "Ответ уже засчитан.",
+    err_invalid_bet: "Некорректная сумма ставки.",
+    err_invalid_coords: "Некорректные координаты на карте.",
+    err_empty_pool: "Пул панорам временно недоступен.",
+    err_game_not_found: "Игра не найдена.",
+    err_game_finished: "Эта игра уже завершена.",
+    err_upstream: "Не удалось загрузить панораму.",
     km_unit: "км",
     author_lbl: "Автор",
     license_lbl: "Лицензия",
@@ -541,6 +563,17 @@ const UI = {
     bonus_rescue: "🛟 Rescue bonus: +200 coins!",
     timeout_msg: "⏱ Time is up — stake lost.",
     timeup_pin: "⏱ Time is up — drop a pin to see the answer.",
+    round_resumed: "🔄 Resuming your active round!",
+    err_insufficient_coins: "Not enough coins for this bet.",
+    err_round_in_progress: "Finish the current round first.",
+    err_round_not_found: "Round not found or expired.",
+    err_already_guessed: "Guess already submitted.",
+    err_invalid_bet: "Invalid bet amount.",
+    err_invalid_coords: "Invalid map coordinates.",
+    err_empty_pool: "Panorama pool is temporarily empty.",
+    err_game_not_found: "Game not found.",
+    err_game_finished: "This game is already finished.",
+    err_upstream: "Failed to load panorama.",
     km_unit: "km",
     author_lbl: "Author",
     license_lbl: "License",
@@ -585,6 +618,17 @@ const UI = {
     bonus_rescue: "🛟 Rettungsbonus: +200 Münzen!",
     timeout_msg: "⏱ Zeit abgelaufen — Einsatz verloren.",
     timeup_pin: "⏱ Zeit abgelaufen — setze eine Markierung, um die Lösung zu sehen.",
+    round_resumed: "🔄 Laufende Runde wird fortgesetzt!",
+    err_insufficient_coins: "Nicht genug Münzen für diesen Einsatz.",
+    err_round_in_progress: "Beende zuerst die aktuelle Runde.",
+    err_round_not_found: "Runde nicht gefunden oder abgelaufen.",
+    err_already_guessed: "Tipp wurde bereits abgegeben.",
+    err_invalid_bet: "Ungültiger Einsatz.",
+    err_invalid_coords: "Ungültige Kartenkoordinaten.",
+    err_empty_pool: "Panorama-Pool ist vorübergehend leer.",
+    err_game_not_found: "Spiel nicht gefunden.",
+    err_game_finished: "Dieses Spiel ist bereits beendet.",
+    err_upstream: "Panorama konnte nicht geladen werden.",
     km_unit: "km",
     author_lbl: "Autor",
     license_lbl: "Lizenz",
@@ -652,6 +696,28 @@ function syncBet(val) {
   document.getElementById('startRoundBtn').disabled = state.coins < state.minBet;
 }
 
+const ERR_MAP = {
+  insufficient_coins: 'err_insufficient_coins',
+  round_in_progress: 'err_round_in_progress',
+  round_not_found: 'err_round_not_found',
+  already_guessed: 'err_already_guessed',
+  invalid_bet: 'err_invalid_bet',
+  invalid_coords: 'err_invalid_coords',
+  coords_out_of_range: 'err_invalid_coords',
+  game_not_found: 'err_game_not_found',
+  game_finished: 'err_game_finished',
+  'Geo panorama pool is empty': 'err_empty_pool',
+  'Panorama not found upstream': 'err_upstream',
+  'Empty panorama image URL': 'err_upstream',
+  'Panorama image too large': 'err_upstream',
+  'Mapillary token unavailable': 'err_upstream',
+};
+
+function translateErr(detail) {
+  const key = ERR_MAP[String(detail || '')];
+  return key ? t(key) : String(detail || 'Error');
+}
+
 async function apiJson(url, opts = {}) {
   const res = await fetch(url, { credentials: 'include', ...opts });
   if (res.status === 401) {
@@ -659,7 +725,7 @@ async function apiJson(url, opts = {}) {
     throw new Error('auth_required');
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+  if (!res.ok) throw new Error(translateErr(data.detail || `HTTP ${res.status}`));
   return data;
 }
 
@@ -671,6 +737,33 @@ async function initGame() {
     state.roundsTotal = w.rounds_per_game || 5;
     if (w.bonus_given > 0) {
       toast(w.bonus_type === 'rescue' ? t('bonus_rescue') : t('bonus_daily'), 'ok');
+    }
+    const act = await apiJson('/games/api/geo/active').catch(() => ({ active: null }));
+    if (act && act.active) {
+      const rd = act.active;
+      state.gameId = rd.game_id;
+      state.roundId = rd.round_id;
+      state.roundNum = rd.round_num;
+      state.roundsTotal = rd.rounds_total || state.roundsTotal;
+      state.bet = rd.bet;
+      state.coins = rd.coins ?? state.coins;
+      state.heading = rd.heading || 0;
+      state.guessLat = null;
+      state.guessLng = null;
+      if (state.guessMarker && state.guessMap) {
+        state.guessMap.removeLayer(state.guessMarker);
+        state.guessMarker = null;
+      }
+      document.getElementById('confirmGuessBtn').disabled = true;
+      document.getElementById('mapDrawer').classList.remove('open');
+      updateHud();
+      startTimer(Date.now() / 1000 + (rd.remaining_sec || 60));
+      showScreen('playScreen');
+      if (window.loadGeoPanorama) {
+        window.loadGeoPanorama(rd.img_url, state.heading);
+      }
+      toast(t('round_resumed'), 'ok');
+      return;
     }
     const st = await apiJson('/games/api/geo/start', { method: 'POST' });
     state.gameId = st.game_id;
@@ -1028,9 +1121,11 @@ document.getElementById('zoomInBtn').onclick = () => setFov(fov - 12);
 document.getElementById('zoomOutBtn').onclick = () => setFov(fov + 12);
 document.getElementById('compassBtn').onclick = () => { lon = 0; lat = 0; vx = 0; vy = 0; };
 
+let panoLoadGen = 0;
 window.loadGeoPanorama = async function(url, heading) {
+  const gen = ++panoLoadGen;
   await threeReady;
-  if (!THREE) { loader.classList.add('hide'); return; }
+  if (!THREE || gen !== panoLoadGen) { loader.classList.add('hide'); return; }
   initThree();
   baseHeading = Number(heading) || 0;
   lon = 0; lat = 0; vx = 0; vy = 0; setFov(75);
@@ -1038,6 +1133,7 @@ window.loadGeoPanorama = async function(url, heading) {
   const tl = new THREE.TextureLoader();
   tl.setCrossOrigin('anonymous');
   tl.load(url, tex => {
+    if (gen !== panoLoadGen) { tex.dispose(); return; }
     tex.colorSpace = THREE.SRGBColorSpace;
     if (currentTex) currentTex.dispose();
     currentTex = tex;
@@ -1045,8 +1141,21 @@ window.loadGeoPanorama = async function(url, heading) {
     sphereMat.needsUpdate = true;
     resize();
     loader.classList.add('hide');
+    // Фоновая догрузка HD (~4096px), только если GPU держит текстуры >= 4096
+    const maxTex = renderer && renderer.capabilities ? (renderer.capabilities.maxTextureSize || 0) : 0;
+    if (maxTex >= 4096 && !String(url).includes('hd=1')) {
+      const hdUrl = url + (String(url).includes('?') ? '&' : '?') + 'hd=1';
+      tl.load(hdUrl, hdTex => {
+        if (gen !== panoLoadGen) { hdTex.dispose(); return; }
+        hdTex.colorSpace = THREE.SRGBColorSpace;
+        if (currentTex) currentTex.dispose();
+        currentTex = hdTex;
+        sphereMat.map = hdTex;
+        sphereMat.needsUpdate = true;
+      });
+    }
   }, undefined, () => {
-    loader.classList.add('hide');
+    if (gen === panoLoadGen) loader.classList.add('hide');
   });
 };
 </script>

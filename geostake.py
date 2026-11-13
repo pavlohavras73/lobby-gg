@@ -48,6 +48,16 @@ _GAMES: dict[str, dict[str, Any]] = {}
 _ROUNDS: dict[str, dict[str, Any]] = {}
 _IMG_CACHE: dict[str, tuple[float, bytes]] = {}
 _MAPILLARY_URL_CACHE: dict[str, tuple[float, str]] = {}
+_MAPILLARY_HD_URL_CACHE: dict[str, tuple[float, str]] = {}
+_POOL_CACHE: tuple[str, int, list[dict[str, Any]]] | None = None
+_hd_sem: asyncio.Semaphore | None = None
+
+
+def _get_hd_sem() -> asyncio.Semaphore:
+    global _hd_sem
+    if _hd_sem is None:
+        _hd_sem = asyncio.Semaphore(2)
+    return _hd_sem
 
 
 def _utc_today() -> str:
@@ -175,11 +185,17 @@ def _pool_candidates() -> list[Path]:
 
 
 def load_geo_pool() -> list[dict[str, Any]]:
+    global _POOL_CACHE
     for p in _pool_candidates():
         if p.is_file():
             try:
+                st = p.stat()
+                key_path = str(p)
+                if _POOL_CACHE and _POOL_CACHE[0] == key_path and _POOL_CACHE[1] == st.st_mtime_ns:
+                    return _POOL_CACHE[2]
                 data = json.loads(p.read_text(encoding="utf-8"))
                 if isinstance(data, list) and data:
+                    _POOL_CACHE = (key_path, st.st_mtime_ns, data)
                     return data
             except Exception as exc:
                 logging.warning(f"Failed to load geo pool {p}: {exc}")
@@ -248,6 +264,8 @@ def strip_jpeg_exif(data: bytes) -> bytes:
 GAME_TTL_SEC = 2 * 3600
 IMG_CACHE_MAX = 24                         # картинок в памяти (sd ≈ 0.2–2 МБ)
 IMG_MAX_BYTES = 6_000_000
+HD_IMG_MAX_BYTES = 15_000_000
+HD_MAX_WIDTH = 6000                        # оригиналы Mapillary бывают 12288–13888 px (до ~385 МБ в распакованном виде) — телефон упадёт
 _last_gc = 0.0
 
 
@@ -271,6 +289,8 @@ def _gc_state(force: bool = False) -> None:
                 _IMG_CACHE.pop(rid, None)
         for lid in [k for k, (exp, _u) in _MAPILLARY_URL_CACHE.items() if exp < now]:
             _MAPILLARY_URL_CACHE.pop(lid, None)
+        for lid in [k for k, (exp, _u) in _MAPILLARY_HD_URL_CACHE.items() if exp < now]:
+            _MAPILLARY_HD_URL_CACHE.pop(lid, None)
 
 
 def _has_active_round(username: str) -> bool:
@@ -330,13 +350,18 @@ def get_or_init_wallet(username: str, con=None) -> dict[str, Any]:
             con.close()
 
 
-def _resolve_image_url(loc: dict[str, Any]) -> str:
+def _resolve_image_url(loc: dict[str, Any], hd: bool = False) -> str:
     src = loc.get("source", "panoramax")
     img_url = loc.get("img_url", "")
     if img_url.startswith("fixture://"):
         return img_url
     if src == "panoramax":
-        if img_url:
+        if hd:
+            if loc.get("hd_url"):
+                return str(loc["hd_url"])
+            if img_url and "/sd.jpg" in img_url:
+                return img_url.replace("/sd.jpg", "/hd.jpg")
+        if img_url and not hd:
             return img_url
         stac_url = f"https://api.panoramax.xyz/api/search?ids={urllib.parse.quote(str(loc['id']))}"
         req = urllib.request.Request(stac_url, headers={"User-Agent": "LobbyGG-GeoStake/1.0"})
@@ -344,30 +369,45 @@ def _resolve_image_url(loc: dict[str, Any]) -> str:
             d = json.loads(resp.read().decode("utf-8"))
         feats = d.get("features") or []
         if not feats:
+            if img_url:
+                return img_url
             raise HTTPException(502, "Panorama not found upstream")
         assets = feats[0].get("assets") or {}
+        if hd:
+            return (assets.get("hd") or {}).get("href") or (assets.get("sd") or {}).get("href") or img_url
         return (assets.get("sd") or {}).get("href") or (assets.get("hd") or {}).get("href") or ""
     if src == "mapillary":
         tok = mapillary_token()
         if not tok:
             raise HTTPException(503, "Mapillary token unavailable")
         lid = str(loc["id"])
-        cached = _MAPILLARY_URL_CACHE.get(lid)
+        cache = _MAPILLARY_HD_URL_CACHE if hd else _MAPILLARY_URL_CACHE
+        cached = cache.get(lid)
         if cached and cached[0] > time.time():
-            return cached[1]
-        api = f"https://graph.mapillary.com/{urllib.parse.quote(lid)}?fields=thumb_2048_url,thumb_1024_url"
+            return cached[1]                  # для HD может быть "" — значит HD у этой панорамы нет
+        api = f"https://graph.mapillary.com/{urllib.parse.quote(lid)}?fields=width,thumb_2048_url,thumb_1024_url,thumb_original_url"
         req = urllib.request.Request(api, headers={"Authorization": f"OAuth {tok}", "User-Agent": "LobbyGG-GeoStake/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             d = json.loads(resp.read().decode("utf-8"))
-        u = d.get("thumb_2048_url") or d.get("thumb_1024_url") or ""
-        if u:
-            _MAPILLARY_URL_CACHE[lid] = (time.time() + 1800, u)
-        return u
+        sd_u = d.get("thumb_2048_url") or d.get("thumb_1024_url") or ""
+        try:
+            width = int(d.get("width") or 0)
+        except (TypeError, ValueError):
+            width = 0
+        # HD — только оригинал разумного размера; "" = HD нет, клиент остаётся на 2048
+        hd_u = d.get("thumb_original_url") or "" if 2048 < width <= HD_MAX_WIDTH else ""
+        exp = time.time() + 1800
+        if sd_u:
+            _MAPILLARY_URL_CACHE[lid] = (exp, sd_u)
+        _MAPILLARY_HD_URL_CACHE[lid] = (exp, hd_u)
+        return hd_u if hd else sd_u
     raise HTTPException(400, f"Unsupported source: {src}")
 
 
-def _fetch_panorama_bytes(loc: dict[str, Any]) -> bytes:
-    url = _resolve_image_url(loc)
+def _fetch_panorama_bytes(loc: dict[str, Any], hd: bool = False) -> bytes:
+    url = _resolve_image_url(loc, hd=hd)
+    if not url and hd:
+        return b""                            # HD нет (слишком большой оригинал) — отвечаем 204, клиент остаётся на 2048
     if not url:
         raise HTTPException(502, "Empty panorama image URL")
     if url.startswith("fixture://"):
@@ -377,26 +417,32 @@ def _fetch_panorama_bytes(loc: dict[str, Any]) -> bytes:
             raise HTTPException(404, "Test fixture image missing")
         return strip_jpeg_exif(fpath.read_bytes())
 
+    max_bytes = HD_IMG_MAX_BYTES if hd else IMG_MAX_BYTES
     req = urllib.request.Request(url, headers={"User-Agent": "LobbyGG-GeoStake/1.0"})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        raw = resp.read(IMG_MAX_BYTES + 1)
-    if len(raw) > IMG_MAX_BYTES:
+    with urllib.request.urlopen(req, timeout=20 if hd else 15) as resp:
+        raw = resp.read(max_bytes + 1)
+    if len(raw) > max_bytes:
         raise HTTPException(502, "Panorama image too large")
     return strip_jpeg_exif(raw)
 
 
 def mapillary_token() -> str:
-    """MAPILLARY_TOKEN из окружения, иначе из файла в томе данных (/data/mapillary_token, права 600) —
+    """MAPILLARY_TOKEN из окружения, иначе из файла (/data/mapillary_token на проде или ~/.mapillary_token локально) —
     так токен не нужно вшивать в docker run и он не попадает в git."""
     tok = os.environ.get("MAPILLARY_TOKEN", "").strip()
     if tok:
         return tok
-    path = os.environ.get("MAPILLARY_TOKEN_FILE", "/data/mapillary_token")
-    try:
-        with open(path, encoding="utf-8") as fh:
-            return fh.read().strip()
-    except OSError:
-        return ""
+    env_file = os.environ.get("MAPILLARY_TOKEN_FILE")
+    candidates = [env_file] if env_file is not None else ["/data/mapillary_token", str(Path.home() / ".mapillary_token")]
+    for path in candidates:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                v = fh.read().strip()
+                if v:
+                    return v
+        except OSError:
+            continue
+    return ""
 
 
 def _loc_country(loc: dict[str, Any]) -> str:
@@ -421,7 +467,8 @@ def _select_location(used_ids: set[str], used_countries: set[str] | None = None)
     has_mapillary = bool(mapillary_token())
     filtered = [loc for loc in avail if loc.get("source") != "mapillary" or has_mapillary or str(loc.get("img_url", "")).startswith("fixture://")]
     if not filtered:
-        filtered = avail
+        # Например, пропал токен Mapillary: не открываем раунд, который не сможет показать картинку (монеты целы)
+        raise HTTPException(503, "Panoramas are temporarily unavailable")
     if used_countries:
         fresh_country = [loc for loc in filtered if _loc_country(loc) not in used_countries]
         if fresh_country:
@@ -576,31 +623,77 @@ async def _open_round(user: str, game: dict[str, Any], game_id: str, bet: int) -
     }
 
 
-@router.get("/api/geo/img/{round_id}")
-async def geo_image(round_id: str, request: Request):
+@router.get("/api/geo/active")
+async def geo_active(request: Request):
     _gc_state()
     user = _auth_username(request)
     if not user:
         raise HTTPException(401, "auth_required")
+    now = time.time()
+    active_rd = None
+    active_game = None
+    with _state_lock:
+        for rd in _ROUNDS.values():
+            if rd["username"] == user and not rd["guessed"] and rd["expires_at"] > now:
+                active_rd = dict(rd)
+                g = _GAMES.get(rd["game_id"])
+                active_game = dict(g) if g else None
+                break
+    if not active_rd:
+        return {"active": None}
+    loc = active_rd["loc"]
+    w = get_or_init_wallet(user)
+    return {
+        "active": {
+            "game_id": active_rd["game_id"],
+            "round_id": active_rd["round_id"],
+            "round_num": active_rd["round_num"],
+            "rounds_total": active_game["rounds_total"] if active_game else ROUNDS_PER_GAME,
+            "bet": active_rd["bet"],
+            "coins": w["coins"],
+            "heading": float(loc.get("heading") or 0.0),
+            "img_url": f"/games/api/geo/img/{active_rd['round_id']}",
+            "expires_at": active_rd["expires_at"],
+            "remaining_sec": max(1, int(math.ceil(active_rd["expires_at"] - now))),
+            "timeout_sec": ROUND_TIMEOUT_SEC,
+        }
+    }
+
+
+@router.get("/api/geo/img/{round_id}")
+async def geo_image(round_id: str, request: Request, hd: int = 0):
+    _gc_state()
+    user = _auth_username(request)
+    if not user:
+        raise HTTPException(401, "auth_required")
+    want_hd = bool(hd)
     with _state_lock:
         rd = _ROUNDS.get(round_id)
         if not rd or rd["username"] != user:
             raise HTTPException(404, "round_not_found")
         loc = rd["loc"]
-        cached = _IMG_CACHE.get(round_id)
-        if cached and cached[0] > time.time():
-            return Response(
-                content=cached[1],
-                media_type="image/jpeg",
-                headers={"Cache-Control": "private, no-store"},
-            )
+        if not want_hd:
+            cached = _IMG_CACHE.get(round_id)
+            if cached and cached[0] > time.time():
+                return Response(
+                    content=cached[1],
+                    media_type="image/jpeg",
+                    headers={"Cache-Control": "private, no-store"},
+                )
 
-    img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, loc)
-    with _state_lock:
-        if round_id in _ROUNDS and not _ROUNDS[round_id]["guessed"]:
-            _IMG_CACHE[round_id] = (time.time() + 300, img_bytes)
-            while len(_IMG_CACHE) > IMG_CACHE_MAX:
-                _IMG_CACHE.pop(min(_IMG_CACHE, key=lambda k: _IMG_CACHE[k][0]), None)
+    if want_hd:
+        # HD (~4096px) не кэшируем в _IMG_CACHE и ограничиваем 2 одновременными загрузками (256 МБ контейнер)
+        async with _get_hd_sem():
+            img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, loc, True)
+        if not img_bytes:
+            return Response(status_code=204, headers={"Cache-Control": "private, no-store"})
+    else:
+        img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, loc)
+        with _state_lock:
+            if round_id in _ROUNDS and not _ROUNDS[round_id]["guessed"]:
+                _IMG_CACHE[round_id] = (time.time() + 300, img_bytes)
+                while len(_IMG_CACHE) > IMG_CACHE_MAX:
+                    _IMG_CACHE.pop(min(_IMG_CACHE, key=lambda k: _IMG_CACHE[k][0]), None)
     return Response(
         content=img_bytes,
         media_type="image/jpeg",

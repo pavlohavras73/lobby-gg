@@ -1,3 +1,4 @@
+import json
 import os
 import struct
 import sys
@@ -35,6 +36,10 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("GEO_POOL", str(ROOT / "tests" / "fixtures" / "geo_pool_test.json"))
     monkeypatch.delenv("GEO_GOOGLE_KEY", raising=False)
     monkeypatch.delenv("GEO_GOOGLE_DAILY_CAP", raising=False)
+    monkeypatch.delenv("MAPILLARY_TOKEN", raising=False)          # тесты не должны брать настоящий ~/.mapillary_token
+    monkeypatch.setenv("MAPILLARY_TOKEN_FILE", str(tmp_path / "no_token"))
+    geostake._MAPILLARY_URL_CACHE.clear()
+    geostake._MAPILLARY_HD_URL_CACHE.clear()
     with geostake._state_lock:
         geostake._GAMES.clear()
         geostake._ROUNDS.clear()
@@ -224,16 +229,28 @@ def test_real_pool_ships_next_to_code(monkeypatch):
     from collections import Counter
 
     monkeypatch.delenv("GEO_POOL", raising=False)
+    monkeypatch.setattr(geostake, "_POOL_CACHE", None)
+    pool_path = ROOT / "geo_pool.json"
+    assert pool_path.is_file()
+    assert pool_path.stat().st_size <= 3 * 1024 * 1024, "geo_pool.json exceeds 3 MB"
+
     pool = geostake.load_geo_pool()
-    assert len(pool) >= 150
-    assert all(p.get("lat") is not None and p.get("img_url") for p in pool)
+    assert len(pool) >= 3000
+    assert all(
+        p.get("lat") is not None
+        and p.get("lng") is not None
+        and (p.get("img_url") or (p.get("source") == "mapillary" and p.get("id")))
+        for p in pool
+    )
     countries = [str(p.get("country") or "").upper() for p in pool]
     assert all(len(c) == 2 and c.isalpha() for c in countries)
     assert "UK" not in countries, "ISO-3166: Великобритания — GB"
     counts = Counter(countries)
-    assert len(counts) >= 35, f"too few countries: {len(counts)}"
+    assert len(counts) >= 100, f"too few countries: {len(counts)}"
     max_share = max(counts.values()) / len(pool)
-    assert max_share <= 0.08, f"country share too high: {max_share:.3f} ({counts.most_common(3)})"
+    assert max_share <= 0.03, f"country share too high: {max_share:.3f} ({counts.most_common(3)})"
+    seqs = [str(p["sequence"]) for p in pool if p.get("sequence")]
+    assert len(seqs) == len(set(seqs)), "duplicate sequences in geo_pool.json"
 
 
 def test_five_round_game_never_repeats_countries(client):
@@ -307,3 +324,62 @@ def test_mapillary_token_from_env_or_file(monkeypatch, tmp_path):
     assert geostake.mapillary_token() == "MLY|file-token"
     monkeypatch.setenv("MAPILLARY_TOKEN", "MLY|env-token")
     assert geostake.mapillary_token() == "MLY|env-token"
+
+
+def test_hd_image_not_cached_and_active_round_resumes(client):
+    _register_and_login(client, "hdresumeuser")
+    assert client.get("/api/geo/active").json()["active"] is None
+    gid = client.post("/api/geo/start").json()["game_id"]
+    rd = client.post("/api/geo/round", json={"game_id": gid, "bet": 20}).json()
+    rid = rd["round_id"]
+
+    act = client.get("/api/geo/active").json()["active"]
+    assert act is not None and act["round_id"] == rid and act["bet"] == 20
+
+    # HD не кладётся в _IMG_CACHE
+    assert client.get(f"/api/geo/img/{rid}?hd=1").status_code == 200
+    assert rid not in geostake._IMG_CACHE
+
+    # SD кладётся в _IMG_CACHE
+    assert client.get(f"/api/geo/img/{rid}").status_code == 200
+    assert rid in geostake._IMG_CACHE
+
+    # После guess активный раунд очищается
+    assert client.post("/api/geo/guess", json={"round_id": rid, "lat": 48.85, "lng": 2.35}).status_code == 200
+    assert client.get("/api/geo/active").json()["active"] is None
+
+
+def test_no_mapillary_token_refuses_round_without_taking_coins(client, monkeypatch, tmp_path):
+    pool = tmp_path / "mly.json"
+    pool.write_text(json.dumps([{"id": "111", "source": "mapillary", "lat": 1.0, "lng": 2.0, "country": "KE",
+                                 "heading": 0, "author": "a", "license": "CC-BY-SA-4.0"}]))
+    monkeypatch.setattr(geostake, "_pool_candidates", lambda: [pool])
+    _register_and_login(client, "notokenuser")
+    before = client.get("/api/geo/wallet").json()["coins"]
+    gid = client.post("/api/geo/start").json()["game_id"]
+    r = client.post("/api/geo/round", json={"game_id": gid, "bet": 50})
+    assert r.status_code == 503
+    assert client.get("/api/geo/wallet").json()["coins"] == before
+
+
+class _FakeResp:
+    def __init__(self, body: bytes):
+        self._b = body
+    def read(self, *_a):
+        return self._b
+    def __enter__(self):
+        return self
+    def __exit__(self, *_a):
+        return False
+
+
+@pytest.mark.parametrize("width,expect_hd", [(4096, True), (5760, True), (12288, False), (2048, False)])
+def test_mapillary_hd_only_for_reasonable_originals(client, monkeypatch, width, expect_hd):
+    monkeypatch.setenv("MAPILLARY_TOKEN", "MLY|fake")
+    body = json.dumps({"width": width, "thumb_2048_url": "https://x/sd.jpg", "thumb_original_url": "https://x/orig.jpg"}).encode()
+    monkeypatch.setattr(geostake.urllib.request, "urlopen", lambda *a, **k: _FakeResp(body))
+    loc = {"id": f"hd{width}", "source": "mapillary"}
+    assert geostake._resolve_image_url(loc) == "https://x/sd.jpg"
+    assert geostake._resolve_image_url(loc, hd=True) == ("https://x/orig.jpg" if expect_hd else "")
+    if not expect_hd:
+        assert geostake._fetch_panorama_bytes(loc, hd=True) == b""     # → 204, клиент остаётся на 2048
