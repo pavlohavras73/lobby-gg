@@ -295,3 +295,15 @@ def test_empty_pool_does_not_take_coins(client, monkeypatch, tmp_path):
     assert client.get("/api/geo/wallet").json()["coins"] == before
     # после ошибки игра не «залипает» в состоянии открытия раунда
     assert geostake._GAMES[gid].get("opening") is False
+
+
+def test_mapillary_token_from_env_or_file(monkeypatch, tmp_path):
+    monkeypatch.delenv("MAPILLARY_TOKEN", raising=False)
+    monkeypatch.setenv("MAPILLARY_TOKEN_FILE", str(tmp_path / "missing"))
+    assert geostake.mapillary_token() == ""
+    p = tmp_path / "tok"
+    p.write_text("MLY|file-token\n")
+    monkeypatch.setenv("MAPILLARY_TOKEN_FILE", str(p))
+    assert geostake.mapillary_token() == "MLY|file-token"
+    monkeypatch.setenv("MAPILLARY_TOKEN", "MLY|env-token")
+    assert geostake.mapillary_token() == "MLY|env-token"

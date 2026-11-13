@@ -348,7 +348,7 @@ def _resolve_image_url(loc: dict[str, Any]) -> str:
         assets = feats[0].get("assets") or {}
         return (assets.get("sd") or {}).get("href") or (assets.get("hd") or {}).get("href") or ""
     if src == "mapillary":
-        tok = os.environ.get("MAPILLARY_TOKEN", "").strip()
+        tok = mapillary_token()
         if not tok:
             raise HTTPException(503, "Mapillary token unavailable")
         lid = str(loc["id"])
@@ -385,6 +385,20 @@ def _fetch_panorama_bytes(loc: dict[str, Any]) -> bytes:
     return strip_jpeg_exif(raw)
 
 
+def mapillary_token() -> str:
+    """MAPILLARY_TOKEN из окружения, иначе из файла в томе данных (/data/mapillary_token, права 600) —
+    так токен не нужно вшивать в docker run и он не попадает в git."""
+    tok = os.environ.get("MAPILLARY_TOKEN", "").strip()
+    if tok:
+        return tok
+    path = os.environ.get("MAPILLARY_TOKEN_FILE", "/data/mapillary_token")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return ""
+
+
 def _loc_country(loc: dict[str, Any]) -> str:
     c = str(loc.get("country") or "").strip().upper()
     if c:
@@ -404,7 +418,7 @@ def _select_location(used_ids: set[str], used_countries: set[str] | None = None)
     if not avail:
         avail = pool
     # Filter out mapillary if token is not configured
-    has_mapillary = bool(os.environ.get("MAPILLARY_TOKEN", "").strip())
+    has_mapillary = bool(mapillary_token())
     filtered = [loc for loc in avail if loc.get("source") != "mapillary" or has_mapillary or str(loc.get("img_url", "")).startswith("fixture://")]
     if not filtered:
         filtered = avail
