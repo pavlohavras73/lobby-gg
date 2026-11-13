@@ -6,6 +6,7 @@
     <title data-i18n="title">Space Invaders - Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
     <link rel="stylesheet" href="/games/static/theme.css">
+    <link rel="stylesheet" href="/games/static/game-ui.css">
     <style>
         body {
             margin: 0; padding: 0; overflow: hidden; touch-action: none; background: #000;
@@ -24,11 +25,13 @@
         }
 
         .top-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 25px; font-size: 24px; font-weight: 900;
-            background: rgba(10, 10, 15, 0.98);
-            border-bottom: 2px solid rgba(255, 34, 56, 0.6);
-            box-shadow: 0 5px 30px rgba(0,0,0,1);
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: max(10px, var(--sat)) max(14px, var(--sar)) 10px max(14px, var(--sal));
+            font-size: 18px; font-weight: 900;
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 34, 56, 0.45);
+            box-shadow: 0 5px 24px rgba(0,0,0,0.8);
             color: #fff;
             text-shadow: 0 0 10px var(--crimson-glow); pointer-events: auto;
         }
@@ -146,6 +149,7 @@
     
     <div id="uiLayer">
         <div class="top-bar">
+            <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
             <div>🏆 <span id="scoreVal">0</span></div>
             <div style="color: #ffcc00;">🪙 <span id="coinsVal">0</span></div>
         </div>
@@ -257,17 +261,18 @@
     <div id="gameOverMenu" class="modal-overlay">
         <div class="glass-panel" style="text-align:center;">
             <div style="font-size: 50px; margin-bottom:10px;">💀</div>
-            <h2 style="color:var(--crimson); margin:0 0 15px 0;">СИСТЕМА УНИЧТОЖЕНА</h2>
+            <h2 style="color:var(--crimson); margin:0 0 15px 0;" data-i18n="over_title">СИСТЕМА УНИЧТОЖЕНА</h2>
             <div style="font-size: 16px; color:#aaa; margin-bottom:20px;">
-                Итоговый счет: <strong id="finalScore" style="color:#0ff; font-size:24px; display:block; margin-top:5px;">0</strong>
+                <span data-i18n="over_score">Итоговый счет:</span> <strong id="finalScore" style="color:#0ff; font-size:24px; display:block; margin-top:5px;">0</strong>
+                <div style="font-size:13px;color:var(--muted);margin-top:6px">🏆 <span id="bestScore">0</span></div>
             </div>
-            <button class="buy-btn" style="width:100%; padding:14px; font-size:16px;" onclick="resetGame()">НАЧАТЬ ЗАНОВО</button>
+            <button class="buy-btn btn-primary" style="width:100%; padding:14px; font-size:16px;" onclick="resetGame()" data-i18n="restart_btn">НАЧАТЬ ЗАНОВО</button>
         </div>
     </div>
 
     <script>
 
-const UI = {"uk": {"title": "Космічні Загарбники - Lobby.gg", "base_title": "БАЗА ОПОРУ", "tab_upgrades": "АПГРЕЙДИ", "tab_ships": "КОРАБЛІ", "tab_options": "ОПЦІЇ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Підвищує урон кожного снаряда.", "upg_btn": "ПОКРАЩИТИ (", "fr_title": "Охолодження (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Прискорює перезаряджання гармат.", "ms_title": "Мульті-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Додає додаткові лазери.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовий штурмовик.", "skin_selected": "Обраний", "skin_select": "Обрати", "skin_buy": "Купити (", "skin1_title": "Neon Phantom", "skin1_sub": "Швидкісний стелс-перехоплювач.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Важкий золотий крейсер.", "opt_part_title": "Частинки (Вибухи)", "opt_part_sub": "Вимкни для економії батареї.", "opt_bg_title": "Зоряний фон", "opt_bg_sub": "Вимкни для чистого фону.", "close_btn": "ЗАКРИТИ І ПРОДОВЖИТИ", "over_title": "СИСТЕМУ ЗНИЩЕНО", "over_score": "Підсумковий рахунок:", "restart_btn": "ПОЧАТИ ЗНОВУ", "nav_games": "🎮 Ігри", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "ru": {"title": "Space Invaders - Lobby.gg", "base_title": "БАЗА СОПРОТИВЛЕНИЯ", "tab_upgrades": "АПГРЕЙДЫ", "tab_ships": "КОРАБЛИ", "tab_options": "ОПЦИИ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Повышает урон каждого снаряда.", "upg_btn": "УЛУЧШИТЬ (", "fr_title": "Охлаждение (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Ускоряет перезарядку орудий.", "ms_title": "Мульти-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Добавляет дополнительные лазеры.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовый штурмовик.", "skin_selected": "Выбран", "skin_select": "Выбрать", "skin_buy": "Купить (", "skin1_title": "Neon Phantom", "skin1_sub": "Скоростной стелс-перехватчик.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Тяжелый золотой крейсер.", "opt_part_title": "Частицы (Взрывы)", "opt_part_sub": "Отключи для экономии батареи.", "opt_bg_title": "Звездный фон", "opt_bg_sub": "Отключи для чистого фона.", "close_btn": "ЗАКРЫТЬ И ПРОДОЛЖИТЬ", "over_title": "СИСТЕМА УНИЧТОЖЕНА", "over_score": "Итоговый счет:", "restart_btn": "НАЧАТЬ ЗАНОВО", "nav_games": "🎮 Игры", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "en": {"title": "Space Invaders - Lobby.gg", "base_title": "RESISTANCE BASE", "tab_upgrades": "UPGRADES", "tab_ships": "SHIPS", "tab_options": "OPTIONS", "dmg_title": "Plasma DMG (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Increases damage of each projectile.", "upg_btn": "UPGRADE (", "fr_title": "Cooling (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Speeds up weapon reload.", "ms_title": "Multi-barrel (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Adds extra lasers.", "skin0_title": "Crimson Fighter", "skin0_sub": "Basic assault ship.", "skin_selected": "Selected", "skin_select": "Select", "skin_buy": "Buy (", "skin1_title": "Neon Phantom", "skin1_sub": "High-speed stealth interceptor.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Heavy gold cruiser.", "opt_part_title": "Particles (Explosions)", "opt_part_sub": "Disable to save battery.", "opt_bg_title": "Starry Background", "opt_bg_sub": "Disable for a clean background.", "close_btn": "CLOSE AND CONTINUE", "over_title": "SYSTEM DESTROYED", "over_score": "Final score:", "restart_btn": "RESTART", "nav_games": "🎮 Games", "menu_btn": "🚀 UPGRADES / MENU", "buy_btn_suffix": " 🪙)"},
+const UI = {"uk": {"title": "Космічні Загарбники - Lobby.gg", "base_title": "БАЗА ОПОРУ", "tab_upgrades": "АПГРЕЙДИ", "tab_ships": "КОРАБЛІ", "tab_options": "ОПЦІЇ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Підвищує урон кожного снаряда.", "upg_btn": "ПОКРАЩИТИ (", "fr_title": "Охолодження (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Прискорює перезаряджання гармат.", "ms_title": "Мульті-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Додає додаткові лазери.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовий штурмовик.", "skin_selected": "Обраний", "skin_select": "Обрати", "skin_buy": "Купити (", "skin1_title": "Neon Phantom", "skin1_sub": "Швидкісний стелс-перехоплювач.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Важкий золотий крейсер.", "opt_part_title": "Частинки (Вибухи)", "opt_part_sub": "Вимкни для економії батареї.", "opt_bg_title": "Зоряний фон", "opt_bg_sub": "Вимкни для чистого фону.", "close_btn": "ЗАКРИТИ І ПРОДОВЖИТИ", "over_title": "СИСТЕМУ ЗНИЩЕНО", "over_score": "Підсумковий рахунок:", "restart_btn": "ПОЧАТИ ЗНОВУ", "nav_games": "‹ Ігри", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "ru": {"title": "Space Invaders - Lobby.gg", "base_title": "БАЗА СОПРОТИВЛЕНИЯ", "tab_upgrades": "АПГРЕЙДЫ", "tab_ships": "КОРАБЛИ", "tab_options": "ОПЦИИ", "dmg_title": "Плазма-урон (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Повышает урон каждого снаряда.", "upg_btn": "УЛУЧШИТЬ (", "fr_title": "Охлаждение (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Ускоряет перезарядку орудий.", "ms_title": "Мульти-ствол (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Добавляет дополнительные лазеры.", "skin0_title": "Crimson Fighter", "skin0_sub": "Базовый штурмовик.", "skin_selected": "Выбран", "skin_select": "Выбрать", "skin_buy": "Купить (", "skin1_title": "Neon Phantom", "skin1_sub": "Скоростной стелс-перехватчик.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Тяжелый золотой крейсер.", "opt_part_title": "Частицы (Взрывы)", "opt_part_sub": "Отключи для экономии батареи.", "opt_bg_title": "Звездный фон", "opt_bg_sub": "Отключи для чистого фона.", "close_btn": "ЗАКРЫТЬ И ПРОДОЛЖИТЬ", "over_title": "СИСТЕМА УНИЧТОЖЕНА", "over_score": "Итоговый счет:", "restart_btn": "НАЧАТЬ ЗАНОВО", "nav_games": "‹ Игры", "menu_btn": "🚀 ПРОКАЧКА / МЕНЮ", "buy_btn_suffix": " 🪙)"}, "en": {"title": "Space Invaders - Lobby.gg", "base_title": "RESISTANCE BASE", "tab_upgrades": "UPGRADES", "tab_ships": "SHIPS", "tab_options": "OPTIONS", "dmg_title": "Plasma DMG (Lv <span id=\"lvDamage\">1</span>)", "dmg_sub": "Increases damage of each projectile.", "upg_btn": "UPGRADE (", "fr_title": "Cooling (Lv <span id=\"lvFireRate\">1</span>)", "fr_sub": "Speeds up weapon reload.", "ms_title": "Multi-barrel (Lv <span id=\"lvMultishot\">1</span>)", "ms_sub": "Adds extra lasers.", "skin0_title": "Crimson Fighter", "skin0_sub": "Basic assault ship.", "skin_selected": "Selected", "skin_select": "Select", "skin_buy": "Buy (", "skin1_title": "Neon Phantom", "skin1_sub": "High-speed stealth interceptor.", "skin2_title": "Gold Juggernaut", "skin2_sub": "Heavy gold cruiser.", "opt_part_title": "Particles (Explosions)", "opt_part_sub": "Disable to save battery.", "opt_bg_title": "Starry Background", "opt_bg_sub": "Disable for a clean background.", "close_btn": "CLOSE AND CONTINUE", "over_title": "SYSTEM DESTROYED", "over_score": "Final score:", "restart_btn": "RESTART", "nav_games": "‹ Games", "menu_btn": "🚀 UPGRADES / MENU", "buy_btn_suffix": " 🪙)"},
   de: {
     "title": "Space Invaders - Lobby.gg",
     "base_title": "WIDERSTANDSBASIS",
@@ -298,7 +303,7 @@ const UI = {"uk": {"title": "Космічні Загарбники - Lobby.gg", 
     "over_title": "SYSTEM ZERSTÖRT",
     "over_score": "Endpunktzahl:",
     "restart_btn": "NEUSTART",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "menu_btn": "🚀 UPGRADES / MENÜ",
     "buy_btn_suffix": " 🪙)"
   }
@@ -514,7 +519,13 @@ document.addEventListener('DOMContentLoaded', applyUI);
         }
 
         function gameOver() {
-            isGameOver = true; document.getElementById('finalScore').innerText = score; document.getElementById('gameOverMenu').style.display = 'flex';
+            isGameOver = true;
+            const best = Math.max(score, parseInt(localStorage.getItem('jg_space_best') || '0', 10));
+            localStorage.setItem('jg_space_best', String(best));
+            document.getElementById('finalScore').innerText = score;
+            const bs = document.getElementById('bestScore');
+            if (bs) bs.innerText = best;
+            document.getElementById('gameOverMenu').style.display = 'flex';
         }
 
         function resetGame() {

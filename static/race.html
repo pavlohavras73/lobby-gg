@@ -2,10 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title data-i18n="title">Неоновые Гонки</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
     <link rel="stylesheet" href="/games/static/theme.css">
+    <link rel="stylesheet" href="/games/static/game-ui.css">
     <style>
         body {
             background-color: #000000;
@@ -16,10 +17,13 @@
             justify-content: space-between;
             align-items: center;
             height: 100vh;
-            padding: 12px 16px;
+            height: 100dvh;
+            padding: max(8px, var(--sat)) max(14px, var(--sar)) max(10px, var(--sab)) max(14px, var(--sal));
             font-family: 'Inter', sans-serif;
             color: var(--text);
         }
+        .hud-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; max-width:420px; margin:2px auto; flex-wrap:wrap; }
+        .score-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid var(--border-hi); border-radius:999px; padding:4px 12px; font-weight:800; font-size:13px; }
 
         .header {
             display: flex;
@@ -170,16 +174,18 @@
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<header class="game-topbar" style="max-width:420px;margin-bottom:2px">
+  <a href="/games/" class="top-back" data-i18n="back_btn">‹ Игры</a>
+  <div class="topbar-title" data-i18n="page_title">🏎️ Гонки</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+</header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🏎️ Гонки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-    <div class="header">
-        <a href="/games/" class="back-button" data-i18n="back_btn">◀ Лоби</a>
-        <h1 data-i18n="page_title">Гонки</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-        <select id="laneSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" data-i18n-title="lanes_title" title="Кол-во полос">
+    <div class="hud-bar">
+        <div class="langbar" id="langbar" style="margin:0"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+        <select id="laneSelect" style="width:auto;margin:0;padding:5px 22px 5px 8px;font-size:12px" data-i18n-title="lanes_title" title="Кол-во полос">
           <option value="3" data-i18n="lane_3">3 полосы</option><option value="4" data-i18n="lane_4">4 полосы</option><option value="5" data-i18n="lane_5">5 полос</option>
         </select>
-        <div id="score-display">000</div>
+        <div class="score-pill"><span id="score-display">000</span><span style="color:var(--muted)">·</span><span>🏆 <span id="best-display">0</span>m</span></div>
     </div>
 
     <div class="canvas-container">
@@ -193,22 +199,23 @@
 
     <div id="game-over-screen">
         <div class="card glass text-center" style="max-width: 320px; border-color: var(--crimson); box-shadow: 0 0 40px var(--crimson-glow);">
-            <h2 class="crimson pulse" style="font-size: 1.8em; margin-bottom: 15px;">КРАШ!</h2>
-            <p class="sub" style="font-size: 1.1em; color: var(--text);" id="final-score">Дистанция: 0м</p>
-            <button id="restartButton" style="margin-top: 15px;">Ехать снова</button>
+            <h2 class="crimson pulse" style="font-size: 1.8em; margin-bottom: 15px;" data-i18n="game_over">КРАШ!</h2>
+            <p class="sub" style="font-size: 1.1em; color: var(--text);" id="final-score"></p>
+            <button id="restartButton" class="btn-primary" style="margin-top: 15px; width: 100%;" data-i18n="restart_btn">Ехать снова</button>
         </div>
     </div>
 
     <script>
 
-const UI = {"uk": {"title": "Неонові Перегони", "rules_title": "🏎️ Перегони — правила", "rules_body": "Ухиляйся від перешкод на трасі, керуючи вліво/вправо. Чим довше їдеш — тим більше очок і вища швидкість.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Перегони", "lanes_title": "Кіл-ть смуг", "lane_3": "3 смуги", "lane_4": "4 смуги", "lane_5": "5 смуг", "score": "Дистанція: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Їхати знову"}, "ru": {"title": "Неоновые Гонки", "rules_title": "🏎️ Гонки — правила", "rules_body": "Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Гонки", "lanes_title": "Кол-во полос", "lane_3": "3 полосы", "lane_4": "4 полосы", "lane_5": "5 полос", "score": "Дистанция: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Ехать снова"}, "en": {"title": "Neon Racing", "rules_title": "🏎️ Racing — rules", "rules_body": "Dodge obstacles on the track by steering left/right. The longer you drive, the more points you score and the faster you go.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Racing", "lanes_title": "Number of lanes", "lane_3": "3 lanes", "lane_4": "4 lanes", "lane_5": "5 lanes", "score": "Distance: ", "score_suffix": "m", "game_over": "CRASH!", "restart_btn": "Drive again"},
+const UI = {"uk": {"title": "Неонові Перегони", "rules_title": "🏎️ Перегони — правила", "rules_body": "Ухиляйся від перешкод на трасі, керуючи вліво/вправо. Чим довше їдеш — тим більше очок і вища швидкість.", "rules_ok": "Зрозуміло 👍", "back_btn": "‹ Ігри", "page_title": "🏎️ Перегони", "best_lbl": "Рекорд: ", "lanes_title": "Кіл-ть смуг", "lane_3": "3 смуги", "lane_4": "4 смуги", "lane_5": "5 смуг", "score": "Дистанція: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Їхати знову"}, "ru": {"title": "Неоновые Гонки", "rules_title": "🏎️ Гонки — правила", "rules_body": "Уворачивайся от препятствий на трассе, управляя влево/вправо. Чем дольше едешь — тем больше очков и выше скорость.", "rules_ok": "Понятно 👍", "back_btn": "‹ Игры", "page_title": "🏎️ Гонки", "best_lbl": "Рекорд: ", "lanes_title": "Кол-во полос", "lane_3": "3 полосы", "lane_4": "4 полосы", "lane_5": "5 полос", "score": "Дистанция: ", "score_suffix": "м", "game_over": "КРАШ!", "restart_btn": "Ехать снова"}, "en": {"title": "Neon Racing", "rules_title": "🏎️ Racing — rules", "rules_body": "Dodge obstacles on the track by steering left/right. The longer you drive, the more points you score and the faster you go.", "rules_ok": "Got it 👍", "back_btn": "‹ Games", "page_title": "🏎️ Racing", "best_lbl": "Best: ", "lanes_title": "Number of lanes", "lane_3": "3 lanes", "lane_4": "4 lanes", "lane_5": "5 lanes", "score": "Distance: ", "score_suffix": "m", "game_over": "CRASH!", "restart_btn": "Drive again"},
   de: {
     "title": "Neon Racing",
     "rules_title": "🏎️ Racing — Regeln",
     "rules_body": "Weiche Hindernissen auf der Strecke aus, indem du nach links/rechts lenkst. Je länger du fährst, desto mehr Punkte erzielst du und desto schneller wird es.",
     "rules_ok": "Verstanden 👍",
-    "back_btn": "◀ Lobby",
-    "page_title": "Racing",
+    "back_btn": "‹ Spiele",
+    "page_title": "🏎️ Racing",
+    "best_lbl": "Rekord: ",
     "lanes_title": "Anzahl der Spuren",
     "lane_3": "3 Spuren",
     "lane_4": "4 Spuren",
@@ -239,9 +246,19 @@ document.getElementById('langbar').addEventListener('click', e => {
   if (!b) return;
   LANG = b.dataset.lang;
   localStorage.setItem('jg_lang', LANG);
+  document.addEventListener('DOMContentLoaded', () => {
+  const b = localStorage.getItem('jg_race_best') || '0';
+  const bd = document.getElementById('best-display');
+  if (bd) bd.textContent = b;
   applyUI();
 });
-applyUI();
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const b = localStorage.getItem('jg_race_best') || '0';
+  const bd = document.getElementById('best-display');
+  if (bd) bd.textContent = b;
+  applyUI();
+});
 
 
         const canvas = document.getElementById('gameCanvas');
@@ -590,7 +607,12 @@ applyUI();
         }
 
         function showGameOverScreen() {
-            finalScoreDisplay.innerHTML = `Дистанция: ${score * 10}м`;
+            const dist = score * 10;
+            const best = Math.max(dist, parseInt(localStorage.getItem('jg_race_best') || '0', 10));
+            localStorage.setItem('jg_race_best', String(best));
+            const bd = document.getElementById('best-display');
+            if (bd) bd.textContent = best;
+            finalScoreDisplay.textContent = `${t('score')}${dist}${t('score_suffix')} · ${t('best_lbl')}${best}${t('score_suffix')}`;
             gameOverScreen.style.display = 'flex';
             cancelAnimationFrame(animationFrameId);
         }

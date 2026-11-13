@@ -6,8 +6,9 @@
 <title data-i18n="title">Lobby.gg — Профиль</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;padding:12px;-webkit-user-select:none;user-select:none}
+  body{display:flex;flex-direction:column;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px max(18px,env(safe-area-inset-bottom));-webkit-user-select:none;user-select:none}
   .wrap{max-width:460px;width:100%}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
   .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
@@ -60,7 +61,7 @@
 <body>
 <div class="wrap">
   <div class="topbar">
-    <a class="backlink" href="/games/" data-i18n="nav_games">← К играм</a>
+    <a class="top-back" href="/games/" data-i18n="nav_games">‹ Игры</a>
     <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
   </div>
 
@@ -141,7 +142,7 @@ const UI = {
   uk: {
     sup_title:"Звернення в підтримку",sup_all:"Усі",sup_new:"Нові",sup_prog:"В роботі",sup_done:"Готово",sup_refresh:"Оновити",sup_note:"Нотатка адміна",sup_save:"Зберегти",sup_guest:"гість",sup_empty:"Звернень немає",cat_Bug:"Баг",cat_Complaint:"Скарга",cat_Idea:"Ідея",cat_Other:"Інше",
     "title": "Lobby.gg — Профіль",
-    "nav_games": "← До ігор",
+    "nav_games": "‹ Ігри",
     "role_admin": "👑 адмін",
     "role_player": "гравець",
     "played": "зіграно",
@@ -188,7 +189,7 @@ const UI = {
   ru: {
     sup_title:"Обращения в поддержку",sup_all:"Все",sup_new:"Новые",sup_prog:"В работе",sup_done:"Готово",sup_refresh:"Обновить",sup_note:"Заметка админа",sup_save:"Сохранить",sup_guest:"гость",sup_empty:"Обращений нет",cat_Bug:"Баг",cat_Complaint:"Жалоба",cat_Idea:"Идея",cat_Other:"Другое",
     "title": "Lobby.gg — Профиль",
-    "nav_games": "← К играм",
+    "nav_games": "‹ Игры",
     "role_admin": "👑 админ",
     "role_player": "игрок",
     "played": "сыграно",
@@ -235,7 +236,7 @@ const UI = {
   en: {
     sup_title:"Support inbox",sup_all:"All",sup_new:"New",sup_prog:"In progress",sup_done:"Done",sup_refresh:"Refresh",sup_note:"Admin note",sup_save:"Save",sup_guest:"guest",sup_empty:"No messages",cat_Bug:"Bug",cat_Complaint:"Complaint",cat_Idea:"Idea",cat_Other:"Other",
     "title": "Lobby.gg — Profile",
-    "nav_games": "← Games",
+    "nav_games": "‹ Games",
     "role_admin": "👑 admin",
     "role_player": "player",
     "played": "played",
@@ -282,7 +283,7 @@ const UI = {
   de: {
     sup_title:"Support-Postfach",sup_all:"Alle",sup_new:"Neu",sup_prog:"In Arbeit",sup_done:"Erledigt",sup_refresh:"Aktualisieren",sup_note:"Admin-Notiz",sup_save:"Speichern",sup_guest:"Gast",sup_empty:"Keine Nachrichten",cat_Bug:"Fehler",cat_Complaint:"Beschwerde",cat_Idea:"Idee",cat_Other:"Sonstiges",
     "title": "Lobby.gg — Profil",
-    "nav_games": "← Spiele",
+    "nav_games": "‹ Spiele",
     "role_admin": "👑 Admin",
     "role_player": "Spieler",
     "played": "gespielt",

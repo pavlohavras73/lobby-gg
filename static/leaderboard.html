@@ -6,11 +6,12 @@
 <title data-i18n="page_title">Таблица лидеров — Lobby.gg</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
   body {
     max-width: 820px;
     margin: 0 auto;
-    padding: 18px 14px 48px;
+    padding: max(12px, env(safe-area-inset-top)) 14px max(48px, env(safe-area-inset-bottom));
   }
 
   .topbar {
@@ -424,7 +425,7 @@
 
 <div class="topbar">
   <div class="nav-links">
-    <a class="nav-pill" href="/games/" data-i18n="nav_games">🎮 К играм</a>
+    <a class="top-back" href="/games/" data-i18n="nav_games">‹ Игры</a>
     <a class="nav-pill" href="/games/profile" data-i18n="nav_profile">👤 Профиль</a>
   </div>
   <div class="langbar" id="langbar">
@@ -520,7 +521,7 @@ const DUELS = [
 const UI = {
   uk: {
     page_title: "Таблиця лідерів — Lobby.gg",
-    nav_games: "🎮 До ігор",
+    nav_games: "‹ Ігри",
     nav_profile: "👤 Профіль",
     heading: "🏆 Таблиця лідерів",
     subtitle: "Рейтинг ELO у дуелях між гравцями · старт 1000 · K=32",
@@ -550,7 +551,7 @@ const UI = {
   },
   ru: {
     page_title: "Таблица лидеров — Lobby.gg",
-    nav_games: "🎮 К играм",
+    nav_games: "‹ Игры",
     nav_profile: "👤 Профиль",
     heading: "🏆 Таблица лидеров",
     subtitle: "Рейтинг ELO в дуэлях между игроками · старт 1000 · K=32",
@@ -580,7 +581,7 @@ const UI = {
   },
   en: {
     page_title: "Leaderboard — Lobby.gg",
-    nav_games: "🎮 All games",
+    nav_games: "‹ Games",
     nav_profile: "👤 Profile",
     heading: "🏆 Leaderboard",
     subtitle: "Player vs Player Duel ELO · starts at 1000 · K=32",
@@ -610,7 +611,7 @@ const UI = {
   },
   de: {
     page_title: "Bestenliste — Lobby.gg",
-    nav_games: "🎮 Zu den Spielen",
+    nav_games: "‹ Spiele",
     nav_profile: "👤 Profil",
     heading: "🏆 Bestenliste",
     subtitle: "ELO-Wertung in Spieler-Duellen · Start 1000 · K=32",

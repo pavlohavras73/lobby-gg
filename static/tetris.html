@@ -6,6 +6,7 @@
     <title data-i18n="title">Тетрис Киберпанк</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
     <link rel="stylesheet" href="/games/static/theme.css">
+    <link rel="stylesheet" href="/games/static/game-ui.css">
     <style>
         body {
             background-color: #000000;
@@ -17,13 +18,15 @@
             align-items: center;
             height: 100vh;
             height: 100dvh;
-            padding: 8px 14px max(10px, env(safe-area-inset-bottom)) 14px;
+            padding: max(8px, var(--sat)) max(14px, var(--sar)) max(10px, env(safe-area-inset-bottom)) max(14px, var(--sal));
             font-family: 'Inter', sans-serif;
             color: var(--text);
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
+        .hud-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; max-width:420px; margin:2px auto; flex-wrap:wrap; }
+        .score-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid var(--border-hi); border-radius:999px; padding:4px 12px; font-weight:800; font-size:13px; }
 
         .header {
             display: flex;
@@ -212,16 +215,18 @@
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<header class="game-topbar" style="max-width:420px;margin-bottom:2px">
+  <a href="/games/" class="top-back" data-i18n="back_btn">‹ Игры</a>
+  <div class="topbar-title" data-i18n="page_title">🧱 Тетрис</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+</header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧱 Тетрис — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-    <div class="header">
-        <a href="/games/" class="back-button" data-i18n="back_btn">◀ Лоби</a>
-        <h1 data-i18n="page_title">Тетрис</h1>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-        <select id="speedSelect" style="width:auto;margin:0;padding:6px 8px;font-size:13px" data-i18n-title="speed_title" title="Скорость">
+    <div class="hud-bar">
+        <div class="langbar" id="langbar" style="margin:0"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+        <select id="speedSelect" style="width:auto;margin:0;padding:5px 22px 5px 8px;font-size:12px" data-i18n-title="speed_title" title="Скорость">
           <option value="1100" data-i18n="speed_easy">🐢 Легко</option><option value="800" selected data-i18n="speed_med">⚡ Средне</option><option value="500" data-i18n="speed_hard">🔥 Сложно</option>
         </select>
-        <div id="score-display">000</div>
+        <div class="score-pill"><span id="score-display">000</span><span style="color:var(--muted)">·</span><span>🏆 <span id="best-display">0</span></span></div>
     </div>
 
     <div class="canvas-container">
@@ -241,22 +246,23 @@
 
     <div id="game-over-screen">
         <div class="card glass text-center" style="max-width: 320px; border-color: var(--crimson); box-shadow: 0 0 40px var(--crimson-glow);">
-            <h2 class="crimson pulse" style="font-size: 1.8em; margin-bottom: 15px;">ГРА ОКОНЧЕНА</h2>
-            <p class="sub" style="font-size: 1.1em; color: var(--text);" id="final-score">Счёт: 0</p>
-            <button id="restartButton" style="margin-top: 15px;">Рестарт</button>
+            <h2 class="crimson pulse" style="font-size: 1.8em; margin-bottom: 15px;" data-i18n="game_over">ИГРА ОКОНЧЕНА</h2>
+            <p class="sub" style="font-size: 1.1em; color: var(--text);" id="final-score"></p>
+            <button id="restartButton" class="btn-primary" style="margin-top: 15px; width: 100%;" data-i18n="restart_btn">Рестарт</button>
         </div>
     </div>
 
     <script>
 
-const UI = {"uk": {"title": "Тетріс Кіберпанк", "rules_title": "🧱 Тетріс — правила", "rules_body": "Фігури падають зверху — повертай і рухай їх, заповнюй горизонтальні ряди цілком. Повний ряд зникає і дає очки. Стакан переповнився — кінець.", "rules_ok": "Зрозуміло 👍", "back_btn": "◀ Лобі", "page_title": "Тетріс", "speed_title": "Швидкість", "speed_easy": "🐢 Легко", "speed_med": "⚡ Середньо", "speed_hard": "🔥 Складно", "score": "Рахунок: ", "game_over": "ГРА ЗАКІНЧЕНА", "restart_btn": "Рестарт"}, "ru": {"title": "Тетрис Киберпанк", "rules_title": "🧱 Тетрис — правила", "rules_body": "Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.", "rules_ok": "Понятно 👍", "back_btn": "◀ Лоби", "page_title": "Тетрис", "speed_title": "Скорость", "speed_easy": "🐢 Легко", "speed_med": "⚡ Средне", "speed_hard": "🔥 Сложно", "score": "Счёт: ", "game_over": "ИГРА ОКОНЧЕНА", "restart_btn": "Рестарт"}, "en": {"title": "Cyberpunk Tetris", "rules_title": "🧱 Tetris — rules", "rules_body": "Blocks fall from above — rotate and move them to fill horizontal rows completely. A full row disappears and scores points. Overflow the glass — game over.", "rules_ok": "Got it 👍", "back_btn": "◀ Lobby", "page_title": "Tetris", "speed_title": "Speed", "speed_easy": "🐢 Easy", "speed_med": "⚡ Medium", "speed_hard": "🔥 Hard", "score": "Score: ", "game_over": "GAME OVER", "restart_btn": "Restart"},
+const UI = {"uk": {"title": "Тетріс Кіберпанк", "rules_title": "🧱 Тетріс — правила", "rules_body": "Фігури падають зверху — повертай і рухай їх, заповнюй горизонтальні ряди цілком. Повний ряд зникає і дає очки. Стакан переповнився — кінець.", "rules_ok": "Зрозуміло 👍", "back_btn": "‹ Ігри", "page_title": "🧱 Тетріс", "best_lbl": "Рекорд: ", "speed_title": "Швидкість", "speed_easy": "🐢 Легко", "speed_med": "⚡ Середньо", "speed_hard": "🔥 Складно", "score": "Рахунок: ", "game_over": "ГРА ЗАКІНЧЕНА", "restart_btn": "Рестарт"}, "ru": {"title": "Тетрис Киберпанк", "rules_title": "🧱 Тетрис — правила", "rules_body": "Фигуры падают сверху — поворачивай и двигай их, заполняй горизонтальные ряды целиком. Полный ряд исчезает и даёт очки. Стакан переполнился — конец.", "rules_ok": "Понятно 👍", "back_btn": "‹ Игры", "page_title": "🧱 Тетрис", "best_lbl": "Рекорд: ", "speed_title": "Скорость", "speed_easy": "🐢 Легко", "speed_med": "⚡ Средне", "speed_hard": "🔥 Сложно", "score": "Счёт: ", "game_over": "ИГРА ОКОНЧЕНА", "restart_btn": "Рестарт"}, "en": {"title": "Cyberpunk Tetris", "rules_title": "🧱 Tetris — rules", "rules_body": "Blocks fall from above — rotate and move them to fill horizontal rows completely. A full row disappears and scores points. Overflow the glass — game over.", "rules_ok": "Got it 👍", "back_btn": "‹ Games", "page_title": "🧱 Tetris", "best_lbl": "Best: ", "speed_title": "Speed", "speed_easy": "🐢 Easy", "speed_med": "⚡ Medium", "speed_hard": "🔥 Hard", "score": "Score: ", "game_over": "GAME OVER", "restart_btn": "Restart"},
   de: {
     "title": "Cyberpunk Tetris",
     "rules_title": "🧱 Tetris — Regeln",
     "rules_body": "Blöcke fallen von oben — drehe und verschiebe sie, um Reihen vollständig zu füllen. Volle Reihen verschwinden und bringen Punkte. Läuft das Spielfeld voll — Game Over.",
     "rules_ok": "Verstanden 👍",
-    "back_btn": "◀ Lobby",
-    "page_title": "Tetris",
+    "back_btn": "‹ Spiele",
+    "page_title": "🧱 Tetris",
+    "best_lbl": "Rekord: ",
     "speed_title": "Geschwindigkeit",
     "speed_easy": "🐢 Leicht",
     "speed_med": "⚡ Mittel",
@@ -286,9 +292,19 @@ document.getElementById('langbar').addEventListener('click', e => {
   if (!b) return;
   LANG = b.dataset.lang;
   localStorage.setItem('jg_lang', LANG);
+  document.addEventListener('DOMContentLoaded', () => {
+  const b = localStorage.getItem('jg_tetris_best') || '0';
+  const bd = document.getElementById('best-display');
+  if (bd) bd.textContent = b;
   applyUI();
 });
-applyUI();
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const b = localStorage.getItem('jg_tetris_best') || '0';
+  const bd = document.getElementById('best-display');
+  if (bd) bd.textContent = b;
+  applyUI();
+});
 
 
         const canvas = document.getElementById('tetrisCanvas');
@@ -656,7 +672,11 @@ applyUI();
         }
 
         function showGameOverScreen() {
-            finalScoreDisplay.innerHTML = `Счёт: ${score}`;
+            const best = Math.max(score, parseInt(localStorage.getItem('jg_tetris_best') || '0', 10));
+            localStorage.setItem('jg_tetris_best', String(best));
+            const bd = document.getElementById('best-display');
+            if (bd) bd.textContent = best;
+            finalScoreDisplay.textContent = `${t('score')}${score} · ${t('best_lbl')}${best}`;
             gameOverScreen.style.display = 'flex';
         }
 

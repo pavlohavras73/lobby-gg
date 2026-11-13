@@ -2,12 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title data-i18n="title">Lobby.gg — Пятнашки</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px 12px;
+  body{display:flex;flex-direction:column;align-items:center;min-height:100dvh;padding:max(10px,var(--sat)) max(12px,var(--sar)) max(14px,var(--sab)) max(12px,var(--sal));
     -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
   h1{margin:2px 0 0;font-size:1.5em}
   .bar{display:flex;gap:10px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:8px 0}
@@ -31,10 +32,12 @@
 </style>
 </head>
 <body>
-<button onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" style="position:fixed;top:8px;right:8px;z-index:99999;width:34px;height:34px;border-radius:50%;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">i</button>
+<header class="game-topbar">
+  <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="backlink">‹ Игры</a>
+  <div class="topbar-title" data-i18n="page_title">🔢 Пятнашки</div>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+</header>
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<a href="/games/" title="Ко всем играм" style="position:fixed;top:8px;left:8px;z-index:99999;background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)" data-i18n="nav_games" data-i18n-title="backlink">🎮 Игры</a>
-<h1 data-i18n="page_title">🔢 Пятнашки</h1>
 <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div class="bar">
   <div class="score"><div class="l" data-i18n="moves">Ходов</div><div class="v" id="moves">0</div></div>
@@ -47,13 +50,13 @@
 
 <script>
 
-const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "🎮 Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "🎮 Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "🎮 Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"},
+const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "‹ Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "‹ Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "‹ Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"},
   de: {
     "title": "Lobby.gg — 15er-Puzzle",
     "rules_title": "🧩 15er-Puzzle — Regeln",
     "rules_body": "Verschiebe die Kacheln auf das freie Feld. Bringe alle Zahlen der Reihe nach (1, 2, 3 ...) von links nach rechts. Je weniger Züge, desto besser.",
     "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "page_title": "🔢 15er-Puzzle",
     "moves": "Züge",
     "mix_btn": "↻ Mischen",
@@ -132,8 +135,8 @@ function tap(i){
   moves++; document.getElementById('moves').textContent=moves; render();
   if(isSolved())document.getElementById('win').style.display='flex';
 }
-window.addEventListener('resize',()=>{layout();render();});
-newGame();
+window.addEventListener('resize',()=>{layout();if(tiles)render();});
+document.addEventListener('DOMContentLoaded',()=>{applyUI();newGame();});
 </script>
 <script src="/games/static/sfx.js"></script>
 </body>

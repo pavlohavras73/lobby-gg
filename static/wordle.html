@@ -6,10 +6,11 @@
 <title data-i18n="title">Lobby.gg — 5 букв</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
   html,body{height:100%}
   body{display:flex;flex-direction:column;align-items:center;min-height:100dvh;max-height:100dvh;
-    padding:8px 10px;overflow:hidden;
+    padding:max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));overflow:hidden;
     -webkit-user-select:none;user-select:none;touch-action:manipulation}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;max-width:460px;flex-shrink:0;margin-bottom:4px}
   .nav-pill{background:rgba(10,10,14,.72);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0}
@@ -78,9 +79,9 @@
 </head>
 <body>
 <div class="topbar">
-  <a href="/games/" class="nav-pill" title="Ко всем играм" data-i18n="nav_games" data-i18n-title="back_btn">🎮 Игры</a>
+  <a href="/games/" class="top-back" title="Ко всем играм" data-i18n="nav_games" data-i18n-title="back_btn">‹ Игры</a>
   <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-  <button type="button" class="info-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" aria-label="Info">i</button>
+  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title" aria-label="Info">i</button>
 </div>
 
 <div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🟩 5 букв — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
@@ -128,7 +129,7 @@ const UI = {
     rules_title: "🟩 5 букв — правила",
     rules_body: "Вгадай слово з 5 букв за 6 спроб. Після кожної: 🟩 буква на своєму місці, 🟨 буква є в слові, але не там, ⬛ букви немає. На клавіатурі видно, які букви вже відгадані.",
     rules_ok: "Зрозуміло 👍",
-    nav_games: "🎮 Ігри",
+    nav_games: "‹ Ігри",
     page_title: "🟩 5 букв",
     page_sub: "Відгадай слово · Lobby.gg",
     lang_title: "🌍 Мова словника",
@@ -161,7 +162,7 @@ const UI = {
     rules_title: "🟩 5 букв — правила",
     rules_body: "Угадай слово из 5 букв за 6 попыток. После каждой: 🟩 буква на своём месте, 🟨 буква есть в слове, но не там, ⬛ буквы нет. На клавиатуре видно, какие буквы уже отгаданы.",
     rules_ok: "Понятно 👍",
-    nav_games: "🎮 Игры",
+    nav_games: "‹ Игры",
     page_title: "🟩 5 букв",
     page_sub: "Отгадай слово · Lobby.gg",
     lang_title: "🌍 Язык словаря",
@@ -194,7 +195,7 @@ const UI = {
     rules_title: "🟩 Wordle — rules",
     rules_body: "Guess the 5-letter word in 6 tries. After each guess: 🟩 letter is in the correct spot, 🟨 letter is in the word but wrong spot, ⬛ letter is not in the word.",
     rules_ok: "Got it 👍",
-    nav_games: "🎮 Games",
+    nav_games: "‹ Games",
     page_title: "🟩 Wordle",
     page_sub: "Guess the word · Lobby.gg",
     lang_title: "🌍 Dictionary language",
@@ -227,7 +228,7 @@ const UI = {
     rules_title: "🟩 5 Buchstaben — Regeln",
     rules_body: "Errate das Wort mit 5 Buchstaben in 6 Versuchen. Nach jedem Versuch: 🟩 richtige Stelle, 🟨 im Wort, aber falsche Stelle, ⬛ nicht im Wort.",
     rules_ok: "Alles klar 👍",
-    nav_games: "🎮 Spiele",
+    nav_games: "‹ Spiele",
     page_title: "🟩 5 Buchstaben",
     page_sub: "Wort erraten · Lobby.gg",
     lang_title: "🌍 Wörterbuch",

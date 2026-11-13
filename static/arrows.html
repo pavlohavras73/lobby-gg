@@ -6,6 +6,7 @@
 <title data-i18n="title">➡️ Стрелки — Arrow Escape</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
+<link rel="stylesheet" href="/games/static/game-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   :root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); --red:#ff2846; }
@@ -62,7 +63,7 @@
 <body>
   <div class="top-hud">
     <div class="hud-left">
-      <a href="/games/" class="top-btn btn-back" data-i18n="nav_games">🎮 Игры</a>
+      <a href="/games/" class="top-back btn-back" data-i18n="nav_games">‹ Игры</a>
       <button type="button" onclick="restartLevel()" class="top-btn btn-restart" data-i18n="restart">🔄 Заново</button>
     </div>
     <div class="hud-right">
@@ -119,7 +120,7 @@
   const UI = {
     uk: {
       "title": "➡️ Стрілки — Arrow Escape",
-      "nav_games": "🎮 Ігри",
+      "nav_games": "‹ Ігри",
       "level": "РІВЕНЬ",
       "restart": "🔄 Знову",
       "hint_btn": "Підказка",
@@ -147,7 +148,7 @@
     },
     ru: {
       "title": "➡️ Стрелки — Arrow Escape",
-      "nav_games": "🎮 Игры",
+      "nav_games": "‹ Игры",
       "level": "УРОВЕНЬ",
       "restart": "🔄 Заново",
       "hint_btn": "Подсказка",
@@ -175,7 +176,7 @@
     },
     en: {
       "title": "➡️ Arrows — Arrow Escape",
-      "nav_games": "🎮 Games",
+      "nav_games": "‹ Games",
       "level": "LEVEL",
       "restart": "🔄 Reset",
       "hint_btn": "Hint",
@@ -203,7 +204,7 @@
     },
     de: {
       "title": "➡️ Pfeile — Arrow Escape",
-      "nav_games": "🎮 Spiele",
+      "nav_games": "‹ Spiele",
       "level": "LEVEL",
       "restart": "🔄 Neu",
       "hint_btn": "Tipp",

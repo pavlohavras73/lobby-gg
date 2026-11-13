@@ -6,6 +6,7 @@
   <title data-i18n="title">Lobby.gg Learn — Микрообучение</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
   <link rel="stylesheet" href="/games/static/theme.css">
+  <link rel="stylesheet" href="/games/static/game-ui.css">
   <style>
     .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
     .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
@@ -85,6 +86,16 @@
 
     .badge-chip.streak { color: #ff9100; border-color: rgba(255, 145, 0, 0.3); }
     .badge-chip.xp { color: #ffd600; border-color: rgba(255, 214, 0, 0.3); }
+
+    /* кнопка «‹ Игры» в шапке: на телефоне — только стрелка, плашки при нехватке места уходят на 2-ю строку */
+    @media (max-width: 440px) {
+      .learn-header { flex-wrap: wrap; row-gap: 8px; gap: 10px; padding: 12px 14px; }
+      .learn-header .top-back { font-size: 0; width: 40px; min-width: 40px; height: 40px; padding: 0; justify-content: center; flex-shrink: 0; }
+      .learn-header .top-back::before { content: "‹"; font-size: 24px; line-height: 1; }
+      .learn-header .learn-logo { margin-right: auto; font-size: 16px; letter-spacing: 1.2px; gap: 4px; }
+      .user-badges { gap: 6px; }
+      .badge-chip { padding: 4px 8px; font-size: 12px; gap: 4px; }
+    }
 
     @media (max-width: 380px) {
       .learn-header { padding: 12px 14px; gap: 8px; }
@@ -759,6 +770,7 @@
 
   <!-- TOP HEADER -->
   <header class="learn-header">
+    <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
     <div class="learn-logo" onclick="app.showCatalog()">
       LOBBY<span class="dot">·</span>LEARN
     </div>
@@ -846,6 +858,7 @@
     const UI = {
       uk: {
         title: "Lobby.gg Learn — Мікронавчання",
+        nav_games: "‹ Ігри",
         learn_sub: "Короткі уроки щодня · прокачай навички",
         track_english: "🇬🇧 Англійська",
         track_cs: "💻 Програмування",
@@ -884,6 +897,7 @@
       },
       ru: {
         title: "Lobby.gg Learn — Микрообучение",
+        nav_games: "‹ Игры",
         learn_sub: "Короткие уроки каждый день · прокачай навыки",
         track_english: "🇬🇧 Английский",
         track_cs: "💻 Программирование",
@@ -922,6 +936,7 @@
       },
       en: {
         title: "Lobby.gg Learn — Microlearning",
+        nav_games: "‹ Games",
         learn_sub: "Bite-sized daily lessons · level up your skills",
         track_english: "🇬🇧 English",
         track_cs: "💻 Computer Science",
@@ -960,6 +975,7 @@
       },
       de: {
         "title": "Lobby.gg Learn — Mikrolernen",
+        "nav_games": "‹ Spiele",
         "learn_sub": "Kurze tägliche Lektionen · verbessere deine Fähigkeiten",
         "track_english": "🇬🇧 Englisch",
         "track_cs": "💻 Informatik",

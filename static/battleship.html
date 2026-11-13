@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
-  body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(64px,calc(var(--sab)+56px)) max(14px,env(safe-area-inset-left,0px)); }
+  body { box-sizing:border-box; display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(72px,calc(var(--sab)+64px)) max(14px,env(safe-area-inset-left,0px)) !important; }
   .lobby-card {
     background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
@@ -22,7 +22,7 @@
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
 
   .bd {
-    position:relative; overflow:hidden;
+    position:relative; overflow:hidden; box-sizing:border-box;
     display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); grid-auto-rows:auto; gap:2px; max-width:320px; width:100%; margin:6px auto;
     background:linear-gradient(160deg,#082038,#051526); border:2px solid rgba(56,189,248,.32);
     border-radius:16px; padding:7px; box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 24px rgba(14,165,233,.18);
@@ -34,24 +34,22 @@
   }
   @keyframes waterDrift { 0%{transform:translate(-4%,-3%)} 100%{transform:translate(4%,3%)} }
   .c { position:relative; z-index:1; aspect-ratio:1; min-width:0; box-sizing:border-box; border-radius:4px; background:rgba(12,41,71,.78); font-size:12px; display:flex; align-items:center; justify-content:center; transition:transform .12s, background .15s; }
-  .c.ship {
-    background:linear-gradient(165deg,#94a3b8 0%,#475569 65%,#334155 100%);
-    border:1px solid rgba(255,255,255,.35);
-    box-shadow:inset 0 2px 3px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.5);
-    border-radius:7px;
+  .c.ship { background:transparent; }
+  .c.ship::before {
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:linear-gradient(170deg,#94a3b8 0%,#64748b 52%,#334155 100%);
+    box-shadow:inset 0 2px 3px rgba(255,255,255,.4), inset 0 -2px 3px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.45);
+    border-radius:9px;
   }
-  .c.ship::after {
-    content:""; width:44%; height:44%; border-radius:50%;
-    background:radial-gradient(circle,#e2e8f0,#64748b); opacity:.65;
+  .c.ship.conn-l::before { left:-2.5px; border-top-left-radius:0; border-bottom-left-radius:0; }
+  .c.ship.conn-r::before { right:-2.5px; border-top-right-radius:0; border-bottom-right-radius:0; }
+  .c.ship.conn-t::before { top:-2.5px; border-top-left-radius:0; border-top-right-radius:0; }
+  .c.ship.conn-b::before { bottom:-2.5px; border-bottom-left-radius:0; border-bottom-right-radius:0; }
+  .c.ship.sunk::before {
+    background:linear-gradient(165deg,#522029,#261217);
+    box-shadow:inset 0 0 8px rgba(255,34,56,.6), 0 0 0 1px rgba(255,92,114,.65);
   }
-  .c.ship.conn-l { border-top-left-radius:1px; border-bottom-left-radius:1px; border-left-color:transparent; margin-left:-2px; padding-left:2px; }
-  .c.ship.conn-r { border-top-right-radius:1px; border-bottom-right-radius:1px; border-right-color:transparent; }
-  .c.ship.conn-t { border-top-left-radius:1px; border-top-right-radius:1px; border-top-color:transparent; margin-top:-2px; padding-top:2px; }
-  .c.ship.conn-b { border-bottom-left-radius:1px; border-bottom-right-radius:1px; border-bottom-color:transparent; }
-  .c.ship.sunk {
-    background:linear-gradient(165deg,#3f1d24,#1e1418); border-color:rgba(255,92,114,.75);
-    box-shadow:inset 0 0 8px rgba(255,34,56,.45);
-  }
+  .c.hit, .c.miss { z-index:2; }
   .c.hit {
     background:radial-gradient(circle at 50% 45%,#fbbf24 0%,#ef4444 45%,#7f1d1d 100%);
     color:#fff; font-weight:900; box-shadow:0 0 12px rgba(239,68,68,.75);
@@ -131,7 +129,7 @@ const UI = {
     rules_title: "🚢 Морський бій — правила",
     rules_body: "Розстав кораблі на своєму полі. По черзі стріляй по полю суперника. Влучив — стріляєш ще раз. Хто першим потопить увесь флот ворога — переміг.",
     rules_ok: "Зрозуміло 👍",
-    nav_games: "🎮 Ігри",
+    nav_games: "‹ Ігри",
     page_title: "🚢 МОРСЬКИЙ БІЙ",
     page_sub: "потопи весь флот суперника · на двох",
     name_ph: "Ім'я",
@@ -166,7 +164,7 @@ const UI = {
     rules_title: "🚢 Морской бой — правила",
     rules_body: "Расставь корабли на своём поле. По очереди стреляй по полю соперника. Попал — стреляешь ещё раз. Кто первым потопит весь флот врага — победил.",
     rules_ok: "Понятно 👍",
-    nav_games: "🎮 Игры",
+    nav_games: "‹ Игры",
     page_title: "🚢 МОРСКОЙ БОЙ",
     page_sub: "потопи весь флот соперника · на двоих",
     name_ph: "Имя",
@@ -201,7 +199,7 @@ const UI = {
     rules_title: "🚢 Battleship — rules",
     rules_body: "Arrange ships on your grid. Take turns firing at the opponent's grid. Hit — take another shot. First to sink the entire enemy fleet wins.",
     rules_ok: "Got it 👍",
-    nav_games: "🎮 Games",
+    nav_games: "‹ Games",
     page_title: "🚢 BATTLESHIP",
     page_sub: "sink the opponent's fleet · 2 players",
     name_ph: "Name",
@@ -236,7 +234,7 @@ const UI = {
     "rules_title": "⚓ Schiffe versenken — Regeln",
     "rules_body": "Platziere deine Schiffe (sie dürfen sich nicht berühren, auch nicht diagonal). Schieße abwechselnd auf das gegnerische Feld.<br>🎯 Treffer = weiterer Schuss!<br>Versenke die gesamte gegnerische Flotte, um zu gewinnen.",
     "rules_ok": "Verstanden 👍",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
     "page_title": "⚓ SCHIFFE VERSENKEN",
     "page_sub": "Seeschlacht · 2 Spieler",
     "name_ph": "Name",

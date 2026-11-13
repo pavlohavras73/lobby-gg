@@ -168,19 +168,12 @@
   </div>
 
   <div class="chess-wrap">
-    <header class="game-header" style="padding:0 2px;gap:10px">
-      <a href="/games/" class="game-nav-back" style="min-height:44px;padding:0 14px" data-i18n="nav_games" data-i18n-title="nav_games">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        <span>Игры</span>
-      </a>
-      <div class="game-title-wrap" style="min-width:0;overflow:hidden">
-        <h1 data-i18n="page_title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">♟ ШАХМАТЫ</h1>
-        <div class="sub" data-i18n="page_sub">классика · на двоих</div>
-      </div>
-      <div class="game-header-actions">
-        <button id="rulesBtn" class="rules-btn" style="width:44px;height:44px;min-width:44px" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
-      </div>
+    <header class="game-topbar">
+      <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
+      <div class="topbar-title" data-i18n="page_title">♟ ШАХМАТЫ</div>
+      <button type="button" id="rulesBtn" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
     </header>
+    <div class="sub" data-i18n="page_sub" style="text-align:center;margin-bottom:8px">классика · на двоих</div>
 
     <div class="langbar" id="langbar" style="margin-bottom:12px">
       <button type="button" data-lang="uk">УКР</button>
@@ -294,7 +287,7 @@ const UI = {
     rules_title: "Шахи — правила",
     rules_body: "Класичні шахи: рокіровка, взяття на проході, перетворення пішака. Мета — поставити <b>мат</b> королю суперника.",
     rules_ok: "Зрозуміло",
-    nav_games: "Ігри",
+    nav_games: "‹ Ігри",
     page_title: "ШАХИ",
     page_sub: "класика · на двоих",
     name_ph: "Ім'я",
@@ -329,7 +322,7 @@ const UI = {
     rules_title: "Шахматы — правила",
     rules_body: "Классические шахматы: рокировка, взятие на проходе, превращение пешки. Цель — поставить <b>мат</b> королю соперника.",
     rules_ok: "Понятно",
-    nav_games: "Игры",
+    nav_games: "‹ Игры",
     page_title: "ШАХМАТЫ",
     page_sub: "классика · на двоих",
     name_ph: "Имя",
@@ -364,7 +357,7 @@ const UI = {
     rules_title: "Chess — rules",
     rules_body: "Classic chess: castling, en passant, pawn promotion. The goal is to <b>checkmate</b> the opponent's king.",
     rules_ok: "Got it",
-    nav_games: "Games",
+    nav_games: "‹ Games",
     page_title: "CHESS",
     page_sub: "classic · 2 players",
     name_ph: "Name",
@@ -399,7 +392,7 @@ const UI = {
     rules_title: "Schach — Regeln",
     rules_body: "Klassisches Schach: Rochade, En Passant, Bauerneumwandlung. Ziel ist es, den König des Gegners <b>schachmatt</b> zu setzen.",
     rules_ok: "Verstanden",
-    nav_games: "Spiele",
+    nav_games: "‹ Spiele",
     page_title: "SCHACH",
     page_sub: "Klassiker · 2 Spieler",
     name_ph: "Name",
