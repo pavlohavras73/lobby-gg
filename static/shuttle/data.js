@@ -10,8 +10,10 @@
       feature: 'asteroids',
       sectors: 10,
       name: { uk: 'Пояс Уламків', ru: 'Пояс Обломков', en: 'Debris Belt', de: 'Trümmergürtel' },
+      bossMini: { uk: 'Залізний Жнець', ru: 'Железный Жнец', en: 'Iron Reaper', de: 'Eiserner Schnitter' },
+      bossFinal: { uk: 'Титан Поясу', ru: 'Титан Пояса', en: 'Belt Titan', de: 'Gürtel-Titan' },
       desc: {
-        uk: 'Руйнівні астероїди та патрулі рейдерів. Сектор 5 — міні-бос, 10 — Титан Пояса.',
+        uk: 'Руйнівні астероїди та патрулі рейдерів. Сектор 5 — міні-бос, 10 — Титан Поясу.',
         ru: 'Разрушаемые астероиды и патрули рейдеров. Сектор 5 — мини-босс, 10 — Титан Пояса.',
         en: 'Destructible asteroids and raider patrols. Sector 5 mini-boss, Sector 10 Belt Titan.',
         de: 'Zerstörbare Asteroiden und Plünderer. Sektor 5 Mini-Boss, Sektor 10 Gürtel-Titan.'
@@ -19,11 +21,13 @@
     },
     {
       id: 2,
-      unlocked: false,
+      unlocked: true,
       palette: { bg1: '#150612', bg2: '#2d0a1f', accent: '#fb7185', neb: 'rgba(251,113,133,0.16)' },
       feature: 'nebula',
       sectors: 10,
       name: { uk: 'Багряна туманність', ru: 'Алая туманность', en: 'Crimson Nebula', de: 'Purpurnebel' },
+      bossMini: { uk: 'Кривавий Снайпер', ru: 'Кровавый Снайпер', en: 'Crimson Sniper', de: 'Purpur-Scharfschütze' },
+      bossFinal: { uk: 'Серце Туманності', ru: 'Сердце Туманности', en: 'Nebula Heart', de: 'Nebelherz' },
       desc: {
         uk: 'Хмари туманності ховають ворожі кулі.',
         ru: 'Облака туманности прячут вражеские пули.',
@@ -33,11 +37,13 @@
     },
     {
       id: 3,
-      unlocked: false,
+      unlocked: true,
       palette: { bg1: '#05131c', bg2: '#0b2b3d', accent: '#67e8f9', neb: 'rgba(103,232,249,0.15)' },
       feature: 'ice',
       sectors: 10,
       name: { uk: 'Крижані кільця', ru: 'Ледяные кольца', en: 'Ice Rings', de: 'Eisringe' },
+      bossMini: { uk: 'Льодовий Страж', ru: 'Ледяной Страж', en: 'Frost Warden', de: 'Frostwächter' },
+      bossFinal: { uk: 'Кріо-Левіафан', ru: 'Крио-Левиафан', en: 'Cryo Leviathan', de: 'Kryo-Leviathan' },
       desc: {
         uk: 'Крижані поля сповільнюють корабель.',
         ru: 'Ледяные поля замедляют корабль.',
@@ -47,11 +53,13 @@
     },
     {
       id: 4,
-      unlocked: false,
+      unlocked: true,
       palette: { bg1: '#121306', bg2: '#25290a', accent: '#a3e635', neb: 'rgba(163,230,53,0.14)' },
       feature: 'hive',
       sectors: 10,
       name: { uk: 'Вулик', ru: 'Улей', en: 'The Hive', de: 'Der Schwarm' },
+      bossMini: { uk: 'Матка Рою', ru: 'Матка Роя', en: 'Swarm Brood', de: 'Schwarmbrut' },
+      bossFinal: { uk: 'Королева Вулика', ru: 'Королева Улья', en: 'Hive Queen', de: 'Schwarmkönigin' },
       desc: {
         uk: 'Гнізда випускають рій, доки їх не знищиш.',
         ru: 'Гнёзда спавнят рой, пока их не уничтожишь.',
@@ -61,11 +69,13 @@
     },
     {
       id: 5,
-      unlocked: false,
+      unlocked: true,
       palette: { bg1: '#0c0518', bg2: '#1f0b3a', accent: '#c084fc', neb: 'rgba(192,132,252,0.16)' },
       feature: 'gravity',
       sectors: 10,
       name: { uk: 'Горизонт подій', ru: 'Горизонт событий', en: 'Event Horizon', de: 'Ereignishorizont' },
+      bossMini: { uk: 'Пульсар-Тінь', ru: 'Пульсар-Тень', en: 'Shadow Pulsar', de: 'Schattenpulsar' },
+      bossFinal: { uk: 'Сингулярність', ru: 'Сингулярность', en: 'Singularity', de: 'Singularität' },
       desc: {
         uk: 'Гравітаційний колодязь тягне корабель і кулі.',
         ru: 'Гравитационный колодец тянет корабль и пули.',
@@ -120,28 +130,28 @@
       }
     },
     {
-      id: 'sting', playable: false, cost: 400, color: '#f43f5e', glow: '#be123c', hp: 80, speed: 390, dmg: 15, fireRate: 6.4, crit: 0.22, abilityCd: 9,
+      id: 'sting', playable: true, cost: 400, unlockGalaxy: 2, unlockSector: 10, color: '#f43f5e', glow: '#be123c', hp: 80, speed: 390, dmg: 15, fireRate: 6.4, crit: 0.22, abilityCd: 9,
       name: { uk: 'Жало', ru: 'Жало', en: 'Sting', de: 'Stachel' },
       abilityName: { uk: 'Перегрів', ru: 'Перегрев', en: 'Overdrive', de: 'Überhitzung' },
-      abilityDesc: { uk: '×2 скорострільність.', ru: '×2 скорострельность.', en: '×2 fire rate.', de: '×2 Feuerrate.' }
+      abilityDesc: { uk: '×2 скорострільність і +25% крита на 4 с.', ru: '×2 скорострельность и +25% крита на 4 с.', en: '×2 fire rate & +25% crit for 4s.', de: '×2 Feuerrate & +25% Krit für 4 s.' }
     },
     {
-      id: 'hive', playable: false, cost: 650, color: '#a3e635', glow: '#65a30d', hp: 120, speed: 295, dmg: 10, fireRate: 4.5, crit: 0.06, abilityCd: 12,
+      id: 'hive', playable: true, cost: 650, unlockGalaxy: 3, unlockSector: 10, color: '#a3e635', glow: '#65a30d', hp: 120, speed: 295, dmg: 10, fireRate: 4.5, crit: 0.06, abilityCd: 12,
       name: { uk: 'Носій', ru: 'Улей-носитель', en: 'Carrier', de: 'Träger' },
       abilityName: { uk: 'Рій дронів', ru: 'Рой дронов', en: 'Drone Swarm', de: 'Drohnenschwarm' },
-      abilityDesc: { uk: 'Виклик рою дронів.', ru: 'Вызов роя дронов.', en: 'Summons drone swarm.', de: 'Ruft Drohnenschwarm.' }
+      abilityDesc: { uk: '2 дрони зі старту + залп 4 ракет-дронів.', ru: '2 дрона со старта + залп 4 ракет-дронов.', en: '2 starter drones + 4 swarm missiles.', de: '2 Start-Drohnen + 4 Schwarmraketen.' }
     },
     {
-      id: 'phantom', playable: false, cost: 900, color: '#c084fc', glow: '#7e22ce', hp: 95, speed: 360, dmg: 17, fireRate: 5.2, crit: 0.14, abilityCd: 10,
+      id: 'phantom', playable: true, cost: 900, unlockGalaxy: 4, unlockSector: 10, color: '#c084fc', glow: '#7e22ce', hp: 95, speed: 360, dmg: 17, fireRate: 5.2, crit: 0.14, abilityCd: 10,
       name: { uk: 'Фантом', ru: 'Фантом', en: 'Phantom', de: 'Phantom' },
       abilityName: { uk: 'Невидимість', ru: 'Невидимость', en: 'Cloak', de: 'Tarnung' },
-      abilityDesc: { uk: 'Вороги втрачають ціль.', ru: 'Враги теряют цель.', en: 'Enemies lose lock.', de: 'Gegner verlieren Ziel.' }
+      abilityDesc: { uk: 'Маскування на 3.2 с: вороги втрачають ціль.', ru: 'Невидимость на 3.2 с: враги теряют цель.', en: '3.2s cloak: invulnerable & drops enemy lock.', de: '3,2 s Tarnung: Gegner verlieren Ziel.' }
     },
     {
-      id: 'nova', playable: false, cost: 1300, color: '#fb7185', glow: '#e11d48', hp: 135, speed: 310, dmg: 22, fireRate: 4.8, crit: 0.12, abilityCd: 15,
+      id: 'nova', playable: true, cost: 1300, unlockGalaxy: 5, unlockSector: 5, color: '#fb7185', glow: '#e11d48', hp: 135, speed: 310, dmg: 22, fireRate: 4.8, crit: 0.12, abilityCd: 15,
       name: { uk: 'Наднова', ru: 'Сверхновая', en: 'Supernova', de: 'Supernova' },
       abilityName: { uk: 'Бомба-спалах', ru: 'Бомба по экрану', en: 'Nova Bomb', de: 'Nova-Bombe' },
-      abilityDesc: { uk: 'Заряджаємий вибух екрана.', ru: 'Заряжаемая бомба по экрану.', en: 'Screen-clearing blast.', de: 'Bildschirm-Explosion.' }
+      abilityDesc: { uk: 'Потужний вибух по екрану, нищить кулі.', ru: 'Мощный взрыв по всему экрану, сжигает пули.', en: 'Screen-wide blast that vaporizes bullets.', de: 'Bildschirm-Explosion, löscht Geschosse.' }
     }
   ];
 
@@ -420,8 +430,52 @@
         en: 'EVOLUTION: cryo chain lightning to 6 foes with freeze!',
         de: 'EVOLUTION: Kryo-Kettenblitz auf 6 Gegner mit Einfrieren!'
       }
+    },
+    {
+      id: 'rail_ricochet',
+      req: ['pierce', 'ricochet'],
+      icon: '🗡🎱',
+      rarity: 'legendary',
+      name: { uk: 'Гіпер-рейка', ru: 'Гипер-рельса', en: 'Hyper Rail', de: 'Hyper-Rail' },
+      desc: {
+        uk: 'ЕВОЛЮЦІЯ: +35% шкоди пробиваючим кулям із рикошетом!',
+        ru: 'ЭВОЛЮЦИЯ: +35% урона пробивающим пулям с рикошетом!',
+        en: 'EVOLUTION: +35% dmg on piercing ricochet bolts!',
+        de: 'EVOLUTION: +35% Schaden auf Durchschlag-Abpraller!'
+      }
+    },
+    {
+      id: 'drone_swarm',
+      req: ['drone', 'blades'],
+      icon: '🛰💠',
+      rarity: 'legendary',
+      name: { uk: 'Орбітальний рій', ru: 'Орбитальный рой', en: 'Orbital Swarm', de: 'Orbital-Schwarm' },
+      desc: {
+        uk: 'ЕВОЛЮЦІЯ: дрони стріляють удвічі швидше!',
+        ru: 'ЭВОЛЮЦИЯ: дроны стреляют вдвое быстрее!',
+        en: 'EVOLUTION: wingman drones fire twice as fast!',
+        de: 'EVOLUTION: Drohnen feuern doppelt so schnell!'
+      }
     }
   ];
 
-  global.SHUTTLE_DATA = { GALAXIES, SHIPS, CARDS, EVOLUTIONS };
+  const UPGRADE_COSTS = [60, 120, 210, 340, 520];
+  function getShipStats(ship, upgrades) {
+    const u = upgrades || {};
+    const hpLvl = Math.min(5, Math.max(0, Number(u.hp) || 0));
+    const dmgLvl = Math.min(5, Math.max(0, Number(u.dmg) || 0));
+    const rateLvl = Math.min(5, Math.max(0, Number(u.rate) || 0));
+    return {
+      hp: Math.round(ship.hp * (1 + hpLvl * 0.12)),
+      speed: ship.speed,
+      dmg: Math.round(ship.dmg * (1 + dmgLvl * 0.10)),
+      fireRate: +(ship.fireRate * (1 + rateLvl * 0.08)).toFixed(2),
+      crit: ship.crit,
+      hpLvl,
+      dmgLvl,
+      rateLvl
+    };
+  }
+
+  global.SHUTTLE_DATA = { GALAXIES, SHIPS, CARDS, EVOLUTIONS, UPGRADE_COSTS, getShipStats };
 })(window);

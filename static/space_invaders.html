@@ -110,6 +110,13 @@
   }
   .ship-chip.on { border-color: #38bdf8; background: rgba(56,189,248,0.2); }
   .ship-chip.locked { opacity: 0.55; }
+  .upg-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 12px; }
+  .upg-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 6px 10px; font-size: 12px; }
+  .upg-info { display: flex; flex-direction: column; gap: 1px; }
+  .upg-pips { color: #38bdf8; letter-spacing: 2px; font-size: 11px; }
+  .upg-pct { color: #94a3b8; font-size: 11px; white-space: nowrap; }
+  .upg-btn { padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(250,204,21,0.45); background: rgba(250,204,21,0.14); color: #fde047; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+  .upg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* Play HUD */
   #playHud {
@@ -232,6 +239,7 @@
       </div>
     </div>
     <div class="stat-bars" id="shipStats"></div>
+    <div class="upg-list" id="shipUpgrades"></div>
     <button id="shipActionBtn" type="button" class="btn-main"></button>
   </section>
 
@@ -351,7 +359,12 @@ const UI = {
     no_records: "Поки що немає рекордів.",
     wave_lbl: "Хвиля",
     boss_reaper: "Залізний Жнець",
-    boss_titan: "Титан Поясу"
+    boss_titan: "Титан Поясу",
+    upg_hp: "Міцність корпусу",
+    upg_dmg: "Потужність зброї",
+    upg_rate: "Скорострільність",
+    upg_max: "МАКС",
+    gal_locked: "Заблоковано"
   },
   ru: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -384,7 +397,12 @@ const UI = {
     no_records: "Пока нет рекордов.",
     wave_lbl: "Волна",
     boss_reaper: "Железный Жнец",
-    boss_titan: "Титан Пояса"
+    boss_titan: "Титан Пояса",
+    upg_hp: "Прочность корпуса",
+    upg_dmg: "Мощность орудий",
+    upg_rate: "Скорострельность",
+    upg_max: "МАКС",
+    gal_locked: "Закрыто"
   },
   en: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -417,7 +435,12 @@ const UI = {
     no_records: "No records yet.",
     wave_lbl: "Wave",
     boss_reaper: "Iron Reaper",
-    boss_titan: "Belt Titan"
+    boss_titan: "Belt Titan",
+    upg_hp: "Hull Armor",
+    upg_dmg: "Weapon Power",
+    upg_rate: "Fire Rate",
+    upg_max: "MAX",
+    gal_locked: "Locked"
   },
   de: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -450,7 +473,12 @@ const UI = {
     no_records: "Noch keine Rekorde.",
     wave_lbl: "Welle",
     boss_reaper: "Eiserner Schnitter",
-    boss_titan: "Gürtel-Titan"
+    boss_titan: "Gürtel-Titan",
+    upg_hp: "Hüllenpanzer",
+    upg_dmg: "Waffenstärke",
+    upg_rate: "Feuerrate",
+    upg_max: "MAX",
+    gal_locked: "Gesperrt"
   }
 };
 
@@ -462,11 +490,13 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt
 const DATA = window.SHUTTLE_DATA;
 const SAVE = window.SHUTTLE_SAVE;
 let saveState = SAVE.loadLocal();
+let selectedGalaxy = 1;
 let selectedSector = 1;
 let previewShipId = saveState.selected_ship || 'spark';
 let engine = null;
 
 function applyUI() {
+  window.SHUTTLE_LANG = LANG;
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
@@ -476,22 +506,25 @@ function applyUI() {
 
 function renderGalaxies() {
   document.getElementById('dustVal').textContent = saveState.dust || 0;
+  const maxGal = saveState.max_galaxy || 1;
   const wrap = document.getElementById('galList');
   wrap.innerHTML = DATA.GALAXIES.map(g => {
-    if (!g.unlocked) {
+    const galUnlocked = g.id <= maxGal;
+    if (!galUnlocked) {
       return `<div class="gal-card locked">
-        <div class="gal-head"><span class="gal-name">🔒 ${g.id}. ${g.name[LANG]}</span><span class="gal-badge">${t('locked_6b')}</span></div>
+        <div class="gal-head"><span class="gal-name">🔒 ${g.id}. ${g.name[LANG]}</span><span class="gal-badge">${t('gal_locked')}</span></div>
         <div class="gal-desc">${g.desc[LANG]}</div>
       </div>`;
     }
-    const maxSec = saveState.max_sector || 1;
+    const maxSec = g.id < maxGal ? 10 : (saveState.max_sector || 1);
     let secs = '<div class="sector-grid">';
     for (let s = 1; s <= g.sectors; s++) {
       const unlocked = s <= maxSec;
       const st = saveState.stars[`${g.id}-${s}`] || 0;
       const starsStr = st > 0 ? '★'.repeat(st) + '☆'.repeat(3 - st) : (s === 5 || s === 10 ? '☠' : '•');
-      const cls = ['sec-btn', (s === 5 || s === 10) ? 'boss' : '', s === selectedSector ? 'sel' : ''].join(' ');
-      secs += `<button type="button" class="${cls}" ${unlocked ? '' : 'disabled'} data-sec="${s}"><span>${s}</span><span class="sec-stars">${starsStr}</span></button>`;
+      const isSel = g.id === selectedGalaxy && s === selectedSector;
+      const cls = ['sec-btn', (s === 5 || s === 10) ? 'boss' : '', isSel ? 'sel' : ''].join(' ');
+      secs += `<button type="button" class="${cls}" ${unlocked ? '' : 'disabled'} data-gal="${g.id}" data-sec="${s}"><span>${s}</span><span class="sec-stars">${starsStr}</span></button>`;
     }
     secs += '</div>';
     return `<div class="gal-card">
@@ -502,7 +535,11 @@ function renderGalaxies() {
   }).join('');
 
   wrap.querySelectorAll('[data-sec]').forEach(b => {
-    b.onclick = () => { selectedSector = Number(b.dataset.sec); renderGalaxies(); };
+    b.onclick = () => {
+      selectedGalaxy = Number(b.dataset.gal);
+      selectedSector = Number(b.dataset.sec);
+      renderGalaxies();
+    };
   });
 }
 
@@ -518,17 +555,57 @@ function renderHangar() {
   });
 
   const s = DATA.SHIPS.find(x => x.id === previewShipId) || DATA.SHIPS[0];
+  const ups = (saveState.ship_upgrades && saveState.ship_upgrades[s.id]) || {};
+  const st = DATA.getShipStats ? DATA.getShipStats(s, ups) : s;
   document.getElementById('shipName').textContent = s.name[LANG];
   document.getElementById('shipAbName').textContent = s.abilityName[LANG];
   document.getElementById('shipAbDesc').textContent = s.abilityDesc[LANG];
   document.getElementById('shipStats').innerHTML = `
-    <div class="stat-item">${t('stat_hp')}<b>${s.hp}</b></div>
-    <div class="stat-item">${t('stat_spd')}<b>${s.speed}</b></div>
-    <div class="stat-item">${t('stat_dmg')}<b>${s.dmg}</b></div>
-    <div class="stat-item">${t('stat_crit')}<b>${Math.round(s.crit * 100)}%</b></div>`;
+    <div class="stat-item">${t('stat_hp')}<b>${st.hp}</b></div>
+    <div class="stat-item">${t('stat_spd')}<b>${st.speed}</b></div>
+    <div class="stat-item">${t('stat_dmg')}<b>${st.dmg}</b></div>
+    <div class="stat-item">${t('stat_crit')}<b>${Math.round(st.crit * 100)}%</b></div>`;
+
+  const owned = saveState.ships.includes(s.id);
+  const upgBox = document.getElementById('shipUpgrades');
+  if (owned && DATA.UPGRADE_COSTS) {
+    const rows = [
+      { key: 'hp', label: t('upg_hp'), lvl: st.hpLvl || 0, pct: 12 },
+      { key: 'dmg', label: t('upg_dmg'), lvl: st.dmgLvl || 0, pct: 10 },
+      { key: 'rate', label: t('upg_rate'), lvl: st.rateLvl || 0, pct: 8 }
+    ];
+    upgBox.innerHTML = rows.map(r => {
+      const pips = '■'.repeat(r.lvl) + '□'.repeat(5 - r.lvl);
+      const cost = r.lvl < 5 ? DATA.UPGRADE_COSTS[r.lvl] : 0;
+      const canBuy = r.lvl < 5 && (saveState.dust || 0) >= cost;
+      const btnTxt = r.lvl >= 5 ? t('upg_max') : `✨ ${cost}`;
+      return `<div class="upg-row">
+        <div class="upg-info"><span>${r.label}</span><span class="upg-pips">${pips}</span><span class="upg-pct">+${r.pct * r.lvl}%${r.lvl < 5 ? ` → +${r.pct * (r.lvl + 1)}%` : ''}</span></div>
+        <button type="button" class="upg-btn" data-upg="${r.key}" ${canBuy ? '' : 'disabled'}>${btnTxt}</button>
+      </div>`;
+    }).join('');
+    upgBox.querySelectorAll('[data-upg]').forEach(b => {
+      b.onclick = () => {
+        const k = b.dataset.upg;
+        const curMap = (saveState.ship_upgrades && saveState.ship_upgrades[s.id]) || {};
+        const lvl = curMap[k] || 0;
+        if (lvl >= 5) return;
+        const cost = DATA.UPGRADE_COSTS[lvl];
+        if ((saveState.dust || 0) < cost) return;
+        saveState.dust -= cost;
+        if (!saveState.ship_upgrades) saveState.ship_upgrades = {};
+        if (!saveState.ship_upgrades[s.id]) saveState.ship_upgrades[s.id] = {};
+        saveState.ship_upgrades[s.id][k] = lvl + 1;
+        SAVE.pushCloud(saveState);
+        renderGalaxies();
+        renderHangar();
+      };
+    });
+  } else {
+    upgBox.innerHTML = '';
+  }
 
   const btn = document.getElementById('shipActionBtn');
-  const owned = saveState.ships.includes(s.id);
   if (!s.playable) {
     btn.textContent = t('locked_6b');
     btn.disabled = true;
@@ -538,7 +615,7 @@ function renderHangar() {
     btn.onclick = () => {
       saveState.selected_ship = s.id;
       SAVE.pushCloud(saveState);
-      launchGame(1, selectedSector, selectedSector > 1);
+      launchGame(selectedGalaxy, selectedSector, selectedSector > 1);
     };
   } else {
     btn.textContent = `${t('buy_ship')}${s.cost}`;
@@ -604,7 +681,11 @@ function updatePlayHud() {
   if (engine.boss) {
     bossHud.classList.add('active');
     const bPct = Math.max(0, Math.min(100, (engine.boss.hp / Math.max(1, engine.boss.maxHp)) * 100));
-    document.getElementById('bossName').textContent = `⚠ ${engine.boss.isFinal ? t('boss_titan') : t('boss_reaper')}`;
+    const gal = DATA.GALAXIES.find(g => g.id === engine.galaxyId) || DATA.GALAXIES[0];
+    const bTitle = engine.boss.isFinal
+      ? (gal.bossFinal?.[LANG] || t('boss_titan'))
+      : (gal.bossMini?.[LANG] || t('boss_reaper'));
+    document.getElementById('bossName').textContent = `⚠ ${bTitle}`;
     document.getElementById('bossHpPct').textContent = `${Math.ceil(bPct)}%`;
     document.getElementById('bossHpFill').style.width = `${bPct}%`;
   } else {
@@ -667,7 +748,9 @@ function showCardChoices(choices, rerolls) {
 function launchGame(gal, sec, singleSector) {
   document.getElementById('menuScreen').classList.remove('active');
   document.getElementById('playHud').classList.add('active');
-  engine.startRun({ shipId: saveState.selected_ship || 'spark', galaxyId: gal, startSector: sec, singleSector });
+  const shipId = saveState.selected_ship || 'spark';
+  const upgrades = (saveState.ship_upgrades && saveState.ship_upgrades[shipId]) || {};
+  engine.startRun({ shipId, upgrades, galaxyId: gal, startSector: sec, singleSector });
 }
 
 function exitToMenu() {
@@ -688,10 +771,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     onSectorClear: info => {
       const key = `${info.galaxy}-${info.sector}`;
       saveState.stars[key] = Math.max(saveState.stars[key] || 0, info.stars);
-      saveState.max_sector = Math.min(10, Math.max(saveState.max_sector || 1, info.sector + 1));
+      if (info.galaxy >= (saveState.max_galaxy || 1)) {
+        if (info.sector >= 10 && (saveState.max_galaxy || 1) < 5) {
+          saveState.max_galaxy = info.galaxy + 1;
+          saveState.max_sector = 1;
+        } else {
+          saveState.max_sector = Math.min(10, Math.max(saveState.max_sector || 1, info.sector + 1));
+        }
+      }
       saveState.dust = (saveState.dust || 0) + info.dust;
       saveState.best_score = Math.max(saveState.best_score || 0, info.score);
-      if (info.sector >= 5 && !saveState.ships.includes('bastion')) saveState.ships.push('bastion');
+      if (info.galaxy === 1 && info.sector >= 5 && !saveState.ships.includes('bastion')) saveState.ships.push('bastion');
+      if (info.galaxy === 2 && info.sector >= 10 && !saveState.ships.includes('sting')) saveState.ships.push('sting');
+      if (info.galaxy === 3 && info.sector >= 10 && !saveState.ships.includes('hive')) saveState.ships.push('hive');
+      if (info.galaxy === 4 && info.sector >= 10 && !saveState.ships.includes('phantom')) saveState.ships.push('phantom');
+      if (info.galaxy === 5 && info.sector >= 5 && !saveState.ships.includes('nova')) saveState.ships.push('nova');
       SAVE.pushCloud(saveState);
 
       document.getElementById('secTitle').textContent = info.sector >= 10 ? t('gal_cleared') : t('sec_cleared');
@@ -714,6 +808,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.__shuttleDebug = {
       setGod: v => { engine.godMode = Boolean(v); },
       jumpSector: s => { engine._bossSpawnedForSector = false; engine._startSector(s); },
+      jumpGalaxySector: (g, s) => {
+        engine.galaxyId = g;
+        engine._rebuildGradients();
+        engine._bossSpawnedForSector = false;
+        engine._startSector(s);
+      },
       giveCard: id => engine.addCard(id),
       levelUp: () => engine._triggerCardPick(),
       clearEnemies: () => { engine.enemies.length = 0; engine.boss = null; }
@@ -745,7 +845,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   });
 
-  document.getElementById('startRunBtn').onclick = () => launchGame(1, selectedSector, selectedSector > 1);
+  document.getElementById('startRunBtn').onclick = () => launchGame(selectedGalaxy, selectedSector, selectedSector > 1);
   document.getElementById('abilityBtn').onclick = () => engine.triggerAbility();
   document.getElementById('pauseBtn').onclick = () => engine.togglePause(true);
   document.getElementById('resumeBtn').onclick = () => engine.togglePause(false);
