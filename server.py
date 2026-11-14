@@ -4512,6 +4512,12 @@ try:
 except Exception as e:
     logging.exception(f"Failed to load geostake module: {e}")
 
+try:
+    import arcade_save
+    app.include_router(arcade_save.router)
+except Exception as e:
+    logging.exception(f"Failed to load arcade_save module: {e}")
+
 # PWA: manifest, service worker и теги «на домашний экран» на всех страницах (см. pwa.py)
 import pwa
 pwa.install(app)
