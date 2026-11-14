@@ -4,6 +4,7 @@
 
   const shipCache = new Map();
   const astCache = new Map();
+  const bossCache = new Map();
 
   const THRUSTER_OFFSETS = {
     spark:   [{ x: -6, y: 17, w: 4 }, { x: 6, y: 17, w: 4 }],
@@ -650,64 +651,331 @@
   }
 
   const BOSS_THEMES = {
-    1: { hull: '#4c1d95', miniHull: '#7f1d1d', stroke: '#c084fc', miniStroke: '#f87171', core: '#c084fc' },
-    2: { hull: '#881337', miniHull: '#9f1239', stroke: '#fb7185', miniStroke: '#fda4af', core: '#fb7185' },
-    3: { hull: '#0e7490', miniHull: '#155e75', stroke: '#67e8f9', miniStroke: '#a5f3fc', core: '#38bdf8' },
-    4: { hull: '#365314', miniHull: '#3f6212', stroke: '#a3e635', miniStroke: '#d9f99d', core: '#84cc16' },
-    5: { hull: '#3b0764', miniHull: '#4c1d95', stroke: '#facc15', miniStroke: '#c084fc', core: '#facc15' }
+    '1-mini':  { stroke: '#f87171', core: '#ef4444' },
+    '1-final': { stroke: '#fbbf24', core: '#f59e0b' },
+    '2-mini':  { stroke: '#fb7185', core: '#f43f5e' },
+    '2-final': { stroke: '#fda4af', core: '#e11d48' },
+    '3-mini':  { stroke: '#67e8f9', core: '#06b6d4' },
+    '3-final': { stroke: '#a5f3fc', core: '#38bdf8' },
+    '4-mini':  { stroke: '#bef264', core: '#84cc16' },
+    '4-final': { stroke: '#d9f99d', core: '#65a30d' },
+    '5-mini':  { stroke: '#c084fc', core: '#a855f7' },
+    '5-final': { stroke: '#facc15', core: '#c084fc' }
   };
 
-  function drawBoss(ctx, b, t) {
+  function renderBossHullToCtx(ctx, key, r) {
+    ctx.save();
+    if (key === '1-mini') {
+      // Iron Reaper: dual curved scythe blades + claw mandibles
+      const g = ctx.createLinearGradient(0, -r, 0, r);
+      g.addColorStop(0, '#991b1b');
+      g.addColorStop(1, '#450a0a');
+      ctx.fillStyle = g;
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 2;
+      // Scythe wings
+      ctx.beginPath();
+      ctx.moveTo(0, -r * 0.7);
+      ctx.quadraticCurveTo(-r * 1.35, -r * 0.3, -r * 1.05, r * 0.95);
+      ctx.quadraticCurveTo(-r * 0.55, r * 0.25, -r * 0.28, r * 0.55);
+      ctx.lineTo(0, r * 0.95);
+      ctx.lineTo(r * 0.28, r * 0.55);
+      ctx.quadraticCurveTo(r * 0.55, r * 0.25, r * 1.05, r * 0.95);
+      ctx.quadraticCurveTo(r * 1.35, -r * 0.3, 0, -r * 0.7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (key === '1-final') {
+      // Belt Titan: massive asteroid-fortress with steel bastions
+      const g = ctx.createRadialGradient(-r * 0.2, -r * 0.2, r * 0.1, 0, 0, r * 1.15);
+      g.addColorStop(0, '#64748b');
+      g.addColorStop(0.55, '#334155');
+      g.addColorStop(1, '#0f172a');
+      ctx.fillStyle = g;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2.2;
+      const pts = [1.05, 0.85, 1.12, 0.82, 1.08, 0.9, 1.14, 0.84, 1.0, 0.88];
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = (Math.PI * 2 * i) / 10;
+        const rr = r * pts[i];
+        if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Steel bastion plates
+      ctx.fillStyle = '#4c1d95';
+      ctx.fillRect(-r * 0.85, -r * 0.22, r * 0.45, r * 0.44);
+      ctx.fillRect(r * 0.4, -r * 0.22, r * 0.45, r * 0.44);
+      ctx.strokeRect(-r * 0.85, -r * 0.22, r * 0.45, r * 0.44);
+      ctx.strokeRect(r * 0.4, -r * 0.22, r * 0.45, r * 0.44);
+    } else if (key === '2-mini') {
+      // Crimson Sniper: asymmetric long-barrel rail-interceptor
+      ctx.fillStyle = '#881337';
+      ctx.strokeStyle = '#fb7185';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, r * 1.25);
+      ctx.lineTo(-r * 0.35, r * 0.3);
+      ctx.lineTo(-r * 1.15, -r * 0.2);
+      ctx.lineTo(-r * 0.65, -r * 0.85);
+      ctx.lineTo(r * 0.65, -r * 0.85);
+      ctx.lineTo(r * 1.15, -r * 0.2);
+      ctx.lineTo(r * 0.35, r * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Rail barrel
+      ctx.fillStyle = '#be123c';
+      ctx.fillRect(-5, 0, 10, r * 1.18);
+      ctx.strokeRect(-5, 0, 10, r * 1.18);
+    } else if (key === '2-final') {
+      // Nebula Heart: organic petal-shielded pulsing core
+      ctx.fillStyle = '#9f1239';
+      ctx.strokeStyle = '#fda4af';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI * 2 * i) / 6;
+        ctx.save();
+        ctx.rotate(a);
+        ctx.beginPath();
+        ctx.ellipse(0, -r * 0.68, r * 0.34, r * 0.52, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.fillStyle = '#4c0519';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.56, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (key === '3-mini') {
+      // Frost Warden: crystalline 6-spire ice monolith
+      const g = ctx.createLinearGradient(0, -r, 0, r);
+      g.addColorStop(0, '#a5f3fc');
+      g.addColorStop(0.5, '#0e7490');
+      g.addColorStop(1, '#164e63');
+      ctx.fillStyle = g;
+      ctx.strokeStyle = '#cffafe';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 12; i++) {
+        const a = (Math.PI * 2 * i) / 12;
+        const rr = i % 2 === 0 ? r * 1.12 : r * 0.62;
+        if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (key === '3-final') {
+      // Cryo Leviathan: horned armored serpent head
+      const g = ctx.createLinearGradient(0, -r, 0, r);
+      g.addColorStop(0, '#67e8f9');
+      g.addColorStop(1, '#0c4a6e');
+      ctx.fillStyle = g;
+      ctx.strokeStyle = '#e0f2fe';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(0, r * 1.15);
+      ctx.lineTo(-r * 0.78, r * 0.35);
+      ctx.lineTo(-r * 1.05, -r * 0.55);
+      ctx.lineTo(-r * 0.45, -r * 0.95);
+      ctx.lineTo(0, -r * 0.5);
+      ctx.lineTo(r * 0.45, -r * 0.95);
+      ctx.lineTo(r * 1.05, -r * 0.55);
+      ctx.lineTo(r * 0.78, r * 0.35);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (key === '4-mini') {
+      // Swarm Brood: bulbous bio-sac with mandibles
+      ctx.fillStyle = '#3f6212';
+      ctx.strokeStyle = '#bef264';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, -r * 0.1, r * 0.95, r * 0.78, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Mandibles
+      ctx.fillStyle = '#65a30d';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.55, r * 0.45); ctx.lineTo(-r * 0.2, r * 1.12); ctx.lineTo(-r * 0.12, r * 0.55);
+      ctx.moveTo(r * 0.55, r * 0.45); ctx.lineTo(r * 0.2, r * 1.12); ctx.lineTo(r * 0.12, r * 0.55);
+      ctx.fill();
+    } else if (key === '4-final') {
+      // Hive Queen: crowned abdomen + veined wings
+      ctx.fillStyle = 'rgba(163,230,53,0.28)';
+      ctx.strokeStyle = '#d9f99d';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.85, -r * 0.1, r * 0.65, r * 0.35, -0.35, 0, Math.PI * 2);
+      ctx.ellipse(r * 0.85, -r * 0.1, r * 0.65, r * 0.35, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#365314';
+      ctx.strokeStyle = '#a3e635';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(0, r * 1.12);
+      ctx.lineTo(-r * 0.68, r * 0.2);
+      ctx.lineTo(-r * 0.5, -r * 0.88);
+      ctx.lineTo(0, -r * 0.6);
+      ctx.lineTo(r * 0.5, -r * 0.88);
+      ctx.lineTo(r * 0.68, r * 0.2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (key === '5-mini') {
+      // Shadow Pulsar: 4-point relativistic star
+      ctx.fillStyle = '#4c1d95';
+      ctx.strokeStyle = '#d8b4fe';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const a = (Math.PI * 2 * i) / 8;
+        const rr = i % 2 === 0 ? r * 1.18 : r * 0.42;
+        if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      // 5-final Singularity: black hole event horizon + accretion disc
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.24, r * 0.42, -0.25, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.08, r * 0.34, -0.25, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#05020d';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.66, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#f3e8ff';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function getBossSprite(bossKey, r, dpr) {
+    const d = dpr || 1;
+    const key = `${bossKey}_${r}_${d}`;
+    let c = bossCache.get(key);
+    if (c) return c;
+    const size = Math.ceil(r * 2.8);
+    c = makeCanvas(size, d);
+    const ctx = c.getContext('2d');
+    ctx.translate(size / 2, size / 2);
+    renderBossHullToCtx(ctx, bossKey, r);
+    bossCache.set(key, c);
+    return c;
+  }
+
+  function drawBoss(ctx, b, t, dpr) {
     const r = b.r;
+    const key = b.bossKey || `${b.galaxyId}-${b.isFinal ? 'final' : 'mini'}`;
     const hpRatio = Math.max(0, b.hp / b.maxHp);
     const pulse = 0.65 + 0.35 * Math.sin(t * (4 + b.phase * 2.5));
-    const hit = b.flash > 0;
-    const th = BOSS_THEMES[b.galaxyId] || BOSS_THEMES[1];
-    const hullCol = b.isFinal ? th.hull : th.miniHull;
-    const strokeCol = b.isFinal ? th.stroke : th.miniStroke;
+    const th = BOSS_THEMES[key] || BOSS_THEMES['1-mini'];
+
+    // Singularity teleport reticle
+    if (b.tpTimer > 0) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(250,204,21,${0.45 + pulse * 0.45})`;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(b.tpX, b.tpY, r * 0.95, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Telegraph before strong attack
+    if (b.telegraph > 0) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(244,63,94,${0.55 + pulse * 0.4})`;
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([7, 5]);
+      if (b.telegraphKind === 'wall') {
+        ctx.beginPath();
+        ctx.moveTo(0, b.y + r + 14);
+        ctx.lineTo(999, b.y + r + 14);
+        ctx.stroke();
+      } else if (b.telegraphKind === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(b.telegraphX || b.x, b.telegraphY || b.y + 400);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, r + 16 + pulse * 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Cryo Leviathan trailing body segments
+    if (key === '3-final' && b.segments) {
+      for (let i = b.segments.length - 1; i >= 0; i--) {
+        const seg = b.segments[i];
+        const sr = r * (0.68 - i * 0.1);
+        ctx.save();
+        ctx.fillStyle = b.flash > 0 ? '#ffffff' : '#0e7490';
+        ctx.strokeStyle = '#a5f3fc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(seg.x, seg.y, sr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
 
     ctx.save();
     ctx.translate(b.x, b.y);
 
-    ctx.strokeStyle = strokeCol;
-    ctx.globalAlpha = 0.25 + pulse * 0.3;
-    ctx.lineWidth = 2.2;
+    // Outer danger aura
+    ctx.strokeStyle = th.stroke;
+    ctx.globalAlpha = 0.24 + pulse * 0.28;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(0, 0, r + 10 + pulse * 3, 0, Math.PI * 2);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    ctx.fillStyle = hit ? '#ffffff' : hullCol;
-    ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    if (b.isFinal) {
-      ctx.moveTo(0, r * 1.05);
-      ctx.lineTo(-r * 0.65, r * 0.6);
-      ctx.lineTo(-r * 1.12, 0);
-      ctx.lineTo(-r * 0.85, -r * 0.72);
-      ctx.lineTo(r * 0.85, -r * 0.72);
-      ctx.lineTo(r * 1.12, 0);
-      ctx.lineTo(r * 0.65, r * 0.6);
-    } else {
-      ctx.moveTo(0, r * 1.05);
-      ctx.lineTo(-r * 0.95, r * 0.25);
-      ctx.lineTo(-r * 1.1, -r * 0.6);
-      ctx.lineTo(-r * 0.35, -r * 0.82);
-      ctx.lineTo(r * 0.35, -r * 0.82);
-      ctx.lineTo(r * 1.1, -r * 0.6);
-      ctx.lineTo(r * 0.95, r * 0.25);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    // Offscreen pre-rendered hull
+    if (key === '5-mini') ctx.rotate(t * 0.8);
+    const spr = getBossSprite(key, r, dpr || 1);
+    const logical = spr.width / (dpr || 1);
+    ctx.drawImage(spr, -logical / 2, -logical / 2, logical, logical);
+    if (key === '5-mini') ctx.rotate(-t * 0.8);
 
+    // Hit flash overlay
+    if (b.flash > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Breakable armor plates (4 plates detaching at 75/50/25/10%)
     const plateThresholds = [0.75, 0.5, 0.25, 0.1];
     const platePositions = [
-      { x: -r * 0.62, y: -r * 0.15, ang: -0.35 },
-      { x: r * 0.62, y: -r * 0.15, ang: 0.35 },
-      { x: -r * 0.42, y: r * 0.42, ang: -0.65 },
-      { x: r * 0.42, y: r * 0.42, ang: 0.65 }
+      { x: -r * 0.58, y: -r * 0.15, ang: -0.35 },
+      { x: r * 0.58, y: -r * 0.15, ang: 0.35 },
+      { x: -r * 0.4, y: r * 0.4, ang: -0.65 },
+      { x: r * 0.4, y: r * 0.4, ang: 0.65 }
     ];
     for (let i = 0; i < 4; i++) {
       if (hpRatio > plateThresholds[i]) {
@@ -715,40 +983,42 @@
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.ang);
-        ctx.fillStyle = hit ? '#ffffff' : hullCol;
+        ctx.fillStyle = 'rgba(15,23,42,0.75)';
         ctx.strokeStyle = '#fde047';
         ctx.lineWidth = 1.4;
-        ctx.fillRect(-10, -6, 20, 12);
-        ctx.strokeRect(-10, -6, 20, 12);
+        ctx.fillRect(-9, -5, 18, 10);
+        ctx.strokeRect(-9, -5, 18, 10);
         ctx.restore();
       }
     }
 
+    // Phase-reactive core
     const coreColor = b.phase >= 3 ? '#facc15' : (b.phase === 2 ? '#fb7185' : th.core);
     ctx.fillStyle = coreColor;
-    ctx.globalAlpha = 0.7 + pulse * 0.3;
+    ctx.globalAlpha = 0.72 + pulse * 0.28;
     ctx.beginPath();
-    ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+    ctx.arc(0, 0, r * 0.26, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.4;
     ctx.stroke();
 
+    // Rotating turrets
     const turretAngle = b.turretAngle || 0;
-    for (const sx of [-r * 0.68, r * 0.68]) {
+    for (const sx of [-r * 0.64, r * 0.64]) {
       ctx.save();
-      ctx.translate(sx, r * 0.1);
+      ctx.translate(sx, r * 0.08);
       ctx.rotate(turretAngle);
       ctx.fillStyle = '#334155';
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = coreColor;
-      ctx.fillRect(-2.2, 0, 4.4, 12);
+      ctx.fillRect(-2, 0, 4, 11);
       ctx.restore();
     }
 

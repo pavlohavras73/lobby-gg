@@ -360,6 +360,7 @@
         this.cb.onHudUpdate?.();
         return;
       }
+      if (!DATA.CARDS.some(c => c.id === id)) return;
       const prev = this.cards[id] || 0;
       const next = Math.min(3, prev + 1);
       this.cards[id] = next;
@@ -570,21 +571,34 @@
       const bName = isFinal
         ? (gal.bossFinal?.[_lang()] || gal.bossFinal?.en || 'BOSS')
         : (gal.bossMini?.[_lang()] || gal.bossMini?.en || 'MINI-BOSS');
+      const key = `${this.galaxyId}-${isFinal ? 'final' : 'mini'}`;
       this.boss = {
         _uid: this._nextUid++,
         galaxyId: this.galaxyId,
+        bossKey: key,
         isFinal,
         x: this.w * 0.5,
         y: -70,
         targetY: safeTop + r,
         vx: 75 + this.galaxyId * 8,
+        vy: 0,
         r,
         hp,
         maxHp: hp,
         phase: 1,
-        cd: 1.4,
+        cd: 1.3,
         patternIdx: 0,
         turretAngle: 0,
+        telegraph: 0,
+        telegraphKind: '',
+        telegraphX: 0,
+        telegraphY: 0,
+        pendingPattern: -1,
+        tpTimer: 0,
+        tpX: 0,
+        tpY: 0,
+        tpCooldown: 4.5,
+        segments: key === '3-final' ? Array.from({ length: 4 }, () => ({ x: this.w * 0.5, y: -70 })) : null,
         flash: 0,
         burn: 0,
         burnDmg: 0,
@@ -838,7 +852,9 @@
         } else if ((this.sector === 5 || this.sector === 10) && !this._bossSpawnedForSector) {
           this._bossSpawnedForSector = true;
           this._spawnBoss(this.sector === 10);
-        } else if (this.gems.length === 0) {
+        } else if (this.gems.length === 0 && !this.cardModalOpen) {
+          // the last gem can level up in this very frame: let the card pick close first,
+          // otherwise the sector modal opens on top of it and the card is lost
           this._sectorCleared();
         }
       }
@@ -1235,38 +1251,279 @@
 
     _updateBoss(dt) {
       const b = this.boss;
+      const key = b.bossKey;
       if (b.flash > 0) b.flash -= dt;
       if (b.burn > 0) { b.burn -= dt; b.hp -= b.burnDmg * dt; if (b.hp <= 0) { this._damageBoss(1, false); return; } }
       b.targetY = Math.max(135, this.hudTopOffset + 24) + b.r;
-      if (b.y < b.targetY) b.y += 165 * dt;
-      else {
-        b.x += b.vx * (1 + (b.phase - 1) * 0.3) * dt;
-        if (b.x < 56 || b.x > this.w - 56) b.vx *= -1;
-      }
       b.turretAngle = Math.atan2(this.py - b.y, this.px - b.x) - Math.PI / 2;
+
+      // Entry descent
+      if (b.y < b.targetY) {
+        b.y += 170 * dt;
+      } else {
+        // Unique boss movement patterns
+        const phSpd = 1 + (b.phase - 1) * 0.28;
+        if (key === '5-final') {
+          // Singularity teleports periodically with blink reticle telegraph
+          if (b.tpTimer > 0) {
+            b.tpTimer -= dt;
+            if (b.tpTimer <= 0) {
+              this._spawnExplosion(b.x, b.y, '#c084fc', 14, 52, false);
+              b.x = clamp(b.tpX, 64, this.w - 64);
+              b.y = clamp(b.tpY, b.targetY, b.targetY + 65);
+              this._spawnExplosion(b.x, b.y, '#facc15', 16, 56, false);
+              b.tpCooldown = Math.max(2.8, 4.8 - b.phase * 0.6);
+              if (this.cloakTime <= 0) this._fireBossRing(b, 12 + b.phase * 2, 165, '#facc15', 'diamond', 0);
+            }
+          } else {
+            b.tpCooldown -= dt;
+            b.x += Math.sin(this.sectorElapsed * 1.4) * 26 * dt;
+            if (b.tpCooldown <= 0) {
+              b.tpTimer = 0.75;
+              b.tpX = rand(68, this.w - 68);
+              b.tpY = rand(b.targetY, b.targetY + 60);
+            }
+          }
+        } else if (key === '3-final') {
+          // Cryo Leviathan slithers in sine wave + updates trailing segments
+          b.x += b.vx * phSpd * 1.15 * dt;
+          if (b.x < 56) { b.x = 56; b.vx = Math.abs(b.vx); }
+          if (b.x > this.w - 56) { b.x = this.w - 56; b.vx = -Math.abs(b.vx); }
+          b.y = b.targetY + 34 + Math.sin(this.sectorElapsed * 2.6) * 34;
+        } else if (key === '4-final') {
+          // Hive Queen hovers regally near center
+          b.x = this.w * 0.5 + Math.sin(this.sectorElapsed * 0.9) * 24;
+          b.y = b.targetY + Math.cos(this.sectorElapsed * 1.3) * 8;
+        } else if (key === '5-mini') {
+          // Shadow Pulsar elliptical orbit
+          const rx = Math.max(60, this.w * 0.34);
+          b.x = this.w * 0.5 + Math.cos(this.sectorElapsed * 1.35 * phSpd) * rx;
+          b.y = b.targetY + 26 + Math.sin(this.sectorElapsed * 2.7 * phSpd) * 24;
+        } else if (key === '2-final') {
+          // Nebula Heart figure-8 drift
+          const rx = Math.max(60, this.w * 0.32);
+          b.x = this.w * 0.5 + Math.sin(this.sectorElapsed * 1.2 * phSpd) * rx;
+          b.y = b.targetY + 22 + Math.sin(this.sectorElapsed * 2.4 * phSpd) * 20;
+        } else if (key === '1-mini') {
+          // Iron Reaper sweeps and lunges down periodically
+          b.x += b.vx * phSpd * 1.2 * dt;
+          if (b.x < 52) { b.x = 52; b.vx = Math.abs(b.vx); }
+          if (b.x > this.w - 52) { b.x = this.w - 52; b.vx = -Math.abs(b.vx); }
+          b.y = b.targetY + Math.max(0, Math.sin(this.sectorElapsed * 1.8) * 48);
+        } else {
+          // Patrol with brief pause during sniper telegraph
+          if (!(key === '2-mini' && b.telegraph > 0)) {
+            b.x += b.vx * phSpd * dt;
+            if (b.x < 56) { b.x = 56; b.vx = Math.abs(b.vx); }
+            if (b.x > this.w - 56) { b.x = this.w - 56; b.vx = -Math.abs(b.vx); }
+          }
+          b.y = b.targetY;
+        }
+      }
+
+      // Update Cryo Leviathan segments
+      if (b.segments) {
+        let px = b.x, py = b.y;
+        for (let i = 0; i < b.segments.length; i++) {
+          const seg = b.segments[i];
+          const dx = px - seg.x, dy = py - seg.y;
+          const d = Math.hypot(dx, dy);
+          const spacing = b.r * 0.72;
+          if (d > spacing) {
+            seg.x += (dx / d) * (d - spacing);
+            seg.y += (dy / d) * (d - spacing);
+          }
+          px = seg.x; py = seg.y;
+        }
+      }
+
+      // Telegraph countdown -> execute strong attack
+      if (b.telegraph > 0) {
+        b.telegraph -= dt;
+        if (b.telegraph <= 0 && this.cloakTime <= 0) {
+          this._executeBossStrongAttack(b);
+        }
+        return;
+      }
+
       b.cd -= dt;
       if (b.cd <= 0 && this.cloakTime <= 0) {
-        b.patternIdx = (b.patternIdx + 1) % 3;
-        b.cd = Math.max(0.75, 1.8 - b.phase * 0.26 - (this.galaxyId - 1) * 0.06);
-        const speedBoost = 1 + (this.galaxyId - 1) * 0.08;
-        if (b.patternIdx === 0) {
+        b.patternIdx = (b.patternIdx + 1) % (b.phase >= 2 ? 3 : 2);
+        b.cd = Math.max(0.75, 1.85 - b.phase * 0.24 - (this.galaxyId - 1) * 0.05);
+        this._triggerBossAttack(b);
+      }
+    }
+
+    _fireBossRing(b, n, speed, color, shape, bounce) {
+      for (let i = 0; i < n; i++) {
+        const a = (Math.PI * 2 * i) / n + this.sectorElapsed * 0.7;
+        this.ebullets.push({
+          x: b.x, y: b.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
+          r: 5.5, color, shape, bounce: bounce || 0
+        });
+      }
+    }
+
+    _triggerBossAttack(b) {
+      const key = b.bossKey;
+      const spd = 1 + (this.galaxyId - 1) * 0.07;
+      const p = b.patternIdx;
+
+      if (key === '1-mini') {
+        if (p === 0) {
+          for (let i = 0; i < 7; i++) {
+            const a = Math.PI * 0.2 + (Math.PI * 0.6 * i) / 6;
+            this.ebullets.push({ x: b.x, y: b.y + 18, vx: Math.cos(a) * 185, vy: Math.sin(a) * 185, r: 5.5, color: '#f43f5e', shape: 'orb' });
+          }
+        } else if (p === 1) {
+          b.telegraph = 0.7; b.telegraphKind = 'line'; b.telegraphX = this.px; b.telegraphY = this.py; b.pendingPattern = 1;
+        } else {
+          // Phase 2: ricochet blades
+          for (const side of [-1, 1]) {
+            this.ebullets.push({ x: b.x + side * 20, y: b.y + 12, vx: side * 195, vy: 185, r: 6, color: '#fb923c', shape: 'diamond', bounce: 2 });
+          }
+        }
+      } else if (key === '1-final') {
+        if (p === 0) {
           const n = 7 + b.phase * 2;
           for (let i = 0; i < n; i++) {
             const a = Math.PI * 0.15 + (Math.PI * 0.7 * i) / (n - 1);
-            this.ebullets.push({ x: b.x, y: b.y + 18, vx: Math.cos(a) * 175 * speedBoost, vy: Math.sin(a) * 175 * speedBoost, r: 5.8, color: '#f43f5e', shape: 'orb' });
+            this.ebullets.push({ x: b.x, y: b.y + 20, vx: Math.cos(a) * 175, vy: Math.sin(a) * 175, r: 5.8, color: '#fbbf24', shape: 'orb' });
           }
-        } else if (b.patternIdx === 1) {
+        } else if (p === 1) {
+          b.telegraph = 0.75; b.telegraphKind = 'ring'; b.pendingPattern = 2;
+        } else {
+          if (this.mines.length < 10) {
+            this.mines.push({ x: b.x - 36, y: b.y + 20, vy: 48, r: 10, arm: 0.7, life: 8 });
+            this.mines.push({ x: b.x + 36, y: b.y + 20, vy: 48, r: 10, arm: 0.7, life: 8 });
+          }
+          this._fireBossRing(b, 10, 155, '#fb923c', 'ring', 0);
+        }
+      } else if (key === '2-mini') {
+        if (p === 0) {
+          b.telegraph = 0.7; b.telegraphKind = 'line'; b.telegraphX = this.px; b.telegraphY = this.py; b.pendingPattern = 3;
+        } else if (p === 1) {
           const ang = Math.atan2(this.py - b.y, this.px - b.x);
-          for (let k = -1; k <= 1; k++) {
-            this.ebullets.push({ x: b.x, y: b.y + 20, vx: Math.cos(ang + k * 0.18) * 235 * speedBoost, vy: Math.sin(ang + k * 0.18) * 235 * speedBoost, r: 6.2, color: '#fb923c', shape: 'diamond' });
+          for (let k = -2; k <= 2; k++) {
+            this.ebullets.push({ x: b.x, y: b.y + 18, vx: Math.cos(ang + k * 0.16) * 205 * spd, vy: Math.sin(ang + k * 0.16) * 205 * spd, r: 5.5, color: '#fb7185', shape: 'orb' });
           }
         } else {
-          const n = 10 + (this.galaxyId >= 4 ? 2 : 0);
-          for (let i = 0; i < n; i++) {
-            const a = (Math.PI * 2 * i) / n + this.sectorElapsed * 0.8;
-            this.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 150 * speedBoost, vy: Math.sin(a) * 150 * speedBoost, r: 5.5, color: '#e879f9', shape: 'ring' });
+          const ang = Math.atan2(this.py - b.y, this.px - b.x);
+          for (const s of [-0.35, 0.35]) {
+            this.ebullets.push({ x: b.x, y: b.y + 16, vx: Math.cos(ang + s) * 230, vy: Math.sin(ang + s) * 230, r: 5.8, color: '#f43f5e', shape: 'diamond', bounce: 2 });
           }
         }
+      } else if (key === '2-final') {
+        if (p === 0) {
+          this._fireBossRing(b, 10 + b.phase * 2, 165 * spd, '#fb7185', 'orb', 0);
+        } else if (p === 1) {
+          b.telegraph = 0.8; b.telegraphKind = 'ring'; b.pendingPattern = 4;
+        } else {
+          for (let i = 0; i < 6; i++) {
+            const a = (Math.PI * 2 * i) / 6 - this.sectorElapsed * 1.1;
+            this.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 185, vy: Math.sin(a) * 185, r: 5.8, color: '#fda4af', shape: 'diamond' });
+          }
+        }
+      } else if (key === '3-mini' || key === '3-final') {
+        if (p === 0) {
+          b.telegraph = 0.8; b.telegraphKind = 'wall'; b.pendingPattern = 5;
+        } else if (p === 1) {
+          const ang = Math.atan2(this.py - b.y, this.px - b.x);
+          const cnt = key === '3-final' ? 5 : 3;
+          for (let k = -(cnt >> 1); k <= (cnt >> 1); k++) {
+            this.ebullets.push({ x: b.x, y: b.y + 16, vx: Math.cos(ang + k * 0.17) * 210 * spd, vy: Math.sin(ang + k * 0.17) * 210 * spd, r: 5.8, color: '#67e8f9', shape: 'diamond' });
+          }
+        } else {
+          this._fireBossRing(b, key === '3-final' ? 12 : 8, 160 * spd, '#38bdf8', 'ring', 0);
+        }
+      } else if (key === '4-mini' || key === '4-final') {
+        if (p === 0) {
+          this._spawnBossMinions(b, key === '4-final' ? 3 : 2);
+          this._fireBossRing(b, 8, 155 * spd, '#a3e635', 'orb', 0);
+        } else if (p === 1) {
+          b.telegraph = 0.75; b.telegraphKind = 'line'; b.telegraphX = this.px; b.telegraphY = this.py; b.pendingPattern = 6;
+        } else {
+          if (this.mines.length < 10) {
+            this.mines.push({ x: rand(50, this.w - 50), y: b.y + 24, vy: 52, r: 10, arm: 0.7, life: 8 });
+          }
+          this._fireBossRing(b, 10 + b.phase * 2, 160 * spd, '#84cc16', 'ring', 0);
+        }
+      } else {
+        // 5-mini & 5-final
+        if (p === 0) {
+          this._fireBossRing(b, 10 + b.phase * 2, 170 * spd, '#c084fc', 'ring', 0);
+        } else if (p === 1) {
+          b.telegraph = 0.75; b.telegraphKind = 'line'; b.telegraphX = this.px; b.telegraphY = this.py; b.pendingPattern = 7;
+        } else {
+          for (const s of [-1, 1]) {
+            this.ebullets.push({ x: b.x, y: b.y + 10, vx: s * 175, vy: 210, r: 6, color: '#facc15', shape: 'diamond', bounce: 2 });
+          }
+        }
+      }
+    }
+
+    _executeBossStrongAttack(b) {
+      const p = b.pendingPattern;
+      const spd = 1 + (this.galaxyId - 1) * 0.07;
+      if (p === 1) {
+        // Iron Reaper cross-cut burst
+        const ang = Math.atan2(b.telegraphY - b.y, b.telegraphX - b.x);
+        for (let k = -2; k <= 2; k++) {
+          this.ebullets.push({ x: b.x, y: b.y + 14, vx: Math.cos(ang + k * 0.14) * 265, vy: Math.sin(ang + k * 0.14) * 265, r: 6, color: '#f43f5e', shape: 'diamond' });
+        }
+      } else if (p === 2) {
+        // Belt Titan 11-way shockwave fan
+        for (let i = 0; i < 11; i++) {
+          const a = Math.PI * 0.12 + (Math.PI * 0.76 * i) / 10;
+          this.ebullets.push({ x: b.x, y: b.y + 20, vx: Math.cos(a) * 210, vy: Math.sin(a) * 210, r: 6, color: '#fbbf24', shape: 'orb' });
+        }
+      } else if (p === 3) {
+        // Crimson Sniper 3-round high-speed burst
+        const ang = Math.atan2(b.telegraphY - b.y, b.telegraphX - b.x);
+        for (let k = 0; k < 3; k++) {
+          const v = 290 + k * 45;
+          this.ebullets.push({ x: b.x, y: b.y + 18, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, r: 5.8, color: '#f43f5e', shape: 'diamond' });
+        }
+      } else if (p === 4) {
+        // Nebula Heart 14-way pulse
+        this._fireBossRing(b, 14, 185 * spd, '#fb7185', 'ring', 0);
+      } else if (p === 5) {
+        // Ice Wall with a clear 84px safe gap
+        const gapX = rand(70, this.w - 70);
+        for (let x = 22; x <= this.w - 22; x += 28) {
+          if (Math.abs(x - gapX) < 42) continue;
+          this.ebullets.push({ x, y: b.y + b.r + 12, vx: 0, vy: 155 * spd, r: 6, color: '#67e8f9', shape: 'diamond' });
+        }
+      } else if (p === 6) {
+        // Hive sweeping bio-stream
+        const ang = Math.atan2(b.telegraphY - b.y, b.telegraphX - b.x);
+        for (let k = -2; k <= 2; k++) {
+          this.ebullets.push({ x: b.x, y: b.y + 18, vx: Math.cos(ang + k * 0.15) * 230 * spd, vy: Math.sin(ang + k * 0.15) * 230 * spd, r: 5.8, color: '#a3e635', shape: 'orb' });
+        }
+      } else if (p === 7) {
+        // Pulsar / Singularity cross-laser burst
+        const ang = Math.atan2(b.telegraphY - b.y, b.telegraphX - b.x);
+        for (let k = -3; k <= 3; k++) {
+          this.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(ang + k * 0.16) * 245 * spd, vy: Math.sin(ang + k * 0.16) * 245 * spd, r: 6, color: '#facc15', shape: 'diamond' });
+        }
+      }
+    }
+
+    _spawnBossMinions(b, count) {
+      if (this.enemies.length >= 8) return;
+      const ceil = this.hudTopOffset + 18;
+      for (let i = 0; i < count; i++) {
+        const side = i % 2 === 0 ? -1 : 1;
+        this.enemies.push({
+          _uid: this._nextUid++,
+          type: 'raider', elite: false,
+          x: clamp(b.x + side * (26 + i * 12), 26, this.w - 26),
+          y: Math.max(ceil, b.y + 14),
+          vx: side * 65, vy: 60, r: 12,
+          hp: Math.round(18 * (1 + this.galaxyId * 0.35)), maxHp: 30, shieldHp: 0,
+          cd: 1.8, aimTimer: 0, aimX: 0, aimY: 0, tpTimer: 0, tpX: 0, tpY: 0, age: 1,
+          burn: 0, burnDmg: 0, slow: 0, freeze: 0, acid: 0, flash: 0
+        });
       }
     }
 
@@ -1283,6 +1540,11 @@
         }
         b.x += b.vx * dt;
         b.y += b.vy * dt;
+        if (b.bounce > 0 && (b.x < 8 || b.x > this.w - 8)) {
+          b.vx *= -1;
+          b.x = clamp(b.x, 9, this.w - 9);
+          b.bounce--;
+        }
         if (b.x < -20 || b.x > this.w + 20 || b.y < -20 || b.y > this.h + 20) {
           this.ebullets.splice(i, 1); continue;
         }
@@ -1652,7 +1914,7 @@
 
       // Boss
       if (this.boss && sprites) {
-        sprites.drawBoss(ctx, this.boss, t);
+        sprites.drawBoss(ctx, this.boss, t, this.dpr);
       }
 
       // Player ship

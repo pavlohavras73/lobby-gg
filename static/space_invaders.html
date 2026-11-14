@@ -297,6 +297,7 @@
     <div style="font-size:22px;font-weight:900" id="secTitle">Сектор зачищен!</div>
     <div style="font-size:26px;margin:8px 0;color:#facc15" id="secStars">★★★</div>
     <div style="font-size:14px;color:#cbd5e1;margin-bottom:14px" id="secStats"></div>
+    <div id="secUnlock" style="display:none;font-size:13px;color:#a7f3d0;margin:-4px 0 14px;line-height:1.5;background:rgba(16,185,129,0.12);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:8px 10px"></div>
     <button type="button" class="btn-main" id="nextSectorBtn" data-i18n="next_sector">Дальше →</button>
     <button type="button" class="btn-ghost" id="backMapBtn" style="margin-top:8px" data-i18n="to_map">На карту галактик</button>
   </div>
@@ -355,6 +356,7 @@ const UI = {
     stat_spd: "Швидкість",
     stat_dmg: "Шкода",
     stat_crit: "Крит",
+    stat_rate: "Швидкостр.",
     syn_hint: "Сумісно з: ",
     no_records: "Поки що немає рекордів.",
     wave_lbl: "Хвиля",
@@ -364,7 +366,13 @@ const UI = {
     upg_dmg: "Потужність зброї",
     upg_rate: "Скорострільність",
     upg_max: "МАКС",
-    gal_locked: "Заблоковано"
+    gal_locked: "Заблоковано",
+    unlock_gal_boss: "Переможи боса галактики {n}",
+    unlock_ship_boss: "Переможи боса галактики {g} або купи за ✨ {c}",
+    unlock_ship_mini: "Переможи міні-боса галактики {g} або купи за ✨ {c}",
+    boss_victory_name: "Боса подолано: {name}",
+    boss_victory_gal: "Відкрито галактику {n}: {name}",
+    boss_victory_ship: "Відкрито корабель: {name}"
   },
   ru: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -393,6 +401,7 @@ const UI = {
     stat_spd: "Скорость",
     stat_dmg: "Урон",
     stat_crit: "Крит",
+    stat_rate: "Скоростр.",
     syn_hint: "Совместимо с: ",
     no_records: "Пока нет рекордов.",
     wave_lbl: "Волна",
@@ -402,7 +411,13 @@ const UI = {
     upg_dmg: "Мощность орудий",
     upg_rate: "Скорострельность",
     upg_max: "МАКС",
-    gal_locked: "Закрыто"
+    gal_locked: "Закрыто",
+    unlock_gal_boss: "Победи босса галактики {n}",
+    unlock_ship_boss: "Победи босса галактики {g} или купи за ✨ {c}",
+    unlock_ship_mini: "Победи мини-босса галактики {g} или купи за ✨ {c}",
+    boss_victory_name: "Босс повержен: {name}",
+    boss_victory_gal: "Открыта галактика {n}: {name}",
+    boss_victory_ship: "Открыт корабль: {name}"
   },
   en: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -431,6 +446,7 @@ const UI = {
     stat_spd: "Speed",
     stat_dmg: "Damage",
     stat_crit: "Crit",
+    stat_rate: "Fire Rate",
     syn_hint: "Pairs with: ",
     no_records: "No records yet.",
     wave_lbl: "Wave",
@@ -440,7 +456,13 @@ const UI = {
     upg_dmg: "Weapon Power",
     upg_rate: "Fire Rate",
     upg_max: "MAX",
-    gal_locked: "Locked"
+    gal_locked: "Locked",
+    unlock_gal_boss: "Defeat Galaxy {n} boss",
+    unlock_ship_boss: "Defeat Galaxy {g} boss or buy for ✨ {c}",
+    unlock_ship_mini: "Defeat Galaxy {g} mini-boss or buy for ✨ {c}",
+    boss_victory_name: "Boss defeated: {name}",
+    boss_victory_gal: "Galaxy {n} unlocked: {name}",
+    boss_victory_ship: "Ship unlocked: {name}"
   },
   de: {
     title: "Shuttle Cruiser — Lobby.gg",
@@ -469,6 +491,7 @@ const UI = {
     stat_spd: "Tempo",
     stat_dmg: "Schaden",
     stat_crit: "Krit",
+    stat_rate: "Feuerrate",
     syn_hint: "Passt zu: ",
     no_records: "Noch keine Rekorde.",
     wave_lbl: "Welle",
@@ -478,7 +501,13 @@ const UI = {
     upg_dmg: "Waffenstärke",
     upg_rate: "Feuerrate",
     upg_max: "MAX",
-    gal_locked: "Gesperrt"
+    gal_locked: "Gesperrt",
+    unlock_gal_boss: "Besiege Boss von Galaxie {n}",
+    unlock_ship_boss: "Besiege Boss von Galaxie {g} oder kaufe für ✨ {c}",
+    unlock_ship_mini: "Besiege Mini-Boss von Galaxie {g} oder kaufe für ✨ {c}",
+    boss_victory_name: "Boss besiegt: {name}",
+    boss_victory_gal: "Galaxie {n} freigeschaltet: {name}",
+    boss_victory_ship: "Schiff freigeschaltet: {name}"
   }
 };
 
@@ -511,9 +540,11 @@ function renderGalaxies() {
   wrap.innerHTML = DATA.GALAXIES.map(g => {
     const galUnlocked = g.id <= maxGal;
     if (!galUnlocked) {
+      const hint = t('unlock_gal_boss').replace('{n}', g.id - 1);
       return `<div class="gal-card locked">
         <div class="gal-head"><span class="gal-name">🔒 ${g.id}. ${g.name[LANG]}</span><span class="gal-badge">${t('gal_locked')}</span></div>
         <div class="gal-desc">${g.desc[LANG]}</div>
+        <div style="font-size:12px;color:#fbbf24;margin-top:6px;font-weight:700">🔓 ${hint}</div>
       </div>`;
     }
     const maxSec = g.id < maxGal ? 10 : (saveState.max_sector || 1);
@@ -564,7 +595,8 @@ function renderHangar() {
     <div class="stat-item">${t('stat_hp')}<b>${st.hp}</b></div>
     <div class="stat-item">${t('stat_spd')}<b>${st.speed}</b></div>
     <div class="stat-item">${t('stat_dmg')}<b>${st.dmg}</b></div>
-    <div class="stat-item">${t('stat_crit')}<b>${Math.round(st.crit * 100)}%</b></div>`;
+    <div class="stat-item">${t('stat_crit')}<b>${Math.round(st.crit * 100)}%</b></div>
+    <div class="stat-item">${t('stat_rate')}<b>${st.fireRate.toFixed(1)}/s</b></div>`;
 
   const owned = saveState.ships.includes(s.id);
   const upgBox = document.getElementById('shipUpgrades');
@@ -602,7 +634,9 @@ function renderHangar() {
       };
     });
   } else {
-    upgBox.innerHTML = '';
+    const g = s.unlockGalaxy || 1;
+    const key = s.unlockSector === 5 ? 'unlock_ship_mini' : 'unlock_ship_boss';
+    upgBox.innerHTML = s.unlockSector ? `<div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:8px">🔓 ${t(key).replace('{g}', g).replace('{c}', s.cost)}</div>` : '';
   }
 
   const btn = document.getElementById('shipActionBtn');
@@ -755,6 +789,9 @@ function launchGame(gal, sec, singleSector) {
 
 function exitToMenu() {
   engine.stop();
+  // иначе последний кадр боя (босс, цифры урона) просвечивает сквозь полупрозрачное меню
+  const cv = document.getElementById('gameCanvas'), cx = cv.getContext('2d');
+  cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.restore();
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
   document.getElementById('playHud').classList.remove('active');
   document.getElementById('menuScreen').classList.add('active');
@@ -771,8 +808,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     onSectorClear: info => {
       const key = `${info.galaxy}-${info.sector}`;
       saveState.stars[key] = Math.max(saveState.stars[key] || 0, info.stars);
-      if (info.galaxy >= (saveState.max_galaxy || 1)) {
-        if (info.sector >= 10 && (saveState.max_galaxy || 1) < 5) {
+      const prevMaxGal = saveState.max_galaxy || 1;
+      if (info.galaxy >= prevMaxGal) {
+        if (info.sector >= 10 && prevMaxGal < 5) {
           saveState.max_galaxy = info.galaxy + 1;
           saveState.max_sector = 1;
         } else {
@@ -781,16 +819,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       saveState.dust = (saveState.dust || 0) + info.dust;
       saveState.best_score = Math.max(saveState.best_score || 0, info.score);
-      if (info.galaxy === 1 && info.sector >= 5 && !saveState.ships.includes('bastion')) saveState.ships.push('bastion');
-      if (info.galaxy === 2 && info.sector >= 10 && !saveState.ships.includes('sting')) saveState.ships.push('sting');
-      if (info.galaxy === 3 && info.sector >= 10 && !saveState.ships.includes('hive')) saveState.ships.push('hive');
-      if (info.galaxy === 4 && info.sector >= 10 && !saveState.ships.includes('phantom')) saveState.ships.push('phantom');
-      if (info.galaxy === 5 && info.sector >= 5 && !saveState.ships.includes('nova')) saveState.ships.push('nova');
+      const unlockedShips = [];
+      const tryUnlockShip = id => {
+        if (!saveState.ships.includes(id)) {
+          saveState.ships.push(id);
+          unlockedShips.push(id);
+        }
+      };
+      if (info.galaxy === 1 && info.sector >= 5) tryUnlockShip('bastion');
+      if (info.galaxy === 2 && info.sector >= 10) tryUnlockShip('sting');
+      if (info.galaxy === 3 && info.sector >= 10) tryUnlockShip('hive');
+      if (info.galaxy === 4 && info.sector >= 10) tryUnlockShip('phantom');
+      if (info.galaxy === 5 && info.sector >= 5) tryUnlockShip('nova');
       SAVE.pushCloud(saveState);
 
+      const gal = DATA.GALAXIES.find(g => g.id === info.galaxy) || DATA.GALAXIES[0];
       document.getElementById('secTitle').textContent = info.sector >= 10 ? t('gal_cleared') : t('sec_cleared');
       document.getElementById('secStars').textContent = '★'.repeat(info.stars) + '☆'.repeat(3 - info.stars);
       document.getElementById('secStats').textContent = `${t('score_lbl')}: ${info.score} · +✨ ${info.dust}`;
+      const unlockLines = [];
+      if (info.sector >= 10 && gal.bossFinal) {
+        unlockLines.push(`☠️ ${t('boss_victory_name').replace('{name}', gal.bossFinal[LANG] || gal.bossFinal.ru)}`);
+      }
+      if ((saveState.max_galaxy || 1) > prevMaxGal) {
+        const nextGal = DATA.GALAXIES.find(g => g.id === saveState.max_galaxy);
+        if (nextGal) {
+          unlockLines.push(`🌌 ${t('boss_victory_gal').replace('{n}', nextGal.id).replace('{name}', nextGal.name[LANG] || nextGal.name.ru)}`);
+        }
+      }
+      for (const sid of unlockedShips) {
+        const sh = DATA.SHIPS.find(x => x.id === sid);
+        if (sh) unlockLines.push(`🚀 ${t('boss_victory_ship').replace('{name}', sh.name[LANG] || sh.name.ru)}`);
+      }
+      const secUnlockEl = document.getElementById('secUnlock');
+      secUnlockEl.innerHTML = unlockLines.map(l => `<div>${esc(l)}</div>`).join('');
+      secUnlockEl.style.display = unlockLines.length ? 'block' : 'none';
       document.getElementById('nextSectorBtn').style.display = info.galaxyDone ? 'none' : 'block';
       document.getElementById('sectorModal').classList.add('open');
     },
