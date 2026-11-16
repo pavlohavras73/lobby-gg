@@ -15,7 +15,7 @@ from server import _auth_db, current_user
 
 router = APIRouter()
 
-ALLOWED_GAMES = frozenset({"shuttle"})
+ALLOWED_GAMES = frozenset({"shuttle", "raskol"})
 _GAME_RE = re.compile(r"^[a-z0-9_]{2,32}$")
 MAX_SAVE_BYTES = 32 * 1024
 

@@ -102,3 +102,14 @@ def test_declared_huge_body_rejected_before_reading(client):
     _login(client, "pilot_cl")
     r = client.put("/api/arcade/save/shuttle", content=b"{}", headers={"Content-Type": "application/json", "Content-Length": str(10**9)})
     assert r.status_code == 413
+
+
+def test_raskol_save_and_leaderboard(client):
+    _login(client, "raskol_a")
+    r = client.put("/api/arcade/save/raskol", json={"shards": 140, "best_score": 12770, "max_galaxy": 1, "max_sector": 10, "wins": 1})
+    assert r.status_code == 200, r.text
+    assert client.get("/api/arcade/save/raskol").json()["data"]["shards"] == 140
+    top = client.get("/api/arcade/leaderboard/raskol").json()["entries"][0]
+    assert top["username"] == "raskol_a" and top["max_sector"] == 10 and top["best_score"] == 12770
+    # сохранения игр не смешиваются
+    assert client.get("/api/arcade/save/shuttle").json()["data"] is None

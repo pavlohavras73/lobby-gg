@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05030a">
+<title data-i18n="doc_title">Раскол — Lobby.gg</title>
+<link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
+<link rel="stylesheet" href="/games/static/theme.css">
+<style>
+  :root {
+    --rk-bg: #05030a; --rk-panel: rgba(18,12,30,.86); --rk-line: rgba(167,139,250,.22);
+    --rk-mag: #d946ef; --rk-cyan: #22d3ee; --rk-gold: #fbbf24; --rk-text: #f5f3ff; --rk-dim: #a5a0b8;
+    --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px);
+    --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--rk-bg); color: var(--rk-text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  nav, footer, .bottom-nav, #tab-bar, .app-tab-bar { display: none !important; }
+  body { font-family: var(--font, system-ui, sans-serif); }
+  body::before, body::after { display: none !important; animation: none !important; }
+  button { font: inherit; color: inherit; cursor: pointer; width: auto; margin: 0; padding: 0; min-height: 0; border: 0; border-radius: 0;
+    background: none; box-shadow: none; letter-spacing: normal; overflow: visible; transition: transform .12s; }
+  button::after { content: none; }
+  button:not(:disabled):hover { transform: none; }
+  .logo h1, .det-name, .mt, .cls .nm, .pick .pn, .play { font-family: var(--display, system-ui, sans-serif); }
+
+  #cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+  #touchLayer { position: fixed; inset: 0; z-index: 5; touch-action: none; display: none; }
+  body.in-run #touchLayer { display: block; }
+
+  /* ── меню ── */
+  #menu { position: fixed; inset: 0; z-index: 20; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: calc(10px + var(--st)) calc(14px + var(--sr)) calc(14px + var(--sb)) calc(14px + var(--sl));
+    background:
+      radial-gradient(120% 80% at 50% 120%, rgba(217,70,239,.18), transparent 60%),
+      radial-gradient(90% 70% at 10% -10%, rgba(34,211,238,.14), transparent 55%),
+      linear-gradient(180deg, #0b0614, #05030a 70%); }
+  body.in-run #menu { display: none; }
+  .crackbg { position: fixed; inset: 0; pointer-events: none; opacity: .55; z-index: -1; }
+  .top { display: flex; align-items: center; gap: 10px; max-width: 1100px; margin: 0 auto; }
+  .back { padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    color: var(--rk-text); text-decoration: none; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .sp { flex: 1; }
+  .shards { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-weight: 900; font-size: 14px;
+    background: linear-gradient(90deg, rgba(217,70,239,.18), rgba(34,211,238,.18)); border: 1px solid rgba(167,139,250,.45); white-space: nowrap; }
+  .shard-ico { width: 14px; height: 14px; background: linear-gradient(135deg, var(--rk-mag), var(--rk-cyan)); clip-path: polygon(50% 0, 100% 40%, 60% 100%, 0 55%); display: inline-block; }
+  #langbar { display: inline-flex; gap: 3px; padding: 3px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+  #langbar button { border: 0; background: transparent; color: var(--rk-dim); font-size: 11px; font-weight: 900; padding: 5px 8px; border-radius: 999px; }
+  #langbar button.active { background: var(--rk-text); color: #120a1e; }
+
+  .logo { text-align: center; margin: 10px auto 4px; position: relative; }
+  .logo h1 { margin: 0; font-size: clamp(40px, 8vw, 76px); font-weight: 1000; letter-spacing: .08em; line-height: 1;
+    background: linear-gradient(100deg, #f5f3ff 0 46%, var(--rk-cyan) 46% 47.5%, #f5f3ff 47.5% 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(217,70,239,.45)); }
+  .logo .tag { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: var(--rk-dim); }
+  .logo .tag b { color: var(--rk-cyan); } .logo .tag i { color: var(--rk-mag); font-style: normal; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 1100px; margin: 14px auto 0; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1.15fr 1fr; } }
+  .panel { background: var(--rk-panel); border: 1px solid var(--rk-line); border-radius: 20px; padding: 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .h { font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: var(--rk-dim); margin: 0 0 10px; }
+  .classes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (min-width: 900px) { .classes { grid-template-columns: repeat(4, 1fr); } }
+  .cls { position: relative; border-radius: 16px; padding: 10px 8px 12px; text-align: center; border: 1px solid rgba(255,255,255,.1);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .cls:active { transform: scale(.97); }
+  .cls.sel { border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 10px 30px -10px var(--c); }
+  .cls canvas, .cls .glyph { width: 76px; height: 76px; display: block; margin: 0 auto 4px; }
+  .cls .glyph { display: grid; place-items: center; font-size: 40px; filter: grayscale(1) brightness(.6); }
+  .cls .nm { font-weight: 1000; font-size: 15px; }
+  .cls .rl { font-size: 11px; color: var(--rk-dim); margin-top: 2px; }
+  .cls.locked { opacity: .75; }
+  .cls .lock { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 999px; background: rgba(0,0,0,.5); color: var(--rk-dim); border: 1px solid rgba(255,255,255,.12); }
+
+  .det-name { font-size: 26px; font-weight: 1000; color: var(--c, var(--rk-gold)); margin: 0; }
+  .det-role { font-size: 12px; color: var(--rk-dim); font-weight: 700; margin-bottom: 10px; }
+  .ab { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.06); }
+  .ab .k { flex: none; width: 62px; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--c, var(--rk-gold)); padding-top: 2px; }
+  .ab .v { font-size: 13px; line-height: 1.35; color: #ddd6fe; }
+  .play { width: 100%; margin-top: 12px; padding: 15px; border: 0; border-radius: 16px; font-size: 18px; font-weight: 1000; letter-spacing: .04em;
+    color: #120a1e; background: linear-gradient(100deg, var(--rk-cyan), #f0abfc 55%, var(--rk-mag)); box-shadow: 0 12px 34px -12px rgba(217,70,239,.8);
+    position: relative; overflow: hidden; }
+  .play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.6) 45%, transparent 60%); transform: translateX(-100%); animation: shine 3.2s infinite; }
+  @keyframes shine { 60%, 100% { transform: translateX(100%); } }
+  .play:active { transform: scale(.98); }
+  .play:disabled { filter: grayscale(1); opacity: .6; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .st { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 8px; text-align: center; }
+  .st .l { font-size: 10px; color: var(--rk-dim); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .st .v { font-size: 18px; font-weight: 1000; margin-top: 2px; }
+  .row2 { display: flex; gap: 8px; margin-top: 10px; }
+  .ghost { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05); font-weight: 800; font-size: 13px; }
+  .controls { margin-top: 12px; font-size: 12px; color: var(--rk-dim); line-height: 1.5; }
+  .controls b { color: var(--rk-text); }
+
+  /* ── HUD ── */
+  #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: none; }
+  body.in-run #hud { display: block; }
+  .hud-top { position: absolute; top: calc(8px + var(--st)); left: calc(10px + var(--sl)); right: calc(10px + var(--sr)); display: flex; align-items: flex-start; gap: 10px; }
+  .hpbox { min-width: 170px; max-width: 240px; flex: 0 1 240px; }
+  .hpbar { position: relative; height: 18px; border-radius: 10px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.18); overflow: hidden; }
+  .hpfill { position: absolute; inset: 0; width: 100%; background: linear-gradient(90deg, #dc2626, #f87171); transition: width .15s; }
+  .hpghost { position: absolute; inset: 0; width: 100%; background: rgba(255,255,255,.35); transition: width .6s .2s; }
+  .hptxt { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11px; font-weight: 900; text-shadow: 0 1px 2px #000; }
+  .lvrow { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+  .lv { font-size: 11px; font-weight: 1000; padding: 2px 7px; border-radius: 8px; background: rgba(34,211,238,.18); border: 1px solid rgba(34,211,238,.5); color: #a5f3fc; white-space: nowrap; }
+  .xpbar { flex: 1; height: 6px; border-radius: 4px; background: rgba(0,0,0,.5); overflow: hidden; }
+  .xpfill { height: 100%; width: 0; background: linear-gradient(90deg, var(--rk-cyan), #a5f3fc); transition: width .15s; }
+  .roomp { margin: 0 auto; padding: 5px 12px; border-radius: 999px; background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.14); font-weight: 900; font-size: 13px; white-space: nowrap; }
+  .roomp.boss { border-color: rgba(244,63,94,.7); color: #fecdd3; }
+  .hud-r { display: flex; gap: 8px; align-items: center; }
+  .pause { pointer-events: auto; width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.5); font-size: 16px; font-weight: 900; }
+  .bossbar { position: absolute; top: calc(48px + var(--st)); left: 50%; transform: translateX(-50%); width: min(460px, 56vw); display: none; text-align: center; }
+  .bossbar.on { display: block; }
+  .bossbar .bn { font-size: 13px; font-weight: 1000; letter-spacing: .08em; color: #fecdd3; text-shadow: 0 2px 6px #000; margin-bottom: 3px; }
+  .bossbar .bb { height: 12px; border-radius: 8px; background: rgba(0,0,0,.6); border: 1px solid rgba(244,63,94,.6); overflow: hidden; }
+  .bossbar .bf { height: 100%; width: 100%; background: linear-gradient(90deg, #9f1239, #f43f5e, #fda4af); transition: width .2s; }
+  .abtn { pointer-events: auto; position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.22); background: rgba(10,6,18,.65); display: grid; place-items: center; touch-action: none; }
+  .abtn svg { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); transform: rotate(-90deg); }
+  .abtn .ico { font-size: 26px; position: relative; }
+  .abtn .alabel { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 900; letter-spacing: .08em; color: var(--rk-dim); white-space: nowrap; text-shadow: 0 1px 2px #000; }
+  #superBtn { width: 78px; height: 78px; right: calc(18px + var(--sr)); bottom: calc(108px + var(--sb)); }
+  #superBtn.ready { border-color: var(--rk-gold); box-shadow: 0 0 22px rgba(251,191,36,.7); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 34px rgba(251,191,36,.95); } }
+  #dashBtn { width: 62px; height: 62px; right: calc(26px + var(--sr)); bottom: calc(26px + var(--sb)); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 5; }
+  .ring { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset .1s; }
+  #superRing { stroke: var(--rk-gold); } #dashRing { stroke: #c4b5fd; }
+
+  /* ── модалки ── */
+  .modal { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center;
+    padding: calc(10px + var(--st)) calc(12px + var(--sr)) calc(10px + var(--sb)) calc(12px + var(--sl));
+    background: rgba(5,3,10,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .modal.on { display: flex; animation: fadein .2s; }
+  @keyframes fadein { from { opacity: 0; } }
+  .mcard { background: linear-gradient(180deg, #170f26, #0d0817); border: 1px solid var(--rk-line); border-radius: 22px; padding: 18px; width: min(560px, 100%); max-height: 100%; overflow-y: auto; text-align: center; box-shadow: 0 30px 80px -20px rgba(0,0,0,.9); }
+  .mt { font-size: 24px; font-weight: 1000; margin: 0 0 4px; }
+  .ms { font-size: 13px; color: var(--rk-dim); margin-bottom: 12px; }
+  .picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(760px, 100%); }
+  .pick { position: relative; border-radius: 18px; padding: 14px 10px 12px; border: 1px solid rgba(255,255,255,.14); text-align: center;
+    background: linear-gradient(180deg, #1d1330, #0f0a1a); animation: dealin .35s backwards; transition: transform .12s; }
+  .pick:nth-child(2) { animation-delay: .07s; } .pick:nth-child(3) { animation-delay: .14s; }
+  @keyframes dealin { from { opacity: 0; transform: translateY(30px) rotateX(40deg) scale(.9); } }
+  .pick:active { transform: scale(.96); }
+  .pick.cls { border-color: rgba(251,191,36,.55); box-shadow: inset 0 0 30px -10px rgba(251,191,36,.45); }
+  .pick .pi { font-size: 38px; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+  .pick .pn { font-weight: 1000; font-size: 15px; }
+  .pick .pd { font-size: 12px; color: #c4b5fd; margin-top: 4px; line-height: 1.35; min-height: 32px; }
+  .pick .plv { display: flex; justify-content: center; gap: 4px; margin-top: 8px; }
+  .pick .plv i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+  .pick .plv i.on { background: var(--rk-cyan); box-shadow: 0 0 6px var(--rk-cyan); }
+  .pick .plv i.new { background: var(--rk-gold); box-shadow: 0 0 8px var(--rk-gold); }
+  .pick .pbadge { position: absolute; top: 8px; left: 8px; font-size: 9px; font-weight: 1000; padding: 2px 6px; border-radius: 6px; background: rgba(251,191,36,.18); color: var(--rk-gold); letter-spacing: .06em; }
+  .pickwrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+  .btn-main { display: block; width: 100%; padding: 13px; border: 0; border-radius: 14px; font-weight: 1000; font-size: 16px; color: #120a1e; background: linear-gradient(100deg, var(--rk-cyan), var(--rk-mag)); margin-top: 8px; }
+  .btn-sec { display: block; width: 100%; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05); margin-top: 8px; }
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .newrec { display: inline-block; margin: 2px 0 6px; padding: 4px 12px; border-radius: 999px; background: rgba(251,191,36,.16); color: var(--rk-gold); font-weight: 1000; font-size: 12px; border: 1px solid rgba(251,191,36,.5); }
+  .lb { text-align: left; font-size: 13px; }
+  .lb .r { display: flex; gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .lb .r .n { flex: 1; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb .r .p { width: 24px; color: var(--rk-dim); font-weight: 900; }
+
+  /* ── поверни телефон ── */
+  #rotate { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: radial-gradient(80% 60% at 50% 40%, #1a0f2b, #05030a); text-align: center; padding: 24px; }
+  .phone { width: 64px; height: 108px; border: 4px solid var(--rk-text); border-radius: 14px; position: relative; animation: rot 2s ease-in-out infinite; }
+  .phone::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 14px; height: 4px; border-radius: 2px; background: var(--rk-text); transform: translateX(-50%); }
+  @keyframes rot { 0%, 20% { transform: rotate(0); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+  #rotate .t1 { font-size: 20px; font-weight: 1000; }
+  #rotate .t2 { font-size: 13px; color: var(--rk-dim); max-width: 280px; }
+  @media (orientation: portrait) { body.in-run.touch #rotate { display: flex; } }
+  @media (max-width: 380px) { .picks { grid-template-columns: 1fr; } }
+  @media (max-height: 430px) {
+    .mcard { padding: 12px; } .pick { padding: 10px 8px; } .pick .pi { font-size: 30px; } .pick .pd { min-height: 0; }
+  }
+  /* телефон горизонтально: всё меню в один экран, кнопка «В склеп» видна сразу */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #menu { padding-top: calc(6px + var(--st)); padding-bottom: calc(6px + var(--sb)); }
+    .logo { position: absolute; left: calc(100px + var(--sl)); top: calc(12px + var(--st)); margin: 0; pointer-events: none; }
+    .logo h1 { font-size: 24px; } .logo .tag { display: none; }
+    .grid { margin-top: 10px; gap: 10px; grid-template-columns: 1.1fr 1fr; }
+    .panel { padding: 10px 12px; border-radius: 16px; }
+    .h { margin-bottom: 6px; }
+    .classes { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .cls { padding: 6px 4px 8px; border-radius: 12px; }
+    .cls canvas, .cls .glyph { width: 50px; height: 50px; } .cls .glyph { font-size: 28px; }
+    .cls .nm { font-size: 12px; } .cls .rl { font-size: 9px; } .cls .lock { font-size: 8px; padding: 2px 5px; top: 4px; right: 4px; }
+    .controls { font-size: 11px; margin-top: 8px; }
+    .det-name { font-size: 20px; } .det-role { margin-bottom: 4px; }
+    .ab { padding: 4px 0; } .ab .v { font-size: 12px; } .ab .k { width: 56px; }
+    .play { margin-top: 8px; padding: 11px; font-size: 16px; }
+    .stats { margin-top: 8px; } .st { padding: 5px; } .st .v { font-size: 15px; }
+    .row2 { margin-top: 6px; } .ghost { padding: 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .play::after, #superBtn.ready, .phone, .pick { animation: none !important; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="touchLayer"></div>
+
+<main id="menu">
+  <svg class="crackbg" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+    <defs><filter id="gl"><feGaussianBlur stdDeviation="6"/></filter></defs>
+    <path d="M-10 420 L120 380 L180 410 L300 330 L360 350 L470 260 L520 290 L610 200 L700 230 L780 150 L860 170 L1010 80" stroke="#d946ef" stroke-width="14" fill="none" filter="url(#gl)" opacity=".5"/>
+    <path d="M-10 420 L120 380 L180 410 L300 330 L360 350 L470 260 L520 290 L610 200 L700 230 L780 150 L860 170 L1010 80" stroke="#22d3ee" stroke-width="3" fill="none" opacity=".8"/>
+    <path d="M300 330 L330 400 L320 470 M610 200 L640 120 M470 260 L430 200" stroke="#22d3ee" stroke-width="1.5" fill="none" opacity=".5"/>
+  </svg>
+  <div class="top">
+    <a class="back" href="/games/" data-i18n="back">‹ Игры</a>
+    <span class="sp"></span>
+    <span class="shards"><i class="shard-ico"></i><span id="shardVal">0</span></span>
+    <div id="langbar">
+      <button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button>
+    </div>
+  </div>
+  <div class="logo">
+    <h1 data-i18n="logo">РАСКОЛ</h1>
+    <div class="tag"><b data-i18n="tag_a">Космос</b> · <i data-i18n="tag_b">Подземелья</i></div>
+  </div>
+  <div class="grid">
+    <section class="panel">
+      <h2 class="h" data-i18n="choose">Выбери героя</h2>
+      <div class="classes" id="classList"></div>
+      <div class="controls" id="controlsTxt"></div>
+    </section>
+    <section class="panel" id="detail">
+      <h3 class="det-name" id="dName">Страж</h3>
+      <div class="det-role" id="dRole"></div>
+      <div class="ab"><span class="k" data-i18n="atk">Атака</span><span class="v" id="dAtk"></span></div>
+      <div class="ab"><span class="k" data-i18n="sup">Супер</span><span class="v" id="dSup"></span></div>
+      <div class="ab"><span class="k" data-i18n="pas">Пассивка</span><span class="v" id="dPas"></span></div>
+      <button class="play" id="playBtn" type="button" data-i18n="play">▶ В склеп</button>
+      <div class="stats">
+        <div class="st"><div class="l" data-i18n="best_room">Лучшая комната</div><div class="v" id="sRoom">—</div></div>
+        <div class="st"><div class="l" data-i18n="wins">Победы</div><div class="v" id="sWins">0</div></div>
+        <div class="st"><div class="l" data-i18n="best_score">Рекорд</div><div class="v" id="sScore">0</div></div>
+      </div>
+      <div class="row2"><button class="ghost" id="lbBtn" type="button" data-i18n="records">🏆 Рекорды</button></div>
+    </section>
+  </div>
+</main>
+
+<div id="hud">
+  <div class="hud-top">
+    <div class="hpbox">
+      <div class="hpbar"><div class="hpghost" id="hpGhost"></div><div class="hpfill" id="hpFill"></div><div class="hptxt" id="hpTxt">130/130</div></div>
+      <div class="lvrow"><span class="lv" id="lvTxt">Lv 1</span><div class="xpbar"><div class="xpfill" id="xpFill"></div></div></div>
+    </div>
+    <div class="roomp" id="roomTxt">1-1</div>
+    <div class="hud-r"><span class="shards"><i class="shard-ico"></i><span id="hudShards">0</span></span><button class="pause" id="pauseBtn" type="button" aria-label="pause">II</button></div>
+  </div>
+  <div class="bossbar" id="bossBar"><div class="bn" id="bossName"></div><div class="bb"><div class="bf" id="bossFill"></div></div></div>
+  <button class="abtn" id="superBtn" type="button">
+    <svg viewBox="0 0 82 82"><circle class="ring-bg" cx="41" cy="41" r="37"/><circle class="ring" id="superRing" cx="41" cy="41" r="37" stroke-dasharray="232.5" stroke-dashoffset="232.5"/></svg>
+    <span class="ico">🛡️</span><span class="alabel" data-i18n="sup_btn">СУПЕР</span>
+  </button>
+  <button class="abtn" id="dashBtn" type="button">
+    <svg viewBox="0 0 66 66"><circle class="ring-bg" cx="33" cy="33" r="29"/><circle class="ring" id="dashRing" cx="33" cy="33" r="29" stroke-dasharray="182.2" stroke-dashoffset="0"/></svg>
+    <span class="ico">💨</span><span class="alabel" data-i18n="dash_btn">РЫВОК</span>
+  </button>
+</div>
+
+<div class="modal" id="pickModal"><div class="pickwrap">
+  <div><div class="mt" data-i18n="pick_title">Выбери навык</div><div class="ms" data-i18n="pick_sub">Один из трёх — навсегда до конца забега</div></div>
+  <div class="picks" id="picks"></div>
+</div></div>
+
+<div class="modal" id="pauseModal"><div class="mcard">
+  <div class="mt" data-i18n="pause">Пауза</div>
+  <div class="ms" id="pauseCards"></div>
+  <button class="btn-main" id="resumeBtn" type="button" data-i18n="resume">Продолжить</button>
+  <button class="btn-sec" id="quitBtn" type="button" data-i18n="to_menu">В меню (забег пропадёт)</button>
+</div></div>
+
+<div class="modal" id="resModal"><div class="mcard">
+  <div class="mt" id="resTitle"></div>
+  <div id="resRec"></div>
+  <div class="res-grid">
+    <div class="st"><div class="l" data-i18n="r_room">Комната</div><div class="v" id="rRoom"></div></div>
+    <div class="st"><div class="l" data-i18n="r_kills">Убито</div><div class="v" id="rKills"></div></div>
+    <div class="st"><div class="l" data-i18n="r_shards">Осколки</div><div class="v" id="rShards"></div></div>
+    <div class="st"><div class="l" data-i18n="r_score">Очки</div><div class="v" id="rScore"></div></div>
+    <div class="st"><div class="l" data-i18n="r_time">Время</div><div class="v" id="rTime"></div></div>
+    <div class="st"><div class="l" data-i18n="r_lvl">Уровень</div><div class="v" id="rLvl"></div></div>
+  </div>
+  <button class="btn-main" id="againBtn" type="button" data-i18n="again">Ещё раз</button>
+  <button class="btn-sec" id="menuBtn" type="button" data-i18n="menu">В меню</button>
+</div></div>
+
+<div class="modal" id="lbModal"><div class="mcard">
+  <div class="mt" data-i18n="lb_title">Рекорды Раскола</div>
+  <div class="lb" id="lbList"></div>
+  <button class="btn-sec" id="lbClose" type="button" data-i18n="close">Закрыть</button>
+</div></div>
+
+<div id="rotate"><div class="phone"></div><div class="t1" data-i18n="rotate">Поверни телефон</div><div class="t2" data-i18n="rotate2">Раскол играется горизонтально: левый палец — бег, правый — удары.</div></div>
+
+<script src="/games/static/ui.js"></script>
+<script src="/games/static/sfx.js"></script>
+<script src="/games/static/raskol/data.js"></script>
+<script src="/games/static/raskol/sprites.js"></script>
+<script src="/games/static/raskol/input.js"></script>
+<script src="/games/static/raskol/save.js"></script>
+<script src="/games/static/raskol/engine.js"></script>
+<script>
+const UI = {
+  uk: { doc_title: "Розкол — Lobby.gg", back: "‹ Ігри", logo: "РОЗКОЛ", tag_a: "Космос", tag_b: "Підземелля", choose: "Обери героя", atk: "Атака", sup: "Супер", pas: "Пасивка",
+    play: "▶ У склеп", best_room: "Найкраща кімната", wins: "Перемоги", best_score: "Рекорд", records: "🏆 Рекорди", soon: "Скоро",
+    controls_touch: "<b>Лівий палець</b> — біг · <b>правий</b> — удари (тап = автоприціл, потягни = цілься сам) · кнопки <b>ривок</b> і <b>супер</b>",
+    controls_pc: "<b>WASD</b> — біг · <b>миша</b> — удари · <b>Shift</b> — ривок · <b>Пробіл</b> — супер · <b>Esc</b> — пауза",
+    sup_btn: "СУПЕР", dash_btn: "РИВОК", pick_title: "Обери навичку", pick_sub: "Одна з трьох — до кінця забігу", pause: "Пауза", resume: "Продовжити",
+    to_menu: "У меню (забіг пропаде)", r_room: "Кімната", r_kills: "Вбито", r_shards: "Уламки", r_score: "Очки", r_time: "Час", r_lvl: "Рівень",
+    again: "Ще раз", menu: "У меню", death: "Ти впав у Розколі", victory: "Склеп очищено!", new_record: "🔥 Новий рекорд!", lb_title: "Рекорди Розколу",
+    close: "Закрити", no_records: "Поки що порожньо — стань першим!", rotate: "Поверни телефон", rotate2: "Розкол грається горизонтально: лівий палець — біг, правий — удари.",
+    lvl_short: "Рів", your_cards: "Твої навички:", none: "поки немає", room_word: "Кімната" },
+  ru: { doc_title: "Раскол — Lobby.gg", back: "‹ Игры", logo: "РАСКОЛ", tag_a: "Космос", tag_b: "Подземелья", choose: "Выбери героя", atk: "Атака", sup: "Супер", pas: "Пассивка",
+    play: "▶ В склеп", best_room: "Лучшая комната", wins: "Победы", best_score: "Рекорд", records: "🏆 Рекорды", soon: "Скоро",
+    controls_touch: "<b>Левый палец</b> — бег · <b>правый</b> — удары (тап = автоприцел, потяни = целься сам) · кнопки <b>рывок</b> и <b>супер</b>",
+    controls_pc: "<b>WASD</b> — бег · <b>мышь</b> — удары · <b>Shift</b> — рывок · <b>Пробел</b> — супер · <b>Esc</b> — пауза",
+    sup_btn: "СУПЕР", dash_btn: "РЫВОК", pick_title: "Выбери навык", pick_sub: "Один из трёх — до конца забега", pause: "Пауза", resume: "Продолжить",
+    to_menu: "В меню (забег пропадёт)", r_room: "Комната", r_kills: "Убито", r_shards: "Осколки", r_score: "Очки", r_time: "Время", r_lvl: "Уровень",
+    again: "Ещё раз", menu: "В меню", death: "Ты пал в Расколе", victory: "Склеп очищен!", new_record: "🔥 Новый рекорд!", lb_title: "Рекорды Раскола",
+    close: "Закрыть", no_records: "Пока пусто — стань первым!", rotate: "Поверни телефон", rotate2: "Раскол играется горизонтально: левый палец — бег, правый — удары.",
+    lvl_short: "Ур", your_cards: "Твои навыки:", none: "пока нет", room_word: "Комната" },
+  en: { doc_title: "Raskol — Lobby.gg", back: "‹ Games", logo: "RASKOL", tag_a: "Space", tag_b: "Dungeons", choose: "Choose a hero", atk: "Attack", sup: "Super", pas: "Passive",
+    play: "▶ Enter the crypt", best_room: "Best room", wins: "Wins", best_score: "Best score", records: "🏆 Leaderboard", soon: "Soon",
+    controls_touch: "<b>Left thumb</b> — move · <b>right</b> — attack (tap = auto-aim, drag = aim yourself) · <b>dash</b> and <b>super</b> buttons",
+    controls_pc: "<b>WASD</b> — move · <b>mouse</b> — attack · <b>Shift</b> — dash · <b>Space</b> — super · <b>Esc</b> — pause",
+    sup_btn: "SUPER", dash_btn: "DASH", pick_title: "Choose a skill", pick_sub: "One of three — kept for the whole run", pause: "Paused", resume: "Resume",
+    to_menu: "Main menu (run is lost)", r_room: "Room", r_kills: "Kills", r_shards: "Shards", r_score: "Score", r_time: "Time", r_lvl: "Level",
+    again: "Play again", menu: "Main menu", death: "You fell in the Raskol", victory: "Crypt cleared!", new_record: "🔥 New record!", lb_title: "Raskol leaderboard",
+    close: "Close", no_records: "Empty so far — be the first!", rotate: "Rotate your phone", rotate2: "Raskol is played in landscape: left thumb moves, right thumb attacks.",
+    lvl_short: "Lv", your_cards: "Your skills:", none: "none yet", room_word: "Room" },
+  de: { doc_title: "Raskol — Lobby.gg", back: "‹ Spiele", logo: "RASKOL", tag_a: "Weltraum", tag_b: "Verliese", choose: "Wähle einen Helden", atk: "Angriff", sup: "Super", pas: "Passiv",
+    play: "▶ In die Gruft", best_room: "Bester Raum", wins: "Siege", best_score: "Rekord", records: "🏆 Bestenliste", soon: "Bald",
+    controls_touch: "<b>Linker Daumen</b> — laufen · <b>rechter</b> — angreifen (Tippen = Auto-Zielen, Ziehen = selbst zielen) · Tasten <b>Ausweichen</b> und <b>Super</b>",
+    controls_pc: "<b>WASD</b> — laufen · <b>Maus</b> — angreifen · <b>Shift</b> — ausweichen · <b>Leertaste</b> — Super · <b>Esc</b> — Pause",
+    sup_btn: "SUPER", dash_btn: "SPRINT", pick_title: "Wähle eine Fähigkeit", pick_sub: "Eine von drei — für den ganzen Lauf", pause: "Pause", resume: "Weiter",
+    to_menu: "Hauptmenü (Lauf geht verloren)", r_room: "Raum", r_kills: "Besiegt", r_shards: "Splitter", r_score: "Punkte", r_time: "Zeit", r_lvl: "Stufe",
+    again: "Nochmal", menu: "Hauptmenü", death: "Du bist im Raskol gefallen", victory: "Gruft gesäubert!", new_record: "🔥 Neuer Rekord!", lb_title: "Raskol-Bestenliste",
+    close: "Schließen", no_records: "Noch leer — sei der Erste!", rotate: "Dreh dein Handy", rotate2: "Raskol wird quer gespielt: linker Daumen läuft, rechter greift an.",
+    lvl_short: "St", your_cards: "Deine Fähigkeiten:", none: "noch keine", room_word: "Raum" }
+};
+
+const D = window.RASKOL_DATA, SAVE = window.RASKOL_SAVE;
+let LANG = 'ru';
+try { LANG = localStorage.getItem('jg_lang') || 'ru'; } catch (_) {}
+if (!UI[LANG]) LANG = 'ru';
+const t = k => (UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : UI.ru[k] || k);
+const tr = o => (o && (o[LANG] || o.en)) || '';
+const $ = id => document.getElementById(id);
+const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (IS_TOUCH) document.body.classList.add('touch');
+
+let save = SAVE.loadLocal();
+let selected = 'guard';
+let runActive = false, userPaused = false;
+
+function applyUI() {
+  window.RASKOL_LANG = LANG;
+  document.documentElement.lang = LANG === 'uk' ? 'uk' : LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.title = t('doc_title');
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  $('controlsTxt').innerHTML = IS_TOUCH ? t('controls_touch') : t('controls_pc');
+  renderClasses(); renderDetail(); renderStats();
+}
+
+function renderStats() {
+  $('shardVal').textContent = save.shards || 0;
+  $('sRoom').textContent = save.max_sector > 1 || save.runs ? (save.max_sector || 1) + '/10' : '—';
+  $('sWins').textContent = save.wins || 0;
+  $('sScore').textContent = save.best_score || 0;
+}
+
+const GLYPH = { ranger: '🏹', mage: '🔮', shade: '🗡️' };
+function renderClasses() {
+  const box = $('classList'); box.innerHTML = '';
+  for (const c of Object.values(D.CLASSES)) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cls' + (c.id === selected ? ' sel' : '') + (c.unlocked ? '' : ' locked');
+    b.style.setProperty('--c', c.color);
+    if (c.unlocked) {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 152;
+      window.RASKOL_SPRITES.build();
+      const sp = window.RASKOL_SPRITES.get('hero_' + c.id), sw = window.RASKOL_SPRITES.get('sword');
+      const g = cv.getContext('2d');
+      g.translate(76, 84); g.rotate(-Math.PI / 2); g.scale(1.9, 1.9);
+      g.save(); g.rotate(1.0); g.translate(8, 0); g.drawImage(sw.c, -sw.half * 0.8, -sw.half * 0.72, sw.half * 1.6, sw.half * 1.44); g.restore();
+      g.drawImage(sp.c, -sp.half, -sp.half, sp.half * 2, sp.half * 2);
+      b.appendChild(cv);
+    } else {
+      const gl = document.createElement('div'); gl.className = 'glyph'; gl.textContent = GLYPH[c.id] || '?'; b.appendChild(gl);
+      const lk = document.createElement('span'); lk.className = 'lock'; lk.textContent = '🔒 ' + t('soon'); b.appendChild(lk);
+    }
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = tr(c.name); nm.style.color = c.color; b.appendChild(nm);
+    const rl = document.createElement('div'); rl.className = 'rl'; rl.textContent = tr(c.role); b.appendChild(rl);
+    b.addEventListener('click', () => { selected = c.id; renderClasses(); renderDetail(); });
+    box.appendChild(b);
+  }
+}
+
+function renderDetail() {
+  const c = D.CLASSES[selected];
+  $('detail').style.setProperty('--c', c.color);
+  $('dName').textContent = tr(c.name);
+  $('dRole').textContent = tr(c.role);
+  $('dAtk').textContent = c.atk ? tr(c.atk) : '—';
+  $('dSup').textContent = c.sup ? tr(c.sup) : '—';
+  $('dPas').textContent = c.pas ? tr(c.pas) : '—';
+  $('playBtn').disabled = !c.unlocked;
+  $('playBtn').textContent = c.unlocked ? t('play') : '🔒 ' + t('soon');
+}
+
+// ── движок ──
+const input = new RaskolInput($('touchLayer'));
+let hudCache = {};
+function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } }
+function setW(id, pct) { const v = Math.round(pct * 1000) / 10; if (hudCache[id] !== v) { hudCache[id] = v; $(id).style.width = v + '%'; } }
+function setOff(id, len, frac) { const v = Math.round(len * (1 - frac) * 10) / 10; if (hudCache[id] !== v) { hudCache[id] = v; $(id).style.strokeDashoffset = v; } }
+
+const engine = new RaskolEngine($('cv'), input, {
+  onHud(h, run, boss) {
+    setW('hpFill', h.hp / h.maxHp); setW('hpGhost', h.hp / h.maxHp);
+    setText('hpTxt', Math.ceil(h.hp) + '/' + h.maxHp);
+    setText('lvTxt', t('lvl_short') + ' ' + h.lvl);
+    setW('xpFill', h.xp / (4 + h.lvl * 3));
+    setText('hudShards', String((save.shards || 0) + run.shards));
+    setOff('superRing', 232.5, h.superC / 100);
+    const ready = h.superC >= 100;
+    if (hudCache.ready !== ready) { hudCache.ready = ready; $('superBtn').classList.toggle('ready', ready); }
+    const dcd = Math.max(0, h.dashCd) / (2.4 * h.mods.dashMul);
+    setOff('dashRing', 182.2, 1 - dcd);
+    if (boss) {
+      if (!hudCache.bossOn) { hudCache.bossOn = true; $('bossBar').classList.add('on'); $('bossName').textContent = tr(D.BOSSES[boss.type].name); }
+      setW('bossFill', Math.max(0, boss.hp / boss.maxHp));
+    } else if (hudCache.bossOn) { hudCache.bossOn = false; $('bossBar').classList.remove('on'); }
+  },
+  onRoom(n, total, isBoss) {
+    const el = $('roomTxt');
+    el.textContent = tr(D.CHAPTER1.name) + ' · ' + n + '/' + total;
+    el.classList.toggle('boss', isBoss);
+  },
+  onCards(choices) { showPicks(choices); },
+  onEnd(r) { endRun(r); }
+});
+if (SAVE.DEBUG_RUN) window.__raskol = Object.assign(engine.debugApi(), { engine });
+
+function showPicks(choices) {
+  const box = $('picks'); box.innerHTML = '';
+  for (const c of choices) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'pick' + (c.cls ? ' cls' : '');
+    let dots = '';
+    if (c.max < 20) for (let i = 1; i <= c.max; i++) dots += `<i class="${i < c.lvl ? 'on' : i === c.lvl ? 'new' : ''}"></i>`;
+    b.innerHTML = (c.cls ? `<span class="pbadge">${LobbyUI.esc(tr(D.CLASSES[c.cls].name)).toUpperCase()}</span>` : '') +
+      `<div class="pi">${c.icon}</div><div class="pn">${LobbyUI.esc(c.name)}</div><div class="pd">${LobbyUI.esc(c.desc)}</div><div class="plv">${dots}</div>`;
+    b.addEventListener('click', () => {
+      $('pickModal').classList.remove('on');
+      engine.pickCard(c.id);
+      LobbyUI.vibrate(12);
+    }, { once: true });
+    box.appendChild(b);
+  }
+  $('pickModal').classList.add('on');
+}
+
+function fmtTime(s) { s = Math.round(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+function endRun(r) {
+  runActive = false;
+  const rec = SAVE.recordRun(save, r);
+  if (!SAVE.DEBUG_RUN) SAVE.pushCloud(save);
+  $('resTitle').textContent = r.win ? t('victory') : t('death');
+  $('resTitle').style.color = r.win ? '#67e8f9' : '#fca5a5';
+  $('resRec').innerHTML = rec && r.score > 0 ? `<span class="newrec">${LobbyUI.esc(t('new_record'))}</span>` : '';
+  $('rRoom').textContent = r.room + '/10';
+  $('rKills').textContent = r.kills;
+  $('rShards').textContent = '+' + r.shards;
+  $('rScore').textContent = r.score;
+  $('rTime').textContent = fmtTime(r.time);
+  $('rLvl').textContent = r.lvl;
+  $('resModal').classList.add('on');
+  if (r.win || rec) try { LobbyUI.confetti(); } catch (_) {}
+}
+
+function enterFullscreen() {
+  if (!IS_TOUCH) return;
+  const el = document.documentElement;
+  try {
+    const p = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : null;
+    if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (_) {} }).catch(() => {});
+  } catch (_) {}
+}
+function exitFullscreen() { try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (_) {} }
+
+function startRun() {
+  if (!D.CLASSES[selected].unlocked) return;
+  enterFullscreen();
+  hudCache = {};
+  ['resModal', 'pauseModal', 'pickModal'].forEach(id => $(id).classList.remove('on'));
+  document.body.classList.add('in-run');
+  runActive = true; userPaused = false;
+  engine.startRun(selected);
+  checkOrientation();
+}
+
+function toMenu() {
+  runActive = false;
+  engine.stop();
+  ['resModal', 'pauseModal', 'pickModal'].forEach(id => $(id).classList.remove('on'));
+  document.body.classList.remove('in-run');
+  exitFullscreen();
+  renderStats();
+}
+
+function openPause() {
+  if (!runActive || engine.picking || engine.state !== 'play') return;
+  userPaused = true; engine.pause();
+  const cards = Object.entries(engine.hero.cards).map(([id, n]) => {
+    const c = D.CARDS.find(x => x.id === id); return c ? c.icon + ' ' + tr(c.name) + (n > 1 ? ' ×' + n : '') : '';
+  }).filter(Boolean);
+  $('pauseCards').textContent = t('your_cards') + ' ' + (cards.length ? cards.join(' · ') : t('none'));
+  $('pauseModal').classList.add('on');
+}
+function closePause() { $('pauseModal').classList.remove('on'); userPaused = false; checkOrientation(); }
+
+function isPortrait() { return window.innerHeight > window.innerWidth; }
+function checkOrientation() {
+  if (!runActive) return;
+  const blocked = IS_TOUCH && isPortrait();
+  if (blocked || userPaused || document.hidden) engine.pause();
+  else if (!engine.picking) engine.resume();
+}
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+document.addEventListener('visibilitychange', () => { if (document.hidden && runActive && engine.state === 'play' && !engine.picking) openPause(); });
+
+// кнопки способностей: не пускаем касание в слой стиков
+function bindAbility(id, flag) {
+  const el = $(id);
+  el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); input[flag] = true; LobbyUI.vibrate(8); });
+  el.addEventListener('click', e => e.preventDefault());
+}
+bindAbility('superBtn', 'superPressed');
+bindAbility('dashBtn', 'dashPressed');
+$('pauseBtn').addEventListener('click', openPause);
+window.addEventListener('keydown', e => { if (e.code === 'Escape' || e.code === 'KeyP') { if ($('pauseModal').classList.contains('on')) closePause(); else openPause(); } });
+$('resumeBtn').addEventListener('click', closePause);
+$('quitBtn').addEventListener('click', toMenu);
+$('againBtn').addEventListener('click', startRun);
+$('menuBtn').addEventListener('click', toMenu);
+$('playBtn').addEventListener('click', startRun);
+$('lbBtn').addEventListener('click', async () => {
+  $('lbList').innerHTML = '<div class="ms">…</div>';
+  $('lbModal').classList.add('on');
+  const rows = await SAVE.fetchLeaderboard();
+  $('lbList').innerHTML = rows.length ? rows.slice(0, 20).map((r, i) =>
+    `<div class="r"><span class="p">${i + 1}</span><span class="n">${LobbyUI.esc(r.username)}</span><span>${LobbyUI.esc(t('room_word'))} ${Number(r.max_sector) || 1}</span><b>${Number(r.best_score) || 0}</b></div>`).join('')
+    : `<div class="ms">${LobbyUI.esc(t('no_records'))}</div>`;
+});
+$('lbClose').addEventListener('click', () => $('lbModal').classList.remove('on'));
+$('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-lang]'); if (!b) return;
+  LANG = b.dataset.lang; try { localStorage.setItem('jg_lang', LANG); } catch (_) {}
+  applyUI();
+});
+
+applyUI();
+engine.stop();
+SAVE.syncOnBoot().then(s => { save = s; renderStats(); });
+</script>
+</body>
+</html>

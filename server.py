@@ -397,6 +397,10 @@ async def snake_page():
 async def space_invaders_page():
     return FileResponse("/app/static/space_invaders.html")
 
+@app.get("/raskol")
+async def raskol_page():
+    return FileResponse("/app/static/raskol.html")
+
 @app.get("/fifteen")
 async def fifteen_page():
     return FileResponse("/app/static/fifteen.html")
