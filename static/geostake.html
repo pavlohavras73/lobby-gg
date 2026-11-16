@@ -176,6 +176,27 @@
     overflow: hidden; text-overflow: ellipsis;
   }
 
+  /* Street movement nav bar */
+  .pano-nav {
+    position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%); z-index: 7;
+    display: none; align-items: center; gap: 6px; padding: 5px 8px;
+    background: rgba(10,10,18,.82); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.55);
+  }
+  .pano-nav.show { display: flex; }
+  .nav-step-btn {
+    min-width: 40px; height: 36px; padding: 0 12px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.08);
+    color: #fff; font-weight: 800; font-size: 13px; cursor: pointer; margin: 0;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    transition: background .15s, transform .1s, opacity .15s;
+  }
+  .nav-step-btn:hover:not(:disabled) { background: rgba(255,255,255,.18); }
+  .nav-step-btn:active:not(:disabled) { transform: scale(.94); }
+  .nav-step-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .nav-home-btn { background: rgba(56,189,248,.16); border-color: rgba(56,189,248,.38); color: #bae6fd; }
+
   /* Map Drawer */
   .open-map-fab {
     position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 7;
@@ -186,19 +207,31 @@
   }
   .map-drawer {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 12;
-    height: 64%; min-height: 280px;
+    height: 62%; min-height: 280px;
     background: #101018; border-top: 1px solid rgba(255,255,255,.18);
     border-radius: 18px 18px 0 0;
-    transform: translateY(105%); transition: transform .26s cubic-bezier(.22,1,.36,1);
+    transform: translateY(105%); transition: transform .26s cubic-bezier(.22,1,.36,1), height .22s ease, width .22s ease;
     display: flex; flex-direction: column; overflow: hidden;
     box-shadow: 0 -14px 40px rgba(0,0,0,.75);
   }
+  .map-drawer.expanded { height: 88%; }
   .map-drawer.open { transform: translateY(0); }
+  @media (min-width: 768px) {
+    .map-drawer {
+      left: auto; right: 16px; bottom: 16px; width: 390px; height: 310px;
+      border: 1px solid rgba(255,255,255,.18); border-radius: 16px;
+      transform: translateY(130%);
+      box-shadow: 0 18px 46px rgba(0,0,0,.78);
+    }
+    .map-drawer.expanded { width: min(760px, 90vw); height: 72vh; }
+    .open-map-fab { right: 18px; left: auto; transform: none; bottom: 16px; }
+  }
   .drawer-head {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 8px 12px; background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.08);
     font-size: 13px; font-weight: 800;
   }
+  .drawer-acts { display: flex; align-items: center; gap: 6px; flex: none; }
   .drawer-close {
     width: auto; flex: none; min-width: 38px; min-height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.16);
     background: rgba(255,255,255,.06); color: #fff; font-weight: 800; cursor: pointer; padding: 4px 10px; margin: 0;
@@ -339,6 +372,11 @@
       <button type="button" class="zoom-btn" id="zoomInBtn">+</button>
       <button type="button" class="zoom-btn" id="zoomOutBtn">−</button>
     </div>
+    <div class="pano-nav" id="panoNav">
+      <button type="button" class="nav-step-btn" id="navPrevBtn" disabled>◀ <span data-i18n="nav_prev">Назад</span></button>
+      <button type="button" class="nav-step-btn nav-home-btn" id="navHomeBtn" disabled>🏠 <span id="navStepLbl">0</span></button>
+      <button type="button" class="nav-step-btn" id="navNextBtn" disabled><span data-i18n="nav_next">Вперёд</span> ▶</button>
+    </div>
   </div>
 
   <button type="button" class="open-map-fab" id="openMapBtn" data-i18n="open_map_btn">🗺 Открыть карту</button>
@@ -346,7 +384,10 @@
   <div class="map-drawer" id="mapDrawer">
     <div class="drawer-head">
       <span data-i18n="map_pick_lbl">Тапни по карте, чтобы поставить метку</span>
-      <button type="button" class="drawer-close" id="closeMapBtn">✕</button>
+      <div class="drawer-acts">
+        <button type="button" class="drawer-close" id="expandMapBtn" title="Развернуть">⤢</button>
+        <button type="button" class="drawer-close" id="closeMapBtn">✕</button>
+      </div>
     </div>
     <div id="guessMap"></div>
     <div class="drawer-foot">
@@ -431,6 +472,8 @@ const UI = {
     loading_pano: "Завантаження 360° панорами…",
     compass_tip: "Скинути напрямок погляду",
     pano_hint: "Свайп — огляд · Щипок — зум",
+    nav_prev: "Назад",
+    nav_next: "Вперед",
     open_map_btn: "🗺 Відкрити карту",
     map_pick_lbl: "Тапни по карті, щоб поставити мітку",
     confirm_guess: "✓ Підтвердити вибір",
@@ -486,6 +529,8 @@ const UI = {
     loading_pano: "Загрузка 360° панорамы…",
     compass_tip: "Сбросить направление взгляда",
     pano_hint: "Свайп — обзор · Щипок — зум",
+    nav_prev: "Назад",
+    nav_next: "Вперёд",
     open_map_btn: "🗺 Открыть карту",
     map_pick_lbl: "Тапни по карте, чтобы поставить метку",
     confirm_guess: "✓ Подтвердить выбор",
@@ -541,6 +586,8 @@ const UI = {
     loading_pano: "Loading 360° panorama…",
     compass_tip: "Reset view heading",
     pano_hint: "Drag to look · Pinch to zoom",
+    nav_prev: "Back",
+    nav_next: "Forward",
     open_map_btn: "🗺 Open map",
     map_pick_lbl: "Tap the map to place your pin",
     confirm_guess: "✓ Confirm guess",
@@ -596,6 +643,8 @@ const UI = {
     loading_pano: "360°-Panorama wird geladen…",
     compass_tip: "Blickrichtung zurücksetzen",
     pano_hint: "Ziehen — umschauen · Pinch — zoomen",
+    nav_prev: "Zurück",
+    nav_next: "Vorwärts",
     open_map_btn: "🗺 Karte öffnen",
     map_pick_lbl: "Tippe auf die Karte für deinen Pin",
     confirm_guess: "✓ Tipp bestätigen",
@@ -762,6 +811,7 @@ async function initGame() {
       if (window.loadGeoPanorama) {
         window.loadGeoPanorama(rd.img_url, state.heading);
       }
+      initRoundNav(rd.round_id);
       toast(t('round_resumed'), 'ok');
       return;
     }
@@ -853,6 +903,7 @@ async function startRound() {
     if (window.loadGeoPanorama) {
       window.loadGeoPanorama(rd.img_url, state.heading);
     }
+    initRoundNav(rd.round_id);
   } catch (e) {
     toast(e.message, 'err');
   } finally {
@@ -996,11 +1047,80 @@ document.addEventListener('DOMContentLoaded', () => {
     ensureGuessMap();
   };
   document.getElementById('closeMapBtn').onclick = () => document.getElementById('mapDrawer').classList.remove('open');
+  document.getElementById('expandMapBtn').onclick = () => {
+    const dr = document.getElementById('mapDrawer');
+    dr.classList.toggle('expanded');
+    setTimeout(() => { if (state.guessMap) state.guessMap.invalidateSize(); }, 240);
+  };
+  document.getElementById('navPrevBtn').onclick = () => moveStep(navState.step - 1);
+  document.getElementById('navNextBtn').onclick = () => moveStep(navState.step + 1);
+  document.getElementById('navHomeBtn').onclick = () => moveStep(0);
+  window.addEventListener('keydown', e => {
+    if (!document.getElementById('playScreen').classList.contains('active')) return;
+    if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') { if (navState.canNext) moveStep(navState.step + 1); }
+    else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') { if (navState.canPrev) moveStep(navState.step - 1); }
+    else if (e.key === 'r' || e.key === 'R') { if (navState.step !== 0) moveStep(0); }
+    else if (e.key === 'm' || e.key === 'M') {
+      const dr = document.getElementById('mapDrawer');
+      dr.classList.toggle('open');
+      if (dr.classList.contains('open')) ensureGuessMap();
+    }
+  });
   document.getElementById('confirmGuessBtn').onclick = submitGuess;
   document.getElementById('playAgainBtn').onclick = initGame;
 
   initGame();
 });
+
+const navState = { roundId: null, step: 0, canPrev: false, canNext: false, loading: false };
+function renderNavBar() {
+  const bar = document.getElementById('panoNav');
+  if (!bar) return;
+  const hasMoves = navState.canPrev || navState.canNext || navState.step !== 0;
+  bar.classList.toggle('show', hasMoves);
+  document.getElementById('navPrevBtn').disabled = navState.loading || !navState.canPrev;
+  document.getElementById('navNextBtn').disabled = navState.loading || !navState.canNext;
+  document.getElementById('navHomeBtn').disabled = navState.loading || navState.step === 0;
+  document.getElementById('navStepLbl').textContent = navState.step > 0 ? `+${navState.step}` : String(navState.step);
+}
+async function initRoundNav(roundId) {
+  navState.roundId = roundId;
+  navState.step = 0;
+  navState.canPrev = false;
+  navState.canNext = false;
+  navState.loading = false;
+  renderNavBar();
+  try {
+    const res = await apiJson(`/games/api/geo/nav/${encodeURIComponent(roundId)}?step=0`);
+    if (navState.roundId !== roundId) return;
+    navState.step = res.step || 0;
+    navState.canPrev = Boolean(res.can_prev);
+    navState.canNext = Boolean(res.can_next);
+    renderNavBar();
+  } catch {}
+}
+async function moveStep(targetStep) {
+  if (!navState.roundId || navState.loading) return;
+  navState.loading = true;
+  renderNavBar();
+  try {
+    const rid = navState.roundId;
+    const res = await apiJson(`/games/api/geo/nav/${encodeURIComponent(rid)}?step=${encodeURIComponent(targetStep)}`);
+    if (navState.roundId !== rid) return;
+    navState.step = res.step || 0;
+    navState.canPrev = Boolean(res.can_prev);
+    navState.canNext = Boolean(res.can_next);
+    if (window.loadGeoPanorama) {
+      await window.loadGeoPanorama(`/games/api/geo/img/${encodeURIComponent(rid)}?step=${navState.step}`, res.heading, true);
+    }
+  } catch (e) {
+    toast(e.message, 'err');
+  } finally {
+    navState.loading = false;
+    renderNavBar();
+  }
+}
 </script>
 
 <!-- Three.js 360° Equirectangular Viewer with inertia, pinch-zoom & live compass -->
@@ -1122,14 +1242,20 @@ document.getElementById('zoomOutBtn').onclick = () => setFov(fov + 12);
 document.getElementById('compassBtn').onclick = () => { lon = 0; lat = 0; vx = 0; vy = 0; };
 
 let panoLoadGen = 0;
-window.loadGeoPanorama = async function(url, heading) {
+window.loadGeoPanorama = async function(url, heading, preserveView) {
   const gen = ++panoLoadGen;
   await threeReady;
   if (!THREE || gen !== panoLoadGen) { loader.classList.add('hide'); return; }
   initThree();
+  const prevHeading = baseHeading;
   baseHeading = Number(heading) || 0;
-  lon = 0; lat = 0; vx = 0; vy = 0; setFov(75);
-  loader.classList.remove('hide');
+  // шаг по улице: держим то же направление взгляда по сторонам света, а не относительно кадра
+  // (на повороте дороги камера соседнего кадра смотрит иначе)
+  if (preserveView) lon = (((prevHeading + lon - baseHeading) % 360) + 540) % 360 - 180;
+  if (!preserveView) {
+    lon = 0; lat = 0; vx = 0; vy = 0; setFov(75);
+    loader.classList.remove('hide');
+  }
   const tl = new THREE.TextureLoader();
   tl.setCrossOrigin('anonymous');
   tl.load(url, tex => {

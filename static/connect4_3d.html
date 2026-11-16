@@ -110,6 +110,22 @@
     border-radius: 50%;
     box-shadow: 0 0 8px currentColor;
   }
+  .botdiff { display: flex; gap: 6px; margin: 6px 0; }
+  .botdiff .opt {
+    flex: 1; padding: 8px 6px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04); color: #cbd5e1;
+    cursor: pointer; font-weight: 700; font-size: 12.5px; text-align: center;
+  }
+  .botdiff .opt.on {
+    border-color: var(--c4-neon);
+    background: rgba(0,240,255,0.16); color: #fff;
+  }
+  .bot-del {
+    background: rgba(255,42,109,0.18); border: 1px solid rgba(255,42,109,0.45);
+    color: #fda4af; border-radius: 8px; padding: 3px 8px; font-size: 12px;
+    font-weight: 800; cursor: pointer; width: auto;
+  }
 
   /* 3D Game Area */
   #game-view {
@@ -278,6 +294,14 @@
   <div id="players-list"></div>
 
   <div id="host-actions" style="margin-top:18px">
+    <div id="bot-controls" style="display:none;margin-bottom:10px">
+      <div class="opts botdiff">
+        <button type="button" class="opt" data-d="easy" onclick="setBotDiff(this)" data-i18n="diff_easy">🤖 Лёгкий</button>
+        <button type="button" class="opt on" data-d="medium" onclick="setBotDiff(this)" data-i18n="diff_medium">Средний</button>
+        <button type="button" class="opt" data-d="hard" onclick="setBotDiff(this)" data-i18n="diff_hard">Сложный</button>
+      </div>
+      <button type="button" class="sec btn-secondary" style="width:100%" onclick="addBot()" data-i18n="add_bot_btn">🤖 Добавить бота</button>
+    </div>
     <button id="start-btn" onclick="startGame()" style="background:linear-gradient(45deg,#00f0ff,#7928ca);display:none" data-i18n="start_btn">🚀 Начать игру</button>
     <div id="waitmsg" class="sub" style="margin-top:8px" data-i18n="wait_players">Ожидаем игроков (минимум 2)…</div>
   </div>
@@ -363,7 +387,11 @@ const UI = {
     "win_you": "🏆 ТИ ПЕРЕМІГ!",
     "win_other": "Переміг",
     "win_desc": "Зібрано 4 фішки в ряд у 3D просторі.",
-    "conn_lost": "Зв'язок втрачено, оновіть сторінку."
+    "conn_lost": "Зв'язок втрачено, оновіть сторінку.",
+    "diff_easy": "🤖 Легкий",
+    "diff_medium": "Середній",
+    "diff_hard": "Складний",
+    "add_bot_btn": "🤖 Додати бота"
   },
   ru: {
     "title": "4 в ряд 3D — Lobby.gg",
@@ -399,7 +427,11 @@ const UI = {
     "win_you": "🏆 ТЫ ВЫИГРАЛ!",
     "win_other": "Победил",
     "win_desc": "Собрано 4 фишки в ряд в 3D пространстве.",
-    "conn_lost": "Связь потеряна, обнови страницу."
+    "conn_lost": "Связь потеряна, обнови страницу.",
+    "diff_easy": "🤖 Лёгкий",
+    "diff_medium": "Средний",
+    "diff_hard": "Сложный",
+    "add_bot_btn": "🤖 Добавить бота"
   },
   en: {
     "title": "Connect 4 3D — Lobby.gg",
@@ -435,7 +467,11 @@ const UI = {
     "win_you": "🏆 YOU WON!",
     "win_other": "Winner",
     "win_desc": "Connected 4 chips in a row in 3D space.",
-    "conn_lost": "Connection lost, refresh the page."
+    "conn_lost": "Connection lost, refresh the page.",
+    "diff_easy": "🤖 Easy",
+    "diff_medium": "Medium",
+    "diff_hard": "Hard",
+    "add_bot_btn": "🤖 Add bot"
   },
   de: {
     "title": "3D Vier gewinnt — Lobby.gg",
@@ -471,7 +507,11 @@ const UI = {
     "win_you": "🏆 DU HAST GEWONNEN!",
     "win_other": "Gewinner",
     "win_desc": "4 Steine in einer Reihe im 3D-Raum.",
-    "conn_lost": "Verbindung verloren, Seite neu laden."
+    "conn_lost": "Verbindung verloren, Seite neu laden.",
+    "diff_easy": "🤖 Leicht",
+    "diff_medium": "Mittel",
+    "diff_hard": "Schwer",
+    "add_bot_btn": "🤖 Bot hinzufügen"
   }
 };
 const GT = {"Нужно минимум 2 игрока.": {"uk": "Потрібно мінімум 2 гравця.", "en": "Need at least 2 players.", "de": "Mindestens 2 Spieler erforderlich."}, "Нужно минимум 2 игрока (жми «Добавить бота» для теста).": {"uk": "Потрібно мінімум 2 гравця (тисни «Додати бота» для тесту).", "en": "Need at least 2 players (click «Add bot» for test).", "de": "Mindestens 2 Spieler erforderlich (klicke auf «Bot hinzufügen» zum Testen)."}};
@@ -598,14 +638,18 @@ function handle(m) {
     const isHost = (m.host === pid);
     document.getElementById('start-btn').style.display = (isHost && m.players.length >= 2) ? 'block' : 'none';
     document.getElementById('waitmsg').style.display = (m.players.length >= 2) ? 'none' : 'block';
+    const bc = document.getElementById('bot-controls');
+    if (bc) bc.style.display = (isHost && m.players.length < 3) ? 'block' : 'none';
 
     const pDiv = document.getElementById('players-list');
     pDiv.innerHTML = m.players.map(p => {
+      const isBot = String(p.id || '').startsWith('bot_');
       const nm = T(p.name);
-      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p.id || '').startsWith('bot_')) : '';
+      const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, isBot) : '';
       const tag = p.id === m.host ? '<span class="player-tag">👑 ' + t('host_tag') + '</span>' : '';
+      const del = (isHost && isBot) ? `<button type="button" class="bot-del" onclick="removeBot('${p.id}')">✕</button>` : '';
       const me = p.id === pid ? ` <small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : '';
-      return `<div class="player-row-item">${av}<span style="font-weight:700">${esc(nm)}${me}</span>${tag}</div>`;
+      return `<div class="player-row-item">${av}<span style="font-weight:700">${esc(nm)}${me}</span>${tag}${del}</div>`;
     }).join('');
   } else if (m.type === 'c4_3d_state') {
     st = m;
@@ -639,21 +683,39 @@ function renderLobbyState() {
   const isHost = (st.host === pid);
   document.getElementById('start-btn').style.display = (isHost && st.players.length >= 2) ? 'block' : 'none';
   document.getElementById('waitmsg').style.display = (st.players.length >= 2) ? 'none' : 'block';
+  const bc = document.getElementById('bot-controls');
+  if (bc) bc.style.display = (isHost && st.players.length < 3) ? 'block' : 'none';
 
   const pDiv = document.getElementById('players-list');
   pDiv.innerHTML = st.players.map(p => {
     const col = st.colors[p] || '#777';
     const isHostP = (p === st.host);
     const isMe = (p === pid);
+    const isBot = String(p || '').startsWith('bot_');
+    const icon = isHostP ? '👑' : (isBot ? '' : '👤');   // у бота 🤖 уже в имени
+    const del = (isHost && isBot) ? `<button type="button" class="bot-del" onclick="removeBot('${p}')">✕</button>` : '';
     return `
       <div class="player-pill">
         <div class="tag">
           <div class="pdot" style="background:${col}; color:${col}"></div>
-          <span>${isHostP ? '👑' : '👤'} ${st.names[p] || t('player_default')} ${isMe ? `<small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : ''}</span>
+          <span>${icon} ${esc(T(st.names[p] || t('player_default')))} ${isMe ? `<small style="color:var(--c4-neon)">${t('you_lbl')}</small>` : ''}</span>
         </div>
+        ${del}
       </div>
     `;
   }).join('');
+}
+
+function setBotDiff(btn) {
+  btn.parentNode.querySelectorAll('.opt').forEach(x => x.classList.remove('on'));
+  btn.classList.add('on');
+}
+function addBot() {
+  const sel = document.querySelector('#bot-controls .botdiff .opt.on');
+  send({ action: 'add_bot', diff: sel ? sel.dataset.d : 'medium' });
+}
+function removeBot(targetPid) {
+  send({ action: 'remove_bot', pid: targetPid });
 }
 
 function renderGameState() {
@@ -664,7 +726,7 @@ function renderGameState() {
   // HUD
   const isMyTurn = (st.turn_pid === pid);
   const turnCol = st.colors[st.turn_pid] || '#fff';
-  const turnName = isMyTurn ? t('your_turn') : `${t('turn_lbl')}${st.names[st.turn_pid] || t('player_default')}`;
+  const turnName = isMyTurn ? t('your_turn') : `${t('turn_lbl')}${esc(T(st.names[st.turn_pid] || t('player_default')))}`;
 
   const tDot = document.getElementById('turn-dot');
   tDot.style.background = turnCol;
@@ -678,7 +740,7 @@ function renderGameState() {
     const isCur = (p === st.turn_pid && !st.winner);
     return `<div class="hud-pchip ${isCur ? 'active-turn' : ''}" style="color:${col}">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col}"></span>
-      ${st.names[p] || p}
+      ${esc(T(st.names[p] || t('player_default')))}
     </div>`;
   }).join('');
 
@@ -692,7 +754,7 @@ function renderGameState() {
       document.getElementById('win-desc').textContent = t('draw_desc');
     } else {
       const isWinner = (st.winner === pid);
-      const wName = st.names[st.winner] || t('player_default');
+      const wName = T(st.names[st.winner] || t('player_default'));
       const wCol = st.colors[st.winner] || '#fff';
       document.getElementById('win-heading').textContent = isWinner ? t('win_you') : `${t('win_other')}: ${wName}!`;
       document.getElementById('win-heading').style.color = wCol;

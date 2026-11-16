@@ -49,6 +49,7 @@ _ROUNDS: dict[str, dict[str, Any]] = {}
 _IMG_CACHE: dict[str, tuple[float, bytes]] = {}
 _MAPILLARY_URL_CACHE: dict[str, tuple[float, str]] = {}
 _MAPILLARY_HD_URL_CACHE: dict[str, tuple[float, str]] = {}
+_MAPILLARY_SEQ_CACHE: dict[str, tuple[float, list[str]]] = {}
 _POOL_CACHE: tuple[str, int, list[dict[str, Any]]] | None = None
 _hd_sem: asyncio.Semaphore | None = None
 
@@ -661,19 +662,21 @@ async def geo_active(request: Request):
 
 
 @router.get("/api/geo/img/{round_id}")
-async def geo_image(round_id: str, request: Request, hd: int = 0):
+async def geo_image(round_id: str, request: Request, hd: int = 0, step: int = 0):
     _gc_state()
     user = _auth_username(request)
     if not user:
         raise HTTPException(401, "auth_required")
     want_hd = bool(hd)
+    cache_key: Any = round_id if step == 0 else (round_id, step)
     with _state_lock:
         rd = _ROUNDS.get(round_id)
         if not rd or rd["username"] != user:
             raise HTTPException(404, "round_not_found")
         loc = rd["loc"]
+        nav = rd.get("_nav")
         if not want_hd:
-            cached = _IMG_CACHE.get(round_id)
+            cached = _IMG_CACHE.get(cache_key)
             if cached and cached[0] > time.time():
                 return Response(
                     content=cached[1],
@@ -681,17 +684,29 @@ async def geo_image(round_id: str, request: Request, hd: int = 0):
                     headers={"Cache-Control": "private, no-store"},
                 )
 
+    target_loc = loc
+    if step != 0:
+        if nav is None:
+            nav = await asyncio.to_thread(_ensure_round_nav, loc)
+            with _state_lock:
+                if round_id in _ROUNDS:
+                    _ROUNDS[round_id]["_nav"] = nav
+        idx = nav["center"] + step
+        if idx < 0 or idx >= len(nav["ids"]):
+            raise HTTPException(400, "invalid_nav_step")
+        target_loc = {"id": nav["ids"][idx], "source": "mapillary"}
+
     if want_hd:
         # HD (~4096px) не кэшируем в _IMG_CACHE и ограничиваем 2 одновременными загрузками (256 МБ контейнер)
         async with _get_hd_sem():
-            img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, loc, True)
+            img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, target_loc, True)
         if not img_bytes:
             return Response(status_code=204, headers={"Cache-Control": "private, no-store"})
     else:
-        img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, loc)
+        img_bytes = await asyncio.to_thread(_fetch_panorama_bytes, target_loc)
         with _state_lock:
             if round_id in _ROUNDS and not _ROUNDS[round_id]["guessed"]:
-                _IMG_CACHE[round_id] = (time.time() + 300, img_bytes)
+                _IMG_CACHE[cache_key] = (time.time() + 300, img_bytes)
                 while len(_IMG_CACHE) > IMG_CACHE_MAX:
                     _IMG_CACHE.pop(min(_IMG_CACHE, key=lambda k: _IMG_CACHE[k][0]), None)
     return Response(
@@ -699,6 +714,104 @@ async def geo_image(round_id: str, request: Request, hd: int = 0):
         media_type="image/jpeg",
         headers={"Cache-Control": "private, no-store"},
     )
+
+
+def _ensure_round_nav(loc: dict[str, Any]) -> dict[str, Any]:
+    """Build street-sequence navigation window [-10..+10] for Mapillary panoramas (server-side only)."""
+    lid = str(loc.get("id") or "")
+    base_heading = float(loc.get("heading") or 0.0)
+    if loc.get("source") != "mapillary" or str(loc.get("img_url") or "").startswith("fixture://"):
+        return {"ids": [lid], "center": 0, "headings": {0: base_heading}}
+    tok = mapillary_token()
+    if not tok or not lid:
+        return {"ids": [lid], "center": 0, "headings": {0: base_heading}}
+    try:
+        api = f"https://graph.mapillary.com/{urllib.parse.quote(lid)}?fields=sequence"
+        req = urllib.request.Request(api, headers={"Authorization": f"OAuth {tok}", "User-Agent": "LobbyGG-GeoStake/1.0"})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            meta = json.loads(resp.read().decode("utf-8"))
+        seq_id = meta.get("sequence")
+        if isinstance(seq_id, dict):
+            seq_id = seq_id.get("id")
+        if not seq_id:
+            return {"ids": [lid], "center": 0, "headings": {0: base_heading}}
+        seq_str = str(seq_id)
+        cached_seq = _MAPILLARY_SEQ_CACHE.get(seq_str)
+        if cached_seq and cached_seq[0] > time.time():
+            seq_ids = cached_seq[1]
+        else:
+            s_api = f"https://graph.mapillary.com/image_ids?sequence_id={urllib.parse.quote(seq_str)}"
+            s_req = urllib.request.Request(s_api, headers={"Authorization": f"OAuth {tok}", "User-Agent": "LobbyGG-GeoStake/1.0"})
+            with urllib.request.urlopen(s_req, timeout=8) as s_resp:
+                s_data = json.loads(s_resp.read().decode("utf-8"))
+            seq_ids = [str(item["id"]) for item in (s_data.get("data") or []) if item.get("id")]
+            if seq_ids:
+                _MAPILLARY_SEQ_CACHE[seq_str] = (time.time() + 1800, seq_ids)
+        if lid not in seq_ids:
+            return {"ids": [lid], "center": 0, "headings": {0: base_heading}}
+        pos = seq_ids.index(lid)
+        lo = max(0, pos - 10)
+        hi = min(len(seq_ids), pos + 11)
+        window = seq_ids[lo:hi]
+        return {"ids": window, "center": pos - lo, "headings": {0: base_heading}}
+    except Exception:
+        return {"ids": [lid], "center": 0, "headings": {0: base_heading}}
+
+
+def _fetch_step_heading(image_id: str, fallback: float) -> float:
+    tok = mapillary_token()
+    if not tok or not image_id:
+        return fallback
+    try:
+        api = f"https://graph.mapillary.com/{urllib.parse.quote(image_id)}?fields=computed_compass_angle,compass_angle"
+        req = urllib.request.Request(api, headers={"Authorization": f"OAuth {tok}", "User-Agent": "LobbyGG-GeoStake/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            d = json.loads(resp.read().decode("utf-8"))
+        # как в пуле (tools/build_geo_pool.py): уточнённый по реконструкции угол, иначе сырой с устройства —
+        # сырой у одной и той же точки расходится с пулом на десятки градусов, и компас прыгал при шаге
+        ang = d.get("computed_compass_angle")
+        if ang is None:
+            ang = d.get("compass_angle")
+        if ang is not None:
+            return float(ang)
+    except Exception:
+        pass
+    return fallback
+
+
+@router.get("/api/geo/nav/{round_id}")
+async def geo_nav(round_id: str, request: Request, step: int = 0):
+    _gc_state()
+    user = _auth_username(request)
+    if not user:
+        raise HTTPException(401, "auth_required")
+    with _state_lock:
+        rd = _ROUNDS.get(round_id)
+        if not rd or rd["username"] != user:
+            raise HTTPException(404, "round_not_found")
+        loc = rd["loc"]
+        nav = rd.get("_nav")
+    if nav is None:
+        nav = await asyncio.to_thread(_ensure_round_nav, loc)
+        with _state_lock:
+            if round_id in _ROUNDS:
+                _ROUNDS[round_id]["_nav"] = nav
+    min_step = -nav["center"]
+    max_step = len(nav["ids"]) - 1 - nav["center"]
+    clamped = max(min_step, min(max_step, step))
+    headings = nav.setdefault("headings", {})
+    if clamped not in headings:
+        idx = nav["center"] + clamped
+        h = await asyncio.to_thread(_fetch_step_heading, nav["ids"][idx], float(headings.get(0, 0.0)))
+        headings[clamped] = h
+    return {
+        "step": clamped,
+        "min_step": min_step,
+        "max_step": max_step,
+        "can_prev": clamped > min_step,
+        "can_next": clamped < max_step,
+        "heading": headings[clamped],
+    }
 
 
 @router.post("/api/geo/guess")

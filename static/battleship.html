@@ -23,47 +23,98 @@
 
   .bd {
     position:relative; overflow:hidden; box-sizing:border-box;
-    display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); grid-auto-rows:auto; gap:2px; max-width:320px; width:100%; margin:6px auto;
-    background:linear-gradient(160deg,#082038,#051526); border:2px solid rgba(56,189,248,.32);
-    border-radius:16px; padding:7px; box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 24px rgba(14,165,233,.18);
+    display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); grid-auto-rows:auto; gap:2px; max-width:330px; width:100%; margin:6px auto;
+    background:linear-gradient(160deg,#061a30,#030f1e); border:2px solid rgba(56,189,248,.38);
+    border-radius:16px; padding:7px; box-shadow:0 14px 34px rgba(0,0,0,.6), inset 0 0 28px rgba(14,165,233,.22);
+    --ship-hull:#64748b; --ship-deck:#94a3b8; --ship-trim:#e2e8f0; --ship-gun:#334155;
   }
+  body[data-skin="neon"] .bd { --ship-hull:#1e293b; --ship-deck:#0f172a; --ship-trim:#22d3ee; --ship-gun:#38bdf8; }
+  body[data-skin="crimson"] .bd { --ship-hull:#7f1d1d; --ship-deck:#991b1b; --ship-trim:#fbbf24; --ship-gun:#450a0a; }
+  body[data-skin="arctic"] .bd { --ship-hull:#cbd5e1; --ship-deck:#f1f5f9; --ship-trim:#38bdf8; --ship-gun:#475569; }
   .bd::before {
     content:""; position:absolute; inset:-40%; pointer-events:none;
-    background:radial-gradient(circle at 30% 30%, rgba(56,189,248,.12), transparent 55%), radial-gradient(circle at 70% 70%, rgba(14,165,233,.1), transparent 55%);
-    animation:waterDrift 7s ease-in-out infinite alternate;
+    background:
+      radial-gradient(circle at 28% 28%, rgba(56,189,248,.16), transparent 52%),
+      radial-gradient(circle at 72% 72%, rgba(14,165,233,.13), transparent 52%),
+      repeating-linear-gradient(125deg, rgba(125,211,252,.035) 0 8px, transparent 8px 22px);
+    animation:waterDrift 8s ease-in-out infinite alternate;
   }
+  .bd::after {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, transparent 0%, rgba(56,189,248,.07) 50%, transparent 100%);
+    transform:translateY(-100%);
+    animation:radarSweep 5.5s linear infinite;
+  }
+  .bd.board-shake { animation:boardShake .32s cubic-bezier(.36,.07,.19,.97) both; }
   @keyframes waterDrift { 0%{transform:translate(-4%,-3%)} 100%{transform:translate(4%,3%)} }
-  .c { position:relative; z-index:1; aspect-ratio:1; min-width:0; box-sizing:border-box; border-radius:4px; background:rgba(12,41,71,.78); font-size:12px; display:flex; align-items:center; justify-content:center; transition:transform .12s, background .15s; }
-  .c.ship { background:transparent; }
-  .c.ship::before {
-    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
-    background:linear-gradient(170deg,#94a3b8 0%,#64748b 52%,#334155 100%);
-    box-shadow:inset 0 2px 3px rgba(255,255,255,.4), inset 0 -2px 3px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.45);
-    border-radius:9px;
+  @keyframes radarSweep { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
+  @keyframes boardShake {
+    0%,100%{transform:translate(0,0)} 20%{transform:translate(-3px,2px)} 40%{transform:translate(3px,-2px)} 60%{transform:translate(-2px,-1px)} 80%{transform:translate(2px,1px)}
   }
-  .c.ship.conn-l::before { left:-2.5px; border-top-left-radius:0; border-bottom-left-radius:0; }
-  .c.ship.conn-r::before { right:-2.5px; border-top-right-radius:0; border-bottom-right-radius:0; }
-  .c.ship.conn-t::before { top:-2.5px; border-top-left-radius:0; border-top-right-radius:0; }
-  .c.ship.conn-b::before { bottom:-2.5px; border-bottom-left-radius:0; border-bottom-right-radius:0; }
-  .c.ship.sunk::before {
-    background:linear-gradient(165deg,#522029,#261217);
-    box-shadow:inset 0 0 8px rgba(255,34,56,.6), 0 0 0 1px rgba(255,92,114,.65);
+  .c {
+    position:relative; z-index:1; aspect-ratio:1; min-width:0; box-sizing:border-box;
+    border-radius:5px; background:rgba(10,36,64,.76); border:1px solid rgba(56,189,248,.09);
+    font-size:12px; display:flex; align-items:center; justify-content:center;
+    transition:transform .12s, background .15s, box-shadow .15s; overflow:visible;
   }
+  .c.ship { background:rgba(8,30,54,.45); border-color:transparent; }
+  .ship-svg {
+    position:absolute; inset:-1px; width:calc(100% + 2px); height:calc(100% + 2px);
+    pointer-events:none; z-index:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,.55));
+  }
+  .c.ship.sunk .ship-svg { filter:grayscale(.75) brightness(.55) drop-shadow(0 0 6px rgba(239,68,68,.55)); }
   .c.hit, .c.miss { z-index:2; }
   .c.hit {
-    background:radial-gradient(circle at 50% 45%,#fbbf24 0%,#ef4444 45%,#7f1d1d 100%);
+    background:radial-gradient(circle at 50% 45%, rgba(251,191,36,.95) 0%, rgba(239,68,68,.88) 48%, rgba(127,29,29,.85) 100%);
     color:#fff; font-weight:900; box-shadow:0 0 12px rgba(239,68,68,.75);
-    animation:hitBoom .3s ease both;
   }
-  .c.miss {
-    background:rgba(16,38,62,.85); color:#7dd3fc; font-weight:900;
-    animation:missRipple .35s ease both;
+  .c.hit.ship { background:rgba(127,29,29,.45); box-shadow:inset 0 0 8px rgba(239,68,68,.7); }
+  .c.hit .hit-flame {
+    position:relative; z-index:3; font-size:14px; line-height:1;
+    animation:flameFlicker .9s ease-in-out infinite alternate;
+    text-shadow:0 0 8px #fbbf24;
+  }
+  .c.miss { background:rgba(12,32,56,.82); }
+  .c.miss .miss-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:rgba(125,211,252,.72); box-shadow:0 0 6px rgba(125,211,252,.65);
+  }
+  .c.fx-hit::after {
+    content:""; position:absolute; inset:-6px; border-radius:50%; pointer-events:none; z-index:5;
+    background:radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(251,191,36,.85) 35%, rgba(239,68,68,0) 72%);
+    animation:boomFlash .48s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  .c.fx-miss::after {
+    content:""; position:absolute; inset:-4px; border-radius:50%; pointer-events:none; z-index:5;
+    border:2px solid rgba(186,230,253,.9);
+    animation:splashRing .55s ease-out forwards;
   }
   .c.fire { cursor:pointer; }
-  .c.fire:hover { background:#17426e; box-shadow:inset 0 0 0 1.5px rgba(56,189,248,.8); }
-  .c.fire:active { transform:scale(.9); background:#1d4ed8; }
-  @keyframes hitBoom { 0% { transform:scale(1.28); filter:brightness(1.4); } 100% { transform:scale(1); filter:brightness(1); } }
-  @keyframes missRipple { 0% { box-shadow:inset 0 0 0 6px rgba(125,211,252,.5); } 100% { box-shadow:inset 0 0 0 0 rgba(125,211,252,0); } }
+  .c.fire:hover {
+    background:rgba(23,78,130,.92);
+    box-shadow:inset 0 0 0 1.5px rgba(56,189,248,.95), 0 0 10px rgba(56,189,248,.45);
+    z-index:3;
+  }
+  .c.fire:hover::after {
+    content:""; position:absolute; inset:3px; border-radius:50%;
+    border:1.5px dashed rgba(125,211,252,.9); pointer-events:none;
+    animation:crossSpin 3s linear infinite;
+  }
+  .c.fire:active { transform:scale(.88); background:#1d4ed8; }
+  @keyframes boomFlash { 0%{transform:scale(.3);opacity:1} 55%{transform:scale(1.35);opacity:.95} 100%{transform:scale(1.65);opacity:0} }
+  @keyframes splashRing { 0%{transform:scale(.25);opacity:1;border-width:3px} 100%{transform:scale(1.45);opacity:0;border-width:1px} }
+  @keyframes flameFlicker { 0%{transform:scale(.92) rotate(-4deg)} 100%{transform:scale(1.1) rotate(4deg)} }
+  @keyframes crossSpin { to{transform:rotate(360deg)} }
+  .skin-bar {
+    display:flex; gap:6px; justify-content:center; flex-wrap:wrap;
+    max-width:330px; margin:8px auto 2px;
+  }
+  .skin-pill {
+    flex:1; min-width:68px; padding:6px 8px; border-radius:10px;
+    border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+    color:#cbd5e1; font-size:11.5px; font-weight:700; cursor:pointer; margin:0;
+  }
+  .skin-pill.on { border-color:#38bdf8; background:rgba(56,189,248,.18); color:#fff; }
   .lbl2 { text-align:center; font-size:12px; color:var(--muted); margin-top:8px; font-weight:700; }
   .turn { text-align:center; font-weight:800; margin:8px 0; font-size:14px; }
   .me { color:#38bdf8; }
@@ -104,7 +155,13 @@
   <div style="margin-top:8px"><div class="opts botdiff" style="margin:6px 0"><div class="opt" data-d="easy" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_easy">🤖 Лёгкий</div><div class="opt on" data-d="medium" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_medium">Средний</div><div class="opt" data-d="hard" onclick="this.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));this.classList.add('on')" data-i18n="diff_hard">Сложный</div></div><button class="sec btn-secondary" style="width:100%" onclick="send({action:'add_bot',diff:document.querySelector('.botdiff .opt.on').dataset.d})" data-i18n="add_bot_btn">🤖 Добавить</button></div><div class="sub" id="waitmsg" style="margin-top:10px" data-i18n="wait_msg">Ждём второго…</div></div>
 <div id="place" class="hide" style="width:100%;max-width:420px;margin:0 auto;text-align:center">
   <div class="lbl2" data-i18n="place_own_lbl">Твоё поле (расстановка авто)</div><div class="bd" id="ownplace"></div>
-  <div style="display:flex;gap:8px;max-width:320px;margin:10px auto"><button class="sec btn-secondary" style="flex:1" onclick="send({action:'bs_reroll'})" data-i18n="reroll_btn">🎲 Перерасставить</button><button class="btn-primary" style="flex:1" onclick="send({action:'bs_ready'})" data-i18n="ready_btn">✅ Готов</button></div>
+  <div class="skin-bar" id="skinBar">
+    <button type="button" class="skin-pill" data-skin="navy" onclick="setShipSkin('navy')" data-i18n="skin_navy">⚓ ВМФ</button>
+    <button type="button" class="skin-pill" data-skin="neon" onclick="setShipSkin('neon')" data-i18n="skin_neon">⚡ Неон</button>
+    <button type="button" class="skin-pill" data-skin="crimson" onclick="setShipSkin('crimson')" data-i18n="skin_crimson">🏴‍☠️ Корсар</button>
+    <button type="button" class="skin-pill" data-skin="arctic" onclick="setShipSkin('arctic')" data-i18n="skin_arctic">❄️ Арктика</button>
+  </div>
+  <div style="display:flex;gap:8px;max-width:330px;margin:10px auto"><button class="sec btn-secondary" style="flex:1" onclick="send({action:'bs_reroll'})" data-i18n="reroll_btn">🎲 Перерасставить</button><button class="btn-primary" style="flex:1" onclick="send({action:'bs_ready'})" data-i18n="ready_btn">✅ Готов</button></div>
   <div class="sub" id="placestatus"></div></div>
 <div id="game" class="hide" style="width:100%;max-width:420px;margin:0 auto">
   <div class="turn" id="turninfo"></div>
@@ -156,7 +213,11 @@ const UI = {
     your_turn: "ТВІЙ ХІД",
     your_turn_sub: " — стріляй (влучив = б'єш ще)",
     turn_of: "Хід: {n}",
-    alert_code: "Код?"
+    alert_code: "Код?",
+    skin_navy: "⚓ ВМС",
+    skin_neon: "⚡ Неон",
+    skin_crimson: "🏴‍☠️ Корсар",
+    skin_arctic: "❄️ Арктика"
   },
   ru: {
     title: "Морской бой — Lobby.gg",
@@ -191,7 +252,11 @@ const UI = {
     your_turn: "ТВОЙ ХОД",
     your_turn_sub: " — стреляй (попал = бьёшь ещё)",
     turn_of: "Ходит {n}",
-    alert_code: "Код?"
+    alert_code: "Код?",
+    skin_navy: "⚓ ВМФ",
+    skin_neon: "⚡ Неон",
+    skin_crimson: "🏴‍☠️ Корсар",
+    skin_arctic: "❄️ Арктика"
   },
   en: {
     title: "Battleship — Lobby.gg",
@@ -226,7 +291,11 @@ const UI = {
     your_turn: "YOUR TURN",
     your_turn_sub: " — fire (hit = extra shot)",
     turn_of: "Turn: {n}",
-    alert_code: "Code?"
+    alert_code: "Code?",
+    skin_navy: "⚓ Navy",
+    skin_neon: "⚡ Neon",
+    skin_crimson: "🏴‍☠️ Corsair",
+    skin_arctic: "❄️ Arctic"
   },
   de: {
     "title": "Schiffe versenken — Lobby.gg",
@@ -261,7 +330,11 @@ const UI = {
     "your_turn": "DU BIST DRAN — SCHIESSE!",
     "your_turn_sub": "Wähle eine Zelle auf dem gegnerischen Feld",
     "turn_of": "Am Zug: {n}",
-    "alert_code": "Code?"
+    "alert_code": "Code?",
+    "skin_navy": "⚓ Marine",
+    "skin_neon": "⚡ Neon",
+    "skin_crimson": "🏴‍☠️ Korsar",
+    "skin_arctic": "❄️ Arktis"
   }
 };
 
@@ -339,8 +412,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const jc = document.getElementById('joincode');
     if (jc) jc.value = autoCode;
   }
+  setShipSkin(localStorage.getItem('bs_skin') || 'navy');
   applyUI();
 });
+
+function setShipSkin(skin) {
+  if (!['navy', 'neon', 'crimson', 'arctic'].includes(skin)) skin = 'navy';
+  document.body.setAttribute('data-skin', skin);
+  localStorage.setItem('bs_skin', skin);
+  document.querySelectorAll('#skinBar .skin-pill').forEach(b => b.classList.toggle('on', b.dataset.skin === skin));
+}
+
+const prevGrids = {};
+function shipCellSvg(l, r, t, b) {
+  let path = '', deco = '';
+  if (!l && !r && !t && !b) {
+    // 1-палубный катер
+    path = 'M16 3 L26 14 L24 27 L8 27 L6 14 Z';
+    deco = '<rect x="11" y="13" width="10" height="8" rx="2" fill="var(--ship-deck)" stroke="var(--ship-trim)" stroke-width="1"/><circle cx="16" cy="10" r="2.2" fill="var(--ship-gun)"/>';
+  } else if (l || r) {
+    // Горизонтальный корабль
+    if (!l && r) {
+      path = 'M3 16 Q10 5 22 5 L32 5 L32 27 L22 27 Q10 27 3 16 Z';
+      deco = '<circle cx="19" cy="16" r="4" fill="var(--ship-gun)" stroke="var(--ship-trim)" stroke-width="1"/><line x1="19" y1="16" x2="8" y2="16" stroke="var(--ship-trim)" stroke-width="2" stroke-linecap="round"/>';
+    } else if (l && !r) {
+      path = 'M0 5 L23 5 Q29 7 29 16 Q29 25 23 27 L0 27 Z';
+      deco = '<rect x="6" y="10" width="13" height="12" rx="3" fill="var(--ship-deck)" stroke="var(--ship-trim)" stroke-width="1"/><circle cx="14" cy="16" r="2.5" fill="var(--ship-gun)"/>';
+    } else {
+      path = 'M0 5 L32 5 L32 27 L0 27 Z';
+      deco = '<rect x="3" y="9" width="26" height="14" rx="2" fill="var(--ship-deck)" opacity=".85"/><circle cx="16" cy="16" r="4.5" fill="var(--ship-gun)" stroke="var(--ship-trim)" stroke-width="1"/><line x1="16" y1="14.5" x2="27" y2="14.5" stroke="var(--ship-trim)" stroke-width="1.6"/><line x1="16" y1="17.5" x2="27" y2="17.5" stroke="var(--ship-trim)" stroke-width="1.6"/>';
+    }
+  } else {
+    // Вертикальный корабль
+    if (!t && b) {
+      path = 'M16 3 Q27 10 27 22 L27 32 L5 32 L5 22 Q5 10 16 3 Z';
+      deco = '<circle cx="16" cy="19" r="4" fill="var(--ship-gun)" stroke="var(--ship-trim)" stroke-width="1"/><line x1="16" y1="19" x2="16" y2="8" stroke="var(--ship-trim)" stroke-width="2" stroke-linecap="round"/>';
+    } else if (t && !b) {
+      path = 'M5 0 L27 0 L27 23 Q25 29 16 29 Q7 29 5 23 Z';
+      deco = '<rect x="10" y="6" width="12" height="13" rx="3" fill="var(--ship-deck)" stroke="var(--ship-trim)" stroke-width="1"/><circle cx="16" cy="14" r="2.5" fill="var(--ship-gun)"/>';
+    } else {
+      path = 'M5 0 L27 0 L27 32 L5 32 Z';
+      deco = '<rect x="9" y="3" width="14" height="26" rx="2" fill="var(--ship-deck)" opacity=".85"/><circle cx="16" cy="16" r="4.5" fill="var(--ship-gun)" stroke="var(--ship-trim)" stroke-width="1"/><line x1="14.5" y1="16" x2="14.5" y2="27" stroke="var(--ship-trim)" stroke-width="1.6"/><line x1="17.5" y1="16" x2="17.5" y2="27" stroke="var(--ship-trim)" stroke-width="1.6"/>';
+    }
+  }
+  return '<svg class="ship-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="' + path + '" fill="var(--ship-hull)" stroke="var(--ship-trim)" stroke-width="1.4"/>' + deco + '</svg>';
+}
+
+function isShipSunk(grid, sr, sc) {
+  const seen = new Set([sr * 10 + sc]);
+  const q = [[sr, sc]];
+  while (q.length) {
+    const [r, c] = q.pop();
+    if (grid[r][c] === 1) return false;
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && !seen.has(nr * 10 + nc) && (grid[nr][nc] === 1 || grid[nr][nc] === 2)) {
+        seen.add(nr * 10 + nc);
+        q.push([nr, nc]);
+      }
+    }
+  }
+  return true;
+}
 
 function show(id){for(const s of['home','lobby','place','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
@@ -359,28 +492,47 @@ function create(){connect(()=>send({action:'create',name:document.getElementById
 function join(){const c=document.getElementById('joincode').value;if(!c)return alert(t('alert_code'));connect(()=>send({action:'join',name:document.getElementById('name').value||'Игрок',code:c}));}
 function fire(r,c){if(st&&st.turn_pid===pid)send({action:'bs_fire',r:r,c:c});}
 function renderBoard(el, grid, fireable) {
+  const prev = prevGrids[el];
   const isShip = (r, c) => r >= 0 && r < 10 && c >= 0 && c < 10 && (grid[r][c] === 1 || grid[r][c] === 2);
   let h = '';
+  let gotNewHit = false;
   for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
     const v = grid[r][c];
+    const pv = prev ? prev[r][c] : v;
+    const isNewHit = pv !== 2 && v === 2;
+    const isNewMiss = pv !== 3 && v === 3;
+    if (isNewHit) gotNewHit = true;
+
     let cls = 'c';
-    if (v === 1) {
+    let inner = '';
+    const showOwnShip = (v === 1) || (v === 2 && (el === 'own' || el === 'ownplace'));
+    if (showOwnShip) {
+      const l = isShip(r, c - 1), ri = isShip(r, c + 1), t = isShip(r - 1, c), b = isShip(r + 1, c);
       cls += ' ship';
-      if (isShip(r, c - 1)) cls += ' conn-l';
-      if (isShip(r, c + 1)) cls += ' conn-r';
-      if (isShip(r - 1, c)) cls += ' conn-t';
-      if (isShip(r + 1, c)) cls += ' conn-b';
-    } else if (v === 2) {
+      if (v === 2 && isShipSunk(grid, r, c)) cls += ' sunk';
+      inner += shipCellSvg(l, ri, t, b);
+    }
+    if (v === 2) {
       cls += ' hit';
-      if (el === 'own' || el === 'ownplace') cls += ' ship sunk';
+      if (isNewHit) cls += ' fx-hit';
+      inner += '<span class="hit-flame">🔥</span>';
     } else if (v === 3) {
       cls += ' miss';
+      if (isNewMiss) cls += ' fx-miss';
+      inner += '<span class="miss-dot"></span>';
     }
     const f = fireable && v === 0;
     if (f) cls += ' fire';
-    h += '<div class="' + cls + '" ' + (f ? 'onclick="fire(' + r + ',' + c + ')"' : '') + '>' + (v === 2 ? '🔥' : v === 3 ? '•' : '') + '</div>';
+    h += '<div class="' + cls + '" ' + (f ? 'onclick="fire(' + r + ',' + c + ')"' : '') + '>' + inner + '</div>';
   }
-  document.getElementById(el).innerHTML = h;
+  prevGrids[el] = grid.map(row => row.slice());
+  const box = document.getElementById(el);
+  box.innerHTML = h;
+  if (gotNewHit) {
+    box.classList.remove('board-shake');
+    void box.offsetWidth;
+    box.classList.add('board-shake');
+  }
 }
 function handle(m){
   if(m.type==='joined'){pid=m.pid;roomCode=m.code;sessionStorage.setItem('jg_battleship_code',m.code);}
