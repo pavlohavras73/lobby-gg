@@ -7,7 +7,13 @@
 
   function defaults() {
     // max_galaxy = глава, max_sector = лучшая комната (так их понимает таблица рекордов на сервере)
-    return { v: 1, shards: 0, best_score: 0, max_galaxy: 1, max_sector: 1, runs: 0, wins: 0, kills: 0, best_time: 0, selected: 'guard', ts: 0 };
+    return { v: 1, shards: 0, best_score: 0, max_galaxy: 1, max_sector: 1, runs: 0, wins: 0, kills: 0, best_time: 0, selected: 'guard', classes: ['guard'], ts: 0 };
+  }
+
+  function normClasses(arr) {
+    const out = new Set(['guard']);
+    if (Array.isArray(arr)) for (const id of arr) if (typeof id === 'string' && id) out.add(id);
+    return Array.from(out);
   }
 
   function loadLocal() {
@@ -16,11 +22,13 @@
       const raw = localStorage.getItem(LS_KEY);
       if (raw) { const p = JSON.parse(raw); if (p && typeof p === 'object') s = { ...s, ...p }; }
     } catch (_) {}
+    s.classes = normClasses(s.classes);
     return s;
   }
 
   function saveLocal(s) {
     if (DEBUG_RUN) return;
+    s.classes = normClasses(s.classes);
     s.ts = Date.now();
     try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (_) {}
   }
@@ -31,6 +39,7 @@
     const newer = (Number(b.ts) || 0) > (Number(a.ts) || 0) ? b : a;
     const out = { ...defaults(), ...a, ...b, ...newer };
     out.shards = Math.max(0, Number(newer.shards) || 0);
+    out.classes = normClasses([...(a.classes || []), ...(b.classes || [])]);
     for (const k of ['best_score', 'runs', 'wins', 'kills']) out[k] = Math.max(Number(a[k]) || 0, Number(b[k]) || 0);
     const stage = s => (Number(s.max_galaxy) || 1) * 100 + (Number(s.max_sector) || 1);
     const far = stage(a) >= stage(b) ? a : b;

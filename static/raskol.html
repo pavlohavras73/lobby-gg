@@ -73,13 +73,15 @@
   .cls .glyph { display: grid; place-items: center; font-size: 40px; filter: grayscale(1) brightness(.6); }
   .cls .nm { font-weight: 1000; font-size: 15px; }
   .cls .rl { font-size: 11px; color: var(--rk-dim); margin-top: 2px; }
-  .cls.locked { opacity: .75; }
-  .cls .lock { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 999px; background: rgba(0,0,0,.5); color: var(--rk-dim); border: 1px solid rgba(255,255,255,.12); }
+  .cls.locked { opacity: .78; }
+  .cls.locked canvas { filter: saturate(.55) brightness(.75); }
+  .cls .lock { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 999px; background: rgba(0,0,0,.62); color: #e9d5ff; border: 1px solid rgba(167,139,250,.35); }
+  .cls .lock.can-buy { border-color: rgba(251,191,36,.8); color: #fde68a; background: rgba(120,53,15,.45); }
 
   .det-name { font-size: 26px; font-weight: 1000; color: var(--c, var(--rk-gold)); margin: 0; }
   .det-role { font-size: 12px; color: var(--rk-dim); font-weight: 700; margin-bottom: 10px; }
   .ab { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.06); }
-  .ab .k { flex: none; width: 62px; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--c, var(--rk-gold)); padding-top: 2px; }
+  .ab .k { flex: 0 0 72px; width: 72px; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--c, var(--rk-gold)); padding-top: 2px; }
   .ab .v { font-size: 13px; line-height: 1.35; color: #ddd6fe; }
   .play { width: 100%; margin-top: 12px; padding: 15px; border: 0; border-radius: 16px; font-size: 18px; font-weight: 1000; letter-spacing: .04em;
     color: #120a1e; background: linear-gradient(100deg, var(--rk-cyan), #f0abfc 55%, var(--rk-mag)); box-shadow: 0 12px 34px -12px rgba(217,70,239,.8);
@@ -183,19 +185,19 @@
     #menu { padding-top: calc(6px + var(--st)); padding-bottom: calc(6px + var(--sb)); }
     .logo { position: absolute; left: calc(100px + var(--sl)); top: calc(12px + var(--st)); margin: 0; pointer-events: none; }
     .logo h1 { font-size: 24px; } .logo .tag { display: none; }
-    .grid { margin-top: 10px; gap: 10px; grid-template-columns: 1.1fr 1fr; }
-    .panel { padding: 10px 12px; border-radius: 16px; }
-    .h { margin-bottom: 6px; }
+    .grid { margin-top: 8px; gap: 10px; grid-template-columns: 1.1fr 1fr; }
+    .panel { padding: 8px 10px; border-radius: 16px; }
+    .h { margin-bottom: 5px; }
     .classes { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .cls { padding: 6px 4px 8px; border-radius: 12px; }
-    .cls canvas, .cls .glyph { width: 50px; height: 50px; } .cls .glyph { font-size: 28px; }
+    .cls { padding: 5px 4px 7px; border-radius: 12px; }
+    .cls canvas, .cls .glyph { width: 48px; height: 48px; } .cls .glyph { font-size: 26px; }
     .cls .nm { font-size: 12px; } .cls .rl { font-size: 9px; } .cls .lock { font-size: 8px; padding: 2px 5px; top: 4px; right: 4px; }
-    .controls { font-size: 11px; margin-top: 8px; }
-    .det-name { font-size: 20px; } .det-role { margin-bottom: 4px; }
-    .ab { padding: 4px 0; } .ab .v { font-size: 12px; } .ab .k { width: 56px; }
-    .play { margin-top: 8px; padding: 11px; font-size: 16px; }
-    .stats { margin-top: 8px; } .st { padding: 5px; } .st .v { font-size: 15px; }
-    .row2 { margin-top: 6px; } .ghost { padding: 7px; }
+    .controls { font-size: 11px; margin-top: 6px; }
+    .det-name { font-size: 19px; } .det-role { margin-bottom: 4px; }
+    .ab { padding: 3px 0; gap: 8px; } .ab .v { font-size: 11.5px; line-height: 1.3; } .ab .k { flex: 0 0 68px; width: 68px; }
+    .play { margin-top: 6px; padding: 9px; font-size: 15px; border-radius: 13px; }
+    .stats { margin-top: 6px; gap: 6px; } .st { padding: 4px; } .st .v { font-size: 14px; }
+    .row2 { margin-top: 5px; } .ghost { padding: 6px; font-size: 12px; }
   }
   @media (prefers-reduced-motion: reduce) { .play::after, #superBtn.ready, .phone, .pick { animation: none !important; } }
 </style>
@@ -307,11 +309,13 @@
 <script src="/games/static/raskol/sprites.js"></script>
 <script src="/games/static/raskol/input.js"></script>
 <script src="/games/static/raskol/save.js"></script>
+<script src="/games/static/raskol/classes.js"></script>
 <script src="/games/static/raskol/engine.js"></script>
 <script>
 const UI = {
   uk: { doc_title: "Розкол — Lobby.gg", back: "‹ Ігри", logo: "РОЗКОЛ", tag_a: "Космос", tag_b: "Підземелля", choose: "Обери героя", atk: "Атака", sup: "Супер", pas: "Пасивка",
     play: "▶ У склеп", best_room: "Найкраща кімната", wins: "Перемоги", best_score: "Рекорд", records: "🏆 Рекорди", soon: "Скоро",
+    unlock_for: "🔓 Відкрити ({n} уламків)", need_shards: "🔒 Не вистачає {n}",
     controls_touch: "<b>Лівий палець</b> — біг · <b>правий</b> — удари (тап = автоприціл, потягни = цілься сам) · кнопки <b>ривок</b> і <b>супер</b>",
     controls_pc: "<b>WASD</b> — біг · <b>миша</b> — удари · <b>Shift</b> — ривок · <b>Пробіл</b> — супер · <b>Esc</b> — пауза",
     sup_btn: "СУПЕР", dash_btn: "РИВОК", pick_title: "Обери навичку", pick_sub: "Одна з трьох — до кінця забігу", pause: "Пауза", resume: "Продовжити",
@@ -321,6 +325,7 @@ const UI = {
     lvl_short: "Рів", your_cards: "Твої навички:", none: "поки немає", room_word: "Кімната" },
   ru: { doc_title: "Раскол — Lobby.gg", back: "‹ Игры", logo: "РАСКОЛ", tag_a: "Космос", tag_b: "Подземелья", choose: "Выбери героя", atk: "Атака", sup: "Супер", pas: "Пассивка",
     play: "▶ В склеп", best_room: "Лучшая комната", wins: "Победы", best_score: "Рекорд", records: "🏆 Рекорды", soon: "Скоро",
+    unlock_for: "🔓 Открыть ({n} осколков)", need_shards: "🔒 Не хватает {n}",
     controls_touch: "<b>Левый палец</b> — бег · <b>правый</b> — удары (тап = автоприцел, потяни = целься сам) · кнопки <b>рывок</b> и <b>супер</b>",
     controls_pc: "<b>WASD</b> — бег · <b>мышь</b> — удары · <b>Shift</b> — рывок · <b>Пробел</b> — супер · <b>Esc</b> — пауза",
     sup_btn: "СУПЕР", dash_btn: "РЫВОК", pick_title: "Выбери навык", pick_sub: "Один из трёх — до конца забега", pause: "Пауза", resume: "Продолжить",
@@ -330,6 +335,7 @@ const UI = {
     lvl_short: "Ур", your_cards: "Твои навыки:", none: "пока нет", room_word: "Комната" },
   en: { doc_title: "Raskol — Lobby.gg", back: "‹ Games", logo: "RASKOL", tag_a: "Space", tag_b: "Dungeons", choose: "Choose a hero", atk: "Attack", sup: "Super", pas: "Passive",
     play: "▶ Enter the crypt", best_room: "Best room", wins: "Wins", best_score: "Best score", records: "🏆 Leaderboard", soon: "Soon",
+    unlock_for: "🔓 Unlock ({n} shards)", need_shards: "🔒 Need {n} more",
     controls_touch: "<b>Left thumb</b> — move · <b>right</b> — attack (tap = auto-aim, drag = aim yourself) · <b>dash</b> and <b>super</b> buttons",
     controls_pc: "<b>WASD</b> — move · <b>mouse</b> — attack · <b>Shift</b> — dash · <b>Space</b> — super · <b>Esc</b> — pause",
     sup_btn: "SUPER", dash_btn: "DASH", pick_title: "Choose a skill", pick_sub: "One of three — kept for the whole run", pause: "Paused", resume: "Resume",
@@ -339,6 +345,7 @@ const UI = {
     lvl_short: "Lv", your_cards: "Your skills:", none: "none yet", room_word: "Room" },
   de: { doc_title: "Raskol — Lobby.gg", back: "‹ Spiele", logo: "RASKOL", tag_a: "Weltraum", tag_b: "Verliese", choose: "Wähle einen Helden", atk: "Angriff", sup: "Super", pas: "Passiv",
     play: "▶ In die Gruft", best_room: "Bester Raum", wins: "Siege", best_score: "Rekord", records: "🏆 Bestenliste", soon: "Bald",
+    unlock_for: "🔓 Freischalten ({n} Splitter)", need_shards: "🔒 Es fehlen {n}",
     controls_touch: "<b>Linker Daumen</b> — laufen · <b>rechter</b> — angreifen (Tippen = Auto-Zielen, Ziehen = selbst zielen) · Tasten <b>Ausweichen</b> und <b>Super</b>",
     controls_pc: "<b>WASD</b> — laufen · <b>Maus</b> — angreifen · <b>Shift</b> — ausweichen · <b>Leertaste</b> — Super · <b>Esc</b> — Pause",
     sup_btn: "SUPER", dash_btn: "SPRINT", pick_title: "Wähle eine Fähigkeit", pick_sub: "Eine von drei — für den ganzen Lauf", pause: "Pause", resume: "Weiter",
@@ -359,7 +366,12 @@ const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (IS_TOUCH) document.body.classList.add('touch');
 
 let save = SAVE.loadLocal();
-let selected = 'guard';
+function isClassUnlocked(c) {
+  if (!c) return false;
+  if (SAVE.DEBUG_RUN || c.unlocked || !c.cost) return true;
+  return Array.isArray(save.classes) && save.classes.includes(c.id);
+}
+let selected = (save.selected && D.CLASSES[save.selected] && isClassUnlocked(D.CLASSES[save.selected])) ? save.selected : 'guard';
 let runActive = false, userPaused = false;
 
 function applyUI() {
@@ -379,30 +391,49 @@ function renderStats() {
   $('sScore').textContent = save.best_score || 0;
 }
 
-const GLYPH = { ranger: '🏹', mage: '🔮', shade: '🗡️' };
+const WEAP_MAP = { guard: 'sword', ranger: 'bow', mage: 'staff', shade: 'dagger' };
 function renderClasses() {
   const box = $('classList'); box.innerHTML = '';
+  window.RASKOL_SPRITES.build();
+  const shards = save.shards || 0;
   for (const c of Object.values(D.CLASSES)) {
+    const unlocked = isClassUnlocked(c);
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'cls' + (c.id === selected ? ' sel' : '') + (c.unlocked ? '' : ' locked');
+    b.className = 'cls' + (c.id === selected ? ' sel' : '') + (unlocked ? '' : ' locked');
+    b.dataset.cls = c.id;
     b.style.setProperty('--c', c.color);
-    if (c.unlocked) {
-      const cv = document.createElement('canvas'); cv.width = cv.height = 152;
-      window.RASKOL_SPRITES.build();
-      const sp = window.RASKOL_SPRITES.get('hero_' + c.id), sw = window.RASKOL_SPRITES.get('sword');
-      const g = cv.getContext('2d');
-      g.translate(76, 84); g.rotate(-Math.PI / 2); g.scale(1.9, 1.9);
-      g.save(); g.rotate(1.0); g.translate(8, 0); g.drawImage(sw.c, -sw.half * 0.8, -sw.half * 0.72, sw.half * 1.6, sw.half * 1.44); g.restore();
-      g.drawImage(sp.c, -sp.half, -sp.half, sp.half * 2, sp.half * 2);
-      b.appendChild(cv);
-    } else {
-      const gl = document.createElement('div'); gl.className = 'glyph'; gl.textContent = GLYPH[c.id] || '?'; b.appendChild(gl);
-      const lk = document.createElement('span'); lk.className = 'lock'; lk.textContent = '🔒 ' + t('soon'); b.appendChild(lk);
+    const cv = document.createElement('canvas'); cv.width = cv.height = 152;
+    const sp = window.RASKOL_SPRITES.get('hero_' + c.id);
+    const we = window.RASKOL_SPRITES.get(WEAP_MAP[c.id] || 'sword');
+    const g = cv.getContext('2d');
+    g.translate(76, 84); g.rotate(-Math.PI / 2); g.scale(1.9, 1.9);
+    if (we) {
+      g.save();
+      if (c.id === 'guard') { g.rotate(1.0); g.translate(8, 0); g.drawImage(we.c, -we.half * 0.8, -we.half * 0.72, we.half * 1.6, we.half * 1.44); }
+      else if (c.id === 'ranger') { g.translate(14, 0); g.drawImage(we.c, -we.half * 0.72, -we.half * 0.72, we.half * 1.44, we.half * 1.44); }
+      else if (c.id === 'mage') { g.rotate(0.55); g.translate(10, 0); g.drawImage(we.c, -we.half * 0.72, -we.half * 0.72, we.half * 1.44, we.half * 1.44); }
+      else { g.translate(10, 16); g.rotate(0.35); g.drawImage(we.c, -we.half * 0.72, -we.half * 0.72, we.half * 1.44, we.half * 1.44); }
+      g.restore();
+    }
+    if (sp) g.drawImage(sp.c, -sp.half, -sp.half, sp.half * 2, sp.half * 2);
+    b.appendChild(cv);
+    if (!unlocked) {
+      const lk = document.createElement('span');
+      lk.className = 'lock' + (shards >= c.cost ? ' can-buy' : '');
+      lk.textContent = '🔒 ' + c.cost;
+      b.appendChild(lk);
     }
     const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = tr(c.name); nm.style.color = c.color; b.appendChild(nm);
     const rl = document.createElement('div'); rl.className = 'rl'; rl.textContent = tr(c.role); b.appendChild(rl);
-    b.addEventListener('click', () => { selected = c.id; renderClasses(); renderDetail(); });
+    b.addEventListener('click', () => {
+      selected = c.id;
+      if (isClassUnlocked(c) && !SAVE.DEBUG_RUN && save.selected !== c.id) {
+        save.selected = c.id;
+        SAVE.pushCloud(save);
+      }
+      renderClasses(); renderDetail();
+    });
     box.appendChild(b);
   }
 }
@@ -415,8 +446,23 @@ function renderDetail() {
   $('dAtk').textContent = c.atk ? tr(c.atk) : '—';
   $('dSup').textContent = c.sup ? tr(c.sup) : '—';
   $('dPas').textContent = c.pas ? tr(c.pas) : '—';
-  $('playBtn').disabled = !c.unlocked;
-  $('playBtn').textContent = c.unlocked ? t('play') : '🔒 ' + t('soon');
+  const btn = $('playBtn');
+  if (isClassUnlocked(c)) {
+    btn.disabled = false;
+    btn.textContent = t('play');
+    btn.dataset.mode = 'play';
+  } else {
+    const need = Math.max(0, c.cost - (save.shards || 0));
+    if (need === 0) {
+      btn.disabled = false;
+      btn.textContent = t('unlock_for').replace('{n}', c.cost);
+      btn.dataset.mode = 'unlock';
+    } else {
+      btn.disabled = true;
+      btn.textContent = t('need_shards').replace('{n}', need);
+      btn.dataset.mode = 'locked';
+    }
+  }
 }
 
 // ── движок ──
@@ -502,23 +548,46 @@ function enterFullscreen() {
 function exitFullscreen() { try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (_) {} }
 
 function startRun() {
-  if (!D.CLASSES[selected].unlocked) return;
+  const c = D.CLASSES[selected];
+  if (!isClassUnlocked(c)) return;
   enterFullscreen();
   hudCache = {};
+  $('bossBar').classList.remove('on');
   ['resModal', 'pauseModal', 'pickModal'].forEach(id => $(id).classList.remove('on'));
+  const kit = window.RASKOL_CLASSES && window.RASKOL_CLASSES[selected];
+  const ico = $('superBtn').querySelector('.ico');
+  if (ico) ico.textContent = (kit && kit.superIcon) || '🛡️';
   document.body.classList.add('in-run');
   runActive = true; userPaused = false;
   engine.startRun(selected);
   checkOrientation();
 }
 
+function handlePlayBtn() {
+  const c = D.CLASSES[selected];
+  if (isClassUnlocked(c)) {
+    if (!SAVE.DEBUG_RUN && save.selected !== c.id) { save.selected = c.id; SAVE.pushCloud(save); }
+    startRun();
+    return;
+  }
+  if ((save.shards || 0) >= c.cost) {
+    save.shards -= c.cost;
+    save.classes = Array.from(new Set([...(save.classes || ['guard']), c.id]));
+    save.selected = c.id;
+    SAVE.pushCloud(save);
+    try { if (window.sfx && sfx.win) sfx.win(); LobbyUI.vibrate([12, 20, 12]); LobbyUI.confetti(); } catch (_) {}
+    renderClasses(); renderDetail(); renderStats();
+  }
+}
+
 function toMenu() {
   runActive = false;
   engine.stop();
+  $('bossBar').classList.remove('on');
   ['resModal', 'pauseModal', 'pickModal'].forEach(id => $(id).classList.remove('on'));
   document.body.classList.remove('in-run');
   exitFullscreen();
-  renderStats();
+  renderClasses(); renderDetail(); renderStats();
 }
 
 function openPause() {
@@ -557,7 +626,7 @@ $('resumeBtn').addEventListener('click', closePause);
 $('quitBtn').addEventListener('click', toMenu);
 $('againBtn').addEventListener('click', startRun);
 $('menuBtn').addEventListener('click', toMenu);
-$('playBtn').addEventListener('click', startRun);
+$('playBtn').addEventListener('click', handlePlayBtn);
 $('lbBtn').addEventListener('click', async () => {
   $('lbList').innerHTML = '<div class="ms">…</div>';
   $('lbModal').classList.add('on');
@@ -575,7 +644,11 @@ $('langbar').addEventListener('click', e => {
 
 applyUI();
 engine.stop();
-SAVE.syncOnBoot().then(s => { save = s; renderStats(); });
+SAVE.syncOnBoot().then(s => {
+  save = s;
+  if (s.selected && D.CLASSES[s.selected] && isClassUnlocked(D.CLASSES[s.selected])) selected = s.selected;
+  applyUI();
+});
 </script>
 </body>
 </html>

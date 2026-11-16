@@ -75,6 +75,104 @@
     ell(g, -3, 0, 2.6, 2.6, '#fbbf24');
   }
 
+  // ── Герой: Следопыт ──────────────────────────────────────────
+  function heroRanger(g) {
+    // лесной плащ с зубчатым краем
+    g.fillStyle = lin(g, -30, 0, -4, 0, [[0, '#052e16'], [0.7, '#166534'], [1, '#22c55e']]);
+    g.beginPath(); g.moveTo(-6, -15); g.quadraticCurveTo(-28, -20, -31, -6);
+    g.lineTo(-27, 0); g.lineTo(-31, 6); g.quadraticCurveTo(-28, 20, -6, 15); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(134,239,172,.45)'; g.lineWidth = 1; g.stroke();
+    // колчан за спиной
+    g.save(); g.translate(-11, -10); g.rotate(-0.55);
+    g.fillStyle = '#78350f'; g.fillRect(-4, -9, 8, 18);
+    g.strokeStyle = '#d97706'; g.lineWidth = 1; g.strokeRect(-4, -9, 8, 18);
+    for (const ax of [-2, 0, 2]) {
+      g.fillStyle = '#f8fafc'; g.beginPath(); g.arc(ax, -10, 1.8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#4ade80'; g.fillRect(ax - 0.8, -11, 1.6, 3);
+    }
+    g.restore();
+    // кожаные наплечники
+    ell(g, -1, 0, 11, 19, lin(g, 0, -19, 0, 19, [[0, '#713f12'], [0.5, '#92400e'], [1, '#451a03']]), '#22c55e', 1.4);
+    ell(g, 0, -13, 6, 5, '#15803d', '#4ade80', 1);
+    ell(g, 0, 13, 6, 5, '#15803d', '#4ade80', 1);
+    // заострённый капюшон следопыта + узкий светящийся взгляд
+    g.fillStyle = radial(g, 2, -2, 14, [[0, '#4ade80'], [0.55, '#15803d'], [1, '#052e16']]);
+    g.beginPath(); g.moveTo(-9, 0); g.quadraticCurveTo(-6, -12, 6, -11); g.lineTo(15, 0); g.lineTo(6, 11); g.quadraticCurveTo(-6, 12, -9, 0); g.fill();
+    g.strokeStyle = '#052e16'; g.lineWidth = 1.2; g.stroke();
+    g.strokeStyle = '#86efac'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, -9); g.lineTo(14, 0); g.lineTo(2, 9); g.stroke();
+    g.strokeStyle = '#0f172a'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(10, -5); g.quadraticCurveTo(13, 0, 10, 5); g.stroke();
+    g.strokeStyle = '#4ade80'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(10.5, -3.6); g.lineTo(11.6, -1.3); g.moveTo(10.5, 3.6); g.lineTo(11.6, 1.3); g.stroke();
+  }
+  function bow(g) {
+    // рекурсивный лук + тетива + стрела
+    g.strokeStyle = '#a16207'; g.lineWidth = 3.6;
+    g.beginPath(); g.arc(-2, 0, 20, -1.18, 1.18); g.stroke();
+    g.strokeStyle = '#22c55e'; g.lineWidth = 1.4;
+    g.beginPath(); g.arc(-1, 0, 19.5, -0.95, 0.95); g.stroke();
+    const yEnd = Math.sin(1.18) * 20, xEnd = -2 + Math.cos(1.18) * 20;
+    g.strokeStyle = 'rgba(226,232,240,.85)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(xEnd, -yEnd); g.lineTo(-4, 0); g.lineTo(xEnd, yEnd); g.stroke();
+    // заряженная стрела
+    g.strokeStyle = '#fef3c7'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(-4, 0); g.lineTo(24, 0); g.stroke();
+    g.fillStyle = '#4ade80';
+    g.beginPath(); g.moveTo(29, 0); g.lineTo(21, -3.8); g.lineTo(23, 0); g.lineTo(21, 3.8); g.closePath(); g.fill();
+  }
+
+  // ── Герой: Маг ───────────────────────────────────────────────
+  function heroMage(g) {
+    // мантия с руническим шлейфом
+    g.fillStyle = lin(g, -30, 0, -4, 0, [[0, '#2e1065'], [0.7, '#6b21a8'], [1, '#a855f7']]);
+    g.beginPath(); g.moveTo(-6, -16); g.quadraticCurveTo(-30, -24, -31, 0); g.quadraticCurveTo(-30, 24, -6, 16); g.closePath(); g.fill();
+    g.strokeStyle = '#e879f9'; g.lineWidth = 1.2; g.stroke();
+    // плечи + кристаллы маны
+    ell(g, -1, 0, 11.5, 20, lin(g, 0, -20, 0, 20, [[0, '#581c87'], [0.5, '#3b0764'], [1, '#1e1b4b']]), '#c084fc', 1.5);
+    for (const s of [-1, 1]) {
+      g.fillStyle = '#e879f9'; g.beginPath(); g.moveTo(1, s * 15 - 4); g.lineTo(5, s * 15); g.lineTo(1, s * 15 + 4); g.lineTo(-3, s * 15); g.closePath(); g.fill();
+    }
+    // золотая диадема и рунический капюшон с сияющим визором
+    g.fillStyle = radial(g, 2, -2, 13, [[0, '#c084fc'], [0.6, '#581c87'], [1, '#1e1b4b']]);
+    g.beginPath(); g.moveTo(-8, 0); g.quadraticCurveTo(-4, -12, 7, -10.5); g.lineTo(14.5, 0); g.lineTo(7, 10.5); g.quadraticCurveTo(-4, 12, -8, 0); g.fill();
+    g.strokeStyle = '#fde047'; g.lineWidth = 1.3; g.stroke();
+    g.strokeStyle = '#090314'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(10, -4.5); g.quadraticCurveTo(13, 0, 10, 4.5); g.stroke();
+    g.strokeStyle = '#f0abfc'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(10.6, -3.5); g.quadraticCurveTo(12.2, 0, 10.6, 3.5); g.stroke();
+    ell(g, 4, 0, 2.4, 2.4, '#fde047');
+  }
+  function staff(g) {
+    // рунический посох с парящим кристаллом
+    g.fillStyle = '#581c87'; g.fillRect(-10, -2, 34, 4);
+    g.strokeStyle = '#fbbf24'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(14, -4); g.lineTo(24, -4); g.moveTo(14, 4); g.lineTo(24, 4); g.stroke();
+    g.strokeStyle = '#c084fc'; g.lineWidth = 2.2;
+    g.beginPath(); g.moveTo(22, -7); g.quadraticCurveTo(33, 0, 22, 7); g.stroke();
+    ell(g, 33, 0, 6.5, 6.5, radial(g, 32, -2, 7, [[0, '#fdf4ff'], [0.5, '#e879f9'], [1, '#7e22ce']]), '#f0abfc', 1.1);
+  }
+
+  // ── Герой: Тень ──────────────────────────────────────────────
+  function heroShade(g) {
+    // раздвоенный плащ убийцы
+    g.fillStyle = lin(g, -30, 0, -4, 0, [[0, '#020617'], [0.6, '#0f172a'], [1, '#0284c7']]);
+    g.beginPath(); g.moveTo(-6, -14); g.lineTo(-32, -16); g.lineTo(-22, -2); g.lineTo(-32, 16); g.lineTo(-6, 14); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(56,189,248,.6)'; g.lineWidth = 1; g.stroke();
+    // лёгкая броня + перевязь
+    ell(g, -1, 0, 10, 18, lin(g, 0, -18, 0, 18, [[0, '#1e293b'], [0.5, '#0f172a'], [1, '#020617']]), '#38bdf8', 1.4);
+    g.strokeStyle = '#38bdf8'; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(-6, -12); g.lineTo(6, 12); g.stroke();
+    // остроугольная маска с неоново-голубым визором
+    g.fillStyle = radial(g, 1, -2, 12, [[0, '#334155'], [0.6, '#0f172a'], [1, '#020617']]);
+    g.beginPath(); g.moveTo(-7, 0); g.lineTo(4, -10.5); g.lineTo(14, 0); g.lineTo(4, 10.5); g.closePath(); g.fill();
+    g.strokeStyle = '#38bdf8'; g.lineWidth = 1.2; g.stroke();
+    g.strokeStyle = '#7dd3fc'; g.lineWidth = 1.4;
+    g.beginPath(); g.moveTo(8, -4.5); g.lineTo(11, -1.2); g.moveTo(8, 4.5); g.lineTo(11, 1.2); g.stroke();
+  }
+  function dagger(g) {
+    // изогнутый клинок убийцы
+    g.fillStyle = lin(g, 0, -3, 0, 3, [[0, '#e0f2fe'], [0.5, '#38bdf8'], [1, '#0369a1']]);
+    g.beginPath(); g.moveTo(2, -2.8); g.lineTo(14, -2.2); g.lineTo(22, 0); g.lineTo(14, 2.6); g.lineTo(2, 2.2); g.closePath(); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(4, -1.2); g.lineTo(19, 0); g.stroke();
+    g.fillStyle = '#38bdf8'; g.fillRect(0, -5, 2.8, 10);
+    g.fillStyle = '#0f172a'; g.fillRect(-5, -1.6, 5, 3.2);
+  }
+
   // ── Враги ────────────────────────────────────────────────────
   function boneBody(g, sc, eye) {
     ell(g, -3 * sc, 0, 9 * sc, 15 * sc, '#d6d3d1', '#57534e', 1.2);
@@ -317,6 +415,12 @@
     built = true;
     cache.hero_guard = mk(34, heroGuard);
     cache.sword = mk(64, sword);
+    cache.hero_ranger = mk(34, heroRanger);
+    cache.bow = mk(32, bow);
+    cache.hero_mage = mk(34, heroMage);
+    cache.staff = mk(50, staff);
+    cache.hero_shade = mk(34, heroShade);
+    cache.dagger = mk(26, dagger);
     cache.skel = mk(30, skel);
     cache.archer = mk(26, archer);
     cache.bat0 = mk(26, bat(true));
