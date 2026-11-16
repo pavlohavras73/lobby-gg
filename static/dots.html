@@ -7,7 +7,6 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(64px,calc(var(--sab)+56px)) max(14px,env(safe-area-inset-left,0px)); }
   .dt-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
@@ -26,37 +25,93 @@
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
 
   .board-wrap {
-    background:rgba(16,17,24,.92); border:1px solid var(--border-hi); border-radius:20px;
+    background:radial-gradient(circle at 50% 35%, rgba(30,32,48,.94), rgba(14,15,22,.98));
+    border:1px solid var(--border-hi); border-radius:22px;
     padding:16px 12px; width:max-content; max-width:100%; margin:8px auto;
-    box-shadow:var(--shadow-lg), inset 0 0 24px rgba(0,0,0,.45);
+    box-shadow:var(--shadow-lg), inset 0 0 28px rgba(0,0,0,.5);
+    overflow:clip;
   }
-  .grid { display:grid; gap:0; margin:0 auto; }
+  .grid {
+    --turn-c: #ff4764;
+    --turn-glow: rgba(255,71,100,.42);
+    display:grid; gap:0; margin:0 auto; position:relative;
+    user-select:none; -webkit-user-select:none;
+  }
+  .grid.turn-p1 { --turn-c:#ff4764; --turn-glow:rgba(255,71,100,.48); }
+  .grid.turn-p2 { --turn-c:#38bdf8; --turn-glow:rgba(56,189,248,.48); }
   .dot {
     width:11px; height:11px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #fff, #94a3b8);
-    box-shadow:0 0 6px rgba(255,255,255,.35);
-    justify-self:center; align-self:center; z-index:2;
+    box-shadow:0 0 8px rgba(255,255,255,.45);
+    justify-self:center; align-self:center; z-index:4; pointer-events:none;
   }
-  .he {
-    height:12px; align-self:center; border-radius:6px;
-    background:rgba(255,255,255,.07); cursor:pointer; transition:background .15s, box-shadow .15s;
+  .he, .ve {
+    position:relative; display:flex; align-items:center; justify-content:center; z-index:2;
   }
-  .he:hover { background:rgba(255,255,255,.22); }
-  .he.on { background:linear-gradient(90deg, #ff3b54, #ff6b7d); box-shadow:0 0 10px var(--crimson-glow); }
-  .ve {
-    width:12px; justify-self:center; border-radius:6px;
-    background:rgba(255,255,255,.07); cursor:pointer; transition:background .15s, box-shadow .15s;
+  .he { height:14px; width:100%; }
+  .ve { width:14px; height:100%; }
+  /* Extended 44px touch hit target without overlapping corner dots */
+  .he::after { content:""; position:absolute; left:6px; right:6px; top:-15px; bottom:-15px; }
+  .ve::after { content:""; position:absolute; top:6px; bottom:6px; left:-15px; right:-15px; }
+  .he .bar {
+    width:100%; height:9px; border-radius:5px;
+    background:rgba(255,255,255,.07);
+    transition:background .15s ease, box-shadow .15s ease, transform .15s ease, opacity .15s ease;
   }
-  .ve:hover { background:rgba(255,255,255,.22); }
-  .ve.on { background:linear-gradient(180deg, #ff3b54, #ff6b7d); box-shadow:0 0 10px var(--crimson-glow); }
+  .ve .bar {
+    width:9px; height:100%; border-radius:5px;
+    background:rgba(255,255,255,.07);
+    transition:background .15s ease, box-shadow .15s ease, transform .15s ease, opacity .15s ease;
+  }
+  .he.avail, .ve.avail { cursor:pointer; touch-action:none; }
+  .he.avail:hover .bar, .he.avail.touch-hover .bar, .he.avail:focus-visible .bar {
+    background:var(--turn-c); opacity:.68;
+    box-shadow:0 0 12px var(--turn-glow);
+    transform:scaleY(1.2);
+  }
+  .ve.avail:hover .bar, .ve.avail.touch-hover .bar, .ve.avail:focus-visible .bar {
+    background:var(--turn-c); opacity:.68;
+    box-shadow:0 0 12px var(--turn-glow);
+    transform:scaleX(1.2);
+  }
+  .he.on.p1 .bar { background:linear-gradient(90deg, #ff2238, #ff6b7d); box-shadow:0 0 12px rgba(255,59,84,.62); }
+  .ve.on.p1 .bar { background:linear-gradient(180deg, #ff2238, #ff6b7d); box-shadow:0 0 12px rgba(255,59,84,.62); }
+  .he.on.p2 .bar { background:linear-gradient(90deg, #0ea5e9, #38bdf8); box-shadow:0 0 12px rgba(56,189,248,.62); }
+  .ve.on.p2 .bar { background:linear-gradient(180deg, #0ea5e9, #38bdf8); box-shadow:0 0 12px rgba(56,189,248,.62); }
+  .he.on.p0 .bar, .ve.on.p0 .bar { background:linear-gradient(90deg, #8b5cf6, #a78bfa); box-shadow:0 0 10px rgba(167,139,250,.5); }
+  .he.just-drawn .bar { animation:drawEdgeH .24s cubic-bezier(.22,1,.36,1) both; transform-origin:center; }
+  .ve.just-drawn .bar { animation:drawEdgeV .24s cubic-bezier(.22,1,.36,1) both; transform-origin:center; }
+  .he.last-edge .bar, .ve.last-edge .bar { filter:brightness(1.22); }
   .box {
     display:flex; align-items:center; justify-content:center;
-    font-weight:900; font-size:20px; border-radius:8px; margin:2px;
-    transition:transform .2s var(--ease), background .2s;
+    font-weight:900; font-size:15px; border-radius:9px; margin:2px;
+    background:rgba(255,255,255,.018);
+    transition:transform .2s var(--ease), background .22s ease, border-color .22s ease;
+    position:relative; z-index:1;
   }
-  .box.p1 { background:rgba(255,34,56,.22); border:1px solid rgba(255,34,56,.45); color:#ff7a88; animation:boxPop .25s var(--ease); }
-  .box.p2 { background:rgba(90,160,255,.22); border:1px solid rgba(90,160,255,.45); color:#7ab0ff; animation:boxPop .25s var(--ease); }
-  @keyframes boxPop { 0% { transform:scale(.7); opacity:.4; } 100% { transform:scale(1); opacity:1; } }
+  .box.p1 {
+    background:radial-gradient(circle at 35% 30%, rgba(255,71,100,.34), rgba(224,16,46,.16));
+    border:1px solid rgba(255,71,100,.52);
+    box-shadow:inset 0 0 14px rgba(255,59,84,.2);
+    color:#ff9aa8;
+  }
+  .box.p2 {
+    background:radial-gradient(circle at 35% 30%, rgba(56,189,248,.34), rgba(14,165,233,.16));
+    border:1px solid rgba(56,189,248,.52);
+    box-shadow:inset 0 0 14px rgba(56,189,248,.2);
+    color:#93d5ff;
+  }
+  .box.just-won { animation:boxPop .32s cubic-bezier(.34,1.56,.64,1) both; }
+  .box .player-av {
+    width:28px; height:28px; font-size:11.5px; font-weight:800;
+    border:1.5px solid rgba(255,255,255,.38);
+    box-shadow:0 3px 10px rgba(0,0,0,.35);
+  }
+  .box.p1 .player-av { background:linear-gradient(135deg,#e0102e,#fb7185); }
+  .box.p2 .player-av { background:linear-gradient(135deg,#0284c7,#38bdf8); }
+  @keyframes drawEdgeH { from { transform:scaleX(.08); opacity:.4; } to { transform:scaleX(1); opacity:1; } }
+  @keyframes drawEdgeV { from { transform:scaleY(.08); opacity:.4; } to { transform:scaleY(1); opacity:1; } }
+  @keyframes boxPop { 0% { transform:scale(.58); opacity:.3; } 70% { transform:scale(1.07); opacity:1; } 100% { transform:scale(1); opacity:1; } }
 
   .turn { text-align:center; font-weight:800; margin:8px 0; font-size:14px; }
   .me { color:#a78bfa; }
@@ -65,12 +120,19 @@
     flex:1; display:flex; align-items:center; justify-content:space-between; gap:8px;
     background:rgba(22,22,29,.88); border:1px solid var(--border); border-radius:14px;
     padding:7px 10px; font-size:12.5px; font-weight:700;
+    transition:border-color .2s ease, box-shadow .2s ease;
   }
+  .score-pill.active-p1 { border-color:rgba(255,71,100,.68); box-shadow:0 0 16px -4px rgba(255,71,100,.45); }
+  .score-pill.active-p2 { border-color:rgba(56,189,248,.68); box-shadow:0 0 16px -4px rgba(56,189,248,.45); }
   .score-pill .player-av { width:24px; height:24px; font-size:11px; }
   .score-pill b { font-size:20px; font-family:var(--display); }
   .opts { display:flex; gap:6px; justify-content:center; margin:6px 0; }
   .opt { flex:1; padding:8px 6px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.04); cursor:pointer; font-weight:700; font-size:12.5px; text-align:center; }
   .opt.on { border-color:var(--crimson); background:rgba(255,34,56,.18); color:#fff; }
+  @media (prefers-reduced-motion:reduce) {
+    .he.just-drawn .bar, .ve.just-drawn .bar, .box.just-won { animation:none; }
+    .he .bar, .ve .bar, .box, .score-pill { transition:none; }
+  }
 </style>
 </head>
 <body>
@@ -127,8 +189,8 @@
 
 <div id="game" class="hide" style="width:100%;max-width:420px;margin:0 auto">
   <div class="score">
-    <div class="score-pill"><div style="display:flex;align-items:center;gap:6px"><span id="p1-av"></span><span id="p1-name">🟥</span></div><b id="s1" style="color:#ff7a88">0</b></div>
-    <div class="score-pill"><div style="display:flex;align-items:center;gap:6px"><span id="p2-av"></span><span id="p2-name">🟦</span></div><b id="s2" style="color:#7ab0ff">0</b></div>
+    <div class="score-pill" id="pill-p1"><div style="display:flex;align-items:center;gap:6px"><span id="p1-av"></span><span id="p1-name">P1</span></div><b id="s1" style="color:#ff7a88">0</b></div>
+    <div class="score-pill" id="pill-p2"><div style="display:flex;align-items:center;gap:6px"><span id="p2-av"></span><span id="p2-name">P2</span></div><b id="s2" style="color:#38bdf8">0</b></div>
   </div>
   <div class="turn" id="turninfo"></div>
   <div class="board-wrap"><div class="grid" id="grid"></div></div>
@@ -144,14 +206,18 @@
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/quickplay.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script>
 let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
+let prevH = null, prevV = null, prevBoxes = null, prevTurnPid = null, prevDone = false;
+let ownerH = null, ownerV = null, pendingEdge = null, lastEdgeKey = '';
+let gridBuilt = false, edgeElsH = [], edgeElsV = [], boxEls = [], activeHoverEl = null;
 
 const UI = {
   uk: {
     title: "Крапки — Lobby.gg", rules_btn: "Правила", rules_title: "▦ Крапки — правила",
     rules_body: "По черзі малюйте лінії між крапками. Замкнув квадрат — він твій, і ходиш ще раз. У кого більше квадратів наприкінці — переміг.",
-    rules_ok: "Зрозуміло 👍", nav_games: "‹ Ігри", page_title: "КРАПКИ", page_sub: "замкни квадрат — він твій, і ходиш ще · на двоих",
+    rules_ok: "Зрозуміло 👍", nav_games: "‹ Ігри", page_title: "КРАПКИ", page_sub: "замкни квадрат — він твій, і ходиш ще · на двох",
     name_ph: "Ім'я", create_btn: "Створити", or_code: "або за кодом", code_ph: "КОД", join_btn: "Увійти",
     room_code: "Код", diff_easy: "🤖 Легкий", diff_medium: "Середній", diff_hard: "Складний", add_bot_btn: "🤖 Додати",
     wait_msg: "Чекаємо другого…", restart_btn: "Заново", you_won: "🏆 Ти виграв!", someone_won: "Переміг {n}",
@@ -249,9 +315,109 @@ function join() {
   connect(() => send({ action: 'join', name: document.getElementById('name').value || 'Игрок', code: c }));
 }
 function edge(type, r, c) {
-  if (st && st.turn_pid === pid) {
-    if (window.LobbyUI) LobbyUI.vibrate(10);
-    send({ action: 'db_edge', t: type, r: r, c: c });
+  if (!st || st.done || st.turn_pid !== pid) return;
+  if (type === 'h' ? st.h[r][c] : st.v[r][c]) return;
+  pendingEdge = { type, r, c };
+  if (window.ArcadeFX) ArcadeFX.vibrate(10);
+  else if (window.LobbyUI) LobbyUI.vibrate(10);
+  send({ action: 'db_edge', t: type, r: r, c: c });
+}
+
+function makeMat(r, c, val) {
+  return Array.from({ length: r }, () => Array(c).fill(val));
+}
+function cloneMat(m) {
+  return m.map(row => row.slice());
+}
+function countEdges(h, v) {
+  let n = 0;
+  for (let r = 0; r < h.length; r++) for (let c = 0; c < h[r].length; c++) if (h[r][c]) n++;
+  for (let r = 0; r < v.length; r++) for (let c = 0; c < v[r].length; c++) if (v[r][c]) n++;
+  return n;
+}
+function playerNum(id) {
+  if (!st || !st.players || !id) return 0;
+  if (id === st.players[0]) return 1;
+  if (id === st.players[1]) return 2;
+  return 0;
+}
+function clearTouchHover() {
+  if (activeHoverEl) {
+    activeHoverEl.classList.remove('touch-hover');
+    activeHoverEl = null;
+  }
+}
+function updateTouchHover(x, y) {
+  const hit = document.elementFromPoint(x, y);
+  const el = hit && hit.closest ? hit.closest('#grid .he.avail, #grid .ve.avail') : null;
+  if (activeHoverEl && activeHoverEl !== el) activeHoverEl.classList.remove('touch-hover');
+  activeHoverEl = el;
+  if (activeHoverEl) activeHoverEl.classList.add('touch-hover');
+}
+function ensureGridBuilt(m) {
+  const g = document.getElementById('grid');
+  const br = m.boxes.length, bc = m.boxes[0].length;
+  if (gridBuilt && edgeElsH.length === m.h.length && edgeElsV[0].length === m.v[0].length) return;
+  gridBuilt = true;
+  edgeElsH = makeMat(m.h.length, m.h[0].length, null);
+  edgeElsV = makeMat(m.v.length, m.v[0].length, null);
+  boxEls = makeMat(br, bc, null);
+  g.style.gridTemplateColumns = Array.from({ length: bc }, () => '14px 52px').join(' ') + ' 14px';
+  g.style.gridTemplateRows = Array.from({ length: br }, () => '14px 52px').join(' ') + ' 14px';
+  g.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  const rows = br * 2 + 1, cols = bc * 2 + 1;
+  for (let gr = 0; gr < rows; gr++) {
+    for (let gc = 0; gc < cols; gc++) {
+      const er = gr % 2, ec = gc % 2;
+      if (!er && !ec) {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        frag.appendChild(d);
+      } else if (!er && ec) {
+        const r = gr / 2, c = (gc - 1) / 2;
+        const d = document.createElement('div');
+        d.className = 'he';
+        d.dataset.t = 'h'; d.dataset.r = String(r); d.dataset.c = String(c);
+        d.innerHTML = '<span class="bar"></span>';
+        edgeElsH[r][c] = d;
+        frag.appendChild(d);
+      } else if (er && !ec) {
+        const r = (gr - 1) / 2, c = gc / 2;
+        const d = document.createElement('div');
+        d.className = 've';
+        d.dataset.t = 'v'; d.dataset.r = String(r); d.dataset.c = String(c);
+        d.innerHTML = '<span class="bar"></span>';
+        edgeElsV[r][c] = d;
+        frag.appendChild(d);
+      } else {
+        const r = (gr - 1) / 2, c = (gc - 1) / 2;
+        const d = document.createElement('div');
+        d.className = 'box';
+        d.dataset.owner = '0';
+        boxEls[r][c] = d;
+        frag.appendChild(d);
+      }
+    }
+  }
+  g.appendChild(frag);
+  if (!g.dataset.bound) {
+    g.dataset.bound = '1';
+    let dragging = false;
+    g.addEventListener('click', e => {
+      const el = e.target.closest('.he.avail, .ve.avail');
+      if (el) edge(el.dataset.t, +el.dataset.r, +el.dataset.c);
+    });
+    g.addEventListener('pointerdown', e => {
+      dragging = true;
+      updateTouchHover(e.clientX, e.clientY);
+    });
+    g.addEventListener('pointermove', e => {
+      if (dragging || e.buttons > 0) updateTouchHover(e.clientX, e.clientY);
+    });
+    g.addEventListener('pointerup', () => { dragging = false; clearTouchHover(); });
+    g.addEventListener('pointercancel', () => { dragging = false; clearTouchHover(); });
+    g.addEventListener('pointerleave', () => { dragging = false; clearTouchHover(); });
   }
 }
 
@@ -270,40 +436,164 @@ function handle(m) {
     }).join('');
     document.getElementById('fullBanner').classList.toggle('hide', m.players.length < 2);
   } else if (m.type === 'db_state') {
+    const prevEdgesCount = prevH ? countEdges(prevH, prevV) : 0;
+    const curEdgesCount = countEdges(m.h, m.v);
+    const isReset = !prevH || curEdgesCount < prevEdgesCount || prevH.length !== m.h.length || prevV[0].length !== m.v[0].length;
+    if (isReset) {
+      ownerH = makeMat(m.h.length, m.h[0].length, 0);
+      ownerV = makeMat(m.v.length, m.v[0].length, 0);
+      prevH = null; prevV = null; prevBoxes = null;
+      prevDone = false; prevTurnPid = null; lastEdgeKey = '';
+      clearTouchHover();
+    }
+
     st = m; show('game');
     document.getElementById('s1').textContent = m.scores[0];
     document.getElementById('s2').textContent = m.scores[1];
+    const p1Name = m.players && m.names ? T(m.names[m.players[0]] || '') : '';
+    const p2Name = m.players && m.names ? T(m.names[m.players[1]] || '') : '';
     if (m.players && m.names && window.LobbyUI) {
-      const n1 = T(m.names[m.players[0]] || '');
-      const n2 = T(m.names[m.players[1]] || '');
-      document.getElementById('p1-name').textContent = n1;
-      document.getElementById('p2-name').textContent = n2;
-      document.getElementById('p1-av').innerHTML = LobbyUI.avatarHtml(n1, String(m.players[0]||'').startsWith('bot_'));
-      document.getElementById('p2-av').innerHTML = LobbyUI.avatarHtml(n2, String(m.players[1]||'').startsWith('bot_'));
+      document.getElementById('p1-name').textContent = p1Name;
+      document.getElementById('p2-name').textContent = p2Name;
+      document.getElementById('p1-av').innerHTML = LobbyUI.avatarHtml(p1Name, String(m.players[0]||'').startsWith('bot_'));
+      document.getElementById('p2-av').innerHTML = LobbyUI.avatarHtml(p2Name, String(m.players[1]||'').startsWith('bot_'));
     }
-    const my = m.turn_pid === pid;
+
+    const turnNum = playerNum(m.turn_pid);
+    document.getElementById('pill-p1').classList.toggle('active-p1', !m.done && turnNum === 1);
+    document.getElementById('pill-p2').classList.toggle('active-p2', !m.done && turnNum === 2);
+
+    ensureGridBuilt(m);
     const g = document.getElementById('grid');
-    g.style.gridTemplateColumns = '14px 52px 14px 52px 14px 52px 14px 52px 14px';
-    g.style.gridTemplateRows = '14px 52px 14px 52px 14px 52px 14px 52px 14px';
-    let h = '';
-    for (let gr = 0; gr < 9; gr++) for (let gc = 0; gc < 9; gc++) {
-      const er = gr % 2, ec = gc % 2;
-      if (!er && !ec) h += '<div class="dot"></div>';
-      else if (!er && ec) { const r = gr / 2, c = (gc - 1) / 2; const on = m.h[r][c]; h += '<div class="he ' + (on ? 'on' : '') + '" ' + (!on && my ? 'onclick="edge(\'h\',' + r + ',' + c + ')"' : '') + '></div>'; }
-      else if (er && !ec) { const r = (gr - 1) / 2, c = gc / 2; const on = m.v[r][c]; h += '<div class="ve ' + (on ? 'on' : '') + '" ' + (!on && my ? 'onclick="edge(\'v\',' + r + ',' + c + ')"' : '') + '></div>'; }
-      else { const r = (gr - 1) / 2, c = (gc - 1) / 2; const o = m.boxes[r][c]; h += '<div class="box ' + (o === 1 ? 'p1' : o === 2 ? 'p2' : '') + '">' + (o ? (o === 1 ? '🟥' : '🟦') : '') + '</div>'; }
+    g.className = 'grid ' + (!m.done && turnNum ? 'turn-p' + turnNum : '');
+
+    const hadPrev = prevH !== null;
+    const newEdges = [];
+    if (hadPrev) {
+      for (let r = 0; r < m.h.length; r++) for (let c = 0; c < m.h[r].length; c++) {
+        if (m.h[r][c] && !prevH[r][c]) newEdges.push({ type: 'h', r, c });
+      }
+      for (let r = 0; r < m.v.length; r++) for (let c = 0; c < m.v[r].length; c++) {
+        if (m.v[r][c] && !prevV[r][c]) newEdges.push({ type: 'v', r, c });
+      }
+      const moverNum = playerNum(prevTurnPid);
+      const pendNum = playerNum(pid);
+      for (const e of newEdges) {
+        let ow = 0;
+        if (newEdges.length === 1) {
+          ow = moverNum || ((pendingEdge && pendingEdge.type === e.type && pendingEdge.r === e.r && pendingEdge.c === e.c) ? pendNum : 0);
+        } else {
+          if (pendingEdge && pendingEdge.type === e.type && pendingEdge.r === e.r && pendingEdge.c === e.c && pendNum) ow = pendNum;
+          else ow = pendNum ? (pendNum === 1 ? 2 : 1) : moverNum;
+        }
+        if (e.type === 'h') ownerH[e.r][e.c] = ow;
+        else ownerV[e.r][e.c] = ow;
+        lastEdgeKey = e.type + '_' + e.r + '_' + e.c;
+      }
+    } else if (curEdgesCount === 1) {
+      for (let r = 0; r < m.h.length; r++) for (let c = 0; c < m.h[r].length; c++) if (m.h[r][c]) { ownerH[r][c] = 1; lastEdgeKey = 'h_' + r + '_' + c; }
+      for (let r = 0; r < m.v.length; r++) for (let c = 0; c < m.v[r].length; c++) if (m.v[r][c]) { ownerV[r][c] = 1; lastEdgeKey = 'v_' + r + '_' + c; }
     }
-    g.innerHTML = h;
+    pendingEdge = null;
+
+    const justMap = {};
+    for (const e of newEdges) justMap[e.type + '_' + e.r + '_' + e.c] = true;
+
+    const my = m.turn_pid === pid && !m.done;
+    for (let r = 0; r < m.h.length; r++) for (let c = 0; c < m.h[r].length; c++) {
+      const el = edgeElsH[r][c], on = !!m.h[r][c], ow = ownerH[r][c], key = 'h_' + r + '_' + c;
+      const avail = !on && my;
+      el.classList.toggle('on', on);
+      el.classList.toggle('avail', avail);
+      if (!avail) el.classList.remove('touch-hover');
+      el.classList.toggle('p1', on && ow === 1);
+      el.classList.toggle('p2', on && ow === 2);
+      el.classList.toggle('p0', on && ow === 0);
+      el.classList.toggle('last-edge', on && key === lastEdgeKey);
+      if (!on) el.classList.remove('just-drawn');
+      else if (justMap[key]) { el.classList.remove('just-drawn'); void el.offsetWidth; el.classList.add('just-drawn'); }
+    }
+    for (let r = 0; r < m.v.length; r++) for (let c = 0; c < m.v[r].length; c++) {
+      const el = edgeElsV[r][c], on = !!m.v[r][c], ow = ownerV[r][c], key = 'v_' + r + '_' + c;
+      const avail = !on && my;
+      el.classList.toggle('on', on);
+      el.classList.toggle('avail', avail);
+      if (!avail) el.classList.remove('touch-hover');
+      el.classList.toggle('p1', on && ow === 1);
+      el.classList.toggle('p2', on && ow === 2);
+      el.classList.toggle('p0', on && ow === 0);
+      el.classList.toggle('last-edge', on && key === lastEdgeKey);
+      if (!on) el.classList.remove('just-drawn');
+      else if (justMap[key]) { el.classList.remove('just-drawn'); void el.offsetWidth; el.classList.add('just-drawn'); }
+    }
+
+    const wonBoxes = [];
+    for (let r = 0; r < m.boxes.length; r++) for (let c = 0; c < m.boxes[r].length; c++) {
+      const el = boxEls[r][c], o = m.boxes[r][c];
+      el.classList.toggle('p1', o === 1);
+      el.classList.toggle('p2', o === 2);
+      if (el.dataset.owner !== String(o)) {
+        el.dataset.owner = String(o);
+        if (!o) {
+          el.innerHTML = '';
+          el.classList.remove('just-won');
+        } else {
+          const oPid = m.players ? m.players[o - 1] : '';
+          const oName = o === 1 ? p1Name : p2Name;
+          const isBot = String(oPid || '').startsWith('bot_');
+          el.innerHTML = window.LobbyUI ? LobbyUI.avatarHtml(oName || ('P' + o), isBot) : esc((oName || ('P' + o)).charAt(0).toUpperCase());
+          if (hadPrev && prevBoxes && !prevBoxes[r][c]) {
+            el.classList.remove('just-won');
+            void el.offsetWidth;
+            el.classList.add('just-won');
+            wonBoxes.push({ el, owner: o });
+          }
+        }
+      }
+    }
+
+    if (wonBoxes.length > 0) {
+      if (window.sfx && sfx.win) sfx.win();
+      if (window.ArcadeFX) ArcadeFX.vibrate(18);
+      requestAnimationFrame(() => {
+        if (!window.ArcadeFX) return;
+        for (const wb of wonBoxes) {
+          const rect = wb.el.getBoundingClientRect();
+          if (rect.width <= 0) continue;
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const isP1 = wb.owner === 1;
+          ArcadeFX.floatText(cx, cy - 2, '+1', { color: isP1 ? '#ff7a88' : '#38bdf8', size: 22, dy: -46 });
+          ArcadeFX.burst(cx, cy, { color: isP1 ? '#ff3b54' : '#38bdf8', count: 14, spread: 50, shapes: ['spark', 'circle'] });
+        }
+      });
+    } else if (newEdges.length > 0 && window.sfx && sfx.move) {
+      sfx.move();
+    }
+
     const ov = document.getElementById('over');
     if (m.done) {
       ov.classList.remove('hide');
       const win = (m.winner === pid);
       document.getElementById('ot').textContent = m.winner ? (win ? t('you_won') : t('someone_won', { n: T(m.names[m.winner] || '?') })) : t('draw');
-      if (win && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
+      document.getElementById('turninfo').textContent = '';
+      if (!prevDone) {
+        if (win) {
+          if (window.ArcadeFX) ArcadeFX.confetti();
+          if (window.sfx && sfx.win) sfx.win();
+        } else if (m.winner && window.sfx && sfx.lose) {
+          sfx.lose();
+        }
+      }
     } else {
       ov.classList.add('hide');
       document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: esc(T(m.names[m.turn_pid] || '?')) });
     }
+    prevH = cloneMat(m.h);
+    prevV = cloneMat(m.v);
+    prevBoxes = cloneMat(m.boxes);
+    prevDone = !!m.done;
+    prevTurnPid = m.turn_pid;
   } else if (m.type === 'error') {
     alert(T(m.msg));
   }

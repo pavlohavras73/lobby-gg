@@ -186,8 +186,10 @@
       octx.font = `900 ${f.size}px Inter, system-ui, sans-serif`;
       octx.textAlign = 'center';
       octx.textBaseline = 'middle';
-      octx.lineWidth = 3;
-      octx.strokeStyle = 'rgba(0,0,0,0.72)';
+      octx.lineJoin = 'round';
+      octx.miterLimit = 2;
+      octx.lineWidth = Math.max(4, Math.round(f.size * 0.24));
+      octx.strokeStyle = 'rgba(2, 6, 23, 0.92)';
       octx.strokeText(f.text, f.x, f.y);
       octx.fillStyle = f.color;
       octx.fillText(f.text, f.x, f.y);

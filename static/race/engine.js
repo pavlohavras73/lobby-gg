@@ -403,9 +403,10 @@
       this.nitroTime = 2.6;
       this.nitro = Math.max(0, this.nitro - 45);
       if (w.ArcadeFX) {
+        const carPos = this.projectEntityPos({ lane: this.carLane, z: 0.085 });
         w.ArcadeFX.vibrate([12, 20, 12]);
-        w.ArcadeFX.floatText(this.w * 0.5, this.h * 0.72, '⚡ NITRO!', {
-          canvas: this.canvas, color: '#38bdf8', size: 18, life: 0.75
+        w.ArcadeFX.floatText(carPos.x, Math.max(85, carPos.y - 108), '⚡ NITRO!', {
+          canvas: this.canvas, color: '#7dd3fc', size: 26, life: 0.95, vy: -52
         });
       }
       return true;
@@ -450,6 +451,79 @@
       return Math.floor(this.distance / 750) % BIOMES.length;
     }
 
+    willCauseWallOrOverlap(lane, zNew, relNew) {
+      const obs = this.entities.filter(e => e.type === 'obs' && e.z > 0.05);
+      const sNew = (zNew - 0.085) / relNew;
+      for (let i = 0; i < obs.length; i++) {
+        const e = obs[i];
+        if (e.lane === lane) {
+          if (Math.abs(e.z - zNew) < 0.28) return true;
+          const sOld = (e.z - 0.085) / e.relFactor;
+          if (Math.abs(sNew - sOld) < 0.26 || (zNew > e.z && sNew <= sOld + 0.18)) return true;
+        }
+      }
+      const cand = [...obs, { lane, z: zNew, relFactor: relNew }];
+      const targets = [0.085, 0.18, 0.32, 0.48, 0.65];
+      for (let i = 0; i < cand.length; i++) {
+        const anchor = cand[i];
+        for (let t = 0; t < targets.length; t++) {
+          const zTarget = targets[t];
+          const dS = (anchor.z - zTarget) / anchor.relFactor;
+          if (dS < 0) continue;
+          const lanesHit = new Set();
+          for (let j = 0; j < cand.length; j++) {
+            const o = cand[j];
+            if (Math.abs((o.z - o.relFactor * dS) - zTarget) < 0.22) {
+              lanesHit.add(o.lane);
+            }
+          }
+          if (lanesHit.size >= this.numLanes) return true;
+        }
+      }
+      return false;
+    }
+
+    enforceLanePassage() {
+      const removeEntity = (item) => {
+        const idx = this.entities.indexOf(item);
+        if (idx !== -1) this.entities.splice(idx, 1);
+      };
+      let changed = true;
+      let guard = 8;
+      while (changed && guard-- > 0) {
+        changed = false;
+        const obs = this.entities.filter(e => e.type === 'obs' && e.z > 0.06);
+        for (let i = 0; i < obs.length && !changed; i++) {
+          for (let j = i + 1; j < obs.length; j++) {
+            if (obs[i].lane === obs[j].lane && Math.abs(obs[i].z - obs[j].z) < 0.18) {
+              removeEntity(obs[i].z >= obs[j].z ? obs[i] : obs[j]);
+              changed = true;
+              break;
+            }
+          }
+        }
+        if (changed) continue;
+        for (let i = 0; i < obs.length; i++) {
+          const anchor = obs[i];
+          const grp1 = obs.filter(o => Math.abs(o.z - anchor.z) < 0.18);
+          if (new Set(grp1.map(o => o.lane)).size >= this.numLanes) {
+            const farthest = grp1.reduce((best, cur) => (cur.z > best.z ? cur : best), grp1[0]);
+            removeEntity(farthest);
+            changed = true;
+            break;
+          }
+          const dS = Math.max(0, (anchor.z - 0.085) / anchor.relFactor);
+          const grp2 = obs.filter(o => Math.abs((o.z - o.relFactor * dS) - 0.085) < 0.18);
+          if (new Set(grp2.map(o => o.lane)).size >= this.numLanes) {
+            const farthest = grp2.reduce((best, cur) => (cur.z > best.z ? cur : best), grp2[0]);
+            removeEntity(farthest);
+            changed = true;
+            break;
+          }
+        }
+      }
+    }
+
     spawnWave() {
       // Choose 1 or at most numLanes - 1 obstacles so at least 1 lane is guaranteed open
       const count = (this.numLanes >= 3 && Math.random() < 0.42 && this.distance > 120) ? 2 : 1;
@@ -463,24 +537,22 @@
       const blocked = new Set();
       for (let k = 0; k < count; k++) {
         const lane = lanes[k];
-        // Prevent blocking all lanes with nearby existing objects
-        const nearRow = this.entities.filter(e => e.type !== 'coin' && e.z > 0.65);
-        const occupied = new Set(nearRow.map(e => e.lane));
-        occupied.add(lane);
-        if (occupied.size >= this.numLanes) continue;
-        blocked.add(lane);
-
         const r = Math.random();
         let kind = 'car';
         if (r < 0.18) kind = 'cone';
         else if (r < 0.30) kind = 'barrier';
+        const relFactor = kind === 'car' ? (0.48 + Math.random() * 0.24) : 1.0;
+
+        if (this.willCauseWallOrOverlap(lane, 1.0, relFactor)) continue;
+        blocked.add(lane);
+
         this.entities.push({
           type: 'obs',
           kind,
           lane,
           variant: Math.floor(Math.random() * 4),
           z: 1.0,
-          relFactor: kind === 'car' ? (0.48 + Math.random() * 0.24) : 1.0
+          relFactor
         });
       }
 
@@ -562,6 +634,7 @@
       // Player depth band on road (z near 0.085)
       const playerZ = 0.085;
       const worldZSpeed = (this.speedKmh / 135) * 0.72;
+      this.enforceLanePassage();
 
       for (let i = this.entities.length - 1; i >= 0; i--) {
         const e = this.entities[i];
@@ -961,6 +1034,22 @@
 
       ctx.drawImage(this.sprites.player, -cw * 0.5, -ch * 0.5, cw, ch);
       ctx.restore();
+
+      if (!w.ArcadeFX && this.nitroTime > 1.75 && !this.crashing) {
+        const ny = Math.max(44, pos.y - ch * 1.25 - (2.6 - this.nitroTime) * 18);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, (this.nitroTime - 1.75) * 4);
+        ctx.font = '900 22px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#020617';
+        ctx.strokeText('⚡ NITRO!', pos.x, ny);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('⚡ NITRO!', pos.x, ny);
+        ctx.restore();
+      }
     }
 
     drawSpeedLines(ctx, wPx, hPx) {

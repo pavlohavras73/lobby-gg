@@ -7,7 +7,6 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   :root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); --red:#ff2846; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -113,6 +112,8 @@
   </div></div>
 
   <script src="/games/static/i18n_common.js"></script>
+  <script src="/games/static/ui.js"></script>
+  <script src="/games/static/arcade_fx.js"></script>
   <script src="/games/static/sfx.js"></script>
   <script src="/games/static/reconnect.js"></script>
   <script>
@@ -144,7 +145,8 @@
       "next_btn": "Далі →",
       "lose_title": "Затор!",
       "lose_sub": "3 колізії. Прибирай спочатку стрілки, у яких перед головою вільно.",
-      "again_btn": "Ще раз 🔄"
+      "again_btn": "Ще раз 🔄",
+      "best_lbl": "Рекорд"
     },
     ru: {
       "title": "➡️ Стрелки — Arrow Escape",
@@ -172,7 +174,8 @@
       "next_btn": "Дальше →",
       "lose_title": "Затор!",
       "lose_sub": "3 коллизии. Убирай сначала стрелки, у кого перед головой свободно.",
-      "again_btn": "Ещё раз 🔄"
+      "again_btn": "Ещё раз 🔄",
+      "best_lbl": "Рекорд"
     },
     en: {
       "title": "➡️ Arrows — Arrow Escape",
@@ -200,7 +203,8 @@
       "next_btn": "Next →",
       "lose_title": "Crash!",
       "lose_sub": "3 collisions. Clear arrows with an open path first.",
-      "again_btn": "Try again 🔄"
+      "again_btn": "Try again 🔄",
+      "best_lbl": "Best"
     },
     de: {
       "title": "➡️ Pfeile — Arrow Escape",
@@ -228,7 +232,8 @@
       "next_btn": "Weiter →",
       "lose_title": "Crash!",
       "lose_sub": "3 Kollisionen. Nimm zuerst Pfeile mit freier Bahn.",
-      "again_btn": "Nochmal 🔄"
+      "again_btn": "Nochmal 🔄",
+      "best_lbl": "Rekord"
     }
   };
   let LANG = localStorage.getItem('jg_lang') || 'ru';
@@ -247,6 +252,7 @@
     document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
     const lbl = document.getElementById('levelLabel');
     if (lbl) lbl.textContent = t('level') + ' ' + (currentLvlIdx + 1);
+    if (window.ArcadeFX) ArcadeFX.refreshI18n(LANG);
   }
 
   const DIRS=[{dx:0,dy:-1,name:'up'},{dx:1,dy:0,name:'right'},{dx:0,dy:1,name:'down'},{dx:-1,dy:0,name:'left'}];
@@ -401,6 +407,9 @@
     document.getElementById('levelLabel').textContent=t('level') + ' ' + (currentLvlIdx + 1);
     document.getElementById('winModal').classList.remove('open');
     document.getElementById('loseModal').classList.remove('open');
+    if (window.ArcadeFX) ArcadeFX.hideGameOver();
+    const prevBest = +(localStorage.getItem('arrows_best_lvl') || 1);
+    if (currentLvlIdx + 1 > prevBest) localStorage.setItem('arrows_best_lvl', String(currentLvlIdx + 1));
     updateHUD(); onResize();
     setTimeout(()=>getLevel(currentLvlIdx+1),60);
   }
@@ -415,7 +424,7 @@
     let cd=0,cx=head.x+d.dx,cy=head.y+d.dy;
     while(cx>=0&&cx<activeLevel.cols&&cy>=0&&cy<activeLevel.rows){ const o=snakeAt(cx,cy); if(o&&o!==s)break; cd++; cx+=d.dx; cy+=d.dy; }
     s.fly=Math.max(1,cd); }   // ровно кол-во СВОБОДНЫХ клеток — дальше не летим
-  function tapSnake(s){ if(s.flying||activeLevel.snakes.some(k=>k.flying))return; if(headBlocked(s)){ s.shakeT=1; hearts--; updateHUD(); if(window.sfx&&window.sfx.move)window.sfx.move(); if(hearts<=0)setTimeout(()=>document.getElementById('loseModal').classList.add('open'),350); } else { s.flying=true; buildTrack(s); if(window.sfx&&window.sfx.click)window.sfx.click(); } }
+  function tapSnake(s){ if(s.flying||activeLevel.snakes.some(k=>k.flying))return; if(headBlocked(s)){ s.shakeT=1; hearts--; updateHUD(); if(window.sfx&&window.sfx.move)window.sfx.move(); if(window.ArcadeFX){ ArcadeFX.vibrate([22,16,22]); ArcadeFX.shake(canvas,6,220); } if(hearts<=0)setTimeout(()=>{ if(window.ArcadeFX){ ArcadeFX.flash('#ff2238',0.25,200); const b=+(localStorage.getItem('arrows_best_lvl')||1); ArcadeFX.showGameOver({ lang:LANG, title:t('lose_title'), subtitle:t('lose_sub'), score:currentLvlIdx+1, scoreLabel:t('level'), best:Math.max(b,currentLvlIdx+1), bestLabel:t('best_lbl'), isNewRecord:false, onRestart:()=>restartLevel() }); } else document.getElementById('loseModal').classList.add('open'); },350); } else { s.flying=true; buildTrack(s); if(window.sfx&&window.sfx.click)window.sfx.click(); } }
   function useHint(){ if(hints<=0||!activeLevel||!started)return; const s=activeLevel.snakes.find(s=>!s.flying&&!headBlocked(s)); if(s){hints--;s.hi=1.4;updateHUD();} }
   function restartLevel(){ if(started)loadLevel(currentLvlIdx); }
   function nextLevel(){ loadLevel(currentLvlIdx+1); }
@@ -440,7 +449,7 @@
   function loop(){ update(); draw(); requestAnimationFrame(loop); }
   function update(){ if(!activeLevel)return; for(const s of activeLevel.snakes){ if(s.flying)s.phase+=0.6; if(s.shakeT>0)s.shakeT=Math.max(0,s.shakeT-0.06); if(s.hi>0)s.hi=Math.max(0,s.hi-0.02); }
     const before=activeLevel.snakes.length; activeLevel.snakes=activeLevel.snakes.filter(s=>!(s.flying&&s.phase>s.fly));
-    if(activeLevel.snakes.length!==before&&activeLevel.snakes.length===0){ if(window.confetti)confetti({particleCount:120,spread:85,origin:{y:.6}}); if(window.sfx&&window.sfx.win)window.sfx.win(); setTimeout(()=>document.getElementById('winModal').classList.add('open'),250); }
+    if(activeLevel.snakes.length!==before&&activeLevel.snakes.length===0){ if(window.ArcadeFX)ArcadeFX.confetti(); if(window.sfx&&window.sfx.win)window.sfx.win(); setTimeout(()=>document.getElementById('winModal').classList.add('open'),250); }
   }
   function cellScreen(cx,cy){ return { x:cam.tx+(cx+0.5)*CELL*cam.scale, y:cam.ty+(cy+0.5)*CELL*cam.scale }; }
   function trackPt(s,idx){ const t=s.track,last=t.length-1,i0=Math.max(0,Math.min(last,Math.floor(idx))),i1=Math.max(0,Math.min(last,i0+1)),f=idx-Math.floor(idx); return {x:t[i0].x+(t[i1].x-t[i0].x)*f,y:t[i0].y+(t[i1].y-t[i0].y)*f}; }

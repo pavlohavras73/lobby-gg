@@ -8,67 +8,186 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;min-height:100dvh;padding:max(10px,var(--sat)) max(12px,var(--sar)) max(14px,var(--sab)) max(12px,var(--sal));
-    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden}
-  h1{margin:2px 0 0;font-size:1.5em}
-  .bar{display:flex;gap:10px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:8px 0}
-  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 14px;text-align:center}
-  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:18px;font-weight:800}
-  select,button{width:auto;padding:7px 12px;margin:0}
-  .board{position:relative;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:6px}
-  .tile{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:800;
-    border-radius:9px;background:linear-gradient(160deg,#e0102e,#a00d22);color:#fff;cursor:pointer;
-    transition:left .12s,top .12s;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-  .tile:active{filter:brightness(1.15)}
-  .win{position:absolute;inset:0;background:rgba(0,0,0,.85);border-radius:12px;display:none;
-    flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
-  .win .big{font-size:26px;font-weight:900;color:#5cff9e;margin-bottom:10px}
-  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
-  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
-
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  *{box-sizing:border-box}
+  body{
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;min-height:100dvh;margin:0;
+    padding:max(8px,var(--sat)) max(12px,var(--sar)) max(14px,var(--sab)) max(12px,var(--sal));
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow:hidden;
+    background:#060810;color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  }
+  .game-topbar{max-width:420px;margin-bottom:4px;flex:none}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:2px auto 6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content;flex:none}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:11.5px;padding:4px 10px;border-radius:999px;cursor:pointer;letter-spacing:.4px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 12px rgba(255,34,56,.4)}
+  .bar{display:flex;gap:8px;width:100%;max-width:400px;justify-content:space-between;align-items:center;margin:4px 0 10px;flex:none}
+  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;padding:5px 12px;text-align:center;min-width:68px}
+  .score .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.4px}
+  .score .v{font-size:16px;font-weight:900;line-height:1.15}
+  select{width:auto;padding:7px 26px 7px 10px !important;margin:0;font-size:12.5px;font-weight:800;border-radius:11px;background-position:right 8px center !important;min-height:44px}
+  button.sec{width:auto;padding:8px 14px;margin:0;border-radius:11px;font-size:13px;font-weight:800;min-height:44px}
+  .board{
+    position:relative;
+    background:linear-gradient(160deg,rgba(22,26,38,.95),rgba(11,14,22,.98));
+    border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:6px;
+    box-shadow:0 18px 46px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.08);
+    touch-action:none;
+  }
+  .slot{
+    position:absolute;left:0;top:0;border-radius:10px;
+    background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.035);
+    pointer-events:none;
+  }
+  .tile{
+    position:absolute;left:0;top:0;z-index:2;
+    display:flex;align-items:center;justify-content:center;font-weight:900;
+    border-radius:11px;color:#fff;cursor:pointer;margin:0;padding:0;
+    background:linear-gradient(155deg,#f43f5e,#be123c 60%,#881337);
+    border-top:1px solid rgba(255,255,255,.32);border-left:1px solid rgba(255,255,255,.22);
+    border-right:1px solid rgba(0,0,0,.42);border-bottom:1px solid rgba(0,0,0,.55);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.24),0 6px 14px rgba(0,0,0,.45);
+    text-shadow:0 1px 3px rgba(0,0,0,.45);
+    will-change:transform;
+  }
+  .tile.correct{
+    background:linear-gradient(155deg,#10b981,#047857 62%,#064e3b);
+    border-top-color:rgba(167,243,208,.55);border-left-color:rgba(167,243,208,.4);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.28),0 0 14px rgba(16,185,129,.35),0 6px 14px rgba(0,0,0,.45);
+  }
+  .tile.correct::after{
+    content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;
+    background:#a7f3d0;box-shadow:0 0 6px #34d399;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .tile{transition:transform .15s cubic-bezier(.22,1.15,.36,1),background .2s,box-shadow .2s}
+  }
+  .hint{color:var(--muted);font-size:12.5px;margin-top:12px;text-align:center}
+  .backlink{margin-top:10px;color:var(--muted);font-size:13px;text-decoration:none}
+  @media (max-width:360px){
+    .langbar button{font-size:10px;padding:3px 7px}
+    .bar{gap:5px}
+    .score{padding:4px 8px;min-width:54px}
+    .score .v{font-size:14px}
+    button.sec{padding:6px 10px;font-size:12px}
+  }
 </style>
 </head>
 <body>
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="backlink">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">🔢 Пятнашки</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" data-i18n-title="rules_btn" aria-label="Info">i</button>
 </header>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧩 Пятнашки — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">
+  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left">
+    <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🧩 Пятнашки — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Зелёные плитки уже на своём месте.</div>
+    <button type="button" onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+  </div>
+</div>
+
+<div class="langbar" id="langbar">
+  <button type="button" data-lang="uk">УКР</button>
+  <button type="button" data-lang="ru">РУС</button>
+  <button type="button" data-lang="en">ENG</button>
+  <button type="button" data-lang="de">DEU</button>
+</div>
+
 <div class="bar">
   <div class="score"><div class="l" data-i18n="moves">Ходов</div><div class="v" id="moves">0</div></div>
-  <select id="size" onchange="newGame()"><option value="3">3×3</option><option value="4" selected>4×4</option><option value="5">5×5</option></select>
-  <button class="sec" onclick="newGame()" data-i18n="mix_btn">↻ Мешать</button>
+  <select id="size" onchange="newGame()" data-i18n-title="size_title">
+    <option value="3">3×3</option>
+    <option value="4" selected>4×4</option>
+    <option value="5">5×5</option>
+  </select>
+  <button type="button" class="sec" onclick="newGame()" data-i18n="mix_btn">↻ Мешать</button>
+  <div class="score"><div class="l" data-i18n="best_lbl">Рекорд</div><div class="v" id="best">—</div></div>
 </div>
-<div class="board" id="board"><div class="win" id="win"><div class="big" data-i18n="win_title">🎉 Собрал!</div><button onclick="newGame()" data-i18n="again_btn">Ещё раз</button></div></div>
-<div class="hint" data-i18n="hint">Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.</div>
+
+<div class="board" id="board"></div>
+<div class="hint" data-i18n="hint">Тапай или свайпай плитку рядом с пустотой. Собери 1…N.</div>
 <a class="backlink" href="/games/" data-i18n="backlink">← Все игры</a>
 
+<script src="/games/static/ui.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
+<script src="/games/static/sfx.js"></script>
 <script>
-
-const UI = {"uk": {"title": "Lobby.gg — П'ятнашки", "rules_title": "🧩 П'ятнашки — правила", "rules_body": "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Чим менше ходів — тим краще.", "rules_ok": "Зрозуміло 👍", "nav_games": "‹ Ігри", "page_title": "🔢 П'ятнашки", "moves": "Ходів", "mix_btn": "↻ Мішати", "win_title": "🎉 Зібрав!", "again_btn": "Ще раз", "hint": "Тапай плитку поруч із порожнечею — зсувай. Збери по порядку 1…N.", "backlink": "← Усі ігри"}, "ru": {"title": "Lobby.gg — Пятнашки", "rules_title": "🧩 Пятнашки — правила", "rules_body": "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Чем меньше ходов — тем лучше.", "rules_ok": "Понятно 👍", "nav_games": "‹ Игры", "page_title": "🔢 Пятнашки", "moves": "Ходов", "mix_btn": "↻ Мешать", "win_title": "🎉 Собрал!", "again_btn": "Ещё раз", "hint": "Тапай плитку рядом с пустотой — сдвигай. Собери по порядку 1…N.", "backlink": "← Все игры"}, "en": {"title": "Lobby.gg — 15 Puzzle", "rules_title": "🧩 15 Puzzle — rules", "rules_body": "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. The fewer moves, the better.", "rules_ok": "Got it 👍", "nav_games": "‹ Games", "page_title": "🔢 15 Puzzle", "moves": "Moves", "mix_btn": "↻ Shuffle", "win_title": "🎉 Solved!", "again_btn": "Again", "hint": "Tap a tile next to the empty space to slide. Arrange in order 1…N.", "backlink": "← All games"},
+const UI = {
+  uk: {
+    title: "Lobby.gg — П'ятнашки",
+    rules_btn: "Правила",
+    rules_title: "🧩 П'ятнашки — правила",
+    rules_body: "Рухай плитки в порожню клітинку. Збери всі числа по порядку (1, 2, 3 ...) зліва направо. Зелені плитки вже на своєму місці.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "‹ Ігри",
+    page_title: "🔢 П'ятнашки",
+    moves: "Ходів",
+    best_lbl: "Рекорд",
+    size_title: "Розмір поля",
+    mix_btn: "↻ Мішати",
+    win_title: "🎉 Зібрано!",
+    size_lbl: "Поле",
+    hint: "Тапай або свайпай плитку поруч із порожнечею. Збери 1…N.",
+    backlink: "← Усі ігри"
+  },
+  ru: {
+    title: "Lobby.gg — Пятнашки",
+    rules_btn: "Правила",
+    rules_title: "🧩 Пятнашки — правила",
+    rules_body: "Двигай плитки в пустую клетку. Собери все числа по порядку (1, 2, 3 …) слева направо. Зелёные плитки уже на своём месте.",
+    rules_ok: "Понятно 👍",
+    nav_games: "‹ Игры",
+    page_title: "🔢 Пятнашки",
+    moves: "Ходов",
+    best_lbl: "Рекорд",
+    size_title: "Размер поля",
+    mix_btn: "↻ Мешать",
+    win_title: "🎉 Собрал!",
+    size_lbl: "Поле",
+    hint: "Тапай или свайпай плитку рядом с пустотой. Собери 1…N.",
+    backlink: "← Все игры"
+  },
+  en: {
+    title: "Lobby.gg — 15 Puzzle",
+    rules_btn: "Rules",
+    rules_title: "🧩 15 Puzzle — rules",
+    rules_body: "Slide tiles into the empty space. Arrange all numbers in order (1, 2, 3 ...) from left to right. Green tiles are already in place.",
+    rules_ok: "Got it 👍",
+    nav_games: "‹ Games",
+    page_title: "🔢 15 Puzzle",
+    moves: "Moves",
+    best_lbl: "Best",
+    size_title: "Grid size",
+    mix_btn: "↻ Shuffle",
+    win_title: "🎉 Solved!",
+    size_lbl: "Grid",
+    hint: "Tap or swipe a tile next to the gap. Order 1…N.",
+    backlink: "← All games"
+  },
   de: {
-    "title": "Lobby.gg — 15er-Puzzle",
-    "rules_title": "🧩 15er-Puzzle — Regeln",
-    "rules_body": "Verschiebe die Kacheln auf das freie Feld. Bringe alle Zahlen der Reihe nach (1, 2, 3 ...) von links nach rechts. Je weniger Züge, desto besser.",
-    "rules_ok": "Verstanden 👍",
-    "nav_games": "‹ Spiele",
-    "page_title": "🔢 15er-Puzzle",
-    "moves": "Züge",
-    "mix_btn": "↻ Mischen",
-    "win_title": "🎉 Gelöst!",
-    "again_btn": "Nochmal",
-    "hint": "Tippe auf eine Kachel neben dem freien Feld. Sortiere von 1 bis N.",
-    "backlink": "← Alle Spiele"
+    title: "Lobby.gg — 15er-Puzzle",
+    rules_btn: "Regeln",
+    rules_title: "🧩 15er-Puzzle — Regeln",
+    rules_body: "Verschiebe die Kacheln auf das freie Feld. Bringe alle Zahlen der Reihe nach (1, 2, 3 ...) von links nach rechts. Grüne Kacheln sind schon richtig.",
+    rules_ok: "Verstanden 👍",
+    nav_games: "‹ Spiele",
+    page_title: "🔢 15er-Puzzle",
+    moves: "Züge",
+    best_lbl: "Rekord",
+    size_title: "Feldgröße",
+    mix_btn: "↻ Mischen",
+    win_title: "🎉 Gelöst!",
+    size_lbl: "Feld",
+    hint: "Tippe oder wische eine Kachel ins freie Feld. Sortiere 1…N.",
+    backlink: "← Alle Spiele"
   }
 };
+
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 function t(k) { return UI[LANG] && UI[LANG][k] !== undefined ? UI[LANG][k] : (UI.ru[k] || k); }
+
 function applyUI() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -80,7 +199,9 @@ function applyUI() {
   });
   document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  if (window.ArcadeFX) ArcadeFX.refreshI18n(LANG);
 }
+
 document.getElementById('langbar').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
@@ -88,56 +209,192 @@ document.getElementById('langbar').addEventListener('click', e => {
   localStorage.setItem('jg_lang', LANG);
   applyUI();
 });
-applyUI();
 
+let N = 4, tiles = [], blank = 0, moves = 0, solvedFlag = false;
+let size = 340, gap = 6, cell = 78;
+let tileEls = new Map();
 
-let N=4, tiles, blank, moves, size, gap=6, cell;
-function idx(x,y){return y*N+x;}
-function layout(){
-  const b=document.getElementById('board');
-  const W=Math.min(window.innerWidth-24,380,window.innerHeight*0.58);
-  size=Math.floor(W); cell=Math.floor((size-gap*(N+1))/N);
-  b.style.width=size+'px';b.style.height=size+'px';
+function tilePos(x, y) {
+  return { px: gap + x * (cell + gap), py: gap + y * (cell + gap) };
 }
-function solvable(arr){ // проверка чётности инверсий для решаемости
-  const a=arr.filter(v=>v!==0); let inv=0;
-  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i]>a[j])inv++;
-  if(N%2===1)return inv%2===0;
-  const blankRow=N-Math.floor(arr.indexOf(0)/N);
-  return (blankRow%2===0)===(inv%2===1);
+
+function layout() {
+  const b = document.getElementById('board');
+  const W = Math.min(window.innerWidth - 24, 380, window.innerHeight * 0.54);
+  size = Math.max(210, Math.floor(W));
+  cell = Math.floor((size - gap * (N + 1)) / N);
+  size = gap * (N + 1) + cell * N;
+  b.style.width = size + 'px';
+  b.style.height = size + 'px';
+
+  b.querySelectorAll('.slot').forEach(e => e.remove());
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const s = document.createElement('div');
+      s.className = 'slot';
+      const pos = tilePos(x, y);
+      s.style.width = cell + 'px';
+      s.style.height = cell + 'px';
+      s.style.transform = `translate3d(${pos.px}px, ${pos.py}px, 0)`;
+      b.appendChild(s);
+    }
+  }
+  syncTilesDOM();
 }
-function newGame(){
-  N=+document.getElementById('size').value; moves=0; document.getElementById('moves').textContent=0;
-  document.getElementById('win').style.display='none';
-  do{ tiles=[...Array(N*N).keys()]; for(let i=tiles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tiles[i],tiles[j]]=[tiles[j],tiles[i]];} }
-  while(!solvable(tiles)||isSolved());
-  blank=tiles.indexOf(0); layout(); render();
+
+function solvable(arr) {
+  const a = arr.filter(v => v !== 0);
+  let inv = 0;
+  for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) if (a[i] > a[j]) inv++;
+  if (N % 2 === 1) return inv % 2 === 0;
+  const blankRow = N - Math.floor(arr.indexOf(0) / N);
+  return (blankRow % 2 === 0) === (inv % 2 === 1);
 }
-function isSolved(){for(let i=0;i<N*N-1;i++)if(tiles[i]!==i+1)return false;return true;}
-function render(){
-  const b=document.getElementById('board');
-  b.querySelectorAll('.tile').forEach(e=>e.remove());
-  for(let i=0;i<N*N;i++){
-    const v=tiles[i]; if(!v)continue;
-    const x=i%N,y=Math.floor(i/N);
-    const t=document.createElement('div');t.className='tile';
-    t.style.width=cell+'px';t.style.height=cell+'px';
-    t.style.left=(gap+x*(cell+gap))+'px';t.style.top=(gap+y*(cell+gap))+'px';
-    t.style.fontSize=(cell*0.4)+'px';t.textContent=v;
-    t.onclick=()=>tap(i);
-    b.appendChild(t);
+
+function isSolved() {
+  for (let i = 0; i < N * N - 1; i++) if (tiles[i] !== i + 1) return false;
+  return true;
+}
+
+function updateBestDisplay() {
+  const b = +(localStorage.getItem('fifteen_best_' + N) || 0);
+  document.getElementById('best').textContent = b > 0 ? String(b) : '—';
+}
+
+function newGame() {
+  if (window.ArcadeFX) ArcadeFX.hideGameOver();
+  N = +document.getElementById('size').value || 4;
+  moves = 0;
+  solvedFlag = false;
+  document.getElementById('moves').textContent = '0';
+  updateBestDisplay();
+
+  do {
+    tiles = [...Array(N * N).keys()];
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+  } while (!solvable(tiles) || isSolved());
+
+  blank = tiles.indexOf(0);
+  buildTilesDOM();
+  layout();
+}
+
+function buildTilesDOM() {
+  const b = document.getElementById('board');
+  b.querySelectorAll('.tile').forEach(e => e.remove());
+  tileEls.clear();
+  for (let val = 1; val < N * N; val++) {
+    const el = document.createElement('div');
+    el.className = 'tile';
+    el.textContent = String(val);
+    el.onclick = () => tapValue(val);
+    b.appendChild(el);
+    tileEls.set(val, el);
   }
 }
-function tap(i){
-  const x=i%N,y=Math.floor(i/N), bx=blank%N,by=Math.floor(blank/N);
-  if(Math.abs(x-bx)+Math.abs(y-by)!==1)return; // не рядом
-  [tiles[i],tiles[blank]]=[tiles[blank],tiles[i]]; blank=i;
-  moves++; document.getElementById('moves').textContent=moves; render();
-  if(isSolved())document.getElementById('win').style.display='flex';
+
+function syncTilesDOM() {
+  for (let i = 0; i < tiles.length; i++) {
+    const v = tiles[i];
+    if (!v) continue;
+    const el = tileEls.get(v);
+    if (!el) continue;
+    const x = i % N, y = Math.floor(i / N);
+    const pos = tilePos(x, y);
+    el.style.width = cell + 'px';
+    el.style.height = cell + 'px';
+    el.style.fontSize = Math.round(cell * 0.4) + 'px';
+    el.style.transform = `translate3d(${pos.px}px, ${pos.py}px, 0)`;
+    el.classList.toggle('correct', v === i + 1);
+  }
 }
-window.addEventListener('resize',()=>{layout();if(tiles)render();});
-document.addEventListener('DOMContentLoaded',()=>{applyUI();newGame();});
+
+function tapValue(val) {
+  const i = tiles.indexOf(val);
+  if (i !== -1) tap(i);
+}
+
+function tap(i) {
+  if (solvedFlag) return;
+  const x = i % N, y = Math.floor(i / N);
+  const bx = blank % N, by = Math.floor(blank / N);
+  if (Math.abs(x - bx) + Math.abs(y - by) !== 1) return;
+
+  [tiles[i], tiles[blank]] = [tiles[blank], tiles[i]];
+  blank = i;
+  moves++;
+  document.getElementById('moves').textContent = String(moves);
+  syncTilesDOM();
+  if (window.ArcadeFX) ArcadeFX.vibrate(6);
+  if (window.LobbyUI) LobbyUI.sound('move');
+
+  if (isSolved()) {
+    solvedFlag = true;
+    const key = 'fifteen_best_' + N;
+    const prevBest = +(localStorage.getItem(key) || 0);
+    const isNewRecord = !prevBest || moves < prevBest;
+    const best = isNewRecord ? moves : prevBest;
+    localStorage.setItem(key, String(best));
+    updateBestDisplay();
+
+    if (window.LobbyUI) LobbyUI.sound('win');
+    if (window.ArcadeFX) {
+      const r = document.getElementById('board').getBoundingClientRect();
+      ArcadeFX.burst(r.left + r.width * 0.5, r.top + r.height * 0.5, {
+        count: 34, speed: 260, size: 4.5,
+        colors: ['#34d399', '#fde047', '#38bdf8', '#ff2238'], shape: 'rect'
+      });
+      ArcadeFX.confetti();
+      ArcadeFX.vibrate([20, 30, 20]);
+      setTimeout(() => {
+        ArcadeFX.showGameOver({
+          lang: LANG,
+          title: t('win_title'),
+          score: moves,
+          scoreLabel: t('moves'),
+          best,
+          isNewRecord,
+          stats: [{ label: t('size_lbl'), value: `${N}×${N}` }],
+          onRestart: () => newGame()
+        });
+      }, 340);
+    }
+  }
+}
+
+// Swipe / keyboard support to slide adjacent tile toward blank
+function slideDir(dx, dy) {
+  if (solvedFlag) return;
+  const bx = blank % N, by = Math.floor(blank / N);
+  const tx = bx - dx, ty = by - dy;
+  if (tx >= 0 && tx < N && ty >= 0 && ty < N) tap(ty * N + tx);
+}
+
+let sx = null, sy = null;
+const boardEl = document.getElementById('board');
+boardEl.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+boardEl.addEventListener('touchend', e => {
+  if (sx == null) return;
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  sx = sy = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+  if (Math.abs(dx) > Math.abs(dy)) slideDir(dx > 0 ? 1 : -1, 0);
+  else slideDir(0, dy > 0 ? 1 : -1);
+}, { passive: true });
+
+window.addEventListener('keydown', e => {
+  const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+  if (m) { e.preventDefault(); slideDir(m[0], m[1]); }
+});
+window.addEventListener('resize', () => layout());
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyUI();
+  newGame();
+});
 </script>
-<script src="/games/static/sfx.js"></script>
 </body>
 </html>

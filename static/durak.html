@@ -7,7 +7,6 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   html, body {
     margin: 0; padding: 0; width: 100%; min-height: 100dvh;
@@ -90,38 +89,49 @@
   }
 
   .durak-felt {
-    position: relative; width: 100%; border-radius: 24px; padding: 14px 12px;
+    position: relative; width: 100%; flex: 1; min-height: 250px;
+    border-radius: 24px; padding: 14px 12px;
     background:
-      radial-gradient(ellipse at 50% 45%, rgba(28, 92, 62, 0.34) 0%, rgba(15, 42, 30, 0.25) 55%, rgba(14, 15, 22, 0.92) 100%),
+      radial-gradient(ellipse at 50% 45%, rgba(28, 92, 62, 0.38) 0%, rgba(15, 42, 30, 0.28) 55%, rgba(14, 15, 22, 0.94) 100%),
       linear-gradient(180deg, rgba(24, 26, 35, 0.95), rgba(14, 15, 20, 0.98));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.55), var(--shadow-lg);
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.58), var(--shadow-lg);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px;
   }
 
   .table-top-row {
     width: 100%; display: flex; align-items: center; justify-content: space-between;
-    gap: 10px; flex-wrap: wrap;
+    gap: 8px; flex-wrap: wrap;
   }
   .deck-cluster {
-    display: flex; align-items: center; gap: 14px;
+    display: flex; align-items: center; gap: 12px;
   }
   .deck-stack {
-    position: relative; width: 76px; height: 64px; flex-shrink: 0;
+    position: relative; width: 104px; height: 86px; flex-shrink: 0;
   }
   .trump-under {
-    position: absolute; top: 4px; left: 24px; transform: rotate(90deg);
-    transform-origin: center center; z-index: 1; opacity: 0.95;
+    position: absolute; top: 1px; left: 34px; transform: rotate(90deg);
+    transform-origin: center center; z-index: 1; opacity: 0.98;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45));
   }
   .deck-top {
-    position: relative; z-index: 2; width: 42px; height: 60px; border-radius: 8px;
-    background: repeating-linear-gradient(45deg, #4b0c18, #4b0c18 5px, #6e1526 5px, #6e1526 10px);
-    border: 2px solid rgba(255,255,255,0.75);
-    box-shadow: -2px 2px 0 #26060d, -4px 4px 0 #180408, 0 8px 16px rgba(0,0,0,0.55);
+    position: relative; z-index: 2; width: 54px; height: 78px; border-radius: 10px; top: 4px;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,215,120,.16) 0%, transparent 56%),
+      repeating-linear-gradient(45deg, #4b0c18, #4b0c18 5px, #6e1526 5px, #6e1526 10px);
+    border: 2px solid rgba(255,255,255,0.82);
+    box-shadow: -3px 3px 0 #26060d, -6px 6px 0 #180408, 0 10px 20px rgba(0,0,0,0.58);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 1px 4px #000;
+    font-weight: 900; font-size: 16px; color: #fff; text-shadow: 0 2px 6px #000;
   }
-  .deck-stack.empty .deck-top { opacity: 0.25; box-shadow: none; }
+  .deck-stack.empty .deck-top { opacity: 0.22; box-shadow: none; }
+  .trump-badge {
+    display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 5px 10px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(251, 191, 36, 0.35);
+    font-size: 11px; color: var(--muted); font-weight: 700; line-height: 1.1;
+  }
+  .trump-badge #trumpSuitText { font-size: 20px; line-height: 1; font-weight: 900; }
 
   .turn-pill {
     padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 800;
@@ -133,12 +143,14 @@
   .turn-pill.toss { background: rgba(251, 191, 36, 0.16); border-color: rgba(251, 191, 36, 0.55); color: #fef3c7; }
 
   .table-slots {
-    display: flex; flex-wrap: wrap; gap: 14px 18px; justify-content: center;
-    align-items: center; min-height: 98px; width: 100%; padding: 8px 4px;
+    flex: 1; display: flex; flex-wrap: wrap; gap: 16px 20px; justify-content: center;
+    align-items: center; align-content: center; min-height: 112px; width: 100%; padding: 8px 4px;
   }
   .pair {
-    position: relative; width: 58px; height: 82px;
-    animation: cardPop .22s var(--ease) both;
+    position: relative; width: 58px; height: 84px;
+  }
+  .pair.throw-att {
+    animation: throwAttack .26s cubic-bezier(.22,1,.36,1) both;
   }
   .pair.can-defend { cursor: pointer; }
   .pair.can-defend .pcard:not(.def-card) {
@@ -148,7 +160,14 @@
   .pair .d {
     position: absolute; top: 14px; left: 16px; z-index: 3;
     transform: rotate(7deg);
-    animation: cardPop .2s var(--ease) both;
+  }
+  .pair .d.throw-def {
+    animation: throwDefend .24s cubic-bezier(.22,1,.36,1) both;
+  }
+  .flying-card {
+    position: fixed; z-index: 80; pointer-events: none; margin: 0;
+    transition: transform .36s cubic-bezier(.22,1,.36,1), opacity .36s ease;
+    will-change: transform, opacity;
   }
 
   /* ── Playing Card v2 ── */
@@ -192,7 +211,7 @@
   .action-row {
     display: flex; gap: 10px; justify-content: center; width: 100%; flex-wrap: wrap;
   }
-  .action-row button { min-width: 140px; min-height: 44px; }
+  .action-row button { flex: 1; width: auto; min-width: 120px; max-width: 240px; min-height: 44px; }
 
   .hand-tray {
     width: 100%; background: rgba(18, 19, 26, 0.88);
@@ -217,6 +236,15 @@
     0% { opacity: 0; transform: scale(0.82) translateY(10px); }
     100% { opacity: 1; transform: scale(1) translateY(0); }
   }
+  @keyframes throwAttack {
+    0% { opacity: 0; transform: translateY(34px) scale(0.86) rotate(-6deg); }
+    70% { opacity: 1; transform: translateY(-3px) scale(1.03) rotate(1deg); }
+    100% { opacity: 1; transform: none; }
+  }
+  @keyframes throwDefend {
+    0% { opacity: 0; transform: translateY(-26px) scale(1.12) rotate(16deg); }
+    100% { opacity: 1; transform: rotate(7deg) scale(1); }
+  }
   @keyframes pulseTarget {
     0%, 100% { box-shadow: 0 0 0 2px #4ade80, 0 0 12px rgba(74, 222, 128, 0.4); }
     50% { box-shadow: 0 0 0 3px #86efac, 0 0 22px rgba(74, 222, 128, 0.75); }
@@ -228,6 +256,13 @@
     .pcard .center-suit { font-size: 22px; }
     .pair { width: 50px; height: 74px; }
     .pair .d { top: 12px; left: 13px; }
+    .deck-stack { width: 92px; height: 76px; }
+    .deck-top { width: 48px; height: 70px; font-size: 14px; }
+    .trump-under { left: 28px; top: 1px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pair.throw-att, .pair .d.throw-def, .pair.can-defend .pcard:not(.def-card) { animation: none; }
+    .flying-card { transition: none; }
   }
 </style>
 <script src="/games/static/i18n_common.js"></script>
@@ -298,9 +333,9 @@
             <div class="trump-under" id="trumpcard"></div>
             <div class="deck-top" id="deckn">0</div>
           </div>
-          <div style="font-size:12px;color:var(--muted);font-weight:700">
+          <div class="trump-badge">
             <div data-i18n="lbl_trump">Козырь</div>
-            <div id="trumpSuitText" style="font-size:16px;color:#fff"></div>
+            <div id="trumpSuitText"></div>
           </div>
         </div>
         <div class="turn-pill" id="turninfo"></div>
@@ -335,6 +370,7 @@
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script>
 const UI = {
   uk: {
@@ -418,10 +454,13 @@ if (!UI[LANG]) LANG = 'ru';
 function t(k) { const v = UI[LANG] && UI[LANG][k]; return v !== undefined ? v : (UI.ru[k] || k); }
 function T(s) { return window.LobbyI18n ? LobbyI18n.T(String(s || '')) : String(s || ''); }
 function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
-function haptic(ms) { if (window.LobbyUI) LobbyUI.vibrate(ms || 12); }
+function haptic(ms) {
+  if (window.ArcadeFX) ArcadeFX.vibrate(ms || 12);
+  else if (window.LobbyUI) LobbyUI.vibrate(ms || 12);
+}
 
 let ws = null, pid = null, isHost = false, sel = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
-let overCelebrated = false;
+let overCelebrated = false, prevTable = [], prevDefender = null, prevCounts = null, prevDeck = null;
 
 function applyUI() {
   document.documentElement.lang = LANG;
@@ -435,7 +474,7 @@ function applyUI() {
     if (typeof v === 'string') el.placeholder = v;
   });
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
-  if (st) renderState(st);
+  if (st) renderState(st, false);
 }
 
 function show(id) {
@@ -493,7 +532,7 @@ function onHandCard(i) {
   if (st.you === st.defender) {
     sel = (sel === i ? null : i);
     renderHand();
-    renderTable(st);
+    renderTable(st, false);
   } else {
     send({ action: 'dk_attack', card: st.hand[i] });
     sel = null;
@@ -517,20 +556,90 @@ function renderHand() {
   [...document.querySelectorAll('#hand .pcard')].forEach((el, i) => el.onclick = () => onHandCard(i));
 }
 
-function renderTable(m) {
-  const trumpSuit = m.trump_card ? m.trump_card.s : null;
-  const canDef = (m.you === m.defender && sel !== null);
-  document.getElementById('table').innerHTML = m.table.map((pr, idx) =>
-    '<div class="pair ' + (canDef && !pr.d ? 'can-defend' : '') + '" onclick="onTableClick(' + idx + ')">' +
-      cardHTML(pr.a, '', trumpSuit) +
-      (pr.d ? '<div class="d">' + cardHTML(pr.d, 'def-card', trumpSuit) + '</div>' : '') +
-    '</div>'
-  ).join('') || ('<span class="badge">' + t('empty_table') + '</span>');
+function cardKey(c) {
+  return c ? (c.s + '_' + c.r) : '';
 }
 
-function renderState(m) {
+function flyClearedTable(isTake, defPid) {
+  if (window.ArcadeFX && ArcadeFX.reducedMotion) return;
+  const felt = document.querySelector('.durak-felt');
+  const cards = [...document.querySelectorAll('#table .pcard')];
+  if (!felt || !cards.length) return;
+  const feltRect = felt.getBoundingClientRect();
+  let targetRect = null;
+  if (isTake) {
+    const el = (defPid === pid)
+      ? document.getElementById('hand')
+      : [...document.querySelectorAll('#opponents .opp-chip')].find(x => x.dataset.pid === String(defPid));
+    if (el) targetRect = el.getBoundingClientRect();
+  }
+  cards.forEach((orig, idx) => {
+    const r = orig.getBoundingClientRect();
+    if (r.width <= 0) return;
+    const clone = orig.cloneNode(true);
+    clone.classList.add('flying-card');
+    clone.style.left = r.left + 'px';
+    clone.style.top = r.top + 'px';
+    clone.style.width = r.width + 'px';
+    clone.style.height = r.height + 'px';
+    clone.style.opacity = '1';
+    clone.style.transform = 'translate3d(0,0,0) scale(1) rotate(0deg)';
+    document.body.appendChild(clone);
+    let dx, dy, rot, sc;
+    if (isTake) {
+      if (targetRect && targetRect.width > 0) {
+        dx = (targetRect.left + targetRect.width / 2) - (r.left + r.width / 2);
+        dy = (targetRect.top + targetRect.height / 2) - (r.top + r.height / 2);
+      } else {
+        dx = (feltRect.left + feltRect.width / 2) - (r.left + r.width / 2);
+        dy = (defPid === pid ? 180 : -140);
+      }
+      rot = (idx % 2 ? 10 : -10);
+      sc = 0.5;
+    } else {
+      dx = Math.min(window.innerWidth - r.left + 20, feltRect.right - r.left + 44);
+      dy = -26 + (idx % 3) * 14;
+      rot = 20 + (idx % 4) * 9;
+      sc = 0.62;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      clone.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(${sc}) rotate(${rot}deg)`;
+      clone.style.opacity = '0';
+    }));
+    setTimeout(() => clone.remove(), 400);
+  });
+}
+
+function renderTable(m, animate) {
+  const trumpSuit = m.trump_card ? m.trump_card.s : null;
+  const canDef = (m.you === m.defender && sel !== null);
+  const prevMap = {};
+  if (animate && prevTable.length) {
+    for (const pr of prevTable) prevMap[cardKey(pr.a)] = pr;
+  }
+  let threwNew = false;
+  document.getElementById('table').innerHTML = m.table.map((pr, idx) => {
+    const k = cardKey(pr.a);
+    const old = prevMap[k];
+    const isNewAtt = animate && !old;
+    const isNewDef = animate && !!pr.d && (!old || !old.d);
+    if (isNewAtt || isNewDef) threwNew = true;
+    return '<div class="pair ' + (isNewAtt ? 'throw-att ' : '') + (canDef && !pr.d ? 'can-defend' : '') + '" onclick="onTableClick(' + idx + ')">' +
+      cardHTML(pr.a, '', trumpSuit) +
+      (pr.d ? '<div class="d ' + (isNewDef ? 'throw-def' : '') + '">' + cardHTML(pr.d, 'def-card', trumpSuit) + '</div>' : '') +
+    '</div>';
+  }).join('') || ('<span class="badge">' + t('empty_table') + '</span>');
+  if (threwNew && window.sfx && sfx.flip) sfx.flip();
+}
+
+function renderState(m, animate) {
+  const prevT = prevTable;
+  const prevDef = prevDefender;
+  const prevCnts = prevCounts;
+  const prevD = prevDeck;
   st = m;
   if (m.durak) {
+    prevTable = []; prevDefender = null; prevCounts = null; prevDeck = null;
     show('over');
     const won = (m.durak !== 'draw' && m.durak !== pid);
     document.getElementById('overEmoji').textContent = m.durak === 'draw' ? '🤝' : (won ? '🏆' : '🃏');
@@ -538,14 +647,24 @@ function renderState(m) {
     document.getElementById('overtext').textContent = m.durak === 'draw'
       ? t('res_draw')
       : (m.durak === pid ? t('res_you_durak') : (typeof t('res_durak') === 'function' ? t('res_durak')(durakName) : durakName));
-    if (won && !overCelebrated && typeof confetti === 'function') {
+    if (won && !overCelebrated) {
       overCelebrated = true;
-      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+      if (window.ArcadeFX) ArcadeFX.confetti();
+      if (window.sfx && sfx.win) sfx.win();
     }
     return;
   }
   overCelebrated = false;
   show('game');
+
+  if (animate && prevT.length > 0 && m.table.length === 0) {
+    const logLow = String(m.log || '').toLowerCase();
+    const prevDC = prevCnts && prevDef != null ? prevCnts[prevDef] : null;
+    const curDC = m.counts && prevDef != null ? m.counts[prevDef] : null;
+    const isTake = logLow.includes('забрал') || logLow.includes('взял') || (prevD === 0 && prevDC != null && curDC != null && curDC > prevDC);
+    flyClearedTable(isTake, prevDef);
+    if (window.sfx && sfx.move) sfx.move();
+  }
 
   const opps = m.order.filter(p => p !== pid);
   document.getElementById('opponents').innerHTML = opps.map(p => {
@@ -554,11 +673,11 @@ function renderState(m) {
     const cls = isAtt ? 'att' : (isDef ? 'def' : '');
     const nm = T(m.names[p] || '?');
     const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p).startsWith('bot_')) : '';
-    return '<div class="opp-chip ' + cls + '">' + av + '<span>' + role + esc(nm) + '</span><span class="opp-cnt">' + (m.counts[p] || 0) + '</span></div>';
+    return '<div class="opp-chip ' + cls + '" data-pid="' + esc(p) + '">' + av + '<span>' + role + esc(nm) + '</span><span class="opp-cnt">' + (m.counts[p] || 0) + '</span></div>';
   }).join('');
 
   const trumpSuit = m.trump_card ? m.trump_card.s : null;
-  document.getElementById('trumpcard').innerHTML = m.trump_card ? cardHTML(m.trump_card, 'sm', trumpSuit) : '';
+  document.getElementById('trumpcard').innerHTML = m.trump_card ? cardHTML(m.trump_card, '', trumpSuit) : '';
   document.getElementById('deckn').textContent = m.deck;
   document.getElementById('deckStack').classList.toggle('empty', m.deck === 0);
   const suitEl = document.getElementById('trumpSuitText');
@@ -571,7 +690,7 @@ function renderState(m) {
   ti.className = 'turn-pill ' + (m.you === m.attacker ? 'att' : m.you === m.defender ? 'def' : 'toss');
   ti.textContent = m.you === m.attacker ? t('turn_attack') : m.you === m.defender ? t('turn_defend') : t('turn_toss');
 
-  renderTable(m);
+  renderTable(m, !!animate);
   document.getElementById('log').textContent = T(m.log || '');
 
   const allDef = m.table.length && m.table.every(p => p.d);
@@ -584,6 +703,11 @@ function renderState(m) {
   document.getElementById('actions').innerHTML = btns;
   document.getElementById('handhint').textContent = m.you === m.defender ? t('hint_defend') : t('hint_attack');
   renderHand();
+
+  prevTable = (m.table || []).map(pr => ({ a: pr.a, d: pr.d || null }));
+  prevDefender = m.defender;
+  prevCounts = Object.assign({}, m.counts || {});
+  prevDeck = m.deck;
 }
 
 function handle(m) {
@@ -607,7 +731,7 @@ function handle(m) {
     document.getElementById('botrow').classList.toggle('hide', !isHost);
     document.getElementById('waitmsg').classList.toggle('hide', isHost);
   } else if (m.type === 'durak_state') {
-    renderState(m);
+    renderState(m, true);
   } else if (m.type === 'error') {
     alert(T(m.msg));
   }

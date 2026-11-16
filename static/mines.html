@@ -2,172 +2,580 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Lobby.gg — Сапёр</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title data-i18n="page_title">Lobby.gg — Сапёр</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:max(8px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));
-    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow-x:hidden}
-  .game-topbar{max-width:440px}
-  .bar{display:flex;gap:8px;width:100%;max-width:420px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap}
-  .score{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 12px;text-align:center}
-  .score .l{font-size:10px;color:var(--muted);text-transform:uppercase}.score .v{font-size:17px;font-weight:800}
-  select,button{width:auto;padding:7px 10px;margin:0;font-size:13px}
-  select{padding-right:30px;min-width:0}  /* место под стрелку из theme.css */
-  .flagbtn{border:1px solid var(--border);border-radius:10px;padding:7px 12px;cursor:pointer;background:rgba(255,255,255,.05)}
-  .flagbtn.on{border-color:var(--crimson);background:rgba(255,34,56,.18);box-shadow:0 0 10px var(--crimson-glow)}
-  .board{display:grid;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:5px;position:relative}
-  .c{display:flex;align-items:center;justify-content:center;font-weight:800;border-radius:4px;
-    background:#3a3d44;cursor:pointer;user-select:none}
-  .c.open{background:rgba(255,255,255,.05);cursor:default}
-  .c.mine{background:#e0102e}
-  .c.flag{background:#2a2d33}
-  .c1{color:#5c9eff}.c2{color:#5cff9e}.c3{color:#ff6b6b}.c4{color:#c77dff}.c5{color:#ffb057}.c6{color:#2fd9d9}.c7{color:#ff8ac4}.c8{color:#cfcfcf}
-  .over{position:absolute;inset:0;background:rgba(0,0,0,.82);border-radius:10px;display:none;
-    flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(5px)}
-  .over .big{font-size:24px;font-weight:900;margin-bottom:10px}
-  .hint{color:var(--muted);font-size:13px;margin-top:12px;text-align:center;max-width:400px}
-  .backlink{margin-top:12px;color:var(--muted);font-size:13px;text-decoration:none}
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  *{box-sizing:border-box}
+  body{
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;min-height:100dvh;margin:0;
+    padding:max(8px,var(--sat)) max(10px,var(--sar)) max(14px,var(--sab)) max(10px,var(--sal));
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;overflow-x:hidden;
+    background:#060810;color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  }
+  .game-topbar{max-width:440px;margin-bottom:4px;flex:none}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:2px auto 6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content;flex:none}
+  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:11.5px;padding:4px 10px;border-radius:999px;cursor:pointer;letter-spacing:.4px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 12px rgba(255,34,56,.4)}
+  .bar{
+    display:flex;flex-wrap:nowrap;gap:6px;width:100%;max-width:440px;
+    justify-content:space-between;align-items:center;margin:4px 0 10px;flex:none;
+  }
+  .score{
+    background:rgba(255,255,255,.06);border:1px solid var(--border);
+    border-radius:10px;padding:4px 9px;text-align:center;flex-shrink:0;min-width:52px;
+  }
+  .score .l{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.3px}
+  .score .v{font-size:15px;font-weight:900;line-height:1.15}
+  button.flagbtn{
+    width:auto;border:1px solid var(--border);border-radius:10px;padding:7px 10px;cursor:pointer;
+    background:rgba(255,255,255,.06);color:var(--text);font:inherit;font-size:12px;font-weight:800;
+    white-space:nowrap;flex-shrink:0;min-height:44px;display:inline-flex;align-items:center;gap:4px;margin:0;
+    box-shadow:none;transition:border-color .15s,background .15s,box-shadow .15s;
+  }
+  button.flagbtn.on{border-color:var(--crimson);background:rgba(255,34,56,.2);box-shadow:0 0 12px var(--crimson-glow);color:#fff}
+  #diff{
+    flex:1;min-width:0;width:auto;margin:0;
+    padding:7px 26px 7px 8px !important;font-size:12px;font-weight:700;
+    border-radius:10px;background-position:right 8px center !important;min-height:44px;
+  }
+  button.reset-btn{
+    width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0;
+    border-radius:10px;font-size:17px;font-weight:900;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .board{
+    display:grid;gap:2.5px;
+    background:linear-gradient(160deg,rgba(24,28,42,.95),rgba(11,14,22,.98));
+    border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:6px;position:relative;
+    box-shadow:0 18px 46px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .c{
+    display:flex;align-items:center;justify-content:center;font-weight:900;
+    border-radius:5px;cursor:pointer;user-select:none;position:relative;
+    background:linear-gradient(145deg,#3b4259,#252a39);
+    border-top:1px solid rgba(255,255,255,.22);border-left:1px solid rgba(255,255,255,.18);
+    border-right:1px solid rgba(0,0,0,.48);border-bottom:1px solid rgba(0,0,0,.55);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+    transition:transform .08s,background .12s;
+  }
+  .c:active:not(.open){transform:scale(.93)}
+  .c.open{
+    background:rgba(10,13,22,.78);
+    border:1px solid rgba(255,255,255,.05);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.5);
+    cursor:default;
+  }
+  .c.wave-open{animation:cellWaveOpen .24s cubic-bezier(.22,1.25,.36,1) both}
+  .c.flag{
+    background:linear-gradient(145deg,#4c2334,#2d1520);
+    border-color:rgba(255,80,104,.45);
+  }
+  .c.flag-anim{animation:flagPlant .22s cubic-bezier(.22,1.3,.36,1) both}
+  .c.mine{
+    background:linear-gradient(145deg,#ff2238,#991b1b);
+    border:1px solid rgba(254,202,202,.6);
+    box-shadow:0 0 14px rgba(255,34,56,.65);
+  }
+  .c.mine-boom{animation:mineBoom .28s cubic-bezier(.22,1.35,.36,1) both}
+  @media (prefers-reduced-motion: reduce){
+    .c.wave-open,.c.flag-anim,.c.mine-boom{animation:none !important}
+  }
+  @keyframes cellWaveOpen{
+    0%{transform:scale(.76);opacity:.35;background:#4b5563}
+    65%{transform:scale(1.06)}
+    100%{transform:scale(1);opacity:1}
+  }
+  @keyframes flagPlant{
+    0%{transform:scale(1.32) translateY(-4px)}
+    100%{transform:scale(1) translateY(0)}
+  }
+  @keyframes mineBoom{
+    0%{transform:scale(.6);filter:brightness(2)}
+    60%{transform:scale(1.18)}
+    100%{transform:scale(1);filter:brightness(1)}
+  }
+  .c1{color:#60a5fa}.c2{color:#4ade80}.c3{color:#fb7185}.c4{color:#c084fc}
+  .c5{color:#fbbf24}.c6{color:#2dd4bf}.c7{color:#f472b6}.c8{color:#e2e8f0}
+  .hint{color:var(--muted);font-size:12.5px;margin-top:12px;text-align:center;max-width:400px}
+  .backlink{margin-top:10px;color:var(--muted);font-size:13px;text-decoration:none}
+  @media (max-width:360px){
+    .langbar button{font-size:10px;padding:3px 7px}
+    .bar{gap:4px}
+    .score{padding:3px 6px;min-width:44px}
+    .score .v{font-size:13.5px}
+    .flagbtn{padding:6px 8px;font-size:11px}
+    #diff{font-size:11px;padding:6px 22px 6px 6px !important}
+    button.reset-btn{width:40px;height:40px;min-width:40px;min-height:40px;font-size:15px}
+  }
 </style>
 </head>
 <body>
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
-  <div class="top-title" data-i18n="title">💣 Сапёр</div>
+  <div class="topbar-title" data-i18n="title">💣 Сапёр</div>
   <button id="rulesBtn" type="button" class="top-icon-btn" data-i18n-title="rules_btn" aria-label="Info">i</button>
 </header>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💣 Сапёр — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.</div><button id="rulesOk" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
-<div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">
+  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left">
+    <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">💣 Сапёр — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.</div>
+    <button id="rulesOk" type="button" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+  </div>
+</div>
+
+<div class="langbar" id="langbar">
+  <button type="button" data-lang="uk">УКР</button>
+  <button type="button" data-lang="ru">РУС</button>
+  <button type="button" data-lang="en">ENG</button>
+  <button type="button" data-lang="de">DEU</button>
+</div>
+
 <div class="bar">
   <div class="score"><div class="l" data-i18n="mines_label">Мины</div><div class="v" id="minecount">0</div></div>
-  <div class="flagbtn" id="flagbtn" onclick="toggleFlag()">🚩</div>
-  <select id="diff" onchange="newGame()">
-    <option value="easy" data-i18n="d_easy">Легко 9×9</option><option value="med" selected data-i18n="d_med">Средне 12×12</option><option value="hard" data-i18n="d_hard">Сложно 14×16</option>
+  <button type="button" class="flagbtn" id="flagbtn" onclick="toggleFlag()">🚩</button>
+  <select id="diff" onchange="newGame()" data-i18n-title="diff_title">
+    <option value="easy" data-i18n="d_easy">Легко 9×9</option>
+    <option value="med" selected data-i18n="d_med">Средне 12×12</option>
+    <option value="hard" data-i18n="d_hard">Сложно 14×16</option>
   </select>
-  <button class="sec" onclick="newGame()">↻</button>
+  <button type="button" class="sec reset-btn" onclick="newGame()" data-i18n-title="new_title" aria-label="Restart">↻</button>
 </div>
-<div class="board" id="board"><div class="over" id="over"><div class="big" id="overbig"></div><button onclick="newGame()" data-i18n="again">Ещё раз</button></div></div>
+
+<div class="board" id="board"></div>
 <div class="hint" data-i18n="hint">Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.</div>
 <a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
 
 <script src="/games/static/ui.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
+<script src="/games/static/sfx.js"></script>
 <script>
-const UI={
- uk:{rules_title:"💣 Сапер — правила",rules_body:"Відкривай клітинки. Цифра = скільки мін навколо цієї клітинки. Вираховуй за цифрами, де міни, і став на них 🚩 (кнопка «Прапор»). Відкрий усі клітинки без мін. Перший тап завжди безпечний.",rules_ok:"Зрозуміло 👍",nav_games:"‹ Ігри",title:"💣 Сапер",mines_label:"Міни",flag:"🚩 Прапор",on:"увімк",off:"вимк",d_easy:"Легко 9×9",d_med:"Середньо 12×12",d_hard:"Складно 14×16",again:"Ще раз",hint:"Тап — відкрити. Кнопка «Прапор» увімк → тап ставить 🚩. Відкрий усі клітинки без мін.",all_games:"← Усі ігри",boom:"💥 Бум! Підірвався",win:"🎉 Розмінував!"},
- ru:{rules_title:"💣 Сапёр — правила",rules_body:"Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.",rules_ok:"Понятно 👍",nav_games:"‹ Игры",title:"💣 Сапёр",mines_label:"Мины",flag:"🚩 Флаг",on:"вкл",off:"выкл",d_easy:"Легко 9×9",d_med:"Средне 12×12",d_hard:"Сложно 14×16",again:"Ещё раз",hint:"Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.",all_games:"← Все игры",boom:"💥 Бум! Подорвался",win:"🎉 Разминировал!"},
- en:{rules_title:"💣 Minesweeper — rules",rules_body:"Open cells. A number = how many mines are around that cell. Work out where the mines are and flag them 🚩 (the «Flag» button). Open all cells without mines. The first tap is always safe.",rules_ok:"Got it 👍",nav_games:"‹ Games",title:"💣 Minesweeper",mines_label:"Mines",flag:"🚩 Flag",on:"on",off:"off",d_easy:"Easy 9×9",d_med:"Medium 12×12",d_hard:"Hard 14×16",again:"Again",hint:"Tap — open. «Flag» on → tap places 🚩. Open all cells without mines.",all_games:"← All games",boom:"💥 Boom! You blew up",win:"🎉 Cleared!"},
+const UI = {
+  uk: {
+    page_title: "Lobby.gg — Сапер",
+    rules_btn: "Правила",
+    rules_title: "💣 Сапер — правила",
+    rules_body: "Відкривай клітинки. Цифра = скільки мін навколо цієї клітинки. Вираховуй за цифрами, де міни, і став на них 🚩 (кнопка «Прапор»). Відкрий усі клітинки без мін. Перший тап завжди безпечний.",
+    rules_ok: "Зрозуміло 👍",
+    nav_games: "‹ Ігри",
+    title: "💣 Сапер",
+    mines_label: "Міни",
+    flag: "🚩",
+    on: "ВКЛ",
+    off: "ВИМК",
+    diff_title: "Складність",
+    new_title: "Нова гра",
+    d_easy: "9×9",
+    d_med: "12×12",
+    d_hard: "14×16",
+    hint: "Тап — відкрити. Кнопка 🚩 увімк → тап ставить прапор. Відкрий усі клітинки без мін.",
+    all_games: "← Усі ігри",
+    boom_title: "💥 Бум! Міна",
+    win_title: "🎉 Розміновано!",
+    opened_lbl: "Відкрито",
+    time_lbl: "Час",
+    sec_suf: "с"
+  },
+  ru: {
+    page_title: "Lobby.gg — Сапёр",
+    rules_btn: "Правила",
+    rules_title: "💣 Сапёр — правила",
+    rules_body: "Открывай клетки. Цифра = сколько мин вокруг этой клетки. Вычисляй по цифрам, где мины, и ставь на них 🚩 (кнопка «Флаг»). Открой все клетки без мин. Первый тап всегда безопасен.",
+    rules_ok: "Понятно 👍",
+    nav_games: "‹ Игры",
+    title: "💣 Сапёр",
+    mines_label: "Мины",
+    flag: "🚩",
+    on: "ВКЛ",
+    off: "ВЫКЛ",
+    diff_title: "Сложность",
+    new_title: "Новая игра",
+    d_easy: "9×9",
+    d_med: "12×12",
+    d_hard: "14×16",
+    hint: "Тап — открыть. Кнопка 🚩 вкл → тап ставит флаг. Открой все клетки без мин.",
+    all_games: "← Все игры",
+    boom_title: "💥 Бум! Мина",
+    win_title: "🎉 Разминировал!",
+    opened_lbl: "Открыто",
+    time_lbl: "Время",
+    sec_suf: "с"
+  },
+  en: {
+    page_title: "Lobby.gg — Minesweeper",
+    rules_btn: "Rules",
+    rules_title: "💣 Minesweeper — rules",
+    rules_body: "Open cells. A number = how many mines are around that cell. Work out where the mines are and flag them 🚩 (the Flag button). Open all cells without mines. The first tap is always safe.",
+    rules_ok: "Got it 👍",
+    nav_games: "‹ Games",
+    title: "💣 Minesweeper",
+    mines_label: "Mines",
+    flag: "🚩",
+    on: "ON",
+    off: "OFF",
+    diff_title: "Difficulty",
+    new_title: "New game",
+    d_easy: "9×9",
+    d_med: "12×12",
+    d_hard: "14×16",
+    hint: "Tap — open. 🚩 ON → tap places flag. Open all safe cells.",
+    all_games: "← All games",
+    boom_title: "💥 Boom! Mine",
+    win_title: "🎉 Cleared!",
+    opened_lbl: "Opened",
+    time_lbl: "Time",
+    sec_suf: "s"
+  },
   de: {
-    "rules_title": "💣 Minesweeper — Regeln",
-    "rules_body": "Öffne Felder. Eine Zahl zeigt, wie viele Minen an dieses Feld angrenzen. Finde die Minen und markiere sie mit 🚩 (Taste «Flagge»). Decke alle felder ohne Minen auf. Der erste Klick ist immer sicher.",
-    "rules_ok": "Verstanden 👍",
-    "nav_games": "‹ Spiele",
-    "title": "💣 Minesweeper",
-    "mines_label": "Minen",
-    "flag": "🚩 Flagge",
-    "on": "an",
-    "off": "aus",
-    "d_easy": "Leicht 9×9",
-    "d_med": "Mittel 12×12",
-    "d_hard": "Schwer 14×16",
-    "again": "Nochmal",
-    "hint": "Tippen — öffnen. «Flagge» an → tippen setzt 🚩. Öffne alle Felder ohne Minen.",
-    "all_games": "← Alle Spiele",
-    "boom": "💥 Boom! Du bist auf eine Mine getreten",
-    "win": "🎉 Geschafft!"
+    page_title: "Lobby.gg — Minesweeper",
+    rules_btn: "Regeln",
+    rules_title: "💣 Minesweeper — Regeln",
+    rules_body: "Öffne Felder. Eine Zahl zeigt, wie viele Minen angrenzen. Finde die Minen und markiere sie mit 🚩 (Flagge). Decke alle Felder ohne Minen auf. Der erste Klick ist sicher.",
+    rules_ok: "Verstanden 👍",
+    nav_games: "‹ Spiele",
+    title: "💣 Minesweeper",
+    mines_label: "Minen",
+    flag: "🚩",
+    on: "AN",
+    off: "AUS",
+    diff_title: "Stufe",
+    new_title: "Neues Spiel",
+    d_easy: "9×9",
+    d_med: "12×12",
+    d_hard: "14×16",
+    hint: "Tippen — öffnen. 🚩 AN → tippen setzt Flagge. Öffne alle sicheren Felder.",
+    all_games: "← Alle Spiele",
+    boom_title: "💥 Boom! Mine",
+    win_title: "🎉 Geschafft!",
+    opened_lbl: "Aufgedeckt",
+    time_lbl: "Zeit",
+    sec_suf: "s"
   }
 };
-let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
-function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function setFlagBtn(){document.getElementById('flagbtn').textContent=t('flag')+': '+(flagMode?t('on'):t('off'));}
-function applyUI(){
- document.documentElement.lang=LANG;
- document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
- document.querySelectorAll('#langbar button').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
- setFlagBtn();
-}
-document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
-document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
-document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
-let COLS,ROWS,MINES,grid,revealed,flags,over,started,flagMode=false,cellPx;
-const DIFF={easy:[9,9,10],med:[12,12,22],hard:[14,16,40]};
-function newGame(){
-  const [c,r,m]=DIFF[document.getElementById('diff').value];
-  COLS=c;ROWS=r;MINES=m; over=false;started=false;
-  grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));
-  flags=Array.from({length:ROWS},()=>Array(COLS).fill(false));
-  document.getElementById('minecount').textContent=MINES;
-  document.getElementById('over').style.display='none';
-  layout(); render();
+let LANG = localStorage.getItem('jg_lang');
+if (!UI[LANG]) LANG = 'ru';
+function t(k) { const v = UI[LANG] && UI[LANG][k]; return v !== undefined ? v : (UI.ru[k] || k); }
+
+function setFlagBtn() {
+  document.getElementById('flagbtn').textContent = t('flag') + ' ' + (flagMode ? t('on') : t('off'));
 }
-function layout(){
-  const b=document.getElementById('board');
-  const W=Math.min(window.innerWidth-24,440,window.innerHeight*0.62*COLS/ROWS);
-  cellPx=Math.floor((W-2*(COLS-1)-10)/COLS);
-  cellPx=Math.max(18,Math.min(cellPx,42));
-  b.style.gridTemplateColumns=`repeat(${COLS},${cellPx}px)`;
+
+function applyUI() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v !== 'string') return;
+    if (el.tagName.toLowerCase() === 'title') document.title = v;
+    else el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const v = t(el.dataset.i18nTitle);
+    if (typeof v === 'string') el.title = v;
+  });
+  document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  setFlagBtn();
+  if (window.ArcadeFX) ArcadeFX.refreshI18n(LANG);
 }
-function plant(safeX,safeY){
-  let placed=0;
-  while(placed<MINES){
-    const x=Math.floor(Math.random()*COLS),y=Math.floor(Math.random()*ROWS);
-    if(grid[y][x]===-1)continue;
-    if(Math.abs(x-safeX)<=1&&Math.abs(y-safeY)<=1)continue;
-    grid[y][x]=-1;placed++;
+
+document.getElementById('langbar').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  LANG = b.dataset.lang;
+  localStorage.setItem('jg_lang', LANG);
+  applyUI();
+});
+document.getElementById('rulesBtn').onclick = () => document.getElementById('rulesModal').style.display = 'flex';
+document.getElementById('rulesOk').onclick = () => document.getElementById('rulesModal').style.display = 'none';
+
+let COLS = 12, ROWS = 12, MINES = 22;
+let grid = [], revealed = [], flags = [], cellEls = [];
+let over = false, started = false, flagMode = false, cellPx = 28, startTime = 0;
+let mineTimers = [];
+const DIFF = { easy: [9, 9, 10], med: [12, 12, 22], hard: [14, 16, 40] };
+
+function clearMineTimers() {
+  mineTimers.forEach(id => clearTimeout(id));
+  mineTimers = [];
+}
+
+function newGame() {
+  clearMineTimers();
+  if (window.ArcadeFX) ArcadeFX.hideGameOver();
+  const diffVal = document.getElementById('diff').value;
+  const [c, r, m] = DIFF[diffVal];
+  COLS = c; ROWS = r; MINES = m;
+  over = false; started = false; startTime = 0;
+  grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+  flags = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+  document.getElementById('minecount').textContent = MINES;
+  layout();
+  buildBoardDOM();
+}
+
+function layout() {
+  const b = document.getElementById('board');
+  const W = Math.min(window.innerWidth - 20, 440, window.innerHeight * 0.58 * COLS / ROWS);
+  cellPx = Math.floor((W - 2.5 * (COLS - 1) - 12) / COLS);
+  cellPx = Math.max(18, Math.min(cellPx, 42));
+  b.style.gridTemplateColumns = `repeat(${COLS}, ${cellPx}px)`;
+  for (let y = 0; y < cellEls.length; y++) {
+    for (let x = 0; x < (cellEls[y] || []).length; x++) {
+      const el = cellEls[y][x];
+      if (!el) continue;
+      el.style.width = cellPx + 'px';
+      el.style.height = cellPx + 'px';
+      el.style.fontSize = Math.round(cellPx * 0.52) + 'px';
+    }
   }
-  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    if(grid[y][x]===-1)continue; let n=0;
-    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const ny=y+dy,nx=x+dx;
-      if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&grid[ny][nx]===-1)n++;}
-    grid[y][x]=n;
+}
+
+function buildBoardDOM() {
+  const b = document.getElementById('board');
+  b.innerHTML = '';
+  cellEls = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const c = document.createElement('div');
+      c.className = 'c';
+      c.style.width = cellPx + 'px';
+      c.style.height = cellPx + 'px';
+      c.style.fontSize = Math.round(cellPx * 0.52) + 'px';
+      c.onclick = () => click(x, y);
+      c.oncontextmenu = e => {
+        e.preventDefault();
+        if (!over && !revealed[y][x]) toggleFlagCell(x, y);
+      };
+      b.appendChild(c);
+      cellEls[y][x] = c;
+    }
   }
-  started=true;
 }
-function render(){
-  const b=document.getElementById('board');
-  b.querySelectorAll('.c').forEach(e=>e.remove());
-  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    const c=document.createElement('div');c.className='c';
-    c.style.width=cellPx+'px';c.style.height=cellPx+'px';c.style.fontSize=(cellPx*0.5)+'px';
-    if(revealed[y][x]){
-      c.classList.add('open');
-      if(grid[y][x]===-1){c.classList.add('mine');c.textContent='💣';}
-      else if(grid[y][x]>0){c.classList.add('c'+grid[y][x]);c.textContent=grid[y][x];}
-    } else if(flags[y][x]){c.classList.add('flag');c.textContent='🚩';}
-    c.onclick=()=>click(x,y);
-    b.appendChild(c);
+
+function plant(safeX, safeY) {
+  let placed = 0;
+  while (placed < MINES) {
+    const x = Math.floor(Math.random() * COLS);
+    const y = Math.floor(Math.random() * ROWS);
+    if (grid[y][x] === -1) continue;
+    if (Math.abs(x - safeX) <= 1 && Math.abs(y - safeY) <= 1) continue;
+    grid[y][x] = -1;
+    placed++;
+  }
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (grid[y][x] === -1) continue;
+      let n = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const ny = y + dy, nx = x + dx;
+          if (ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS && grid[ny][nx] === -1) n++;
+        }
+      }
+      grid[y][x] = n;
+    }
+  }
+  started = true;
+  startTime = performance.now();
+}
+
+function paintCell(x, y, extraClass, animDelayMs) {
+  const el = cellEls[y] && cellEls[y][x];
+  if (!el) return;
+  el.className = 'c';
+  el.style.animationDelay = animDelayMs ? animDelayMs + 'ms' : '';
+  if (revealed[y][x]) {
+    el.classList.add('open');
+    if (extraClass) el.classList.add(extraClass);
+    if (grid[y][x] === -1) {
+      el.classList.add('mine');
+      el.textContent = '💣';
+    } else if (grid[y][x] > 0) {
+      el.classList.add('c' + grid[y][x]);
+      el.textContent = grid[y][x];
+    } else {
+      el.textContent = '';
+    }
+  } else if (flags[y][x]) {
+    el.classList.add('flag');
+    if (extraClass) el.classList.add(extraClass);
+    el.textContent = '🚩';
+  } else {
+    el.textContent = '';
   }
 }
-function toggleFlag(){flagMode=!flagMode;document.getElementById('flagbtn').classList.toggle('on',flagMode);setFlagBtn();}
-function click(x,y){
-  if(over||revealed[y][x])return;
-  if(!started)plant(x,y);
-  if(flagMode){flags[y][x]=!flags[y][x];if(window.LobbyUI)LobbyUI.vibrate(12);render();updateCount();return;}
-  if(flags[y][x])return;
-  if(grid[y][x]===-1){revealAll();over=true;if(window.LobbyUI)LobbyUI.vibrate([40,30,60]);document.getElementById('overbig').style.color='';document.getElementById('overbig').textContent=t('boom');document.getElementById('over').style.display='flex';return;}
-  flood(x,y); render();
-  if(window.LobbyUI)LobbyUI.vibrate(8);
-  if(checkWin()){over=true;if(window.LobbyUI)LobbyUI.vibrate([20,40,20]);document.getElementById('overbig').textContent=t('win');document.getElementById('overbig').style.color='#5cff9e';document.getElementById('over').style.display='flex';}
+
+function toggleFlag() {
+  flagMode = !flagMode;
+  document.getElementById('flagbtn').classList.toggle('on', flagMode);
+  setFlagBtn();
 }
-function flood(x,y){
-  if(x<0||x>=COLS||y<0||y>=ROWS||revealed[y][x]||flags[y][x])return;
-  revealed[y][x]=true;
-  if(grid[y][x]===0)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy)flood(x+dx,y+dy);
+
+function toggleFlagCell(x, y) {
+  flags[y][x] = !flags[y][x];
+  paintCell(x, y, flags[y][x] ? 'flag-anim' : '', 0);
+  updateCount();
+  if (window.ArcadeFX) ArcadeFX.vibrate(12);
+  if (window.LobbyUI) LobbyUI.sound('click');
+  if (flags[y][x] && window.ArcadeFX && cellEls[y][x]) {
+    const r = cellEls[y][x].getBoundingClientRect();
+    ArcadeFX.burst(r.left + r.width * 0.5, r.top + r.height * 0.5, {
+      count: 7, speed: 95, size: 2.5, colors: ['#ff2238', '#fde047'], shape: 'spark'
+    });
+  }
 }
-function revealAll(){for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]===-1)revealed[y][x]=true;render();}
-function checkWin(){let safe=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]!==-1&&revealed[y][x])safe++;
-  return safe===COLS*ROWS-MINES;}
-function updateCount(){let f=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(flags[y][x])f++;
-  document.getElementById('minecount').textContent=MINES-f;}
-window.addEventListener('resize',()=>{layout();if(grid)render();});
-document.addEventListener('DOMContentLoaded',()=>{applyUI();newGame();});
+
+function click(x, y) {
+  if (over || revealed[y][x]) return;
+  if (!started) plant(x, y);
+  if (flagMode) {
+    toggleFlagCell(x, y);
+    return;
+  }
+  if (flags[y][x]) return;
+
+  if (grid[y][x] === -1) {
+    over = true;
+    triggerMineChain(x, y);
+    return;
+  }
+
+  const newly = [];
+  floodCollect(x, y, x, y, newly);
+  for (const item of newly) {
+    const delay = Math.min(260, Math.round(item.dist * 26));
+    paintCell(item.x, item.y, 'wave-open', delay);
+  }
+  if (window.ArcadeFX) ArcadeFX.vibrate(8);
+  if (window.LobbyUI) LobbyUI.sound('move');
+
+  if (checkWin()) {
+    over = true;
+    const elapsed = Math.max(1, Math.round((performance.now() - startTime) / 1000));
+    const diffKey = 'mines_best_' + document.getElementById('diff').value;
+    const prevBest = +(localStorage.getItem(diffKey) || 0);
+    const isNewRecord = !prevBest || elapsed < prevBest;
+    const best = isNewRecord ? elapsed : prevBest;
+    localStorage.setItem(diffKey, String(best));
+
+    if (window.ArcadeFX) {
+      ArcadeFX.vibrate([20, 40, 20]);
+      ArcadeFX.confetti();
+    }
+    if (window.LobbyUI) LobbyUI.sound('win');
+    mineTimers.push(setTimeout(() => {
+      if (!window.ArcadeFX) return;
+      ArcadeFX.showGameOver({
+        lang: LANG,
+        title: t('win_title'),
+        score: elapsed + t('sec_suf'),
+        best: best + t('sec_suf'),
+        isNewRecord,
+        stats: [{ label: t('opened_lbl'), value: COLS * ROWS - MINES }],
+        onRestart: () => newGame()
+      });
+    }, 280));
+  }
+}
+
+function floodCollect(x, y, sx, sy, out) {
+  if (x < 0 || x >= COLS || y < 0 || y >= ROWS || revealed[y][x] || flags[y][x]) return;
+  revealed[y][x] = true;
+  out.push({ x, y, dist: Math.hypot(x - sx, y - sy) });
+  if (grid[y][x] === 0) {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx || dy) floodCollect(x + dx, y + dy, sx, sy, out);
+      }
+    }
+  }
+}
+
+function countSafeOpened() {
+  let safe = 0;
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) if (grid[y][x] !== -1 && revealed[y][x]) safe++;
+  }
+  return safe;
+}
+
+function triggerMineChain(hx, hy) {
+  const b = document.getElementById('board');
+  if (window.LobbyUI) LobbyUI.sound('lose');
+  if (window.ArcadeFX) {
+    ArcadeFX.shake(b, 9, 420);
+    ArcadeFX.flash('#ff2238', 0.34, 260);
+    ArcadeFX.vibrate([40, 30, 60]);
+  }
+
+  const mines = [];
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (grid[y][x] === -1) mines.push({ x, y, d: Math.hypot(x - hx, y - hy) });
+    }
+  }
+  mines.sort((a, b) => a.d - b.d);
+
+  const reduced = window.ArcadeFX && ArcadeFX.reducedMotion();
+  const totalSpan = reduced ? 0 : 420;
+  const maxD = mines.length ? Math.max(1, mines[mines.length - 1].d) : 1;
+
+  mines.forEach((m, idx) => {
+    const delay = reduced ? 0 : Math.round((m.d / maxD) * totalSpan);
+    mineTimers.push(setTimeout(() => {
+      revealed[m.y][m.x] = true;
+      paintCell(m.x, m.y, 'mine-boom', 0);
+      if (window.ArcadeFX && idx < 6 && cellEls[m.y][m.x]) {
+        const r = cellEls[m.y][m.x].getBoundingClientRect();
+        ArcadeFX.burst(r.left + r.width * 0.5, r.top + r.height * 0.5, {
+          count: idx === 0 ? 20 : 8, speed: idx === 0 ? 240 : 140, size: 3.5,
+          colors: ['#ff2238', '#f97316', '#fde047', '#ffffff'], shape: 'spark'
+        });
+      }
+    }, delay));
+  });
+
+  const opened = countSafeOpened();
+  const totalSafe = COLS * ROWS - MINES;
+  const diffBestKey = 'mines_cleared_' + document.getElementById('diff').value;
+  const prevBest = +(localStorage.getItem(diffBestKey) || 0);
+  const bestCleared = Math.max(prevBest, opened);
+  localStorage.setItem(diffBestKey, String(bestCleared));
+
+  mineTimers.push(setTimeout(() => {
+    if (!window.ArcadeFX) return;
+    ArcadeFX.showGameOver({
+      lang: LANG,
+      title: t('boom_title'),
+      score: `${opened}/${totalSafe}`,
+      best: `${bestCleared}/${totalSafe}`,
+      isNewRecord: false,
+      onRestart: () => newGame()
+    });
+  }, totalSpan + 200));
+}
+
+function checkWin() {
+  return countSafeOpened() === COLS * ROWS - MINES;
+}
+
+function updateCount() {
+  let f = 0;
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (flags[y][x]) f++;
+  document.getElementById('minecount').textContent = MINES - f;
+}
+
+window.addEventListener('resize', () => layout());
+window.addEventListener('pagehide', () => clearMineTimers());
+document.addEventListener('DOMContentLoaded', () => {
+  applyUI();
+  newGame();
+});
 </script>
-<script src="/games/static/sfx.js"></script>
 </body>
 </html>

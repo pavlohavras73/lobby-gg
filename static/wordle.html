@@ -45,6 +45,9 @@
   @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
   @keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
   .row.shake{animation:shake .4s}
+  .tile.win-bounce{animation:winBounce .55s cubic-bezier(.22,1.3,.36,1) both}
+  @media (prefers-reduced-motion: reduce){.tile.win-bounce{animation:none}}
+  @keyframes winBounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-14px) scale(1.06)}}
   @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 
   .msg{min-height:20px;font-weight:700;font-size:13px;text-align:center;margin:2px 0 4px;color:var(--crimson)}
@@ -155,7 +158,12 @@ const UI = {
     msg_word: "! Слово: ",
     msg_lose: "😔 Не вийшло. Слово: ",
     hard_pos: "Позиція {pos} має бути «{ch}»",
-    hard_use: "Використай букву «{ch}»"
+    hard_use: "Використай букву «{ch}»",
+    over_win: "🎉 Відгадано!",
+    over_lose: "😔 Спроби скінчились",
+    word_was: "Слово: ",
+    tries_lbl: "Спроби",
+    streak_lbl: "Рекорд серії"
   },
   ru: {
     title: "Lobby.gg — 5 букв",
@@ -188,7 +196,12 @@ const UI = {
     msg_word: "! Слово: ",
     msg_lose: "😔 Не вышло. Слово: ",
     hard_pos: "Позиция {pos} должна быть «{ch}»",
-    hard_use: "Используй букву «{ch}»"
+    hard_use: "Используй букву «{ch}»",
+    over_win: "🎉 Слово угадано!",
+    over_lose: "😔 Попытки кончились",
+    word_was: "Слово: ",
+    tries_lbl: "Попытки",
+    streak_lbl: "Лучшая серия"
   },
   en: {
     title: "Lobby.gg — Wordle",
@@ -221,7 +234,12 @@ const UI = {
     msg_word: "! Word: ",
     msg_lose: "😔 Out of tries. Word: ",
     hard_pos: "Spot {pos} must be '{ch}'",
-    hard_use: "Use letter '{ch}'"
+    hard_use: "Use letter '{ch}'",
+    over_win: "🎉 Word solved!",
+    over_lose: "😔 Out of tries",
+    word_was: "Word: ",
+    tries_lbl: "Tries",
+    streak_lbl: "Best streak"
   },
   de: {
     title: "Lobby.gg — 5 Buchstaben",
@@ -254,7 +272,12 @@ const UI = {
     msg_word: "! Wort: ",
     msg_lose: "😔 Knapp vorbei. Wort: ",
     hard_pos: "Platz {pos} muss „{ch}“ sein",
-    hard_use: "Nutze den Buchstaben „{ch}“"
+    hard_use: "Nutze den Buchstaben „{ch}“",
+    over_win: "🎉 Wort gelöst!",
+    over_lose: "😔 Keine Versuche mehr",
+    word_was: "Wort: ",
+    tries_lbl: "Versuche",
+    streak_lbl: "Beste Serie"
   }
 };
 
@@ -327,6 +350,7 @@ function applyUI() {
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   syncDictButtons();
   renderMsg();
+  if (window.ArcadeFX) ArcadeFX.refreshI18n(LANG);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -360,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function pool(){ return WORDS[lang].filter(w=>w.length===5); }
 
 function startGame(){
+  if (window.ArcadeFX) ArcadeFX.hideGameOver();
   for (const k in keyState) delete keyState[k];
   for (const k in keyBtns) delete keyBtns[k];
   const list=pool();
@@ -434,9 +459,55 @@ function submit(){
   cur=""; col=0;
   setTimeout(()=>{
     busy=false;
-    if(won){ over=true; setMsgState({ type: 'win', tries: row + 1, word: answer.toUpperCase() }); showAgain(); return; }
+    const prevBestStreak = +(localStorage.getItem('wordle_best_streak') || 0);
+    if(won){
+      over=true;
+      setMsgState({ type: 'win', tries: row + 1, word: answer.toUpperCase() });
+      showAgain();
+      for(let c=0;c<5;c++){
+        const tile=document.getElementById('t'+row+'_'+c);
+        if(tile){ tile.style.animationDelay=(c*70)+'ms'; tile.classList.add('win-bounce'); }
+      }
+      const streak = +(localStorage.getItem('wordle_streak') || 0) + 1;
+      const isNewBest = streak > prevBestStreak;
+      const bestStreak = Math.max(prevBestStreak, streak);
+      localStorage.setItem('wordle_streak', String(streak));
+      localStorage.setItem('wordle_best_streak', String(bestStreak));
+      if(window.LobbyUI) LobbyUI.sound('win');
+      if(window.ArcadeFX){
+        ArcadeFX.confetti();
+        ArcadeFX.vibrate([20,30,20]);
+        setTimeout(()=>{
+          if(over) ArcadeFX.showGameOver({
+            lang: LANG, title: t('over_win'), subtitle: t('word_was') + answer.toUpperCase(),
+            score: `${row + 1}/6`, scoreLabel: t('tries_lbl'),
+            best: bestStreak, bestLabel: t('streak_lbl'),
+            isNewRecord: isNewBest, onRestart: () => resetToNewWord()
+          });
+        }, 480);
+      }
+      return;
+    }
     row++;
-    if(row>=6){ over=true; setMsgState({ type: 'lose', word: answer.toUpperCase() }); showAgain(); }
+    if(row>=6){
+      over=true;
+      setMsgState({ type: 'lose', word: answer.toUpperCase() });
+      showAgain();
+      localStorage.setItem('wordle_streak', '0');
+      if(window.LobbyUI) LobbyUI.sound('lose');
+      if(window.ArcadeFX){
+        ArcadeFX.shake(document.getElementById('grid'), 7, 320);
+        ArcadeFX.vibrate(25);
+        setTimeout(()=>{
+          if(over) ArcadeFX.showGameOver({
+            lang: LANG, title: t('over_lose'), subtitle: t('word_was') + answer.toUpperCase(),
+            score: '✕/6', scoreLabel: t('tries_lbl'),
+            best: prevBestStreak, bestLabel: t('streak_lbl'),
+            isNewRecord: false, onRestart: () => resetToNewWord()
+          });
+        }, 320);
+      }
+    }
     else setMsgState(null);
   }, 5*140+250);
 }
@@ -471,6 +542,8 @@ window.addEventListener('keydown',e=>{
   else{ const ch=e.key.toLowerCase(); const valid=KEYS[lang].flat(); if(valid.includes(ch))press(ch); }
 });
 </script>
+<script src="/games/static/ui.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script src="/games/static/sfx.js"></script>
 </body>
 </html>
