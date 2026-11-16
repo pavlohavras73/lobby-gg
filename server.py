@@ -794,10 +794,24 @@ async def push_bunker(room):
     await broadcast(room, bunker_public(room))
 
 async def variants_new_round(room):
-    """Новый раунд «Вариантов»: запрос к Gemini — в отдельном потоке, не блокируя остальные игры."""
-    cats = room.setdefault("state_data", {}).get("categories", [])
-    prompt = await asyncio.get_event_loop().run_in_executor(None, vr.generate_prompt, cats)
-    vr.start_round(room, prompt)
+    """Новый раунд «Вариантов» — мгновенно (колода или заранее готовый вопрос), нейросеть готовит следующий в фоне."""
+    vr.start_round(room, vr.next_prompt(room))
+    asyncio.create_task(_variants_prefetch(room))
+
+
+async def _variants_prefetch(room):
+    gs = room.setdefault("state_data", {})
+    if gs.get("prefetching") or gs.get("prefetch"):
+        return
+    gs["prefetching"] = True
+    try:
+        data = await asyncio.get_event_loop().run_in_executor(None, vr.generate_prompt, list(gs.get("categories") or []))
+        if data and rooms.get(room.get("code")) is room:
+            gs["prefetch"] = data
+    except Exception:
+        logging.exception("variants prefetch failed")
+    finally:
+        gs["prefetching"] = False
 
 
 async def start_variants(room):
@@ -807,10 +821,21 @@ async def start_variants(room):
         d["score"] = 0
     room["state"] = "playing"
     await variants_new_round(room)
-    await broadcast(room, vr.variants_public(room))
+    await push_variants(room)
 
 async def push_variants(room):
-    await broadcast(room, vr.variants_public(room))
+    """Сначала — не пора ли сменить фазу (кто-то отключился), потом каждому состояние + id его ответа."""
+    vr.advance(room)
+    payload = vr.variants_public(room)
+    for q, pl in list(room["players"].items()):
+        ws = pl.get("ws")
+        if not ws:
+            continue
+        mine = (room.get("players_data", {}).get(q) or {}).get("bluff_id")
+        try:
+            await ws.send_json({**payload, "mine_id": mine})
+        except Exception:
+            pass
 
 
 # ─────────────── ЭЛИАС (ALIAS) ───────────────
@@ -4357,40 +4382,50 @@ async def ws(websocket: WebSocket):
                     # --- Варианты (Аукцион лжи) ---
                     elif act == "variants_set_cats" and room and room["host"] == pid and room.get("game") == "variants":
                         gs = room.setdefault("state_data", {})
-                        gs["categories"] = msg.get("categories", [])
-                        gs["total_rounds"] = msg.get("total_rounds", 5)
-                        await broadcast(room, vr.variants_public(room))
+                        cats = msg.get("categories") or []
+                        gs["categories"] = [str(c)[:40] for c in cats if isinstance(c, str)][:8] if isinstance(cats, list) else []
+                        try:
+                            gs["total_rounds"] = max(1, min(15, int(msg.get("total_rounds", 5))))
+                        except Exception:
+                            gs["total_rounds"] = 5
+                        await push_variants(room)
                     elif act == "variants_submit" and room and room.get("game") == "variants":
-                        bluff = msg.get("bluff", "").strip()
-                        if bluff and room.setdefault("players_data", {}).get(pid) is not None \
-                                and room.get("state_data", {}).get("phase") == "input":
-                            room["players_data"][pid]["bluff"] = bluff[:120]
-                            if vr.check_input_phase_complete(room):
-                                await push_variants(room)
+                        bluff = str(msg.get("bluff", "")).strip()[:120]
+                        gs = room.get("state_data", {})
+                        if bluff and room.setdefault("players_data", {}).get(pid) is not None and gs.get("phase") == "input" \
+                                and not room["players_data"][pid].get("bluff"):
+                            if vr.is_truth(gs.get("current_prompt") or {}, bluff):
+                                await websocket.send_json({"type": "variants_error", "code": "truth"})
                             else:
+                                room["players_data"][pid]["bluff"] = bluff
                                 await push_variants(room)
                     elif act == "variants_vote" and room and room.get("game") == "variants":
                         vote_id = msg.get("vote_id")
-                        if vote_id and room.setdefault("players_data", {}).get(pid) is not None \
-                                and room.get("state_data", {}).get("phase") == "voting":
-                            room["players_data"][pid]["vote"] = vote_id
-                            if vr.check_voting_phase_complete(room):
-                                await push_variants(room)
+                        gs = room.get("state_data", {})
+                        ids = {a["id"] for a in gs.get("shuffled_answers", [])}
+                        if vote_id in ids and room.setdefault("players_data", {}).get(pid) is not None \
+                                and gs.get("phase") == "voting" and not room["players_data"][pid].get("vote"):
+                            if vote_id in vr.own_answer_ids(room, pid):
+                                await websocket.send_json({"type": "variants_error", "code": "own"})
                             else:
+                                room["players_data"][pid]["vote"] = vote_id
                                 await push_variants(room)
+                    elif act == "variants_force" and room and room["host"] == pid and room.get("game") == "variants":
+                        if vr.force_advance(room):   # хост: «не ждать остальных»
+                            await push_variants(room)
                     elif act == "variants_next" and room and room["host"] == pid and room.get("game") == "variants":
                         gs = room.setdefault("state_data", {})
-                        if gs.get("phase", "lobby") in ("lobby", "game_over"):
+                        phase = gs.get("phase", "lobby")
+                        if phase == "lobby" or (phase == "game_over" and msg.get("restart")):
                             # кнопка «Начать» в лобби шлёт variants_next — это старт новой игры, а не 2-й раунд
                             await start_variants(room)
-                        else:
+                        elif phase == "results":      # только из итогов раунда (двойной тап не съедает раунд)
                             gs["round"] = gs.get("round", 1) + 1
                             if gs["round"] > gs.get("total_rounds", 5):
                                 gs["phase"] = "game_over"
-                                await push_variants(room)
                             else:
                                 await variants_new_round(room)
-                                await push_variants(room)
+                            await push_variants(room)
 
                     elif act == "reveal" and room:
                         # показать всем: кто был шпион + что загадано (любой игрок может вскрыть)

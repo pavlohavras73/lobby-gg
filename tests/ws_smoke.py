@@ -149,7 +149,7 @@ async def test_variants(cookie):
         check("Варианты: после моего ответа — голосование (бот не держит раунд)", st is not None,
               f"(последнее: {last and last.get('phase')})")
         if not st: return
-        ans = next(a for a in st.get("answers", st.get("shuffled_answers", [])) if a.get("author") not in ("me",))
+        ans = next(a for a in st.get("answers", []) if a["id"] != st.get("mine_id"))   # за свою ложь голосовать нельзя
         await ws.send(json.dumps({"action": "variants_vote", "vote_id": ans["id"]}))
         st, last = await recv_until(ws, lambda m: m.get("type") == "variants_state" and m.get("phase") == "results", timeout=8)
         check("Варианты: голос → результаты раунда", st is not None, f"(последнее: {last and last.get('phase')})")

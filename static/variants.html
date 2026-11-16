@@ -149,6 +149,7 @@
       <span data-i18n="wait_others">Ложь отправлена. Ждём остальных...</span><br><br>
       <div id="inputPlayersStatus" style="font-size:14px;"></div>
     </div>
+    <button class="btn btn-secondary" id="skipInput" onclick="forceNext()" style="display:none;width:100%;margin-top:12px;" data-i18n="skip_wait">⏭ Не ждать остальных</button>
   </div>
 </div>
 
@@ -161,6 +162,7 @@
 
     <div id="answersList"></div>
     <div id="waitVote" style="display:none; text-align:center; color:var(--muted); margin-top:20px;" data-i18n="wait_vote">Ждём остальных...</div>
+    <button class="btn btn-secondary" id="skipVote" onclick="forceNext()" style="display:none;width:100%;margin-top:12px;" data-i18n="skip_wait">⏭ Не ждать остальных</button>
   </div>
 </div>
 
@@ -184,6 +186,7 @@
     <h1 style="font-size:40px;margin-bottom:10px;">🏆</h1>
     <h2 data-i18n="over_title">Игра окончена!</h2>
     <div id="finalLeaderboard"></div>
+    <button class="btn" id="btnAgain" onclick="startRound()" style="display:none;width:100%;margin-top:20px;" data-i18n="again_btn">🔁 Ещё партию</button>
     <button class="btn sec" onclick="location.href='/games/'" style="width:100%;margin-top:20px;" data-i18n="menu_btn">В меню</button>
   </div>
 </div>
@@ -234,7 +237,7 @@ const UI = {
     "lobby_room": "КІМНАТА:",
     "copy_link": "📋 Посилання",
     "link_copied": "Посилання на гру скопійовано!",
-    "copy_prompt": "Скопіюй посилання для друзів:"
+    "skip_wait": "⏭ Не чекати інших", "offline": "не в мережі", "err_truth": "Це правда! Придумай брехню 😉", "err_own": "За свою брехню голосувати не можна", "again_btn": "🔁 Ще партію", "copy_prompt": "Скопіюй посилання для друзів:"
   },
   ru: {
     "title": "Аукцион лжи (Варианты)",
@@ -274,7 +277,7 @@ const UI = {
     "lobby_room": "КОМНАТА:",
     "copy_link": "📋 Ссылка",
     "link_copied": "Ссылка на игру скопирована!",
-    "copy_prompt": "Скопируй ссылку для друзей:"
+    "skip_wait": "⏭ Не ждать остальных", "offline": "не в сети", "err_truth": "Это правда! Придумай ложь 😉", "err_own": "За свою ложь голосовать нельзя", "again_btn": "🔁 Ещё партию", "copy_prompt": "Скопируй ссылку для друзей:"
   },
   en: {
     "title": "Fibbage (Variants)",
@@ -314,7 +317,7 @@ const UI = {
     "lobby_room": "ROOM:",
     "copy_link": "📋 Link",
     "link_copied": "Game link copied to clipboard!",
-    "copy_prompt": "Copy link for friends:"
+    "skip_wait": "⏭ Don't wait for the rest", "offline": "offline", "err_truth": "That's the truth! Make up a lie 😉", "err_own": "You can't vote for your own lie", "again_btn": "🔁 Play again", "copy_prompt": "Copy link for friends:"
   },
   de: {
     "title": "Fibbage (Varianten)",
@@ -354,7 +357,7 @@ const UI = {
     "lobby_room": "RAUM:",
     "copy_link": "📋 Link",
     "link_copied": "Spiellink in die Zwischenablage kopiert!",
-    "copy_prompt": "Link für Freunde kopieren:"
+    "skip_wait": "⏭ Nicht auf die anderen warten", "offline": "offline", "err_truth": "Das ist die Wahrheit! Erfinde eine Lüge 😉", "err_own": "Für deine eigene Lüge kannst du nicht stimmen", "again_btn": "🔁 Noch eine Runde", "copy_prompt": "Link für Freunde kopieren:"
   }
 };
 
@@ -674,6 +677,13 @@ function gt(s) {
   if (e && e[LANG]) return e[LANG];
   return (window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(s) : s;
 }
+function L(x) {   // текст с сервера: {ru,uk,en,de} или строка
+  if (x && typeof x === 'object') return x[LANG] || x.ru || Object.values(x)[0] || '';
+  return gt(x || '');
+}
+function forceNext() { wsSend({action: 'variants_force'}); }
+function toastMsg(m) { if (window.LobbyUI && LobbyUI.toast) LobbyUI.toast(m, '', 3200); else alert(m); }
+let lastInputRound = null;
 function esc(s) {
   const d = document.createElement('div');
   d.textContent = s == null ? '' : String(s);
@@ -773,7 +783,7 @@ function updateRounds() {
 }
 
 function startRound() {
-  wsSend({action: 'variants_next'});
+  wsSend({action: 'variants_next', restart: true});
 }
 
 function submitBluff() {
@@ -797,7 +807,7 @@ function switchScreen(screenId) {
 }
 
 function formatPromptHtml(raw) {
-  const translated = gt(raw || '');
+  const translated = L(raw);
   return esc(translated).replace('_____', "<span class='blank'>_____</span>");
 }
 
@@ -854,10 +864,12 @@ function updateUI() {
     document.getElementById('promptText').innerHTML = promptHtml;
     document.getElementById('promptTextVote').innerHTML = promptHtml;
 
+    if (lastInputRound !== state.round) { lastInputRound = state.round; const bi = document.getElementById('bluffInput'); if (bi && !(me && me.has_submitted)) bi.value = ''; }
+    document.getElementById('skipInput').style.display = isHost && (state.players || []).some(p => p.has_submitted) ? 'block' : 'none';
     if (me && me.has_submitted) {
       document.getElementById('inputBox').style.display = 'none';
       document.getElementById('waitInput').style.display = 'block';
-      let statuses = (state.players || []).map(p => `${esc(trName(p.name))}: ${p.has_submitted ? '✅' : '⏳'}`).join('<br>');
+      let statuses = (state.players || []).filter(p => !p.bot).map(p => `${esc(trName(p.name))}: ${p.has_submitted ? '✅' : (p.online ? '⏳' : '📴 ' + esc(t('offline')))}`).join('<br>');
       document.getElementById('inputPlayersStatus').innerHTML = statuses;
     } else {
       document.getElementById('inputBox').style.display = 'block';
@@ -867,19 +879,20 @@ function updateUI() {
 
   if (state.phase === 'voting') {
     document.getElementById('promptTextVote').innerHTML = formatPromptHtml(state.prompt);
+    document.getElementById('skipVote').style.display = isHost ? 'block' : 'none';
     if (me && me.has_voted) {
       document.getElementById('answersList').style.display = 'none';
       document.getElementById('waitVote').style.display = 'block';
-      let statuses = (state.players || []).map(p => `${esc(trName(p.name))}: ${p.has_voted ? '✅' : '⏳'}`).join('<br>');
+      let statuses = (state.players || []).filter(p => !p.bot).map(p => `${esc(trName(p.name))}: ${p.has_voted ? '✅' : (p.online ? '⏳' : '📴 ' + esc(t('offline')))}`).join('<br>');
       document.getElementById('waitVote').innerHTML = esc(t('wait_vote')) + '<br><br>' + statuses;
     } else {
       document.getElementById('answersList').style.display = 'block';
       document.getElementById('waitVote').style.display = 'none';
 
       let html = '';
-      (state.answers || []).forEach(ans => {
+      (state.answers || []).filter(ans => ans.id !== state.mine_id).forEach(ans => {
         const safeId = String(ans.id).replace(/'/g, "\\'");
-        html += `<div class="ans-btn" onclick="voteAnswer('${safeId}')">${esc(gt(ans.text))}</div>`;
+        html += `<div class="ans-btn" onclick="voteAnswer('${safeId}')">${esc(ans.i18n ? L(ans.i18n) : ans.text)}</div>`;
       });
       document.getElementById('answersList').innerHTML = html;
     }
@@ -889,7 +902,7 @@ function updateUI() {
     document.getElementById('btnNext').style.display = isHost ? 'block' : 'none';
     document.getElementById('waitNextHost').style.display = isHost ? 'none' : 'block';
 
-    document.getElementById('explanationText').textContent = gt(state.explanation || '');
+    document.getElementById('explanationText').textContent = L(state.explanation);
 
     let resHtml = '';
     (state.answers || []).forEach(ans => {
@@ -915,7 +928,7 @@ function updateUI() {
 
         resHtml += `
         <div class="result-item ${authorClass}">
-          <div class="ans-text"><span>${esc(gt(ans.text))}</span> ${pts}</div>
+          <div class="ans-text"><span>${esc(ans.i18n ? L(ans.i18n) : ans.text)}</span> ${pts}</div>
           <div class="ans-author" style="${isSysBluff ? 'color:#ffb8b8;' : ''}">${esc(authorName)}</div>
           <div>${voters.join('')}</div>
         </div>`;
@@ -937,6 +950,7 @@ function updateUI() {
   }
 
   if (state.phase === 'game_over') {
+    document.getElementById('btnAgain').style.display = isHost ? 'block' : 'none';
     let lbHtml = '';
     let sorted = [...(state.players || [])].sort((a, b) => b.score - a.score);
     sorted.forEach((p, i) => {
@@ -985,6 +999,9 @@ window.onWsMessage = (msg) => {
     document.getElementById('connectionStatus').style.display = 'none';
     state = msg;
     updateUI();
+  }
+  if (msg.type === "variants_error") {
+    toastMsg(t(msg.code === 'truth' ? 'err_truth' : 'err_own'));
   }
   if (msg.type === "error" && msg.msg) {
     alert((window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(msg.msg) : msg.msg);
