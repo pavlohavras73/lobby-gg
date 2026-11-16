@@ -112,3 +112,226 @@ def new_game_state(n_players):
         "seats": seats,
         "round": 1,
     }
+
+
+# ── Активные спецспособности ──
+# Карты «Спецспособность 1/2» — одноразовые действия. Применение вскрывает карту для всех.
+ABILITY_CATS = ("Спецспособность 1", "Спецспособность 2")
+ABILITY_IDS = {
+    "Раз за игру: заглянуть в любую закрытую карту игрока": "peek",
+    "Раз за игру: отменить голосование": "cancel_vote",
+    "Иммунитет к изгнанию на 1 раунд": "immune",
+    "Поменяться одной картой с любым игроком": "swap",
+    "Раз за игру: добавить себе случайную профессию": "add_prof",
+    "Вылечить любую болезнь (свою или чужую)": "heal",
+    "Раз за игру: украсть инвентарь изгнанного": "steal_inv",
+    "Заставить игрока вскрыть случайную карту": "force_reveal",
+    "Раз за игру: переголосовать (твой голос ×2)": "double_vote",
+    "Раз за игру: спасти изгнанного (вернуть)": "rescue",
+    "Обнулить чужую спецспособность": "nullify",
+    "Раз за игру: тайно увидеть сценарий-секрет": "see_secret",
+    "Поменять свой возраст на любой": "change_age",
+    "Раз за игру: объединиться с игроком (вас не изгнать вместе)": "ally",
+    "Раз за игру: форсировать новый раунд карт": "force_round",
+    "Сделать свою болезнь незаразной навсегда": "non_contagious",
+}
+assert set(ABILITY_IDS) == set(POOLS[ABILITY_CATS[0]]) | set(POOLS[ABILITY_CATS[1]])
+
+# что нужно выбрать: target = alive_other | alive_any | dead | none; pick = target_closed | swap_cat | target_ability | age | None
+ABILITY_SPEC = {
+    "peek": ("alive_other", "target_closed"), "cancel_vote": ("none", None), "immune": ("none", None),
+    "swap": ("alive_other", "swap_cat"), "add_prof": ("none", None), "heal": ("alive_any", None),
+    "steal_inv": ("dead", None), "force_reveal": ("alive_other", None), "double_vote": ("none", None),
+    "rescue": ("dead", None), "nullify": ("alive_other", "target_ability"), "see_secret": ("none", None),
+    "change_age": ("none", "age"), "ally": ("alive_other", None), "force_round": ("none", None),
+    "non_contagious": ("none", None),
+}
+
+SEP = " ＋ "          # склейка карт («Профессия ＋ вторая профессия»); клиент переводит части по отдельности
+NONE_VAL = "—"
+NON_CONTAGIOUS = "Не заразно"
+HEALTHY = "Абсолютно здоров"
+SWAP_CATS = [c for c in CATEGORIES if c not in ABILITY_CATS]
+
+SECRETS = [
+    "В бункере уже кто-то живёт — и он не рад гостям.",
+    "Через 3 месяца откроется соседний бункер с едой.",
+    "Фильтр воздуха рассчитан на одного человека меньше, чем мест.",
+    "Один из запасов еды отравлен.",
+    "Снаружи есть выжившие, они ищут вход.",
+    "В бункере спрятан тайник с оружием.",
+]
+
+
+class AbilityError(Exception):
+    pass
+
+
+def ability_of(char, cat):
+    return ABILITY_IDS.get((char or {}).get(cat, ""))
+
+
+def _alive(room, q):
+    p = room["players"].get(q)
+    return bool(p) and p.get("alive", True)
+
+
+def is_protected(room, q):
+    """Иммунитет от изгнания голосованием: на текущий раунд или навсегда (союз)."""
+    p = room["players"].get(q) or {}
+    rnd = room.get("gs", {}).get("round", 1)
+    return p.get("immune_round") == rnd or bool(p.get("ally_shield"))
+
+
+def on_kicked(room, kicked):
+    """Изгнан один из союзников → второго больше нельзя изгнать голосованием. Возвращает событие или None."""
+    p = room["players"].get(kicked) or {}
+    ally = p.get("ally")
+    if ally and _alive(room, ally) and not room["players"][ally].get("ally_shield"):
+        room["players"][ally]["ally_shield"] = True
+        ev = {"kind": "ally_shield", "actor": room["players"][ally]["name"], "target": p.get("name"), "cat": None}
+        add_log(room, ev)
+        return ev
+    return None
+
+
+def new_round(room):
+    gs = room.setdefault("gs", {})
+    gs["round"] = gs.get("round", 1) + 1
+    for p in room["players"].values():
+        p["reveals_round"] = 0
+    room["vote"] = None
+
+
+def use_ability(room, pid, cat, target=None, pick=None, rng=random):
+    """Применить спецспособность. Возвращает (event, private|None). Ошибка → AbilityError(код)."""
+    p = room["players"].get(pid)
+    if not p or room.get("state") != "playing":
+        raise AbilityError("not_playing")
+    if cat not in ABILITY_CATS:
+        raise AbilityError("bad_card")
+    if not p.get("alive", True):
+        raise AbilityError("dead")
+    used, nulled = p.setdefault("used", set()), p.setdefault("nulled", set())
+    if cat in used:
+        raise AbilityError("used")
+    if cat in nulled:
+        raise AbilityError("nulled")
+    ab = ability_of(p.get("char"), cat)
+    if not ab:
+        raise AbilityError("bad_card")
+    need_t, need_pick = ABILITY_SPEC[ab]
+    players = room["players"]
+    t = players.get(target) if target else None
+    if need_t == "alive_other" and (not t or target == pid or not t.get("alive", True)):
+        raise AbilityError("bad_target")
+    if need_t == "alive_any" and (not t or not t.get("alive", True)):
+        raise AbilityError("bad_target")
+    if need_t == "dead" and (not t or t.get("alive", True)):
+        raise AbilityError("bad_target")
+    vote = room.get("vote")
+    my, tc = p["char"], (t or {}).get("char") or {}
+    ev = {"kind": ab, "actor": p["name"], "target": t["name"] if t else None, "cat": None}
+    private = None
+
+    if ab == "peek":
+        if pick not in CATEGORIES or pick in (t.get("revealed") or set()):
+            raise AbilityError("bad_pick")
+        private = {"kind": "peek", "target": t["name"], "cat": pick, "value": tc.get(pick)}
+    elif ab == "cancel_vote":
+        if vote is None:
+            raise AbilityError("no_vote")
+        room["vote"] = None
+    elif ab == "immune":
+        p["immune_round"] = room.get("gs", {}).get("round", 1)
+    elif ab == "swap":
+        if pick not in SWAP_CATS:
+            raise AbilityError("bad_pick")
+        my[pick], tc[pick] = tc.get(pick), my.get(pick)
+        ev["cat"] = pick
+    elif ab == "add_prof":
+        cur = my.get("Профессия", "")
+        opts = [x for x in POOLS["Профессия"] if x not in cur.split(SEP)]
+        my["Профессия"] = cur + SEP + rng.choice(opts) if cur else rng.choice(opts)
+    elif ab == "heal":
+        tc["Здоровье"] = HEALTHY
+    elif ab == "steal_inv":
+        inv = tc.get("Крупный инвентарь")
+        if not inv or inv == NONE_VAL:
+            raise AbilityError("empty")
+        mine = my.get("Крупный инвентарь")
+        my["Крупный инвентарь"] = inv if (not mine or mine == NONE_VAL) else mine + SEP + inv
+        tc["Крупный инвентарь"] = NONE_VAL
+    elif ab == "force_reveal":
+        closed = [c for c in CATEGORIES if c not in (t.get("revealed") or set())]
+        if not closed:
+            raise AbilityError("bad_target")
+        c = rng.choice(closed)
+        t.setdefault("revealed", set()).add(c)
+        ev["cat"] = c
+    elif ab == "double_vote":
+        if vote is None:
+            raise AbilityError("no_vote")
+        vote.setdefault("double", set()).add(pid)
+    elif ab == "rescue":
+        t["alive"] = True
+    elif ab == "nullify":
+        if pick not in ABILITY_CATS or pick in t.setdefault("used", set()) or pick in t.setdefault("nulled", set()):
+            raise AbilityError("bad_pick")
+        t["nulled"].add(pick)
+    elif ab == "see_secret":
+        gs = room.setdefault("gs", {})
+        if not gs.get("secret"):
+            gs["secret"] = rng.choice(SECRETS)
+        private = {"kind": "secret", "value": gs["secret"]}
+    elif ab == "change_age":
+        if pick not in POOLS["Возраст"]:
+            raise AbilityError("bad_pick")
+        my["Возраст"] = pick
+    elif ab == "ally":
+        if p.get("ally") or t.get("ally"):
+            raise AbilityError("bad_target")
+        p["ally"], t["ally"] = target, pid
+    elif ab == "force_round":
+        new_round(room)
+    elif ab == "non_contagious":
+        h = my.get("Здоровье", "")
+        if NON_CONTAGIOUS not in h.split(SEP):
+            my["Здоровье"] = h + SEP + NON_CONTAGIOUS if h else NON_CONTAGIOUS
+
+    used.add(cat)
+    p.setdefault("revealed", set()).add(cat)   # применение = вскрытие карты (не тратит лимит вскрытий)
+    if private:
+        p.setdefault("notes", []).append(private)
+    add_log(room, ev)
+    return ev, private
+
+
+def add_log(room, ev):
+    gs = room.setdefault("gs", {})
+    gs["log_seq"] = gs.get("log_seq", 0) + 1
+    ev["seq"] = gs["log_seq"]
+    log = gs.setdefault("log", [])
+    log.append(ev)
+    del log[:-30]
+
+
+def tally(room):
+    """Подсчёт голосов с учётом «голос ×2»."""
+    vote = room.get("vote") or {}
+    dbl = vote.get("double") or set()
+    out = {}
+    for voter, tgt in (vote.get("votes") or {}).items():
+        out[tgt] = out.get(tgt, 0) + (2 if voter in dbl else 1)
+    return out
+
+
+def my_abilities(char):
+    """Для личной карты игрока: что требует каждая его способность (клиент строит по этому окно выбора)."""
+    out = {}
+    for c in ABILITY_CATS:
+        ab = ability_of(char, c)
+        if ab:
+            tgt, pick = ABILITY_SPEC[ab]
+            out[c] = {"id": ab, "target": tgt, "pick": pick}
+    return out

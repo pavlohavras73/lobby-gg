@@ -23,6 +23,29 @@
   .pl.dead{opacity:.4;text-decoration:line-through}
   .pl b{color:#fff}.tag{font-size:10px;color:var(--muted)}
   .seats{color:var(--crimson);font-weight:700}
+  .cell.ab{border-color:rgba(245,197,24,.45);background:rgba(245,197,24,.06)}
+  .cell.ab.open{box-shadow:0 0 14px rgba(245,197,24,.18)}
+  .tapbtn.abbtn{background:rgba(245,197,24,.16);color:#f5c518;border-color:rgba(245,197,24,.5);font-weight:800}
+  .tapbtn,.abopt{width:auto;min-height:40px;margin:0;flex:none}
+  .tapbtn::after,.abopt::after{display:none}
+  .bbadge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;margin:0 0 0 4px;background:rgba(245,197,24,.14);color:#f5c518;border:1px solid rgba(245,197,24,.35)}
+  .bbadge.ally{background:rgba(56,189,248,.12);color:#7dd3fc;border-color:rgba(56,189,248,.35)}
+  .bbadge.x2{background:rgba(255,34,56,.14);color:#ff8a98;border-color:rgba(255,34,56,.4)}
+  #ablog .ev{font-size:12.5px;color:#e8e2c8;padding:6px 0;border-bottom:1px solid var(--border)}
+  #ablog .ev:last-child{border-bottom:0}
+  #mynotes .note{font-size:12.5px;color:#fde68a;background:rgba(245,197,24,.07);border:1px dashed rgba(245,197,24,.35);border-radius:9px;padding:8px 10px;margin-top:6px}
+  #abModal{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  #abModal.on{display:flex}
+  #abModal .abbox{background:linear-gradient(180deg,rgba(32,30,24,.97),rgba(16,15,12,.98));border:1px solid rgba(245,197,24,.4);border-radius:20px;padding:18px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+  #abModal h3{margin:0 0 4px;color:#f5c518;font-size:15px;letter-spacing:.5px}
+  #abModal .abtext{color:#fff;font-weight:800;font-size:15px;margin-bottom:12px}
+  #abModal .abstep{color:var(--muted);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin:10px 0 6px}
+  #abModal .abopts{display:flex;flex-wrap:wrap;gap:6px}
+  .abopt{background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:none}
+  .abopt.sel{background:rgba(245,197,24,.2);border-color:#f5c518;color:#f5c518}
+  #abModal .abmsg{color:#ff8a98;font-size:13px;font-weight:700;margin:8px 0}
+  #abModal .abact{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  #abModal .abact button{margin:0}
   .langbar{display:flex;gap:4px;justify-content:center;margin:10px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
   .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
@@ -78,6 +101,7 @@
   <div class="card">
     <div style="color:#f5c518;font-weight:700;margin-bottom:6px" data-i18n="your_card">📋 ТВОЯ КАРТА (тапни ячейку — вскрыть для всех)</div>
     <div id="mycells"></div>
+    <div id="mynotes"></div>
   </div>
 
   <div id="votebox" class="card hide">
@@ -105,7 +129,13 @@
     <div style="color:#f5c518;font-weight:700;margin-bottom:6px" data-i18n="bunker_board">👥 БУНКЕР</div>
     <div id="board"></div>
   </div>
+
+  <div id="ablogcard" class="card hide">
+    <div style="color:#f5c518;font-weight:700;margin-bottom:6px" id="ablogtitle"></div>
+    <div id="ablog"></div>
+  </div>
 </div>
+<div id="abModal" onclick="if(event.target===this)closeAb()"><div class="abbox" id="abBox"></div></div>
 
 <script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/ui.js"></script>
@@ -129,7 +159,23 @@ const UI={
     btn_vote:"🗳 Голосування", btn_endvote:"Підбити підсумок", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новий раунд", btn_setseats:"Місць: задати", bunker_board:"👥 БУНКЕР",
     opened:"розкрито", open:"розкрити", exile:"вигнати", voted_ok:"Ти проголосував ✓", out_of_game:"Ти поза грою — не голосуєш",
     voted_count:(a,b)=>"Проголосувало "+a+" з "+b, nothing_revealed:"ще нічого не розкрив", unexile:"повернути",
-    conn_lost:"Зв'язок втрачено, онови.", def_name:"Той, хто вижив", ask_seats:"Скільки місць?", ask_code:"Код?", time_up:"⏱ ЧАС!"
+    conn_lost:"Зв'язок втрачено, онови.", def_name:"Той, хто вижив", ask_seats:"Скільки місць?", ask_code:"Код?", time_up:"⏱ ЧАС!",
+    ab_title:"⚡ Спецздібність", ab_reveal_use:"⚡ розкрити й застосувати", ab_use:"⚡ застосувати", ab_used:"застосовано", ab_nulled:"обнулено",
+    ab_just_reveal:"Просто розкрити, застосую пізніше", ab_cancel:"Скасувати", ab_apply:"Застосувати", ab_ok:"Зрозуміло",
+    ab_pick_player:"Обери гравця", ab_pick_card:"Обери карту", ab_pick_age:"Обери вік",
+    ab_need_vote:"Працює лише під час голосування.", ab_need_dead:"Поки нікого не вигнано.", ab_no_targets:"Немає відповідних цілей.",
+    ab_peek_res:(t,c,v)=>"👁 У "+t+" «"+c+"»: "+v, ab_secret_res:"🔍 Секрет бункера: ", log_title:"📜 ЖУРНАЛ ЗДІБНОСТЕЙ",
+    badge_immune:"🛡 захист", badge_ally:"🤝 союз", badge_x2:"✖2 голос", revote:"Можеш переголосувати (голос ×2):",
+    ab_err:{used:"Карту вже застосовано.",nulled:"Твою здібність обнулили.",dead:"Ти поза грою.",no_vote:"Зараз немає голосування.",bad_target:"Цю ціль обрати не можна.",bad_pick:"Цю карту обрати не можна.",empty:"У нього нічого забрати.",bad_card:"Це не спецздібність.",not_playing:"Гра не йде."},
+    ev:{peek:(a,t,c)=>`👁 ${a} підглянув(ла) закриту карту гравця ${t}`, cancel_vote:(a)=>`✋ ${a} скасував(ла) голосування`,
+      immune:(a)=>`🛡 ${a} під захистом до кінця раунду`, swap:(a,t,c)=>`🔄 ${a} помінявся(-лась) картою «${c}» з ${t}`,
+      add_prof:(a)=>`🎓 ${a} отримав(ла) другу професію`, heal:(a,t)=>`💊 ${a} вилікував(ла) ${t}`,
+      steal_inv:(a,t)=>`🎒 ${a} забрав(ла) інвентар вигнаного ${t}`, force_reveal:(a,t,c)=>`🃏 ${a} змусив(ла) ${t} розкрити «${c}»`,
+      double_vote:(a)=>`✖2 Голос ${a} у цьому голосуванні рахується двічі`, rescue:(a,t)=>`🚪 ${a} повернув(ла) у гру ${t}`,
+      nullify:(a,t)=>`🚫 ${a} обнулив(ла) спецздібність ${t}`, see_secret:(a)=>`🔍 ${a} таємно дізнався(-лась) секрет бункера`,
+      change_age:(a)=>`⏳ ${a} змінив(ла) вік`, ally:(a,t)=>`🤝 ${a} і ${t} уклали союз — удвох їх не вигнати`,
+      force_round:(a)=>`↻ ${a} почав(ла) новий раунд`, non_contagious:(a)=>`🧼 Хвороба ${a} більше не заразна`,
+      ally_shield:(a,t)=>`🤝 ${t} вигнано — союзника ${a} більше не можна вигнати`}
   },
   ru:{
     title:"БУНКЕР — Lobby.gg", page_title:"☢ БУНКЕР ☢", rules_btn_title:"Правила", nav_games_title:"Ко всем играм",
@@ -144,7 +190,23 @@ const UI={
     btn_vote:"🗳 Голосование", btn_endvote:"Подвести итог", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новый раунд", btn_setseats:"Мест: задать", bunker_board:"👥 БУНКЕР",
     opened:"вскрыто", open:"вскрыть", exile:"изгнать", voted_ok:"Ты проголосовал ✓", out_of_game:"Ты вне игры — не голосуешь",
     voted_count:(a,b)=>"Проголосовало "+a+" из "+b, nothing_revealed:"ещё ничего не вскрыл", unexile:"вернуть",
-    conn_lost:"Связь потеряна, обнови.", def_name:"Выживший", ask_seats:"Сколько мест?", ask_code:"Код?", time_up:"⏱ ВРЕМЯ!"
+    conn_lost:"Связь потеряна, обнови.", def_name:"Выживший", ask_seats:"Сколько мест?", ask_code:"Код?", time_up:"⏱ ВРЕМЯ!",
+    ab_title:"⚡ Спецспособность", ab_reveal_use:"⚡ вскрыть и применить", ab_use:"⚡ применить", ab_used:"применено", ab_nulled:"обнулено",
+    ab_just_reveal:"Просто вскрыть, применю позже", ab_cancel:"Отмена", ab_apply:"Применить", ab_ok:"Понятно",
+    ab_pick_player:"Выбери игрока", ab_pick_card:"Выбери карту", ab_pick_age:"Выбери возраст",
+    ab_need_vote:"Работает только во время голосования.", ab_need_dead:"Пока никто не изгнан.", ab_no_targets:"Нет подходящих целей.",
+    ab_peek_res:(t,c,v)=>"👁 У "+t+" «"+c+"»: "+v, ab_secret_res:"🔍 Секрет бункера: ", log_title:"📜 ЖУРНАЛ СПОСОБНОСТЕЙ",
+    badge_immune:"🛡 защита", badge_ally:"🤝 союз", badge_x2:"✖2 голос", revote:"Можешь переголосовать (голос ×2):",
+    ab_err:{used:"Карта уже применена.",nulled:"Твою способность обнулили.",dead:"Ты вне игры.",no_vote:"Сейчас нет голосования.",bad_target:"Эту цель выбрать нельзя.",bad_pick:"Эту карту выбрать нельзя.",empty:"У него нечего забирать.",bad_card:"Это не спецспособность.",not_playing:"Игра не идёт."},
+    ev:{peek:(a,t,c)=>`👁 ${a} подсмотрел(а) закрытую карту игрока ${t}`, cancel_vote:(a)=>`✋ ${a} отменил(а) голосование`,
+      immune:(a)=>`🛡 ${a} под защитой до конца раунда`, swap:(a,t,c)=>`🔄 ${a} поменялся(-ась) картой «${c}» с ${t}`,
+      add_prof:(a)=>`🎓 ${a} получил(а) вторую профессию`, heal:(a,t)=>`💊 ${a} вылечил(а) ${t}`,
+      steal_inv:(a,t)=>`🎒 ${a} забрал(а) инвентарь изгнанного ${t}`, force_reveal:(a,t,c)=>`🃏 ${a} заставил(а) ${t} вскрыть «${c}»`,
+      double_vote:(a)=>`✖2 Голос ${a} в этом голосовании считается дважды`, rescue:(a,t)=>`🚪 ${a} вернул(а) в игру ${t}`,
+      nullify:(a,t)=>`🚫 ${a} обнулил(а) спецспособность ${t}`, see_secret:(a)=>`🔍 ${a} тайно узнал(а) секрет бункера`,
+      change_age:(a)=>`⏳ ${a} сменил(а) возраст`, ally:(a,t)=>`🤝 ${a} и ${t} заключили союз — вдвоём их не изгнать`,
+      force_round:(a)=>`↻ ${a} начал(а) новый раунд`, non_contagious:(a)=>`🧼 Болезнь ${a} больше не заразна`,
+      ally_shield:(a,t)=>`🤝 ${t} изгнан(а) — союзника ${a} больше нельзя изгнать`}
   },
   en:{
     title:"BUNKER — Lobby.gg", page_title:"☢ BUNKER ☢", rules_btn_title:"Rules", nav_games_title:"All games",
@@ -159,7 +221,23 @@ const UI={
     btn_vote:"🗳 Vote", btn_endvote:"Tally results", btn_timer:"⏱ Start timer", btn_newround:"↻ New round", btn_setseats:"Set seats", bunker_board:"👥 BUNKER",
     opened:"revealed", open:"reveal", exile:"exile", voted_ok:"You voted ✓", out_of_game:"You're out — no vote",
     voted_count:(a,b)=>"Voted "+a+" of "+b, nothing_revealed:"nothing revealed yet", unexile:"bring back",
-    conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!"
+    conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!",
+    ab_title:"⚡ Special ability", ab_reveal_use:"⚡ reveal & use", ab_use:"⚡ use", ab_used:"used", ab_nulled:"nullified",
+    ab_just_reveal:"Just reveal, use later", ab_cancel:"Cancel", ab_apply:"Use", ab_ok:"Got it",
+    ab_pick_player:"Pick a player", ab_pick_card:"Pick a card", ab_pick_age:"Pick an age",
+    ab_need_vote:"Only works during a vote.", ab_need_dead:"Nobody has been exiled yet.", ab_no_targets:"No valid targets.",
+    ab_peek_res:(t,c,v)=>"👁 "+t+" — «"+c+"»: "+v, ab_secret_res:"🔍 Bunker secret: ", log_title:"📜 ABILITY LOG",
+    badge_immune:"🛡 protected", badge_ally:"🤝 allied", badge_x2:"✖2 vote", revote:"You can re-vote (vote ×2):",
+    ab_err:{used:"Card already used.",nulled:"Your ability was nullified.",dead:"You're out of the game.",no_vote:"There's no vote right now.",bad_target:"You can't pick that target.",bad_pick:"You can't pick that card.",empty:"Nothing to take.",bad_card:"That's not a special ability.",not_playing:"The game isn't running."},
+    ev:{peek:(a,t,c)=>`👁 ${a} peeked at a hidden card of ${t}`, cancel_vote:(a)=>`✋ ${a} cancelled the vote`,
+      immune:(a)=>`🛡 ${a} is protected until the end of the round`, swap:(a,t,c)=>`🔄 ${a} swapped «${c}» with ${t}`,
+      add_prof:(a)=>`🎓 ${a} gained a second profession`, heal:(a,t)=>`💊 ${a} healed ${t}`,
+      steal_inv:(a,t)=>`🎒 ${a} took the inventory of exiled ${t}`, force_reveal:(a,t,c)=>`🃏 ${a} forced ${t} to reveal «${c}»`,
+      double_vote:(a)=>`✖2 ${a}'s vote counts twice in this vote`, rescue:(a,t)=>`🚪 ${a} brought ${t} back into the game`,
+      nullify:(a,t)=>`🚫 ${a} nullified ${t}'s special ability`, see_secret:(a)=>`🔍 ${a} secretly learned the bunker's secret`,
+      change_age:(a)=>`⏳ ${a} changed their age`, ally:(a,t)=>`🤝 ${a} and ${t} formed an alliance — they can't both be exiled`,
+      force_round:(a)=>`↻ ${a} started a new round`, non_contagious:(a)=>`🧼 ${a}'s illness is no longer contagious`,
+      ally_shield:(a,t)=>`🤝 ${t} was exiled — their ally ${a} can no longer be voted out`}
   },
   de: {
     "title": "BUNKER — Lobby.gg",
@@ -208,7 +286,23 @@ const UI={
     "def_name": "Überlebender",
     "ask_seats": "Wie viele Plätze?",
     "ask_code": "Code?",
-    "time_up": "⏱ ZEIT UM!"
+    "time_up": "⏱ ZEIT UM!",
+    "ab_title": "⚡ Spezialfähigkeit", "ab_reveal_use": "⚡ aufdecken & einsetzen", "ab_use": "⚡ einsetzen", "ab_used": "eingesetzt", "ab_nulled": "annulliert",
+    "ab_just_reveal": "Nur aufdecken, später einsetzen", "ab_cancel": "Abbrechen", "ab_apply": "Einsetzen", "ab_ok": "Verstanden",
+    "ab_pick_player": "Spieler wählen", "ab_pick_card": "Karte wählen", "ab_pick_age": "Alter wählen",
+    "ab_need_vote": "Funktioniert nur während einer Abstimmung.", "ab_need_dead": "Noch wurde niemand verbannt.", "ab_no_targets": "Keine gültigen Ziele.",
+    "ab_peek_res": (t,c,v)=>"👁 "+t+" — «"+c+"»: "+v, "ab_secret_res": "🔍 Bunker-Geheimnis: ", "log_title": "📜 FÄHIGKEITEN-PROTOKOLL",
+    "badge_immune": "🛡 geschützt", "badge_ally": "🤝 verbündet", "badge_x2": "✖2 Stimme", "revote": "Du kannst neu abstimmen (Stimme ×2):",
+    "ab_err": {used:"Karte bereits eingesetzt.",nulled:"Deine Fähigkeit wurde annulliert.",dead:"Du bist raus.",no_vote:"Gerade läuft keine Abstimmung.",bad_target:"Dieses Ziel ist nicht wählbar.",bad_pick:"Diese Karte ist nicht wählbar.",empty:"Da gibt es nichts zu holen.",bad_card:"Das ist keine Spezialfähigkeit.",not_playing:"Das Spiel läuft nicht."},
+    "ev": {peek:(a,t,c)=>`👁 ${a} hat eine verdeckte Karte von ${t} angesehen`, cancel_vote:(a)=>`✋ ${a} hat die Abstimmung abgebrochen`,
+      immune:(a)=>`🛡 ${a} ist bis Rundenende geschützt`, swap:(a,t,c)=>`🔄 ${a} hat «${c}» mit ${t} getauscht`,
+      add_prof:(a)=>`🎓 ${a} hat einen zweiten Beruf bekommen`, heal:(a,t)=>`💊 ${a} hat ${t} geheilt`,
+      steal_inv:(a,t)=>`🎒 ${a} hat das Inventar von ${t} (verbannt) genommen`, force_reveal:(a,t,c)=>`🃏 ${a} hat ${t} gezwungen, «${c}» aufzudecken`,
+      double_vote:(a)=>`✖2 Die Stimme von ${a} zählt in dieser Abstimmung doppelt`, rescue:(a,t)=>`🚪 ${a} hat ${t} zurück ins Spiel geholt`,
+      nullify:(a,t)=>`🚫 ${a} hat die Spezialfähigkeit von ${t} annulliert`, see_secret:(a)=>`🔍 ${a} hat heimlich das Bunker-Geheimnis erfahren`,
+      change_age:(a)=>`⏳ ${a} hat das Alter geändert`, ally:(a,t)=>`🤝 ${a} und ${t} haben sich verbündet — beide verbannen geht nicht`,
+      force_round:(a)=>`↻ ${a} hat eine neue Runde gestartet`, non_contagious:(a)=>`🧼 Die Krankheit von ${a} ist nicht mehr ansteckend`,
+      ally_shield:(a,t)=>`🤝 ${t} wurde verbannt — ${a} (Bündnis) kann nicht mehr abgewählt werden`}
   }
 };
 // Игровой контент: канонич. русская строка → {uk, en}
@@ -1117,20 +1211,29 @@ const GT={
     "uk": "Зробити свою хворобу незаразною назавжди",
     "en": "Make your illness non-contagious forever",
     "de": "Deine Krankheit dauerhaft unansteckend machen"
-  }
+  },
+  "Не заразно": {"uk": "Не заразно", "en": "Non-contagious", "de": "Nicht ansteckend"},
+  "В бункере уже кто-то живёт — и он не рад гостям.": {"uk": "У бункері вже хтось живе — і він не радий гостям.", "en": "Someone already lives in the bunker — and they're not happy to see guests.", "de": "Im Bunker wohnt schon jemand — und freut sich nicht über Gäste."},
+  "Через 3 месяца откроется соседний бункер с едой.": {"uk": "Через 3 місяці відкриється сусідній бункер з їжею.", "en": "In 3 months a neighbouring bunker full of food will open.", "de": "In 3 Monaten öffnet sich ein Nachbarbunker voller Essen."},
+  "Фильтр воздуха рассчитан на одного человека меньше, чем мест.": {"uk": "Фільтр повітря розрахований на одну людину менше, ніж місць.", "en": "The air filter is rated for one person fewer than there are seats.", "de": "Der Luftfilter reicht für eine Person weniger, als es Plätze gibt."},
+  "Один из запасов еды отравлен.": {"uk": "Один із запасів їжі отруєний.", "en": "One of the food supplies is poisoned.", "de": "Einer der Essensvorräte ist vergiftet."},
+  "Снаружи есть выжившие, они ищут вход.": {"uk": "Зовні є вцілілі, вони шукають вхід.", "en": "There are survivors outside looking for the entrance.", "de": "Draußen gibt es Überlebende, die den Eingang suchen."},
+  "В бункере спрятан тайник с оружием.": {"uk": "У бункері захований схрон зі зброєю.", "en": "There's a hidden weapons cache in the bunker.", "de": "Im Bunker ist ein Waffenversteck verborgen."}
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
+function T1(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
+const SEP=' ＋ '; // склейка карт на сервере (bunker.SEP): «Профессия ＋ вторая профессия»
+function T(s){if(s==null)return s;s=String(s);return s.indexOf(SEP)>=0?s.split(SEP).map(T1).join(' + '):T1(s);}
 function msgTr(s){ // серверные строки итога голосования — перевод по шаблону
   if(LANG==='ru'||!s)return s;
   const P={
-    uk:{ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
-    en:{ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."},
-    de:{ex:"🚫 Verbannt: ",vt:" Stimmen)",tie:" — niemand wurde verbannt.",tiepre:"Unentschieden (",none:"Niemand hat abgestimmt.",gone:"Spieler ist nicht mehr im Spiel."}
+    uk:{prot:" під захистом — нікого не вигнали.",ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
+    en:{prot:" is protected — nobody was exiled.",ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."},
+    de:{prot:" ist geschützt — niemand wurde verbannt.",ex:"🚫 Verbannt: ",vt:" Stimmen)",tie:" — niemand wurde verbannt.",tiepre:"Unentschieden (",none:"Niemand hat abgestimmt.",gone:"Spieler ist nicht mehr im Spiel."}
   }[LANG];
   if(!P)return s;
-  s=s.replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
+  s=s.replace(" под защитой — никого не изгнали.",P.prot).replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
      .replace("Никто не проголосовал.",P.none).replace("Игрок уже не в игре.",P.gone);
   return s;
 }
@@ -1153,6 +1256,8 @@ document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesMo
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
 let ws = null, pid = null, isHost = false, myChar = null, cats = [], roomCode = null, firstOpenCb = null, opened = false;
+let myAb = {}, abAges = [], abSwapCats = [], myNotes = [], lastState = null, lastLogSeq = null, abSel = null;
+const AB_CATS = ['Спецспособность 1', 'Спецспособность 2'];
 function show(id){for(const s of['home','lobby','game'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}
 function send(o){if(ws)ws.send(o);}
 function connect(cb){
@@ -1194,27 +1299,130 @@ function renderBunker(m){
   document.getElementById('hostpanel').classList.toggle('hide',!isHost);
   const me=(m.players||[]).find(p=>p.id===pid);
   const revealed=me?Object.keys(me.revealed):[];
-  document.getElementById('mycells').innerHTML=(cats||m.categories).map(cat=>{
+  const used=me?me.used||[]:[], nulled=me?me.nulled||[]:[], alive=me?me.alive:false;
+  document.getElementById('mycells').innerHTML=((cats&&cats.length?cats:m.categories)).map((cat,i)=>{
     const open=revealed.includes(cat);
     const val=myChar?myChar[cat]:'?';
-    return '<div class="cell '+(open?'open':'')+'"><div><div class="lbl">'+T(cat)+'</div><div class="val" style="text-align:left;max-width:100%">'+T(val)+'</div></div>'+
-      (open?'<span class="tag">'+t('opened')+'</span>':'<button class="tapbtn" onclick="reveal(\''+cat.replace(/'/g,"")+'\')">'+t('open')+'</button>')+'</div>';
+    const isAb=AB_CATS.includes(cat)&&myAb[cat];
+    let ctrl;
+    if(isAb&&used.includes(cat))ctrl='<span class="tag">✓ '+t('ab_used')+'</span>';
+    else if(isAb&&nulled.includes(cat))ctrl=open?'<span class="tag">🚫 '+t('ab_nulled')+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+t('open')+'</button>';
+    else if(isAb&&alive)ctrl='<button class="tapbtn abbtn" onclick="openAb('+i+')">'+(open?t('ab_use'):t('ab_reveal_use'))+'</button>';
+    else ctrl=open?'<span class="tag">'+t('opened')+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+t('open')+'</button>';
+    return '<div class="cell '+(open?'open':'')+(isAb?' ab':'')+'"><div><div class="lbl">'+esc(T(cat))+'</div><div class="val" style="text-align:left;max-width:100%">'+esc(T(val))+'</div></div>'+ctrl+'</div>';
   }).join('');
+  document.getElementById('mynotes').innerHTML=myNotes.map(noteHtml).join('');
   const vb=document.getElementById('votebox');
   if(m.vote&&m.vote.active){
     vb.classList.remove('hide');
     const meAlive=me?me.alive:false;
-    const already=m.vote.voted.includes(pid);
-    document.getElementById('votebtns').innerHTML=meAlive&&!already?
-      (m.players||[]).filter(p=>p.alive).map(p=>'<button class="danger" style="margin:3px 0" onclick="voteFor(\''+p.id+'\')">'+t('exile')+' '+p.name+(m.vote.tally[p.id]?' ('+m.vote.tally[p.id]+')':'')+'</button>').join(''):
+    const already=m.vote.voted.includes(pid), dbl=(m.vote.double||[]).includes(pid);
+    const vbtns=()=>(m.players||[]).filter(p=>p.alive).map(p=>'<button class="danger" style="margin:3px 0" onclick="voteFor(\''+p.id+'\')">'+t('exile')+' '+esc(p.name)+(m.vote.tally[p.id]?' ('+m.vote.tally[p.id]+')':'')+'</button>').join('');
+    document.getElementById('votebtns').innerHTML=meAlive&&!already?vbtns():
+      meAlive&&dbl?'<div class="sub">'+t('voted_ok')+' · '+t('revote')+'</div>'+vbtns():
       '<div class="sub">'+(already?t('voted_ok'):t('out_of_game'))+'</div>';
     document.getElementById('votestatus').textContent=t('voted_count')(m.vote.voted.length,m.vote.need);
   } else vb.classList.add('hide');
   document.getElementById('board').innerHTML=(m.players||[]).map(p=>{
-    const rev=Object.entries(p.revealed).map(([k,v])=>'<div class="tag">• '+T(k)+': <span style="color:#e8e2c8">'+T(v)+'</span></div>').join('')||'<div class="tag">'+t('nothing_revealed')+'</div>';
+    const rev=Object.entries(p.revealed).map(([k,v])=>'<div class="tag">• '+esc(T(k))+': <span style="color:#e8e2c8">'+esc(T(v))+'</span>'+((p.used||[]).includes(k)?' <span style="color:#f5c518">✓ '+t('ab_used')+'</span>':'')+((p.nulled||[]).includes(k)?' <span style="color:#ff8a98">🚫 '+t('ab_nulled')+'</span>':'')+'</div>').join('')||'<div class="tag">'+t('nothing_revealed')+'</div>';
+    const allyP=p.ally&&(m.players||[]).find(q=>q.id===p.ally);
+    const badges=(p.alive&&p.immune?'<span class="bbadge">'+t('badge_immune')+'</span>':'')+(allyP?'<span class="bbadge ally">'+t('badge_ally')+': '+esc(allyP.name)+'</span>':'')+(m.vote&&(m.vote.double||[]).includes(p.id)?'<span class="bbadge x2">'+t('badge_x2')+'</span>':'');
     const ctrl=(isHost&&p.id!==pid)?(p.alive?'<button class="danger" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'kick\',target:\''+p.id+'\'})">'+t('exile')+'</button>':'<button class="sec" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'unkick\',target:\''+p.id+'\'})">'+t('unexile')+'</button>'):'';
-    return '<div class="pl '+(p.alive?'':'dead')+'"><b>'+(p.id===m.host?'👑 ':'')+p.name+'</b> <span class="tag">('+Object.keys(p.revealed).length+'/'+p.total+')</span>'+rev+ctrl+'</div>';
+    return '<div class="pl '+(p.alive?'':'dead')+'"><b>'+(p.id===m.host?'👑 ':'')+esc(p.name)+'</b> <span class="tag">('+Object.keys(p.revealed).length+'/'+p.total+')</span>'+badges+rev+ctrl+'</div>';
   }).join('');
+  const log=m.log||[];
+  document.getElementById('ablogcard').classList.toggle('hide',!log.length);
+  document.getElementById('ablogtitle').textContent=t('log_title');
+  document.getElementById('ablog').innerHTML=log.slice().reverse().map(e=>'<div class="ev">'+evText(e)+'</div>').join('');
+  const maxSeq=log.reduce((a,e)=>Math.max(a,e.seq||0),0);
+  if(lastLogSeq!==null)for(const e of log)if((e.seq||0)>lastLogSeq)toastMsg(evText(e,true));
+  lastLogSeq=maxSeq;
+  if(abSel)renderAb();
+}
+
+// ── Спецспособности ──
+function evText(e,plain){
+  const f=(t('ev')||{})[e.kind]; if(!f)return '';
+  const s=f(esc(e.actor||''),esc(e.target||''),esc(T(e.cat||'')));
+  return plain?s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&'):s;
+}
+function toastMsg(s){if(window.LobbyUI&&LobbyUI.toast)LobbyUI.toast(s,'',3600);else alert(s);}
+function noteHtml(n){
+  if(n.kind==='peek')return '<div class="note">'+t('ab_peek_res')(esc(n.target),esc(T(n.cat)),esc(T(n.value)))+'</div>';
+  if(n.kind==='secret')return '<div class="note">'+t('ab_secret_res')+esc(T(n.value))+'</div>';
+  return '';
+}
+function revealIdx(i){const c=(cats&&cats.length?cats:(lastState||{}).categories||[])[i];if(c)reveal(c);}
+function openAb(i){
+  const c=(cats&&cats.length?cats:(lastState||{}).categories||[])[i];
+  if(!c||!myAb[c])return;
+  abSel={cat:c,target:null,pick:null};renderAb();
+  document.getElementById('abModal').classList.add('on');
+}
+function closeAb(){abSel=null;document.getElementById('abModal').classList.remove('on');}
+function abChoose(kind,val){if(!abSel)return;abSel[kind]=val;if(kind==='target')abSel.pick=null;renderAb();}
+function abTargets(spec){
+  const ps=(lastState&&lastState.players)||[];
+  const meP=ps.find(p=>p.id===pid)||{};
+  if(spec.id==='ally'&&meP.ally)return [];   // союз один на игрока — уже в союзе
+  const closed=p=>((lastState&&lastState.categories)||[]).some(c=>!(c in p.revealed));
+  const abLeft=p=>AB_CATS.some(c=>!(p.used||[]).includes(c)&&!(p.nulled||[]).includes(c));
+  if(spec.target==='alive_other')return ps.filter(p=>p.alive&&p.id!==pid&&
+    (spec.pick==='target_closed'||spec.id==='force_reveal'?closed(p):spec.pick==='target_ability'?abLeft(p):spec.id==='ally'?!p.ally:true));
+  if(spec.target==='alive_any')return ps.filter(p=>p.alive);
+  if(spec.target==='dead')return ps.filter(p=>!p.alive&&!(spec.id==='steal_inv'&&p.looted));
+  return [];
+}
+function abPicks(spec,tp){
+  if(spec.pick==='target_closed')return tp?((lastState&&lastState.categories)||[]).filter(c=>!(c in tp.revealed)):[];
+  if(spec.pick==='swap_cat')return abSwapCats;
+  if(spec.pick==='target_ability')return tp?AB_CATS.filter(c=>!(tp.used||[]).includes(c)&&!(tp.nulled||[]).includes(c)):[];
+  if(spec.pick==='age')return abAges;
+  return [];
+}
+function renderAb(){
+  if(!abSel)return;
+  const c=abSel.cat, spec=myAb[c]; if(!spec){closeAb();return;}
+  const me=((lastState&&lastState.players)||[]).find(p=>p.id===pid)||{revealed:{}};
+  const open=c in me.revealed;
+  let h='<h3>'+t('ab_title')+'</h3><div class="abtext">'+esc(T(myChar?myChar[c]:''))+'</div>', ok=true, msg='';
+  if((spec.id==='cancel_vote'||spec.id==='double_vote')&&!(lastState&&lastState.vote)){ok=false;msg=t('ab_need_vote');}
+  let tp=null;
+  if(ok&&spec.target!=='none'){
+    const list=abTargets(spec);
+    if(!list.length){ok=false;msg=spec.target==='dead'?t('ab_need_dead'):t('ab_no_targets');}
+    else{
+      if(abSel.target&&!list.some(p=>p.id===abSel.target))abSel.target=null;
+      tp=list.find(p=>p.id===abSel.target)||null;
+      h+='<div class="abstep">'+t('ab_pick_player')+'</div><div class="abopts">'+list.map(p=>'<button type="button" class="abopt'+(p.id===abSel.target?' sel':'')+'" onclick="abChoose(\'target\',\''+p.id+'\')">'+esc(p.name)+'</button>').join('')+'</div>';
+    }
+  }
+  if(ok&&spec.pick&&(spec.target==='none'||tp)){
+    const opts=abPicks(spec,tp);
+    if(!opts.length){ok=false;msg=t('ab_no_targets');}
+    else h+='<div class="abstep">'+(spec.pick==='age'?t('ab_pick_age'):t('ab_pick_card'))+'</div><div class="abopts">'+opts.map((o,j)=>'<button type="button" class="abopt'+(o===abSel.pick?' sel':'')+'" onclick="abPickIdx('+j+')">'+esc(T(o))+'</button>').join('')+'</div>';
+  }
+  const ready=ok&&(spec.target==='none'||abSel.target)&&(!spec.pick||abSel.pick);
+  if(msg)h+='<div class="abmsg">'+msg+'</div>';
+  h+='<div class="abact">'+
+    '<button type="button" class="btn-primary" id="abApply" '+(ready?'':'disabled style="opacity:.45"')+' onclick="applyAb()">'+t('ab_apply')+'</button>'+
+    (open?'':'<button type="button" class="sec btn-secondary" onclick="revealIdx('+((cats||[]).indexOf(c))+');closeAb()">'+t('ab_just_reveal')+'</button>')+
+    '<button type="button" class="sec btn-secondary" onclick="closeAb()">'+t('ab_cancel')+'</button></div>';
+  document.getElementById('abBox').innerHTML=h;
+}
+function abPickIdx(j){
+  if(!abSel)return;const spec=myAb[abSel.cat];
+  const tp=((lastState&&lastState.players)||[]).find(p=>p.id===abSel.target)||null;
+  const o=abPicks(spec,tp)[j]; if(o!==undefined)abChoose('pick',o);
+}
+function applyAb(){
+  if(!abSel)return;
+  send({action:'use_ability',category:abSel.cat,target:abSel.target,pick:abSel.pick});
+  closeAb();
+}
+function showPrivate(n){
+  const h='<h3>'+t('ab_title')+'</h3><div class="abtext" style="color:#fde68a">'+noteHtml(n).replace(/^<div class="note">|<\/div>$/g,'')+'</div><div class="abact"><button type="button" class="btn-primary" onclick="closeAb()">'+t('ab_ok')+'</button></div>';
+  abSel=null;document.getElementById('abBox').innerHTML=h;document.getElementById('abModal').classList.add('on');
 }
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -1238,10 +1446,12 @@ function handle(m){
     document.getElementById('hostlobby').classList.toggle('hide',!isHost);
     document.getElementById('waitmsg').classList.toggle('hide',isHost);
   }
-  else if(m.type==='bunker_char'){myChar=m.char;cats=m.categories;}
-  else if(m.type==='bunker_state'){window._lastBunker=m;renderBunker(m);}
+  else if(m.type==='bunker_char'){myChar=m.char;cats=m.categories;myAb=m.abilities||{};abAges=m.ages||[];abSwapCats=m.swap_cats||[];myNotes=m.notes||[];}
+  else if(m.type==='bunker_state'){window._lastBunker=m;lastState=m;renderBunker(m);}
+  else if(m.type==='bunker_private'){showPrivate(m);}
+  else if(m.type==='ability_error'){toastMsg((t('ab_err')||{})[m.code]||m.code);}
   else if(m.type==='vote_started'){/* доска придёт следом */}
-  else if(m.type==='vote_result'){alert(msgTr(m.msg));}
+  else if(m.type==='vote_result'){toastMsg(msgTr(m.msg));}
   else if(m.type==='timer'){runTimer(m.secs);}
   else if(m.type==='error'){alert(T(m.msg));}
 }

@@ -709,7 +709,7 @@ async def start_spy(room, timer_min=5):
 
 # ─────────────── БУНКЕР ───────────────
 def bunker_public(room):
-    """Публичная доска: игроки + только ВСКРЫТЫЕ ячейки, статус, сценарий, голосование."""
+    """Публичная доска: игроки + только ВСКРЫТЫЕ ячейки, статус, сценарий, голосование, журнал способностей."""
     gs = room.get("gs", {})
     vote = room.get("vote")
     players = []
@@ -720,29 +720,27 @@ def bunker_public(room):
             "id": pid, "name": p["name"], "alive": p.get("alive", True),
             "revealed": {cat: char.get(cat) for cat in rev},
             "total": len(bnk.CATEGORIES),
+            "used": sorted(p.get("used") or ()), "nulled": sorted(p.get("nulled") or ()),
+            "immune": bnk.is_protected(room, pid), "ally": p.get("ally"),
+            "looted": char.get("Крупный инвентарь") == bnk.NONE_VAL,   # инвентарь уже забрали (событие публичное)
         })
     out = {"type": "bunker_state", "host": room["host"],
            "scenario": gs.get("scenario", ""), "bunker": gs.get("bunker", ""),
            "seats": gs.get("seats", 0), "round": gs.get("round", 1),
            "settings": room.get("settings", {}),
-           "categories": bnk.CATEGORIES, "players": players, "vote": None}
+           "categories": bnk.CATEGORIES, "players": players, "vote": None,
+           "log": gs.get("log", [])[-12:]}
     if vote is not None:
-        # тэлли: кто сколько голосов набрал
-        tally = {}
-        for t in vote["votes"].values():
-            tally[t] = tally.get(t, 0) + 1
         alive_ids = [pid for pid, p in room["players"].items() if p.get("alive", True)]
         out["vote"] = {"active": True, "voted": list(vote["votes"].keys()),
-                       "tally": tally, "need": len(alive_ids)}
+                       "tally": bnk.tally(room), "need": len(alive_ids),
+                       "double": sorted(vote.get("double") or ())}
     return out
 
 
 def resolve_vote(room):
-    """Подсчёт голосов: изгоняется набравший больше всех (при ничьей — никто)."""
-    vote = room.get("vote") or {"votes": {}}
-    tally = {}
-    for t in vote["votes"].values():
-        tally[t] = tally.get(t, 0) + 1
+    """Подсчёт голосов: изгоняется набравший больше всех (при ничьей или иммунитете — никто)."""
+    tally = bnk.tally(room)
     room["vote"] = None
     if not tally:
         return None, "Никто не проголосовал."
@@ -752,8 +750,11 @@ def resolve_vote(room):
         names = ", ".join(room["players"][p]["name"] for p in top if p in room["players"])
         return None, f"Ничья ({names}) — никого не изгнали."
     kicked = top[0]
-    if kicked in room["players"]:
+    if kicked in room["players"] and room["players"][kicked].get("alive", True):
+        if bnk.is_protected(room, kicked):
+            return None, f"🛡 {room['players'][kicked]['name']} под защитой — никого не изгнали."
         room["players"][kicked]["alive"] = False
+        bnk.on_kicked(room, kicked)
         return kicked, f"🚫 Изгнан: {room['players'][kicked]['name']} ({mx} голосов)"
     return None, "Игрок уже не в игре."
 
@@ -774,14 +775,22 @@ async def start_bunker(room):
         p["revealed"] = set()
         p["reveals_round"] = 0
         p["alive"] = True
-        if not p.get("ws"):
-            continue
-        await p["ws"].send_json({"type": "bunker_char", "char": p["char"],
-                                 "categories": bnk.CATEGORIES})
-    await broadcast(room, bunker_public(room))
+        for k in ("used", "nulled", "notes", "immune_round", "ally", "ally_shield"):
+            p.pop(k, None)
+    await push_bunker(room)
 
 
 async def push_bunker(room):
+    """Каждому — его личная карта (после переподключения/обмена/лечения тоже), затем общая доска."""
+    for p in list(room["players"].values()):
+        ws = p.get("ws")
+        if ws and p.get("char"):
+            try:
+                await ws.send_json({"type": "bunker_char", "char": p["char"], "categories": bnk.CATEGORIES,
+                                    "notes": p.get("notes", [])[-10:], "abilities": bnk.my_abilities(p["char"]),
+                                    "ages": bnk.POOLS["Возраст"], "swap_cats": bnk.SWAP_CATS})
+            except Exception:
+                pass
     await broadcast(room, bunker_public(room))
 
 async def variants_new_round(room):
@@ -4298,7 +4307,7 @@ async def ws(websocket: WebSocket):
                     elif act == "vote" and room and room.get("game") == "bunker" and room.get("vote") is not None:
                         p = room["players"].get(pid)
                         tgt = msg.get("target")
-                        if p and p.get("alive", True) and tgt in room["players"]:
+                        if p and p.get("alive", True) and tgt in room["players"] and room["players"][tgt].get("alive", True):
                             room["vote"]["votes"][pid] = tgt
                             alive = [x for x, pp in room["players"].items() if pp.get("alive", True)]
                             await push_bunker(room)
@@ -4320,8 +4329,9 @@ async def ws(websocket: WebSocket):
                     # ── Бункер: пульт ведущего (ручное изгнание остаётся как опция) ──
                     elif act == "kick" and room and room["host"] == pid and room.get("game") == "bunker":
                         tgt = room["players"].get(msg.get("target"))
-                        if tgt:
+                        if tgt and tgt.get("alive", True):
                             tgt["alive"] = False
+                            bnk.on_kicked(room, msg.get("target"))
                             await push_bunker(room)
                     elif act == "unkick" and room and room["host"] == pid and room.get("game") == "bunker":
                         tgt = room["players"].get(msg.get("target"))
@@ -4329,11 +4339,20 @@ async def ws(websocket: WebSocket):
                             tgt["alive"] = True
                             await push_bunker(room)
                     elif act == "new_round" and room and room["host"] == pid and room.get("game") == "bunker":
-                        room.setdefault("gs", {})["round"] = room.get("gs", {}).get("round", 1) + 1
-                        for p in room["players"].values():
-                            p["reveals_round"] = 0   # сброс лимита вскрытий
-                        room["vote"] = None
+                        bnk.new_round(room)   # раунд +1, сброс лимита вскрытий, голосование закрыто
                         await push_bunker(room)
+
+                    # ── Бункер: применить спецспособность (карта вскрывается для всех) ──
+                    elif act == "use_ability" and room and room.get("game") == "bunker":
+                        try:
+                            ev, private = bnk.use_ability(room, pid, str(msg.get("category", "")),
+                                                          target=msg.get("target"), pick=msg.get("pick"))
+                        except bnk.AbilityError as e:
+                            await websocket.send_json({"type": "ability_error", "code": str(e)})
+                        else:
+                            if private:
+                                await websocket.send_json({"type": "bunker_private", **private})
+                            await push_bunker(room)
 
                     # --- Варианты (Аукцион лжи) ---
                     elif act == "variants_set_cats" and room and room["host"] == pid and room.get("game") == "variants":
