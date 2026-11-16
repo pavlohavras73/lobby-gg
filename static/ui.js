@@ -19,7 +19,9 @@
 
   function vibrate(pattern) {
     try {
+      if (reducedMotion()) return;
       if (localStorage.getItem('jarvis_haptics_off') === 'true') return;
+      if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
       if (navigator && typeof navigator.vibrate === 'function') {
         navigator.vibrate(pattern == null ? 10 : pattern);
       }

@@ -870,7 +870,7 @@ function ensureGuessMap() {
       if (state.guessMarker) state.guessMarker.setLatLng(e.latlng);
       else state.guessMarker = L.marker(e.latlng, { icon }).addTo(state.guessMap);
       document.getElementById('confirmGuessBtn').disabled = false;
-      try { navigator.vibrate?.(10); } catch (_) {}
+      if (window.LobbyUI) LobbyUI.vibrate(10);
     });
   }
   setTimeout(() => state.guessMap.invalidateSize(), 260);

@@ -250,7 +250,7 @@ function join() {
 }
 function edge(type, r, c) {
   if (st && st.turn_pid === pid) {
-    try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {}
+    if (window.LobbyUI) LobbyUI.vibrate(10);
     send({ action: 'db_edge', t: type, r: r, c: c });
   }
 }

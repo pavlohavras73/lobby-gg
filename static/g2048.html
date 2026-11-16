@@ -54,6 +54,7 @@
 <div class="hint" data-i18n="hint">Свайпай в 4 стороны. Собери 2048! (на компе — стрелки)</div>
 <a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
 
+<script src="/games/static/ui.js"></script>
 <script>
 const UI={
  uk:{rules_title:"🔢 2048 — правила",rules_body:"Свайпай у 4 боки. Однакові плитки при зіткненні зливаються в одну (2+2=4). Збери плитку <b>2048</b>. Гра закінчується, коли ходів немає.",rules_ok:"Зрозуміло 👍",nav_games:"‹ Ігри",title:"🔢 2048",score:"Рахунок",best:"Рекорд",newbtn:"↻ Нова",again:"Ще раз",hint:"Свайпай у 4 боки. Збери 2048! (на пк — стрілки)",all_games:"← Усі ігри",win:"🎉 2048! Зібрав!",dead:"💀 Глухий кут. Рахунок: "},
@@ -165,7 +166,7 @@ function canMove(){
   }
   return false;
 }
-function endGame(msg){try{if(navigator.vibrate)navigator.vibrate(25);}catch(_){}document.getElementById('overbig').textContent=msg+' · '+t('best')+': '+best;document.getElementById('over').style.display='flex';}
+function endGame(msg){if(window.LobbyUI)LobbyUI.vibrate(25);document.getElementById('overbig').textContent=msg+' · '+t('best')+': '+best;document.getElementById('over').style.display='flex';}
 let sx,sy;
 const b=document.getElementById('board');
 b.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});

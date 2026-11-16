@@ -256,7 +256,7 @@ function join() {
 }
 function mv(r, c) {
   if (st && st.turn_pid === pid) {
-    try { if (navigator.vibrate) navigator.vibrate(12); } catch (_) {}
+    if (window.LobbyUI) LobbyUI.vibrate(12);
     send({ action: 'rv_move', r: r, c: c });
   }
 }

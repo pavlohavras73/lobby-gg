@@ -418,7 +418,7 @@ if (!UI[LANG]) LANG = 'ru';
 function t(k) { const v = UI[LANG] && UI[LANG][k]; return v !== undefined ? v : (UI.ru[k] || k); }
 function T(s) { return window.LobbyI18n ? LobbyI18n.T(String(s || '')) : String(s || ''); }
 function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
-function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (_) {} }
+function haptic(ms) { if (window.LobbyUI) LobbyUI.vibrate(ms || 12); }
 
 let ws = null, pid = null, isHost = false, sel = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
 let overCelebrated = false;

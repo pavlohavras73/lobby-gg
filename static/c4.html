@@ -314,7 +314,7 @@ function hoverCol(col, on) {
 function drop(col) {
   hoverCol(col, false);
   if (st && st.turn_pid === pid && !st.winner && !st.draw) {
-    try { if (navigator.vibrate) navigator.vibrate(12); } catch (_) {}
+    if (window.LobbyUI) LobbyUI.vibrate(12);
     send({ action: 'c4_drop', col: col });
   }
 }

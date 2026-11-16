@@ -55,6 +55,7 @@
 <div class="hint" data-i18n="hint">Тап — открыть. Кнопка «Флаг» вкл → тап ставит 🚩. Открой все клетки без мин.</div>
 <a class="backlink" href="/games/" data-i18n="all_games">← Все игры</a>
 
+<script src="/games/static/ui.js"></script>
 <script>
 const UI={
  uk:{rules_title:"💣 Сапер — правила",rules_body:"Відкривай клітинки. Цифра = скільки мін навколо цієї клітинки. Вираховуй за цифрами, де міни, і став на них 🚩 (кнопка «Прапор»). Відкрий усі клітинки без мін. Перший тап завжди безпечний.",rules_ok:"Зрозуміло 👍",nav_games:"‹ Ігри",title:"💣 Сапер",mines_label:"Міни",flag:"🚩 Прапор",on:"увімк",off:"вимк",d_easy:"Легко 9×9",d_med:"Середньо 12×12",d_hard:"Складно 14×16",again:"Ще раз",hint:"Тап — відкрити. Кнопка «Прапор» увімк → тап ставить 🚩. Відкрий усі клітинки без мін.",all_games:"← Усі ігри",boom:"💥 Бум! Підірвався",win:"🎉 Розмінував!"},
@@ -147,12 +148,12 @@ function toggleFlag(){flagMode=!flagMode;document.getElementById('flagbtn').clas
 function click(x,y){
   if(over||revealed[y][x])return;
   if(!started)plant(x,y);
-  if(flagMode){flags[y][x]=!flags[y][x];try{navigator.vibrate?.(12);}catch(_){}render();updateCount();return;}
+  if(flagMode){flags[y][x]=!flags[y][x];if(window.LobbyUI)LobbyUI.vibrate(12);render();updateCount();return;}
   if(flags[y][x])return;
-  if(grid[y][x]===-1){revealAll();over=true;try{navigator.vibrate?.([40,30,60]);}catch(_){}document.getElementById('overbig').style.color='';document.getElementById('overbig').textContent=t('boom');document.getElementById('over').style.display='flex';return;}
+  if(grid[y][x]===-1){revealAll();over=true;if(window.LobbyUI)LobbyUI.vibrate([40,30,60]);document.getElementById('overbig').style.color='';document.getElementById('overbig').textContent=t('boom');document.getElementById('over').style.display='flex';return;}
   flood(x,y); render();
-  try{navigator.vibrate?.(8);}catch(_){}
-  if(checkWin()){over=true;try{navigator.vibrate?.([20,40,20]);}catch(_){}document.getElementById('overbig').textContent=t('win');document.getElementById('overbig').style.color='#5cff9e';document.getElementById('over').style.display='flex';}
+  if(window.LobbyUI)LobbyUI.vibrate(8);
+  if(checkWin()){over=true;if(window.LobbyUI)LobbyUI.vibrate([20,40,20]);document.getElementById('overbig').textContent=t('win');document.getElementById('overbig').style.color='#5cff9e';document.getElementById('over').style.display='flex';}
 }
 function flood(x,y){
   if(x<0||x>=COLS||y<0||y>=ROWS||revealed[y][x]||flags[y][x])return;

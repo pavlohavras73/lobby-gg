@@ -361,7 +361,7 @@ function initDigitPad(inputId, boxesId, padId, onOk) {
     const b = e.target.closest('button[data-k]');
     if (!b) return;
     const k = b.dataset.k;
-    try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {}
+    if (window.LobbyUI) LobbyUI.vibrate(10);
     if (k === '⌫') {
       inp.value = inp.value.slice(0, -1);
       sync();
