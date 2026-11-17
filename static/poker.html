@@ -7,35 +7,27 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
   :root {
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
+    --pk-spring: linear(0, 0.016 1%, 0.28 4%, 1.12 10%, 1.03 24%, 0.99 48%, 1);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   html, body {
-    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #08080c;
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #07080d;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     user-select: none; -webkit-user-select: none; color: #fff;
   }
 
-  .top-btn {
-    position: fixed; top: max(10px, var(--sat)); z-index: 99999;
-    background: rgba(18, 18, 24, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 6px 14px;
-    color: #fff; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.6); cursor: pointer;
-  }
-  .btn-back { left: 10px; }
-  .btn-rules { right: 10px; padding: 6px 12px; font-family: Georgia, serif; font-style: italic; }
+  button::after { content: none; }
 
   .game-layout {
     width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
-    padding: max(12px, var(--sat)) max(14px, env(safe-area-inset-right, 0px)) max(14px, var(--sab)) max(14px, env(safe-area-inset-left, 0px));
-    background: radial-gradient(circle at 50% 40%, rgba(20, 80, 45, 0.35), #060609 75%);
+    padding: max(8px, var(--sat)) max(10px, env(safe-area-inset-right, 0px)) max(10px, var(--sab)) max(10px, env(safe-area-inset-left, 0px));
+    background: radial-gradient(circle at 50% 38%, rgba(16, 78, 44, 0.36), #06070b 75%);
   }
 
   .lobby-card {
@@ -47,9 +39,6 @@
   .poker-hero-svg { width: 84px; height: 68px; margin: 0 auto 8px; display: block; filter: drop-shadow(0 10px 18px rgba(255, 34, 56, 0.3)); transition: transform .2s var(--ease); }
   .or-sep { display:flex; align-items:center; gap:10px; margin:14px 0 10px; color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
-  .seat-card .player-av { width: 24px; height: 24px; font-size: 11px; margin: 0 auto 3px; }
-  @keyframes cardDeal { 0% { opacity:0; transform: translateY(-10px) scale(.85); } 100% { opacity:1; transform: translateY(0) scale(1); } }
-  .poker-card.deal-in { animation: cardDeal .24s ease both; }
   .lobby-title {
     font-size: 32px; font-weight: 900; letter-spacing: -0.5px;
     background: linear-gradient(90deg, #fff 40%, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -58,112 +47,231 @@
   .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }
 
   .poker-table-wrap {
-    flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; max-width: 520px; margin: 0 auto;
+    flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
+    position: relative; width: 100%; max-width: 520px; margin: 4px auto 0; padding: 24px 4px 16px;
   }
 
   .poker-table {
-    width: 100%; height: 100%; max-height: 420px; border-radius: 140px;
-    background: radial-gradient(ellipse at center, #1b6338 0%, #0d4022 65%, #062211 100%);
-    border: 12px solid #23140b; outline: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 16px 50px rgba(0,0,0,0.9);
-    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+    width: 100%; height: 100%; max-height: 410px; border-radius: 132px;
+    background:
+      radial-gradient(ellipse at 50% 48%, rgba(45, 138, 82, 0.38) 0%, transparent 56%),
+      radial-gradient(ellipse at center, #185e36 0%, #0d3d21 62%, #051d0f 100%);
+    border: 10px solid #2b170b;
+    outline: 2px solid rgba(251, 191, 36, 0.32);
+    box-shadow:
+      inset 0 0 56px rgba(0, 0, 0, 0.85),
+      inset 0 0 0 2px rgba(255, 255, 255, 0.06),
+      0 18px 50px rgba(0, 0, 0, 0.9);
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 10px 26px;
+  }
+  .poker-table::before {
+    content: ""; position: absolute; inset: 12px; border-radius: 118px;
+    border: 1.5px solid rgba(251, 191, 36, 0.22); pointer-events: none;
+  }
+
+  .pk-pot-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 10px; position: relative; z-index: 2;
+  }
+
+  .table-deck {
+    width: 24px; height: 34px; border-radius: 5px; pointer-events: none; flex-shrink: 0;
+    background: linear-gradient(135deg, #1d4078, #0d2142);
+    border: 1.5px solid rgba(255, 255, 255, 0.82);
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 4px, transparent 0, transparent 8px);
+    box-shadow: -2px 2px 0 #cbd5e1, -3px 3px 0 #94a3b8, -4px 5px 10px rgba(0, 0, 0, 0.65);
+    opacity: 0.9;
   }
 
   .pot-badge {
-    background: linear-gradient(135deg, rgba(28,28,34,0.9), rgba(16,16,20,0.95));
-    border: 1px solid rgba(255, 215, 0, 0.4); border-radius: 999px; padding: 6px 18px;
-    color: #ffd700; font-size: 14px; font-weight: 900; letter-spacing: 0.5px;
-    box-shadow: 0 4px 20px rgba(255,215,0,0.25); text-shadow: 0 0 10px rgba(255,215,0,0.4);
-    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, rgba(22, 24, 32, 0.94), rgba(10, 12, 18, 0.96));
+    border: 1px solid rgba(251, 191, 36, 0.48); border-radius: 999px; padding: 5px 14px;
+    color: #ffd700; font-size: 13px; font-weight: 900; letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.24); text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    display: flex; align-items: center; gap: 6px;
+    translate: 0px; rotate: 0deg; scale: 1;
+    transition: scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .pot-badge { transition-timing-function: var(--pk-spring); }
+  }
+  .pot-badge.pk-pot-bump { scale: 1.14; }
 
   .community-cards {
-    display: flex; justify-content: center; gap: 6px; min-height: 74px; margin-bottom: 10px;
+    display: flex; justify-content: center; align-items: center; gap: 5px; min-height: 76px; margin-bottom: 8px;
+    position: relative; z-index: 2;
   }
 
   .table-status {
-    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
-    color: rgba(255,255,255,0.7); text-align: center; min-height: 18px;
+    font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.7px;
+    color: rgba(255,255,255,0.78); text-align: center; min-height: 18px; position: relative; z-index: 2;
   }
-  .table-status.my-turn { color: #22c55e; text-shadow: 0 0 12px rgba(34,197,94,0.6); font-size: 13px; }
+  .table-status.my-turn { color: #4ade80; text-shadow: 0 0 12px rgba(74, 222, 128, 0.65); font-size: 12.5px; }
 
   .seats-container {
-    position: absolute; inset: -18px; pointer-events: none;
+    position: absolute; inset: -16px -4px; pointer-events: none; z-index: 5;
   }
   .seat-node {
     position: absolute; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
-    transition: transform 0.2s, opacity 0.2s;
+    translate: 0px; scale: 1;
   }
 
-  .seat-node.seat-top { top: 4px; left: 50%; transform: translateX(-50%); }
-  .seat-node.seat-top-left { top: 15%; left: 4%; }
-  .seat-node.seat-top-right { top: 15%; right: 4%; }
-  .seat-node.seat-bottom-left { bottom: 15%; left: 4%; }
-  .seat-node.seat-bottom-right { bottom: 15%; right: 4%; }
+  .seat-node.seat-top { top: -8px; left: 50%; transform: translateX(-50%); }
+  .seat-node.seat-top-left { top: 0px; left: 2px; }
+  .seat-node.seat-top-right { top: 0px; right: 2px; }
+  .seat-node.seat-bottom-left { bottom: -10px; left: 2px; }
+  .seat-node.seat-bottom-right { bottom: -10px; right: 2px; }
 
   .seat-card {
-    background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 6px 10px; text-align: center;
-    min-width: 90px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); position: relative; transition: all 0.25s;
+    background: rgba(16, 18, 26, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(255,255,255,0.16); border-radius: 13px; padding: 4px 7px; text-align: center;
+    min-width: 82px; box-shadow: 0 8px 20px rgba(0,0,0,0.65); position: relative;
+    translate: 0px; rotate: 0deg; scale: 1;
+    transition: transform 0.25s ease, opacity 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
+  .pk-seat-head { display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 2px; }
+  .seat-card .player-av { width: 17px; height: 17px; font-size: 9px; margin: 0; flex-shrink: 0; }
   .seat-card.active-turn {
-    border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.6); transform: scale(1.05);
+    border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.6); scale: 1.05;
   }
-  .seat-card.folded { opacity: 0.4; }
+  .seat-card.winner-seat {
+    border-color: #fbbf24; box-shadow: 0 0 24px rgba(251, 191, 36, 0.65); scale: 1.07;
+  }
+  .seat-card.folded { opacity: 0.42; }
 
-  .seat-name { font-size: 11px; font-weight: 800; color: #fff; white-space: nowrap; max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
+  .pk-turn-ring {
+    position: absolute; inset: -4px; border-radius: 18px; pointer-events: none;
+    border: 2px solid transparent; opacity: 0;
+  }
+  .seat-card.active-turn .pk-turn-ring {
+    opacity: 1;
+    border-color: rgba(74, 222, 128, 0.9);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+    animation: pkTurnPulse 1.3s ease-in-out infinite;
+  }
+  @keyframes pkTurnPulse {
+    0%, 100% { transform: scale(1); opacity: 0.95; }
+    50% { transform: scale(1.04); opacity: 0.45; }
+  }
+
+  .seat-name { font-size: 11px; font-weight: 800; color: #fff; white-space: nowrap; max-width: 82px; overflow: hidden; text-overflow: ellipsis; }
   .seat-stack { font-size: 11px; font-weight: 900; color: #ffd700; }
-  .seat-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #8fd0ff; margin-top: 1px; }
-  .dealer-btn { position: absolute; top: -6px; right: -6px; background: #ffd700; color: #000; font-size: 9px; font-weight: 900; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px #000; }
+  .seat-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #7dd3fc; margin-top: 1px; }
+  .seat-badge.win { color: #fde047; }
+  .dealer-btn {
+    position: absolute; top: -6px; right: -6px; background: #ffd700; color: #000;
+    font-size: 9px; font-weight: 900; border-radius: 50%; width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px #000;
+  }
+
+  .pk-seat-hole { display: flex; justify-content: center; gap: 3px; margin: 3px 0 2px; min-height: 22px; }
+  .pk-mini-card {
+    width: 19px; height: 26px; border-radius: 4px; background: #fff; color: #111;
+    font-size: 9px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1; border: 1px solid rgba(0,0,0,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+  }
+  .pk-mini-card.red { color: #e0102e; }
+  .pk-mini-card.black { color: #121215; }
+  .pk-mini-card.pk-mini-back {
+    background: linear-gradient(135deg, #1d4078, #0d2142); border: 1.5px solid #e2e8f0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 3px, transparent 0, transparent 6px);
+  }
+  .pk-mini-card.pk-win-card { box-shadow: 0 0 10px #fbbf24, 0 0 0 1.5px #fbbf24; transform: translateY(-2px); }
+  .pk-mini-card.flip-reveal { animation: pkMiniFlip .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes pkMiniFlip { 0% { transform: rotateY(90deg) scale(.85); opacity: .2; } 100% { transform: rotateY(0) scale(1); opacity: 1; } }
 
   .my-cards-section {
-    display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 6px auto;
+    padding: 8px 14px; border-radius: 20px; border: 1px solid transparent;
+    transition: border-color .25s ease, box-shadow .25s ease, background .25s ease;
+  }
+  .my-cards-section.pk-my-turn {
+    border-color: rgba(34, 197, 94, 0.65);
+    background: rgba(16, 185, 129, 0.08);
+    box-shadow: 0 0 22px rgba(34, 197, 94, 0.25);
   }
   .my-cards { display: flex; justify-content: center; gap: 8px; }
 
   .poker-card {
-    width: 58px; height: 82px; border-radius: 8px; background: #ffffff;
-    border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    display: flex; flex-direction: column; justify-content: space-between; padding: 4px 6px;
-    font-weight: 900; font-size: 16px; line-height: 1; position: relative; transition: transform 0.2s;
+    width: 54px; height: 76px; border-radius: 8px; background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.16); box-shadow: 0 6px 18px rgba(0,0,0,0.52);
+    display: flex; flex-direction: column; justify-content: space-between; padding: 4px 5px;
+    font-weight: 900; font-size: 15px; line-height: 1; position: relative;
+    translate: 0px; rotate: 0deg; scale: 1;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
   }
   .poker-card.red { color: #e0102e; }
   .poker-card.black { color: #121215; }
-  .poker-card .suit-icon { font-size: 20px; align-self: center; }
+  .poker-card .suit-icon { font-size: 19px; align-self: center; }
   .poker-card.card-back {
     background: linear-gradient(135deg, #1c3d72, #0d2142); border: 2px solid #fff;
     background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 6px, transparent 0, transparent 12px);
   }
+  .poker-card.pk-win-card {
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.85), 0 0 0 2px #fbbf24;
+    transform: translateY(-5px) scale(1.04);
+  }
+  .poker-card.pk-dim-card { opacity: 0.62; }
+
+  .pk-fly-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 45; overflow: hidden;
+  }
+  .pk-fly-chip {
+    position: fixed; width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fef08a, #f59e0b 70%, #b45309);
+    border: 2px dashed rgba(255, 255, 255, 0.88);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.65);
+    pointer-events: none; will-change: transform, opacity;
+  }
 
   .action-bar-wrap {
-    background: rgba(18, 18, 24, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 10px;
+    background: rgba(18, 18, 24, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 22px; padding: 8px;
     max-width: 480px; width: 100%; margin: 0 auto; box-shadow: 0 12px 36px rgba(0,0,0,0.8);
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 6px;
   }
 
   .action-buttons { display: flex; gap: 6px; width: 100%; }
   .action-btn {
-    flex: 1; padding: 12px 6px; border-radius: 16px; border: 0; font-weight: 900; font-size: 12px;
-    letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: transform 0.15s, opacity 0.15s;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.4); color: #fff; text-align: center;
+    flex: 1; width: auto; min-height: 44px; padding: 10px 4px; border-radius: 14px; border: 0; font-weight: 900; font-size: 11.5px;
+    letter-spacing: 0.4px; text-transform: uppercase; cursor: pointer;
+    translate: 0px; scale: 1;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4); color: #fff; text-align: center; white-space: nowrap;
   }
-  .action-btn:active { transform: scale(0.95); }
+  .action-btn:active { scale: 0.95; }
   .action-btn.btn-fold { background: linear-gradient(135deg, #e0102e, #990519); }
   .action-btn.btn-call { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
   .action-btn.btn-raise { background: linear-gradient(135deg, #10b981, #059669); }
   .action-btn.btn-allin { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
-  .raise-presets { display: flex; gap: 6px; width: 100%; margin-bottom: 4px; }
-
+  .raise-presets { display: flex; gap: 6px; width: 100%; margin-bottom: 2px; }
   .slider-row { display: flex; align-items: center; gap: 10px; }
   .slider-row input[type=range] {
     flex: 1; accent-color: #10b981; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15);
   }
   .slider-val { font-size: 14px; font-weight: 900; color: #ffd700; min-width: 50px; text-align: right; }
+
+  @media (max-width: 360px) {
+    .poker-table { border-width: 7px; border-radius: 96px; padding: 14px 8px; }
+    .poker-table::before { inset: 8px; border-radius: 88px; }
+    .table-deck { display: none; }
+    .poker-card { width: 46px; height: 66px; font-size: 12.5px; padding: 3px 4px; }
+    .poker-card .suit-icon { font-size: 16px; }
+    .community-cards { gap: 4px; min-height: 68px; }
+    .seat-card { min-width: 70px; padding: 4px 5px; border-radius: 12px; }
+    .seat-name { max-width: 64px; font-size: 10px; }
+    .action-btn { font-size: 10.5px; padding: 10px 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pk-turn-ring, .pk-mini-card.flip-reveal { animation: none !important; }
+    .pot-badge, .seat-card, .poker-card { transition: none !important; }
+  }
 </style>
 <script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/ui.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 </head>
 <body>
 
@@ -236,22 +344,25 @@
     <div id="game" class="hide" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between">
       
       <div class="poker-table-wrap">
-        <div class="poker-table">
+        <div class="poker-table" id="pokerTable">
           <div class="seats-container" id="seatsContainer"></div>
 
-          <div class="pot-badge">
-            <span data-i18n="lbl_pot">💰 БАНК:</span>
-            <span id="pot">0</span>
+          <div class="pk-pot-row">
+            <div class="table-deck" id="tableDeck" aria-hidden="true"></div>
+            <div class="pot-badge" id="potBadge">
+              <span data-i18n="lbl_pot">💰 БАНК:</span>
+              <span id="pot">0</span>
+            </div>
           </div>
 
           <div class="community-cards" id="community"></div>
 
           <div class="table-status" id="status">Префлоп</div>
-          <div id="won" style="font-size:14px;font-weight:900;color:#22c55e;margin-top:4px"></div>
+          <div id="won" style="font-size:13.5px;font-weight:900;color:#fde047;margin-top:4px;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,0.7)"></div>
         </div>
       </div>
 
-      <div class="my-cards-section">
+      <div class="my-cards-section" id="myCardsSection">
         <div class="my-cards" id="mine"></div>
         <div id="meinfo" style="font-size:13px;font-weight:800;color:#fff"></div>
       </div>
@@ -271,6 +382,7 @@
     </div>
 
   </div>
+  <div class="pk-fly-layer" id="pkFlyLayer" aria-hidden="true"></div>
 
   <script src="/games/static/sfx.js"></script>
   <script src="/games/static/invite.js"></script>
@@ -385,21 +497,28 @@
 };
 
     const COMB_TR={
-      "Старшая карта":{uk:"Старша карта",en:"High card"},
-      "Пара":{uk:"Пара",en:"Pair"},
-      "Две пары":{uk:"Дві пари",en:"Two pair"},
-      "Тройка":{uk:"Трійка",en:"Three of a kind"},
-      "Стрит":{uk:"Стріт",en:"Straight"},
-      "Флеш":{uk:"Флеш",en:"Flush"},
-      "Фулл-хаус":{uk:"Фул-хаус",en:"Full house"},
-      "Каре":{uk:"Каре",en:"Four of a kind"},
-      "Стрит-флеш":{uk:"Стріт-флеш",en:"Straight flush"},
-      "Флеш-рояль":{uk:"Флеш-рояль",en:"Royal flush"}
+      "Старшая карта":{uk:"Старша карта",en:"High card",de:"Höchste Karte"},
+      "Пара":{uk:"Пара",en:"Pair",de:"Paar"},
+      "Две пары":{uk:"Дві пари",en:"Two pair",de:"Zwei Paare"},
+      "Тройка":{uk:"Трійка",en:"Three of a kind",de:"Drilling"},
+      "Стрит":{uk:"Стріт",en:"Straight",de:"Straße"},
+      "Флеш":{uk:"Флеш",en:"Flush",de:"Flush"},
+      "Фулл-хаус":{uk:"Фул-хаус",en:"Full house",de:"Full House"},
+      "Каре":{uk:"Каре",en:"Four of a kind",de:"Vierling"},
+      "Стрит-флеш":{uk:"Стріт-флеш",en:"Straight flush",de:"Straight Flush"},
+      "Флеш-рояль":{uk:"Флеш-рояль",en:"Royal flush",de:"Royal Flush"}
     };
 
     function trMsg(msg){
-      if(!msg||LANG==='ru')return msg;
-      let res=msg;
+      if(!msg)return msg;
+      let res=String(msg);
+      if(st && st.names){
+        for(const p of Object.keys(st.names)){
+          const raw=st.names[p], tr=T(raw);
+          if(raw && tr && raw!==tr) res=res.split(raw).join(tr);
+        }
+      }
+      if(LANG==='ru')return res;
       for(const k of Object.keys(COMB_TR)){
         if(res.includes(k)){
           res=res.replace(k,COMB_TR[k][LANG]||k);
@@ -411,11 +530,21 @@
       } else if(LANG==='en'){
         res=res.replace(/забирает банк/g,'wins the pot').replace(/забирают банк/g,'split the pot')
                .replace(/все сфолдили/g,'everyone folded').replace(/ничья/g,'tie');
+      } else if(LANG==='de'){
+        res=res.replace(/забирает банк/g,'gewinnt den Pot').replace(/забирают банк/g,'teilen den Pot')
+               .replace(/все сфолдили/g,'alle haben gepasst').replace(/ничья/g,'Unentschieden');
       }
       return res;
     }
 
-    function T(s){return window.LobbyI18n?LobbyI18n.T(String(s||'')):String(s||'');}
+    function T(s){
+      const raw=String(s||'');
+      if(window.LobbyI18n){
+        if(LobbyI18n.name){const nm=LobbyI18n.name(raw); if(nm&&nm!==raw)return nm;}
+        return LobbyI18n.T(raw);
+      }
+      return raw;
+    }
     function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
     let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
     function t(k){const v=UI[LANG]&&UI[LANG][k];if(v!==undefined)return v;const fb={or_code:{uk:"або за кодом",ru:"или по коду",en:"or with code",de:"oder mit Code"},host_tag:{uk:"Хост",ru:"Хост",en:"Host",de:"Host"}};if(fb[k])return fb[k][LANG]||fb[k].ru;return UI.ru[k]||k;}
@@ -463,6 +592,78 @@
     const SUIT_ICONS = { 0: '♠', 1: '♥', 2: '♦', 3: '♣' };
     const SUIT_COLORS = { 0: 'black', 1: 'red', 2: 'red', 3: 'black' };
 
+    let seatEls = {};
+    let seatLayoutKey = '';
+    let prevCommKeys = [];
+    let prevHoleKeys = [];
+    let prevBets = {};
+    let prevPot = 0;
+    let prevDone = false;
+    let hasRenderedOnce = false;
+
+    function cardKey(c) { return c ? `${c[0]}_${c[1]}` : ''; }
+
+    function score5(cards) {
+      const r = cards.map(c => c[0]).sort((a, b) => b - a);
+      const flush = cards.every(c => c[1] === cards[0][1]);
+      const cnt = new Map();
+      for (const x of r) cnt.set(x, (cnt.get(x) || 0) + 1);
+      const ord = [...cnt.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+      const counts = ord.map(x => x[1]);
+      const ranked = ord.map(x => x[0]);
+      const uniq = [...new Set(r)];
+      let stHigh = 0;
+      if (uniq.length === 5) {
+        if (uniq[0] - uniq[4] === 4) stHigh = uniq[0];
+        else if (uniq[0] === 14 && uniq[1] === 5 && uniq[4] === 2) stHigh = 5;
+      }
+      let vec;
+      if (stHigh && flush) vec = [stHigh === 14 ? 9 : 8, stHigh];
+      else if (counts[0] === 4) vec = [7, ...ranked];
+      else if (counts[0] === 3 && counts[1] === 2) vec = [6, ...ranked];
+      else if (flush) vec = [5, ...r];
+      else if (stHigh) vec = [4, stHigh];
+      else if (counts[0] === 3) vec = [3, ...ranked];
+      else if (counts[0] === 2 && counts[1] === 2) vec = [2, ...ranked];
+      else if (counts[0] === 2) vec = [1, ...ranked];
+      else vec = [0, ...r];
+      return vec;
+    }
+
+    function cmpVec(a, b) {
+      for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        const d = (a[i] || 0) - (b[i] || 0);
+        if (d !== 0) return d;
+      }
+      return 0;
+    }
+
+    function computeWinningCardKeys(state) {
+      const keys = new Set();
+      if (!state || !state.done || !state.showdown || !state.showdown.reveal || !Array.isArray(state.winners)) return keys;
+      const board = state.community || [];
+      if (board.length < 3) return keys;
+      for (const w of state.winners) {
+        const rev = state.showdown.reveal[w];
+        if (!rev || !Array.isArray(rev.hole)) continue;
+        const seven = [...rev.hole, ...board];
+        if (seven.length < 5) continue;
+        let bestVec = null, bestComb = null;
+        const n = seven.length;
+        for (let a = 0; a < n - 4; a++)
+          for (let b = a + 1; b < n - 3; b++)
+            for (let c = b + 1; c < n - 2; c++)
+              for (let d = c + 1; d < n - 1; d++)
+                for (let e = d + 1; e < n; e++) {
+                  const five = [seven[a], seven[b], seven[c], seven[d], seven[e]];
+                  const v = score5(five);
+                  if (!bestVec || cmpVec(v, bestVec) > 0) { bestVec = v; bestComb = five; }
+                }
+        if (bestComb) bestComb.forEach(c => keys.add(cardKey(c)));
+      }
+      return keys;
+    }
+
     function createCardElement(card, isBack = false) {
       const el = document.createElement('div');
       if (isBack || !card) {
@@ -474,6 +675,7 @@
       const color = SUIT_COLORS[card[1]] || 'black';
 
       el.className = `poker-card ${color}`;
+      el.dataset.ckey = cardKey(card);
       el.innerHTML = `
         <div>${rank}</div>
         <div class="suit-icon">${suit}</div>
@@ -482,58 +684,238 @@
       return el;
     }
 
-    function render() {
-      if (!st) return;
+    function createMiniCardHtml(card, isBack, winKeys, flip) {
+      if (isBack || !card) return '<div class="pk-mini-card pk-mini-back"></div>';
+      const rank = RANK_SYMBOLS[card[0]] || card[0];
+      const suit = SUIT_ICONS[card[1]] || '';
+      const color = SUIT_COLORS[card[1]] || 'black';
+      const winCls = winKeys && winKeys.has(cardKey(card)) ? ' pk-win-card' : '';
+      return `<div class="pk-mini-card ${color}${winCls}${flip ? ' flip-reveal' : ''}"><span>${rank}</span><span>${suit}</span></div>`;
+    }
 
+    function animateDealFromDeck(el, delayMs) {
+      if (!el || !el.animate) return;
+      if (window.ArcadeFX && ArcadeFX.reducedMotion()) return;
+      const deck = document.getElementById('tableDeck');
+      if (!deck) return;
+      requestAnimationFrame(() => {
+        const dr = deck.getBoundingClientRect();
+        const tr = el.getBoundingClientRect();
+        if (!dr.width || !tr.width) return;
+        const dx = (dr.left + dr.width / 2) - (tr.left + tr.width / 2);
+        const dy = (dr.top + dr.height / 2) - (tr.top + tr.height / 2);
+        el.animate([
+          { transform: `translate3d(${dx}px, ${dy}px, 0) scale(0.45) rotate(-14deg)`, opacity: 0.2 },
+          { transform: 'translate3d(0px, 0px, 0) scale(1) rotate(0deg)', opacity: 1 }
+        ], { duration: 360, delay: delayMs || 0, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' });
+      });
+    }
+
+    function flyChips(fromEl, toEl, count) {
+      if (!fromEl || !toEl || (window.ArcadeFX && ArcadeFX.reducedMotion())) return;
+      const layer = document.getElementById('pkFlyLayer');
+      if (!layer) return;
+      const fr = fromEl.getBoundingClientRect();
+      const tr = toEl.getBoundingClientRect();
+      if (!fr.width || !tr.width) return;
+      const sx = fr.left + fr.width / 2 - 9;
+      const sy = fr.top + fr.height / 2 - 9;
+      const ex = tr.left + tr.width / 2 - 9;
+      const ey = tr.top + tr.height / 2 - 9;
+      const n = Math.min(5, Math.max(1, count || 3));
+      for (let i = 0; i < n; i++) {
+        const chip = document.createElement('div');
+        chip.className = 'pk-fly-chip';
+        const ox = (Math.random() - 0.5) * 14;
+        const oy = (Math.random() - 0.5) * 14;
+        chip.style.left = sx + 'px';
+        chip.style.top = sy + 'px';
+        layer.appendChild(chip);
+        const anim = chip.animate([
+          { transform: `translate3d(${ox}px, ${oy}px, 0) scale(0.85)`, opacity: 0.95 },
+          { transform: `translate3d(${ex - sx}px, ${ey - sy}px, 0) scale(1.05)`, opacity: 0.95 },
+          { transform: `translate3d(${ex - sx}px, ${ey - sy}px, 0) scale(0.55)`, opacity: 0 }
+        ], { duration: 420 + i * 45, delay: i * 55, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        anim.onfinish = () => chip.remove();
+        setTimeout(() => { if (chip.parentNode) chip.remove(); }, 900);
+      }
+    }
+
+    function ensureSeatNodes(others) {
       const container = document.getElementById('seatsContainer');
+      const key = others.join(',');
+      if (key === seatLayoutKey && Object.keys(seatEls).length === others.length) return;
+      seatLayoutKey = key;
+      seatEls = {};
       container.innerHTML = '';
-
-      const seatPositions = ['seat-top', 'seat-top-left', 'seat-top-right', 'seat-bottom-left', 'seat-bottom-right'];
-      let posIdx = 0;
-
-      for (const p of st.seats) {
-        if (p === pid) continue;
-        const posClass = seatPositions[posIdx % seatPositions.length];
-        posIdx++;
-
-        const isTurn = st.to_act_pid === p;
-        const isFolded = st.folded.includes(p);
-        const isAllIn = st.allin.includes(p);
-        const isBtn = st.seats[st.button] === p;
-
+      const layouts = {
+        1: ['seat-top'],
+        2: ['seat-top-left', 'seat-top-right'],
+        3: ['seat-top-left', 'seat-top', 'seat-top-right'],
+        4: ['seat-bottom-left', 'seat-top-left', 'seat-top-right', 'seat-bottom-right'],
+        5: ['seat-bottom-left', 'seat-top-left', 'seat-top', 'seat-top-right', 'seat-bottom-right']
+      };
+      const seatPositions = layouts[others.length] || layouts[5];
+      others.forEach((p, idx) => {
+        const posClass = seatPositions[idx % seatPositions.length];
         const node = document.createElement('div');
         node.className = `seat-node ${posClass}`;
-        
-        let badgeText = '';
-        if (st.bets[p]) badgeText = typeof t('badge_bet')==='function'?t('badge_bet')(st.bets[p]):('Bet '+st.bets[p]);
-        else if (isFolded) badgeText = t('badge_fold');
-        else if (isAllIn) badgeText = t('badge_allin');
-
-        const seatNm = T(st.names[p] || '?');
-        const seatAv = window.LobbyUI ? LobbyUI.avatarHtml(seatNm, String(p).startsWith('bot_')) : '';
         node.innerHTML = `
-          <div class="seat-card ${isTurn ? 'active-turn' : ''} ${isFolded ? 'folded' : ''}">
-            ${isBtn ? '<div class="dealer-btn">D</div>' : ''}
-            ${seatAv}
-            <div class="seat-name">${esc(seatNm)}</div>
-            <div class="seat-stack">${st.stacks[p] || 0} 🪙</div>
-            ${badgeText ? `<div class="seat-badge">${badgeText}</div>` : ''}
+          <div class="seat-card">
+            <div class="pk-turn-ring"></div>
+            <div class="dealer-btn hide">D</div>
+            <div class="pk-seat-head">
+              <div class="pk-av-wrap"></div>
+              <div class="seat-name"></div>
+            </div>
+            <div class="pk-seat-hole"></div>
+            <div class="seat-stack"></div>
+            <div class="seat-badge"></div>
           </div>
         `;
         container.appendChild(node);
+        seatEls[p] = {
+          node,
+          card: node.querySelector('.seat-card'),
+          dealer: node.querySelector('.dealer-btn'),
+          av: node.querySelector('.pk-av-wrap'),
+          hole: node.querySelector('.pk-seat-hole'),
+          name: node.querySelector('.seat-name'),
+          stack: node.querySelector('.seat-stack'),
+          badge: node.querySelector('.seat-badge'),
+          revealed: false
+        };
+      });
+    }
+
+    function render() {
+      if (!st) return;
+
+      const others = (st.seats || []).filter(p => p !== pid);
+      ensureSeatNodes(others);
+
+      const winKeys = computeWinningCardKeys(st);
+      const hasShowdownHighlight = winKeys.size > 0 && st.done;
+      const revealMap = (st.showdown && st.showdown.reveal) || {};
+      const winnersSet = new Set(st.winners || []);
+      const potEl = document.getElementById('potBadge');
+
+      for (const p of st.seats) {
+        if (p === pid) continue;
+        const refs = seatEls[p];
+        if (!refs) continue;
+        const isTurn = !st.done && st.to_act_pid === p;
+        const isFolded = st.folded.includes(p);
+        const isAllIn = st.allin.includes(p);
+        const isWinner = st.done && winnersSet.has(p);
+        const isBtn = st.seats[st.button] === p;
+        const rev = revealMap[p];
+
+        let badgeText = '';
+        if (st.done && st.showdown && st.showdown.won && st.showdown.won[p]) {
+          badgeText = '+' + st.showdown.won[p] + (rev ? ' · ' + trMsg(rev.name) : '');
+        } else if (rev && st.done) {
+          badgeText = trMsg(rev.name);
+        } else if (st.bets[p]) {
+          badgeText = typeof t('badge_bet') === 'function' ? t('badge_bet')(st.bets[p]) : ('Bet ' + st.bets[p]);
+        } else if (isFolded) {
+          badgeText = t('badge_fold');
+        } else if (isAllIn) {
+          badgeText = t('badge_allin');
+        }
+
+        const seatNm = T(st.names[p] || '?');
+        const isBot = String(p).startsWith('bot_');
+        if (refs.av.dataset.nm !== seatNm) {
+          refs.av.dataset.nm = seatNm;
+          refs.av.innerHTML = window.LobbyUI ? LobbyUI.avatarHtml(seatNm, isBot) : '';
+        }
+        refs.card.classList.toggle('active-turn', isTurn);
+        refs.card.classList.toggle('folded', isFolded && !isWinner);
+        refs.card.classList.toggle('winner-seat', isWinner);
+        refs.dealer.classList.toggle('hide', !isBtn);
+        refs.name.textContent = seatNm;
+        refs.stack.textContent = (st.stacks[p] || 0) + ' 🪙';
+        refs.badge.textContent = badgeText;
+        refs.badge.classList.toggle('hide', !badgeText);
+        refs.badge.classList.toggle('win', isWinner);
+
+        if (rev && Array.isArray(rev.hole)) {
+          const doFlip = !refs.revealed && hasRenderedOnce;
+          refs.hole.innerHTML = rev.hole.map(c => createMiniCardHtml(c, false, hasShowdownHighlight ? winKeys : null, doFlip)).join('');
+          refs.revealed = true;
+        } else {
+          refs.revealed = false;
+          refs.hole.innerHTML = isFolded ? '' : '<div class="pk-mini-card pk-mini-back"></div><div class="pk-mini-card pk-mini-back"></div>';
+        }
       }
 
+      if (hasRenderedOnce) {
+        for (const p of st.seats) {
+          const oldBet = prevBets[p] || 0;
+          const newBet = st.bets[p] || 0;
+          if (newBet > oldBet) {
+            const fromEl = p === pid ? document.getElementById('myCardsSection') : (seatEls[p] && seatEls[p].card);
+            flyChips(fromEl, potEl, 3);
+            if (window.sfx && sfx.click) sfx.click();
+          }
+        }
+      }
+      if (hasRenderedOnce && st.pot > prevPot) {
+        potEl.classList.remove('pk-pot-bump');
+        void potEl.offsetWidth;
+        potEl.classList.add('pk-pot-bump');
+        setTimeout(() => potEl.classList.remove('pk-pot-bump'), 280);
+      }
       document.getElementById('pot').textContent = st.pot;
 
       const com = document.getElementById('community');
-      com.innerHTML = '';
-      for (const c of st.community) com.appendChild(createCardElement(c));
+      const nextCommKeys = (st.community || []).map(cardKey);
+      const commReset = nextCommKeys.length < prevCommKeys.length || nextCommKeys.some((k, i) => prevCommKeys[i] && prevCommKeys[i] !== k);
+      if (commReset || !com.children.length) {
+        com.innerHTML = '';
+        (st.community || []).forEach((c, idx) => {
+          const el = createCardElement(c);
+          com.appendChild(el);
+          if (hasRenderedOnce) animateDealFromDeck(el, idx * 70);
+        });
+        if (hasRenderedOnce && st.community && st.community.length && window.LobbyUI && LobbyUI.sound) LobbyUI.sound('deal');
+      } else if (nextCommKeys.length > prevCommKeys.length) {
+        for (let i = prevCommKeys.length; i < st.community.length; i++) {
+          const el = createCardElement(st.community[i]);
+          com.appendChild(el);
+          if (hasRenderedOnce) animateDealFromDeck(el, (i - prevCommKeys.length) * 80);
+        }
+        if (hasRenderedOnce && window.LobbyUI && LobbyUI.sound) LobbyUI.sound('deal');
+      }
+      Array.from(com.children).forEach(el => {
+        const k = el.dataset.ckey;
+        el.classList.toggle('pk-win-card', hasShowdownHighlight && winKeys.has(k));
+        el.classList.toggle('pk-dim-card', hasShowdownHighlight && !winKeys.has(k));
+      });
 
       const mine = document.getElementById('mine');
-      mine.innerHTML = '';
-      if (st.hole && st.hole.length) {
-        for (const c of st.hole) mine.appendChild(createCardElement(c));
+      const nextHoleKeys = (st.hole || []).map(cardKey);
+      const holeChanged = nextHoleKeys.join(',') !== prevHoleKeys.join(',');
+      if (holeChanged || !mine.children.length) {
+        mine.innerHTML = '';
+        if (st.hole && st.hole.length) {
+          st.hole.forEach((c, idx) => {
+            const el = createCardElement(c);
+            mine.appendChild(el);
+            if (hasRenderedOnce) animateDealFromDeck(el, idx * 90);
+          });
+          if (hasRenderedOnce) {
+            if (window.LobbyUI && LobbyUI.sound) LobbyUI.sound('deal');
+            if (window.ArcadeFX) ArcadeFX.vibrate(6);
+          }
+        }
       }
+      Array.from(mine.children).forEach(el => {
+        const k = el.dataset.ckey;
+        el.classList.toggle('pk-win-card', hasShowdownHighlight && winKeys.has(k));
+        el.classList.toggle('pk-dim-card', hasShowdownHighlight && !winKeys.has(k));
+      });
 
       const status = document.getElementById('status');
       const stageMap = {
@@ -544,12 +926,14 @@
         showdown: t('stage_showdown')
       };
       const myturn = st.to_act_pid === pid;
+      document.getElementById('myCardsSection').classList.toggle('pk-my-turn', !st.done && myturn);
 
       status.className = 'table-status' + (myturn ? ' my-turn' : '');
       const stageLabel = stageMap[st.stage] || st.stage;
-      status.textContent = st.done ? '' : stageLabel + (myturn ? t('your_turn_banner') : (st.to_act_pid ? (typeof t('turn_of_banner')==='function'?t('turn_of_banner')(st.names[st.to_act_pid]||'?'):(' — '+(st.names[st.to_act_pid]||'?'))) : ''));
-      
-      document.getElementById('meinfo').innerHTML = st.allin.includes(pid) ? `<b style="color:#8b5cf6">${t('allin_badge')}</b>` : (`${t('your_stack')}<span style="color:#ffd700">${st.my_stack || 0} 🪙</span>` + (st.folded.includes(pid) ? ` · <span style="color:var(--muted)">${t('you_folded')}</span>` : ''));
+      const actorName = T(st.names[st.to_act_pid] || '?');
+      status.textContent = st.done ? '' : stageLabel + (myturn ? t('your_turn_banner') : (st.to_act_pid ? (typeof t('turn_of_banner') === 'function' ? t('turn_of_banner')(actorName) : (' — ' + actorName)) : ''));
+
+      document.getElementById('meinfo').innerHTML = st.allin.includes(pid) ? `<b style="color:#a78bfa">${t('allin_badge')}</b>` : (`${t('your_stack')}<span style="color:#ffd700">${st.my_stack || 0} 🪙</span>` + (st.folded.includes(pid) ? ` · <span style="color:var(--muted)">${t('you_folded')}</span>` : ''));
 
       const won = document.getElementById('won');
       const nextBtn = document.getElementById('nextBtn');
@@ -557,8 +941,24 @@
         won.classList.remove('hide');
         won.textContent = '🏆 ' + trMsg(st.msg);
         nextBtn.classList.remove('hide');
-        if (window.confetti && st.msg.includes(st.names[pid])) {
-          confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        if (!prevDone && hasRenderedOnce) {
+          for (const w of (st.winners || [])) {
+            const targetEl = w === pid ? document.getElementById('myCardsSection') : (seatEls[w] && seatEls[w].card);
+            flyChips(potEl, targetEl, 4);
+            const wonAmt = st.showdown && st.showdown.won && st.showdown.won[w];
+            if (targetEl && wonAmt && window.ArcadeFX) {
+              const r = targetEl.getBoundingClientRect();
+              if (r.width) ArcadeFX.floatText(r.left + r.width / 2, r.top, '+' + wonAmt + ' 🪙', { color: '#fde047', size: 17 });
+            }
+          }
+          if (winnersSet.has(pid) || (st.msg && st.msg.includes(st.names[pid]))) {
+            if (window.ArcadeFX) {
+              ArcadeFX.confetti();
+              ArcadeFX.flash('#22c55e', 0.2, 220);
+              ArcadeFX.vibrate([20, 30, 40]);
+            }
+            if (window.LobbyUI && LobbyUI.sound) LobbyUI.sound('win');
+          }
         }
         renderActions([]);
       } else {
@@ -566,6 +966,13 @@
         nextBtn.classList.add('hide');
         renderActions(myturn && !st.folded.includes(pid) && !st.allin.includes(pid) ? buildActions() : []);
       }
+
+      prevCommKeys = nextCommKeys;
+      prevHoleKeys = nextHoleKeys;
+      prevBets = Object.assign({}, st.bets || {});
+      prevPot = st.pot || 0;
+      prevDone = !!st.done;
+      hasRenderedOnce = true;
     }
 
     function buildActions() {
@@ -647,6 +1054,7 @@
         sessionStorage.setItem('jg_poker_code', m.code);
       }
       else if (m.type === 'lobby') {
+        hasRenderedOnce = false; seatLayoutKey = ''; prevCommKeys = []; prevHoleKeys = []; prevBets = {}; prevPot = 0; prevDone = false;
         show('lobby');
         const ld = document.getElementById('lcode');
         if (ld && window.LobbyUI) ld.innerHTML = LobbyUI.renderCodeDigits(m.code);

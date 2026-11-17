@@ -635,7 +635,7 @@ Piece.prototype.lock = function () {
     level = 1 + Math.floor(lines / 10);
     updateScoreHUD();
     const midY = clearedRows[Math.floor(cnt / 2)] * SQ + SQ * 0.5;
-    if (window.ArcadeFX) {
+    if (window.ArcadeFX && !gameOver) {
       ArcadeFX.floatText(COL * SQ * 0.5, midY, '+' + pts, { canvas, color: '#fde047', size: 18 });
       if (cnt >= 4) {
         ArcadeFX.flash('#00f0ff', 0.35, 260);

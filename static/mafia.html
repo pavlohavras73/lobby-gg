@@ -8,59 +8,98 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal));transition:background .8s ease}
+  :root{--mf-spring:linear(0,0.016 1%,0.28 4%,1.12 10%,1.03 24%,0.99 48%,1)}
+  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(12px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(12px,var(--sal));transition:background .85s ease}
+  button::after{content:none}
   .lobby-card{background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-hi);border-radius:26px;padding:22px 18px;max-width:400px;width:100%;margin:8px auto;text-align:center;box-shadow:var(--inner),var(--shadow-lg),0 0 50px -18px rgba(255,34,56,.22)}
   .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
   .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
-  body.night{background:radial-gradient(circle at 50% -10%,#141a2e 0%,#0a0c14 60%)}
-  body.day{background:radial-gradient(circle at 50% -10%,#2a2418 0%,#14110a 60%)}
+  body.night{background:radial-gradient(circle at 50% -10%,#172040 0%,#080a13 62%)}
+  body.day{background:radial-gradient(circle at 50% -10%,#3d2f18 0%,#141008 62%)}
   .card{max-width:420px;width:100%;text-align:center}
+  #game,#over{padding-bottom:72px}
   input,button,select{max-width:380px}
-  .phase{font-size:22px;font-weight:900;margin:6px 0 2px;letter-spacing:.5px}
+
+  /* Sky stage: Moon / Sun smooth day-night cycle */
+  .sky-stage{position:relative;height:48px;border-radius:14px;overflow:hidden;margin:0 auto 6px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#0c1430,#141d3c);transition:background .85s ease,border-color .85s ease}
+  body.day .sky-stage{background:linear-gradient(180deg,#3b2d14,#231a0d);border-color:rgba(255,207,92,.35)}
+  .sky-stars{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-around;font-size:11px;color:rgba(191,219,254,.55);letter-spacing:14px;pointer-events:none;opacity:1;transition:opacity .65s ease}
+  body.day .sky-stars{opacity:0}
+  .celestial-orb{position:absolute;left:50%;top:50%;font-size:28px;line-height:1;pointer-events:none;translate:-50% -50%;scale:1;transition:transform .65s cubic-bezier(.22,1,.36,1),opacity .55s ease}
+  .celestial-orb.moon{opacity:1;transform:translate3d(0,0,0) scale(1);filter:drop-shadow(0 0 12px rgba(122,162,255,.7))}
+  body.day .celestial-orb.moon{opacity:0;transform:translate3d(-36px,26px,0) scale(.55)}
+  .celestial-orb.sun{opacity:0;transform:translate3d(36px,26px,0) scale(.55);filter:drop-shadow(0 0 14px rgba(255,207,92,.85))}
+  body.day .celestial-orb.sun{opacity:1;transform:translate3d(0,0,0) scale(1)}
+
+  .phase{font-size:22px;font-weight:900;margin:2px 0;letter-spacing:.5px}
   .phase.night{color:#7aa2ff;text-shadow:0 0 18px rgba(122,162,255,.5)}
   .phase.day{color:#ffcf5c;text-shadow:0 0 18px rgba(255,207,92,.45)}
-  .rnd{color:var(--muted);font-size:13px;margin-bottom:10px}
-  .rolecard{border-radius:18px;padding:18px;margin:10px 0;border:1px solid var(--border);
-    background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));perspective:800px}
+  .rnd{color:var(--muted);font-size:13px;margin-bottom:8px}
+
+  .rolecard{position:relative;border-radius:18px;padding:16px 14px 14px;margin:8px 0;border:1px solid var(--border);
+    background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));perspective:800px;cursor:pointer;transition:transform .25s ease,border-color .25s ease}
   .rolecard.flip-in{animation:roleFlip .55s cubic-bezier(.22,1,.36,1) both}
   @keyframes roleFlip{0%{transform:rotateY(90deg) scale(.92);opacity:0}100%{transform:rotateY(0) scale(1);opacity:1}}
-  .rolecard .emoji{font-size:44px;line-height:1}
-  .rolecard .rname{font-size:26px;font-weight:900;margin:6px 0}
+  .rolecard .emoji{font-size:40px;line-height:1}
+  .rolecard .rname{font-size:24px;font-weight:900;margin:4px 0}
+  .rolecard.mafia{border-color:rgba(255,75,92,.35)}
+  .rolecard.town{border-color:rgba(92,255,158,.3)}
   .rolecard.mafia .rname{color:#ff4b5c;text-shadow:0 0 16px rgba(255,75,92,.5)}
   .rolecard.town .rname{color:#5cff9e;text-shadow:0 0 16px rgba(92,255,158,.4)}
-  .rolecard .rdesc{color:var(--muted);font-size:13px;line-height:1.5}
+  .rolecard .rdesc{color:var(--muted);font-size:13px;line-height:1.45}
+  .rolecard.concealed .role-body{opacity:.07;filter:blur(7px);transition:opacity .2s ease}
+  .role-peek-pill{font-size:10.5px;color:var(--muted);margin-top:8px;opacity:.8}
+
   .team{margin-top:8px;font-size:13px;color:#ff8a95}
   .sheriff-log{margin-top:8px;font-size:13px;text-align:left}
   .sheriff-log .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)}
   .sheriff-log .maf{color:#ff4b5c;font-weight:800}
   .sheriff-log .twn{color:#5cff9e;font-weight:800}
-  .players{display:flex;flex-direction:column;gap:7px;margin:12px 0}
-  .pl{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;
-    border:1px solid var(--border-hi);background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));text-align:left;transition:transform .12s,border-color .15s,background .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(0,0,0,.22)}
-  .pl.dead{opacity:.42;text-decoration:line-through;filter:grayscale(.7)}
+
+  .players{display:flex;flex-direction:column;gap:7px;margin:10px 0}
+  .pl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;
+    border:1px solid var(--border-hi);background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));text-align:left;translate:0px;scale:1;transition:scale .2s ease,border-color .2s ease,background .2s ease,opacity .35s ease;box-shadow:0 4px 12px rgba(0,0,0,.22)}
+  .pl.dead{opacity:.48;background:rgba(15,15,22,.6);border-color:rgba(255,255,255,.07)}
+  .pl.dead .nm{text-decoration:line-through;color:#94a3b8}
+  .pl.just-died{animation:mfDied .5s cubic-bezier(.36,.07,.19,.97) both}
+  @keyframes mfDied{0%{transform:scale(1.04)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}100%{transform:translateX(0) scale(1)}}
+  .mf-av-wrap{position:relative;flex-shrink:0;display:grid;place-items:center}
+  .pl.dead .player-av{filter:grayscale(1) brightness(.52) contrast(1.15)}
+  .crack-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+
   .pl.selectable{cursor:pointer}
   .pl.selectable:hover{border-color:rgba(255,255,255,.28)}
-  .pl.selectable:active{transform:scale(.98)}
+  .pl.selectable:active{scale:.98}
   .pl.picked{border-color:var(--crimson);background:rgba(255,34,56,.18);box-shadow:0 0 16px var(--crimson-glow),inset 0 0 0 1px rgba(255,255,255,.15)}
-  .pl .nm{flex:1;font-weight:700}
+  .pl .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
   .pl .badge{font-size:11px;color:var(--muted)}
-  .pl .votes{font-size:12px;color:#ffcf5c;font-weight:800}
-  .pl .roletag{font-size:11px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.08)}
+  .mf-vote-wrap{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+  .vote-pips{display:inline-flex;gap:3px}
+  .vote-pip{width:7px;height:7px;border-radius:50%;background:#ffcf5c;box-shadow:0 0 6px rgba(255,207,92,.8)}
+  .pl .votes{font-size:12px;color:#ffcf5c;font-weight:900;padding:2px 7px;border-radius:999px;background:rgba(255,207,92,.14);border:1px solid rgba(255,207,92,.35)}
+  .pl .votes.vote-pop{animation:mfVotePop .36s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes mfVotePop{0%{transform:scale(1)}45%{transform:scale(1.26)}100%{transform:scale(1)}}
+  .pl .roletag{font-size:11px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.08);white-space:nowrap}
   .pl .roletag.mafia{color:#ff4b5c}
   .pl .roletag.town{color:#5cff9e}
   .hint{color:var(--muted);font-size:13px;margin:8px 0}
   .acted{color:#5cff9e;font-size:14px;font-weight:700;margin:8px 0}
-  .log{margin-top:14px;max-height:150px;overflow-y:auto;text-align:left;font-size:13px;
-    background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;line-height:1.6}
+  .log{margin-top:12px;max-height:140px;overflow-y:auto;text-align:left;font-size:13px;
+    background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;line-height:1.55}
   .log div{padding:1px 0}
-  .winbanner{font-size:24px;font-weight:900;margin:14px 0}
+  .winbanner{font-size:24px;font-weight:900;margin:12px 0}
   .winbanner.town{color:#5cff9e;text-shadow:0 0 20px rgba(92,255,158,.5)}
   .winbanner.mafia{color:#ff4b5c;text-shadow:0 0 20px rgba(255,75,92,.5)}
   .rolesgrid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
   .rolesgrid .rc{font-size:12px;padding:5px 9px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
-  .langbar{display:flex;gap:4px;justify-content:center;margin:10px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;min-height:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  @media (max-width:360px){.sky-stage{height:36px;margin-bottom:4px}.rolecard{padding:10px 10px;margin:6px 0}.rolecard .emoji{font-size:30px}.rolecard .rdesc{font-size:11.5px;margin-top:2px}}
+  @media (prefers-reduced-motion:reduce){
+    body,.sky-stage,.sky-stars,.celestial-orb{transition:none !important}
+    .rolecard.flip-in,.pl.just-died,.pl .votes.vote-pop{animation:none !important}
+  }
 </style>
 </head>
 <body class="night">
@@ -104,14 +143,22 @@
 </div>
 
 <div id="game" class="card hide">
+  <div class="sky-stage" id="skyStage" aria-hidden="true">
+    <div class="sky-stars">✦ ✧ ★ ✧ ✦</div>
+    <div class="celestial-orb moon">🌙</div>
+    <div class="celestial-orb sun">☀️</div>
+  </div>
   <div class="phase night" id="phase">НОЧЬ</div>
   <div class="rnd" id="rnd"></div>
-  <div class="rolecard town" id="rolecard">
-    <div class="emoji" id="remoji">👤</div>
-    <div class="rname" id="rname">—</div>
-    <div class="rdesc" id="rdesc"></div>
-    <div class="team hide" id="rteam"></div>
-    <div class="sheriff-log hide" id="rsheriff"></div>
+  <div class="rolecard town" id="rolecard" onclick="toggleConcealRole()">
+    <div class="role-body">
+      <div class="emoji" id="remoji">👤</div>
+      <div class="rname" id="rname">—</div>
+      <div class="rdesc" id="rdesc"></div>
+      <div class="team hide" id="rteam"></div>
+      <div class="sheriff-log hide" id="rsheriff"></div>
+    </div>
+    <div class="role-peek-pill" data-i18n="role_peek_hint">👁 тап — скрыть/показать</div>
   </div>
   <div id="actionzone">
     <div class="hint" id="acthint"></div>
@@ -143,6 +190,7 @@
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script>
 // ═══════════ i18n Мафии: УКР / РУС / ENG ═══════════
 const UI={
@@ -163,6 +211,7 @@ const UI={
   asleep:n=>"😴 Ти спиш. Нічні ролі роблять хід… ("+n+" лишилось)", out_watch:"💀 Ти вибув. Спостерігай.",
   vote_dead:"💀 Ти вибув — голосувати не можна, спостерігай.", vote_ok:"✅ Голос прийнято. Чекаємо інших…", vote_day:"☀️ День. Голосуйте, кого стратити:",
   win_town:"🎉 ПЕРЕМОГА МІСТА", win_mafia:"🔪 ПЕРЕМОГА МАФІЇ",
+  role_peek_hint:"👁 тап — сховати/показати",
   conn_lost:"З'єднання втрачено, онови сторінку.", def_name:"Гравець", ask_code:"Введи код", confirm_back:"Вийти в лобі? Партія перерветься для всіх.",
   rid:{mafia:"мафія",doctor:"лікар",sheriff:"шериф",patrol:"патрульний",civilian:"мирний"}
  },
@@ -183,6 +232,7 @@ const UI={
   asleep:n=>"😴 Ты спишь. Ночные роли делают ход… ("+n+" осталось)", out_watch:"💀 Ты выбыл. Наблюдай.",
   vote_dead:"💀 Ты выбыл — голосовать нельзя, наблюдай.", vote_ok:"✅ Голос принят. Ждём остальных…", vote_day:"☀️ День. Голосуйте, кого казнить:",
   win_town:"🎉 ПОБЕДА ГОРОДА", win_mafia:"🔪 ПОБЕДА МАФИИ",
+  role_peek_hint:"👁 тап — скрыть/показать",
   conn_lost:"Соединение потеряно, обнови страницу.", def_name:"Игрок", ask_code:"Введи код", confirm_back:"Выйти в лобби? Партия прервётся для всех.",
   rid:{mafia:"мафия",doctor:"доктор",sheriff:"шериф",patrol:"патрульный",civilian:"мирный"}
  },
@@ -203,6 +253,7 @@ const UI={
   asleep:n=>"😴 You're asleep. Night roles are acting… ("+n+" left)", out_watch:"💀 You're out. Just watch.",
   vote_dead:"💀 You're out — you can't vote, just watch.", vote_ok:"✅ Vote counted. Waiting for others…", vote_day:"☀️ Day. Vote on who to execute:",
   win_town:"🎉 TOWN WINS", win_mafia:"🔪 MAFIA WINS",
+  role_peek_hint:"👁 tap — hide/show",
   conn_lost:"Connection lost, refresh the page.", def_name:"Player", ask_code:"Enter a code", confirm_back:"Leave to lobby? The game will end for everyone.",
   rid:{mafia:"mafia",doctor:"doctor",sheriff:"sheriff",patrol:"patrol",civilian:"civilian"}
  },
@@ -228,6 +279,7 @@ const UI={
     vote_dead:"💀 Du bist raus — du kannst nicht abstimmen, nur zuschauen.",
     vote_ok:"✅ Stimme gezählt. Warte auf andere…", vote_day:"☀️ Tag. Stimme ab, wer hingerichtet werden soll:",
     win_town:"🎉 DIE BÜRGER GEWINNEN", win_mafia:"🔪 DIE MAFIA GEWINNT",
+    role_peek_hint:"👁 Tippen — verbergen/zeigen",
     conn_lost:"Verbindung verloren, bitte Seite aktualisieren.", def_name:"Spieler", ask_code:"Code eingeben",
     confirm_back:"Zur Lobby zurückkehren? Das Spiel endet für alle.",
     rid:{mafia:"Mafia",doctor:"Doktor",sheriff:"Sheriff",patrol:"Wachmann",civilian:"Bürger"}
@@ -288,7 +340,24 @@ const GT={
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
+function T(s){
+  if(s==null)return s;
+  if(window.LobbyI18n&&LobbyI18n.name){const nm=LobbyI18n.name(s); if(nm&&nm!==s)return nm;}
+  if(LANG==='ru')return s;
+  const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);
+}
+const CRACK_SVG='<svg class="crack-overlay" viewBox="0 0 36 36" aria-hidden="true"><path d="M18 2 L15 11 L21 15 L14 23 L19 34 M8 14 L15 16 M27 11 L21 15" fill="none" stroke="rgba(248,113,113,0.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function mfAvatar(nm, isBot, alive){
+  const base=window.LobbyUI?LobbyUI.avatarHtml(nm,isBot):(alive?'👤':'💀');
+  return '<div class="mf-av-wrap">'+base+(alive?'':CRACK_SVG)+'</div>';
+}
+function toggleConcealRole(){
+  const rc=document.getElementById('rolecard');
+  if(!rc)return;
+  rc.classList.toggle('concealed');
+  if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('flip');
+}
+let prevAlive={}, prevVotes={}, prevPhaseMafia='lobby', hasRenderedMafia=false;
 // перевод строк лога по шаблонам
 function logTr(s){
  if(LANG==='ru'||!s)return s;
@@ -368,6 +437,7 @@ function handle(m){
   if(m.type==='joined'){pid=m.pid;isHost=m.host;roomCode=m.code;sessionStorage.setItem('jg_mafia_code',m.code);}
   if(m.type==='error'){const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;}
   if(m.type==='lobby'||m.type==='room'){
+    prevAlive={};prevVotes={};prevPhaseMafia='lobby';hasRenderedMafia=false;
     show('lobby');
     const ld=document.getElementById('lcode');
     if(ld&&window.LobbyUI)ld.innerHTML=LobbyUI.renderCodeDigits(m.code||'');
@@ -377,7 +447,7 @@ function handle(m){
       const nm=T(p.name);
       const av=window.LobbyUI?LobbyUI.avatarHtml(nm,!!p.bot):'';
       const tag=p.id===m.host?'<span class="player-tag">👑</span>':'';
-      return '<div class="player-row-item">'+av+'<span style="font-weight:700">'+esc(nm)+(p.bot?' 🤖':'')+'</span>'+tag+'</div>';
+      return '<div class="player-row-item">'+av+'<span style="font-weight:700">'+esc(nm)+((p.bot&&!nm.includes('🤖'))?' 🤖':'')+'</span>'+tag+'</div>';
     }).join('');
     document.getElementById('botbtn').classList.toggle('hide',!isHost);
     document.getElementById('startbtn').classList.toggle('hide',!isHost);
@@ -437,6 +507,7 @@ function renderTargets(m){
 
 function applyState(m){
   if(m.phase!==phase) picked=null;
+  const oldPhase=phase;
   phase=m.phase;
   document.body.className=(phase==='day')?'day':(phase==='over'?'':'night');
   const ph=document.getElementById('phase');
@@ -445,7 +516,23 @@ function applyState(m){
   document.getElementById('rnd').textContent=t('round')(m.round||1);
   document.getElementById('log').innerHTML=(m.log||[]).map(l=>'<div>'+esc(logTr(l))+'</div>').join('');
   const lg=document.getElementById('log'); lg.scrollTop=lg.scrollHeight;
-  if(phase==='over'||m.winner){ renderOver(m); return; }
+
+  let anyDied=false;
+  const nextAlive={};
+  (m.players||[]).forEach(p=>{
+    nextAlive[p.id]=!!p.alive;
+    if(hasRenderedMafia && prevAlive[p.id]===true && !p.alive) anyDied=true;
+  });
+  if(anyDied && window.ArcadeFX){
+    ArcadeFX.shake(document.getElementById('game'), 5, 240);
+    ArcadeFX.flash('#ff2238', 0.18, 200);
+    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('lose');
+  }
+  if(hasRenderedMafia && oldPhase!==phase && window.LobbyUI&&LobbyUI.sound){
+    LobbyUI.sound(phase==='day'?'flip':'click');
+  }
+
+  if(phase==='over'||m.winner){ renderOver(m); prevAlive=nextAlive; prevPhaseMafia=phase; hasRenderedMafia=true; return; }
   show('game');
   const me=(m.players||[]).find(p=>p.id===pid);
   myAlive=me?me.alive:true;
@@ -464,6 +551,9 @@ function applyState(m){
       hint.textContent=myAlive?t('asleep')(m.night_pending||0):t('out_watch');
     }
   }
+  prevAlive=nextAlive;
+  prevPhaseMafia=phase;
+  hasRenderedMafia=true;
 }
 
 function renderVote(m){
@@ -471,16 +561,22 @@ function renderVote(m){
   const voted=v.voted.includes(pid);
   document.getElementById('votehint').textContent=
     !myAlive?t('vote_dead'):voted?t('vote_ok'):t('vote_day');
+  const nextVotes={};
   document.getElementById('votelist').innerHTML=(m.players||[]).map(p=>{
     const votes=v.tally[p.id]||0;
+    nextVotes[p.id]=votes;
     const nm=T(p.name);
-    const av=p.alive?(window.LobbyUI?LobbyUI.avatarHtml(nm,!!p.bot):'👤'):'💀';
-    const cls='pl'+(!p.alive?' dead':'')+((myAlive&&p.alive&&!voted)?' selectable':'')+(picked===p.id?' picked':'');
+    const av=mfAvatar(nm,!!p.bot,!!p.alive);
+    const justDied=hasRenderedMafia&&prevAlive[p.id]===true&&!p.alive;
+    const voteUp=hasRenderedMafia&&votes>(prevVotes[p.id]||0);
+    const cls='pl'+(!p.alive?' dead':'')+(justDied?' just-died':'')+((myAlive&&p.alive&&!voted)?' selectable':'')+(picked===p.id?' picked':'');
     const onclick=(myAlive&&p.alive&&!voted)?' onclick="vote(\''+p.id+'\')"':'';
+    const pips=votes?('<span class="vote-pips">'+'<i class="vote-pip"></i>'.repeat(Math.min(5,votes))+'</span>'):'';
     return '<div class="'+cls+'"'+onclick+'>'+av+
-      '<span class="nm">'+esc(nm)+(p.bot?' 🤖':'')+'</span>'+
-      (votes?'<span class="votes">'+votes+' 🗳</span>':'')+'</div>';
+      '<span class="nm">'+esc(nm)+((p.bot&&!nm.includes('🤖'))?' 🤖':'')+'</span>'+
+      (votes?('<span class="mf-vote-wrap">'+pips+'<span class="votes'+(voteUp?' vote-pop':'')+'">'+votes+' 🗳</span></span>'):'')+'</div>';
   }).join('');
+  prevVotes=nextVotes;
   const cbtn=document.getElementById('confirmVoteBtn');
   if(cbtn)cbtn.classList.toggle('hide',!(myAlive&&!voted&&picked));
   document.getElementById('skipvote').classList.toggle('hide',!(myAlive&&!voted));
@@ -498,11 +594,19 @@ function renderOver(m){
     const rm=RMETA[p.role]||['👤','town'];
     const label=(UI[LANG].rid&&UI[LANG].rid[p.role])||p.role||'?';
     const nm=T(p.name);
-    const av=window.LobbyUI?LobbyUI.avatarHtml(nm,!!p.bot):rm[0];
-    return '<div class="pl'+(p.alive?'':' dead')+'">'+av+'<span class="nm">'+esc(nm)+(p.bot?' 🤖':'')+
+    const av=mfAvatar(nm,!!p.bot,!!p.alive);
+    return '<div class="pl'+(p.alive?'':' dead')+'">'+av+'<span class="nm">'+esc(nm)+((p.bot&&!nm.includes('🤖'))?' 🤖':'')+
       '</span><span class="roletag '+rm[1]+'">'+rm[0]+' '+label+'</span></div>';
   }).join('');
   document.getElementById('againbtn').classList.toggle('hide',!isHost);
+  if(hasRenderedMafia && prevPhaseMafia!=='over'){
+    if(window.ArcadeFX){
+      ArcadeFX.confetti();
+      ArcadeFX.flash(m.winner==='mafia'?'#ff2238':'#22c55e',0.22,250);
+      ArcadeFX.vibrate([20,30,40]);
+    }
+    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
+  }
 }
 document.addEventListener('DOMContentLoaded', () => {
   if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);

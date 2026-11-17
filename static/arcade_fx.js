@@ -173,9 +173,11 @@
       octx.restore();
     }
 
+    const modalOpen = !!(modalEl && modalEl.classList.contains('open'));
     for (let i = 0; i < MAX_FLOATS; i++) {
       const f = fPool[i];
       if (!f.active) continue;
+      if (modalOpen) { f.active = false; continue; }
       f.life -= dt;
       if (f.life <= 0) { f.active = false; continue; }
       anyActive = true;
@@ -243,6 +245,7 @@
 
   function floatText(x, y, text, opts) {
     if (!text) return;
+    if (modalEl && modalEl.classList.contains('open')) return;
     const o = opts || {};
     ensureOverlay();
     const pos = toViewport(x, y, o.canvas);
@@ -426,6 +429,7 @@
   }
 
   function showGameOver(opts) {
+    for (let i = 0; i < MAX_FLOATS; i++) fPool[i].active = false;
     ensureModalStyles();
     lastModalOpts = Object.assign({}, opts || {});
     if (!modalEl || !document.body.contains(modalEl)) {

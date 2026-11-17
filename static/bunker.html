@@ -8,29 +8,60 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal))}
+  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(12px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(12px,var(--sal))}
+  button::after{content:none}
   h1{letter-spacing:3px}
   .lobby-card{background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-hi);border-radius:26px;padding:22px 18px;max-width:440px;width:100%;margin:8px auto;text-align:center;box-shadow:var(--inner),var(--shadow-lg),0 0 50px -18px rgba(255,34,56,.22)}
   .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
   .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
-  body > .card{max-width:560px;margin-left:auto;margin-right:auto}
-  .scen{background:rgba(255,34,56,.07);border-left:3px solid var(--crimson);padding:11px;font-size:13px;margin:8px 0;color:#e8d8d8;border-radius:8px}
-  .cell{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:11px;margin:5px 0;font-size:13px}
-  .cell.open{border-color:var(--crimson);background:rgba(255,34,56,.08);box-shadow:0 0 14px rgba(255,34,56,.15)}
-  .cell .lbl{color:var(--muted);font-size:11px}
-  .cell .val{color:#fff;font-weight:700;text-align:right;max-width:60%}
-  .tapbtn{background:rgba(255,34,56,.15);color:var(--crimson);border:1px solid rgba(255,34,56,.4);padding:7px 12px;border-radius:8px;font-size:12px;font-family:inherit}
-  .pl.dead{opacity:.4;text-decoration:line-through}
-  .pl b{color:#fff}.tag{font-size:10px;color:var(--muted)}
-  .seats{color:var(--crimson);font-weight:700}
+  #game{width:100%;max-width:520px;margin:0 auto;padding-bottom:72px}
+  body > .card{max-width:520px;width:100%;margin-left:auto;margin-right:auto}
+
+  /* Catastrophe hazard banner */
+  .scen{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(45,16,20,.9),rgba(18,14,18,.95));border:1px solid rgba(245,197,24,.38);padding:14px 12px 12px;font-size:13px;margin:6px 0 10px;color:#f3ead2;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+  .scen::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:repeating-linear-gradient(-45deg,#f5c518 0 10px,#18181b 10px 20px)}
+  .scen-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:#fde047;background:rgba(245,197,24,.14);border:1px solid rgba(245,197,24,.35);border-radius:999px;padding:2px 8px;margin-bottom:6px}
+  .scen-main{font-size:14px;font-weight:800;color:#fff;line-height:1.35}
+  .scen-bunk{font-size:12px;color:#cbd5e1;margin-top:5px;line-height:1.35}
+
+  /* Trait flip cards */
+  .cell{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:10px 11px;margin:6px 0;font-size:13px;perspective:700px;transition:border-color .25s ease,background .25s ease,box-shadow .25s ease}
+  .cell.open{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.08);box-shadow:0 0 14px rgba(34,197,94,.16)}
   .cell.ab{border-color:rgba(245,197,24,.45);background:rgba(245,197,24,.06)}
   .cell.ab.open{box-shadow:0 0 14px rgba(245,197,24,.18)}
-  .tapbtn.abbtn{background:rgba(245,197,24,.16);color:#f5c518;border-color:rgba(245,197,24,.5);font-weight:800}
+  .cell.just-flipped{animation:bkCellFlip .5s cubic-bezier(.22,1.25,.36,1) both}
+  @keyframes bkCellFlip{0%{transform:rotateX(-80deg) scale(.92);opacity:.3}100%{transform:rotateX(0) scale(1);opacity:1}}
+  .cell-info{flex:1;min-width:0}
+  .cell .lbl{color:var(--muted);font-size:11px;font-weight:700}
+  .cell .val{color:#fff;font-weight:800;text-align:left;max-width:100%;word-break:break-word;margin-top:2px}
   .tapbtn,.abopt{width:auto;min-height:40px;margin:0;flex:none}
   .tapbtn::after,.abopt::after{display:none}
-  .bbadge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;margin:0 0 0 4px;background:rgba(245,197,24,.14);color:#f5c518;border:1px solid rgba(245,197,24,.35)}
+  .tapbtn{flex-shrink:0;background:rgba(255,34,56,.16);color:#ff7a8a;border:1px solid rgba(255,34,56,.45);padding:6px 12px;border-radius:10px;font-size:12px;font-weight:800;font-family:inherit;white-space:normal;text-align:center;line-height:1.2;max-width:148px}
+  .tapbtn.abbtn{background:rgba(245,197,24,.16);color:#f5c518;border-color:rgba(245,197,24,.5);font-weight:800}
+  .bk-open-badge{flex-shrink:0;font-size:11px;font-weight:900;color:#4ade80;padding:4px 9px;border-radius:999px;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.35);white-space:nowrap}
+
+  /* Board players & trait chips */
+  .bk-pl{flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;position:relative;overflow:hidden}
+  .bk-pl-head{display:flex;align-items:center;gap:8px}
+  .bk-pl-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;color:#fff;font-size:14px}
+  .bk-prog{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:800}
+  .bk-prog-bar{width:46px;height:5px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+  .bk-prog-fill{height:100%;background:linear-gradient(90deg,#f5c518,#22c55e)}
+  .bk-badges{display:flex;flex-wrap:wrap;gap:4px}
+  .bbadge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(245,197,24,.14);color:#f5c518;border:1px solid rgba(245,197,24,.35)}
   .bbadge.ally{background:rgba(56,189,248,.12);color:#7dd3fc;border-color:rgba(56,189,248,.35)}
   .bbadge.x2{background:rgba(255,34,56,.14);color:#ff8a98;border-color:rgba(255,34,56,.4)}
+  .bk-traits{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+  .bk-trait-chip{font-size:11px;line-height:1.25;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#cbd5e1}
+  .bk-trait-chip b{color:#fff;font-weight:800}
+  .bk-trait-chip.flip-in{animation:bkChipFlip .45s cubic-bezier(.22,1.25,.36,1) both;border-color:rgba(245,197,24,.6)}
+  @keyframes bkChipFlip{0%{transform:rotateY(85deg) scale(.85);opacity:.15}100%{transform:rotateY(0) scale(1);opacity:1}}
+  .pl.dead{opacity:.52;filter:grayscale(.75)}
+  .pl.dead .bk-pl-name{text-decoration:line-through}
+  .bk-exile-tag{font-size:10px;font-weight:900;color:#fca5a5;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.25);border:1px solid rgba(248,113,113,.45);text-transform:uppercase}
+  .pl b{color:#fff}.tag{font-size:10.5px;color:var(--muted)}
+  .seats{color:var(--crimson);font-weight:800}
+
   #ablog .ev{font-size:12.5px;color:#e8e2c8;padding:6px 0;border-bottom:1px solid var(--border)}
   #ablog .ev:last-child{border-bottom:0}
   #mynotes .note{font-size:12.5px;color:#fde68a;background:rgba(245,197,24,.07);border:1px dashed rgba(245,197,24,.35);border-radius:9px;padding:8px 10px;margin-top:6px}
@@ -46,9 +77,25 @@
   #abModal .abmsg{color:#ff8a98;font-size:13px;font-weight:700;margin:8px 0}
   #abModal .abact{display:flex;flex-direction:column;gap:8px;margin-top:14px}
   #abModal .abact button{margin:0}
-  .langbar{display:flex;gap:4px;justify-content:center;margin:10px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
+
+  .bk-vote-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;padding:8px 12px;border-radius:12px;text-align:left}
+  .bk-vote-left{display:flex;align-items:center;gap:8px;min-width:0}
+  .bk-vote-cnt{font-weight:900;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.35)}
+  .bk-res-banner{background:linear-gradient(135deg,rgba(220,38,38,.24),rgba(15,23,42,.95));border:1px solid rgba(248,113,113,.55);border-radius:14px;padding:10px 12px;margin:8px 0;font-weight:900;font-size:13.5px;color:#fecaca;text-align:center;animation:bkBannerIn .35s cubic-bezier(.22,1.25,.36,1) both}
+  @keyframes bkBannerIn{0%{opacity:0;transform:translateY(-8px) scale(.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+  .bk-modal{position:fixed;inset:0;z-index:100001;background:rgba(4,6,14,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
+  .bk-modal.open{display:flex}
+  .bk-modal-card{max-width:340px;width:100%;background:linear-gradient(180deg,#1a1b26,#0e0f16);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.85)}
+  .bk-modal-btns{display:flex;gap:8px;margin-top:12px}
+  .bk-modal-btns button{min-height:44px;flex:1}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;min-height:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:background .18s,color .18s,box-shadow .3s}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+  @media (prefers-reduced-motion:reduce){
+    .cell.just-flipped,.bk-trait-chip.flip-in,.bk-res-banner{animation:none !important}
+  }
 </style>
 </head>
 <body>
@@ -94,6 +141,7 @@
 
 <div id="game" class="hide">
   <div class="scen" id="scen"></div>
+  <div id="voteResultBanner" class="bk-res-banner hide"></div>
   <div class="card">
     <div class="sub"><span data-i18n="seats_label">Мест в бункере:</span> <span class="seats" id="seats">?</span> · <span data-i18n="round_label">Раунд</span> <span id="round">1</span> <span id="timerbox"></span></div>
   </div>
@@ -137,12 +185,24 @@
 </div>
 <div id="abModal" onclick="if(event.target===this)closeAb()"><div class="abbox" id="abBox"></div></div>
 
+<div id="bkSeatsModal" class="bk-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeSeatsModal()">
+  <div class="bk-modal-card">
+    <div style="font-size:15px;font-weight:800;margin-bottom:10px" data-i18n="ask_seats">Сколько мест?</div>
+    <input id="bkSeatsInp" class="inp" type="number" min="1" max="20" value="2">
+    <div class="bk-modal-btns">
+      <button type="button" class="sec btn-secondary" onclick="closeSeatsModal()" data-i18n="btn_cancel">Отмена</button>
+      <button type="button" class="btn-primary" onclick="confirmSeatsModal()" data-i18n="btn_ok">OK</button>
+    </div>
+  </div>
+</div>
+
 <script src="/games/static/i18n_common.js"></script>
 <script src="/games/static/ui.js"></script>
 <script src="/games/static/invite.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script>
 // ═══════════ i18n Бункера: УКР / РУС / ENG ═══════════
 const UI={
@@ -159,6 +219,7 @@ const UI={
     btn_vote:"🗳 Голосування", btn_endvote:"Підбити підсумок", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новий раунд", btn_setseats:"Місць: задати", bunker_board:"👥 БУНКЕР",
     opened:"розкрито", open:"розкрити", exile:"вигнати", voted_ok:"Ти проголосував ✓", out_of_game:"Ти поза грою — не голосуєш",
     voted_count:(a,b)=>"Проголосувало "+a+" з "+b, nothing_revealed:"ще нічого не розкрив", unexile:"повернути",
+    catastrophe_lbl:"КАТАСТРОФА", exiled_tag:"вигнано", btn_cancel:"Скасувати", btn_ok:"OK",
     conn_lost:"Зв'язок втрачено, онови.", def_name:"Той, хто вижив", ask_seats:"Скільки місць?", ask_code:"Код?", time_up:"⏱ ЧАС!",
     ab_title:"⚡ Спецздібність", ab_reveal_use:"⚡ розкрити й застосувати", ab_use:"⚡ застосувати", ab_used:"застосовано", ab_nulled:"обнулено",
     ab_just_reveal:"Просто розкрити, застосую пізніше", ab_cancel:"Скасувати", ab_apply:"Застосувати", ab_ok:"Зрозуміло",
@@ -190,6 +251,7 @@ const UI={
     btn_vote:"🗳 Голосование", btn_endvote:"Подвести итог", btn_timer:"⏱ Старт таймер", btn_newround:"↻ Новый раунд", btn_setseats:"Мест: задать", bunker_board:"👥 БУНКЕР",
     opened:"вскрыто", open:"вскрыть", exile:"изгнать", voted_ok:"Ты проголосовал ✓", out_of_game:"Ты вне игры — не голосуешь",
     voted_count:(a,b)=>"Проголосовало "+a+" из "+b, nothing_revealed:"ещё ничего не вскрыл", unexile:"вернуть",
+    catastrophe_lbl:"КАТАСТРОФА", exiled_tag:"изгнан", btn_cancel:"Отмена", btn_ok:"OK",
     conn_lost:"Связь потеряна, обнови.", def_name:"Выживший", ask_seats:"Сколько мест?", ask_code:"Код?", time_up:"⏱ ВРЕМЯ!",
     ab_title:"⚡ Спецспособность", ab_reveal_use:"⚡ вскрыть и применить", ab_use:"⚡ применить", ab_used:"применено", ab_nulled:"обнулено",
     ab_just_reveal:"Просто вскрыть, применю позже", ab_cancel:"Отмена", ab_apply:"Применить", ab_ok:"Понятно",
@@ -221,6 +283,7 @@ const UI={
     btn_vote:"🗳 Vote", btn_endvote:"Tally results", btn_timer:"⏱ Start timer", btn_newround:"↻ New round", btn_setseats:"Set seats", bunker_board:"👥 BUNKER",
     opened:"revealed", open:"reveal", exile:"exile", voted_ok:"You voted ✓", out_of_game:"You're out — no vote",
     voted_count:(a,b)=>"Voted "+a+" of "+b, nothing_revealed:"nothing revealed yet", unexile:"bring back",
+    catastrophe_lbl:"CATASTROPHE", exiled_tag:"exiled", btn_cancel:"Cancel", btn_ok:"OK",
     conn_lost:"Connection lost, refresh.", def_name:"Survivor", ask_seats:"How many seats?", ask_code:"Code?", time_up:"⏱ TIME!",
     ab_title:"⚡ Special ability", ab_reveal_use:"⚡ reveal & use", ab_use:"⚡ use", ab_used:"used", ab_nulled:"nullified",
     ab_just_reveal:"Just reveal, use later", ab_cancel:"Cancel", ab_apply:"Use", ab_ok:"Got it",
@@ -282,6 +345,10 @@ const UI={
     "voted_count": (a, b) => "Abgestimmt: " + a + " von " + b,
     "nothing_revealed": "noch nichts aufgedeckt",
     "unexile": "zurückholen",
+    "catastrophe_lbl": "KATASTROPHE",
+    "exiled_tag": "verbannt",
+    "btn_cancel": "Abbrechen",
+    "btn_ok": "OK",
     "conn_lost": "Verbindung verloren, bitte aktualisieren.",
     "def_name": "Überlebender",
     "ask_seats": "Wie viele Plätze?",
@@ -1222,20 +1289,33 @@ const GT={
 };
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T1(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
+function T1(s){
+  if(s==null)return s;
+  if(window.LobbyI18n&&LobbyI18n.name){const nm=LobbyI18n.name(s);if(nm&&nm!==s)return nm;}
+  if(LANG==='ru')return s;
+  const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);
+}
 const SEP=' ＋ '; // склейка карт на сервере (bunker.SEP): «Профессия ＋ вторая профессия»
 function T(s){if(s==null)return s;s=String(s);return s.indexOf(SEP)>=0?s.split(SEP).map(T1).join(' + '):T1(s);}
 function msgTr(s){ // серверные строки итога голосования — перевод по шаблону
-  if(LANG==='ru'||!s)return s;
+  if(!s)return s;
+  let out=String(s);
+  if(window._lastBunker&&Array.isArray(window._lastBunker.players)){
+    for(const p of window._lastBunker.players){
+      const tr=T(p.name);
+      if(p.name&&tr&&p.name!==tr)out=out.split(p.name).join(tr);
+    }
+  }
+  if(LANG==='ru')return out;
   const P={
     uk:{prot:" під захистом — нікого не вигнали.",ex:"🚫 Вигнаний: ",vt:" голосів)",tie:" — нікого не вигнали.",tiepre:"Нічия (",none:"Ніхто не проголосував.",gone:"Гравець уже не в грі."},
     en:{prot:" is protected — nobody was exiled.",ex:"🚫 Exiled: ",vt:" votes)",tie:" — nobody was exiled.",tiepre:"Tie (",none:"Nobody voted.",gone:"Player is no longer in the game."},
     de:{prot:" ist geschützt — niemand wurde verbannt.",ex:"🚫 Verbannt: ",vt:" Stimmen)",tie:" — niemand wurde verbannt.",tiepre:"Unentschieden (",none:"Niemand hat abgestimmt.",gone:"Spieler ist nicht mehr im Spiel."}
   }[LANG];
-  if(!P)return s;
-  s=s.replace(" под защитой — никого не изгнали.",P.prot).replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
+  if(!P)return out;
+  out=out.replace(" под защитой — никого не изгнали.",P.prot).replace("🚫 Изгнан: ",P.ex).replace(/ голосов\)/,P.vt).replace(" — никого не изгнали.",P.tie).replace("Ничья (",P.tiepre)
      .replace("Никто не проголосовал.",P.none).replace("Игрок уже не в игре.",P.gone);
-  return s;
+  return out;
 }
 function applyUI(){
   document.documentElement.lang=LANG;
@@ -1279,7 +1359,18 @@ function startGame(){
         reveals_per_round:parseInt(document.getElementById('s_rev').value||0)});
   setTimeout(()=>send({action:'start'}),150);
 }
-function setSeats(){const n=prompt(t('ask_seats'));if(n)send({action:'set_settings',seats:parseInt(n)});}
+let prevMyRevealed = new Set(), prevBoardRevealed = {}, hasRenderedBunker = false;
+function setSeats(){
+  const inp=document.getElementById('bkSeatsInp');
+  if(inp)inp.value=String((window._lastBunker&&window._lastBunker.seats)||2);
+  document.getElementById('bkSeatsModal').classList.add('open');
+}
+function closeSeatsModal(){document.getElementById('bkSeatsModal').classList.remove('open');}
+function confirmSeatsModal(){
+  const n=parseInt((document.getElementById('bkSeatsInp')||{}).value||0);
+  closeSeatsModal();
+  if(n>0)send({action:'set_settings',seats:n});
+}
 function reveal(cat){send({action:'reveal_cell',category:cat});}
 function voteFor(t2){send({action:'vote',target:t2});}
 let timerInt=null;
@@ -1293,43 +1384,86 @@ function runTimer(secs){
 
 function renderBunker(m){
   show('game');isHost=(m.host===pid);
-  document.getElementById('scen').innerHTML='<b style="color:#f5c518">☢ '+T(m.scenario)+'</b><br><span style="color:#c9c39a">'+T(m.bunker)+'</span>';
+  document.getElementById('scen').innerHTML=
+    '<div class="scen-tag">☢ '+esc(t('catastrophe_lbl'))+'</div>'+
+    '<div class="scen-main">'+esc(T(m.scenario))+'</div>'+
+    '<div class="scen-bunk">'+esc(T(m.bunker))+'</div>';
   document.getElementById('seats').textContent=m.seats;
   document.getElementById('round').textContent=m.round;
   document.getElementById('hostpanel').classList.toggle('hide',!isHost);
+
   const me=(m.players||[]).find(p=>p.id===pid);
   const revealed=me?Object.keys(me.revealed):[];
   const used=me?me.used||[]:[], nulled=me?me.nulled||[]:[], alive=me?me.alive:false;
+  let myNewFlip=false;
   document.getElementById('mycells').innerHTML=((cats&&cats.length?cats:m.categories)).map((cat,i)=>{
     const open=revealed.includes(cat);
     const val=myChar?myChar[cat]:'?';
     const isAb=AB_CATS.includes(cat)&&myAb[cat];
+    const justFlipped=hasRenderedBunker && open && !prevMyRevealed.has(cat);
+    if(justFlipped)myNewFlip=true;
     let ctrl;
-    if(isAb&&used.includes(cat))ctrl='<span class="tag">✓ '+t('ab_used')+'</span>';
-    else if(isAb&&nulled.includes(cat))ctrl=open?'<span class="tag">🚫 '+t('ab_nulled')+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+t('open')+'</button>';
-    else if(isAb&&alive)ctrl='<button class="tapbtn abbtn" onclick="openAb('+i+')">'+(open?t('ab_use'):t('ab_reveal_use'))+'</button>';
-    else ctrl=open?'<span class="tag">'+t('opened')+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+t('open')+'</button>';
-    return '<div class="cell '+(open?'open':'')+(isAb?' ab':'')+'"><div><div class="lbl">'+esc(T(cat))+'</div><div class="val" style="text-align:left;max-width:100%">'+esc(T(val))+'</div></div>'+ctrl+'</div>';
+    if(isAb&&used.includes(cat))ctrl='<span class="tag" style="white-space:nowrap;flex-shrink:0">✓ '+esc(t('ab_used'))+'</span>';
+    else if(isAb&&nulled.includes(cat))ctrl=open?'<span class="tag" style="white-space:nowrap;flex-shrink:0">🚫 '+esc(t('ab_nulled'))+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+esc(t('open'))+'</button>';
+    else if(isAb&&alive)ctrl='<button class="tapbtn abbtn" onclick="openAb('+i+')">'+esc(open?t('ab_use'):t('ab_reveal_use'))+'</button>';
+    else ctrl=open?'<span class="bk-open-badge">✓ '+esc(t('opened'))+'</span>':'<button class="tapbtn" onclick="revealIdx('+i+')">'+esc(t('open'))+'</button>';
+    return '<div class="cell '+(open?'open':'')+(isAb?' ab':'')+(justFlipped?' just-flipped':'')+'"><div class="cell-info"><div class="lbl">'+esc(T(cat))+'</div><div class="val">'+esc(T(val))+'</div></div>'+ctrl+'</div>';
   }).join('');
+  if(myNewFlip){
+    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('flip');
+    if(window.ArcadeFX){
+      ArcadeFX.vibrate(10);
+      const cellEl=document.querySelector('#mycells .cell.just-flipped');
+      if(cellEl){
+        const r=cellEl.getBoundingClientRect();
+        if(r.width)ArcadeFX.burst(r.left+r.width/2,r.top+r.height/2,{count:12,speed:150,size:3.5,colors:['#22c55e','#fde047','#ffffff']});
+      }
+    }
+  }
+  prevMyRevealed=new Set(revealed);
   document.getElementById('mynotes').innerHTML=myNotes.map(noteHtml).join('');
   const vb=document.getElementById('votebox');
   if(m.vote&&m.vote.active){
     vb.classList.remove('hide');
     const meAlive=me?me.alive:false;
     const already=m.vote.voted.includes(pid), dbl=(m.vote.double||[]).includes(pid);
-    const vbtns=()=>(m.players||[]).filter(p=>p.alive).map(p=>'<button class="danger" style="margin:3px 0" onclick="voteFor(\''+p.id+'\')">'+t('exile')+' '+esc(p.name)+(m.vote.tally[p.id]?' ('+m.vote.tally[p.id]+')':'')+'</button>').join('');
+    const vbtns=()=>(m.players||[]).filter(p=>p.alive).map(p=>{
+      const nm=T(p.name);
+      const av=window.LobbyUI?LobbyUI.avatarHtml(nm,String(p.id||'').startsWith('bot_')):'';
+      const cnt=m.vote.tally[p.id]?'<span class="bk-vote-cnt">'+m.vote.tally[p.id]+' 🗳</span>':'';
+      return '<button class="danger bk-vote-btn" onclick="voteFor(\''+p.id+'\')"><span class="bk-vote-left">'+av+'<span>'+esc(t('exile')+' '+nm)+'</span></span>'+cnt+'</button>';
+    }).join('');
     document.getElementById('votebtns').innerHTML=meAlive&&!already?vbtns():
       meAlive&&dbl?'<div class="sub">'+t('voted_ok')+' · '+t('revote')+'</div>'+vbtns():
       '<div class="sub">'+(already?t('voted_ok'):t('out_of_game'))+'</div>';
     document.getElementById('votestatus').textContent=t('voted_count')(m.vote.voted.length,m.vote.need);
   } else vb.classList.add('hide');
+
+  const nextBoardRev={};
   document.getElementById('board').innerHTML=(m.players||[]).map(p=>{
-    const rev=Object.entries(p.revealed).map(([k,v])=>'<div class="tag">• '+esc(T(k))+': <span style="color:#e8e2c8">'+esc(T(v))+'</span>'+((p.used||[]).includes(k)?' <span style="color:#f5c518">✓ '+t('ab_used')+'</span>':'')+((p.nulled||[]).includes(k)?' <span style="color:#ff8a98">🚫 '+t('ab_nulled')+'</span>':'')+'</div>').join('')||'<div class="tag">'+t('nothing_revealed')+'</div>';
+    const prevSet=prevBoardRevealed[p.id]||new Set();
+    const curKeys=Object.keys(p.revealed||{});
+    nextBoardRev[p.id]=new Set(curKeys);
+    const rev=Object.entries(p.revealed||{}).map(([k,v])=>{
+      const flipCls=(hasRenderedBunker&&!prevSet.has(k))?' flip-in':'';
+      const abState=((p.used||[]).includes(k)?' <span style="color:#f5c518">✓ '+esc(t('ab_used'))+'</span>':'')+((p.nulled||[]).includes(k)?' <span style="color:#ff8a98">🚫 '+esc(t('ab_nulled'))+'</span>':'');
+      return '<div class="bk-trait-chip'+flipCls+'">'+esc(T(k))+': <b>'+esc(T(v))+'</b>'+abState+'</div>';
+    }).join('')||'<div class="tag">'+esc(t('nothing_revealed'))+'</div>';
+    const nm=T(p.name);
+    const av=window.LobbyUI?LobbyUI.avatarHtml(nm,String(p.id||'').startsWith('bot_')):'';
+    const pct=p.total>0?Math.round((curKeys.length/p.total)*100):0;
     const allyP=p.ally&&(m.players||[]).find(q=>q.id===p.ally);
-    const badges=(p.alive&&p.immune?'<span class="bbadge">'+t('badge_immune')+'</span>':'')+(allyP?'<span class="bbadge ally">'+t('badge_ally')+': '+esc(allyP.name)+'</span>':'')+(m.vote&&(m.vote.double||[]).includes(p.id)?'<span class="bbadge x2">'+t('badge_x2')+'</span>':'');
-    const ctrl=(isHost&&p.id!==pid)?(p.alive?'<button class="danger" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'kick\',target:\''+p.id+'\'})">'+t('exile')+'</button>':'<button class="sec" style="width:auto;padding:5px 10px;margin-top:5px" onclick="send({action:\'unkick\',target:\''+p.id+'\'})">'+t('unexile')+'</button>'):'';
-    return '<div class="pl '+(p.alive?'':'dead')+'"><b>'+(p.id===m.host?'👑 ':'')+esc(p.name)+'</b> <span class="tag">('+Object.keys(p.revealed).length+'/'+p.total+')</span>'+badges+rev+ctrl+'</div>';
+    const badges=(p.alive&&p.immune?'<span class="bbadge">'+esc(t('badge_immune'))+'</span>':'')+(allyP?'<span class="bbadge ally">'+esc(t('badge_ally'))+': '+esc(T(allyP.name))+'</span>':'')+(m.vote&&(m.vote.double||[]).includes(p.id)?'<span class="bbadge x2">'+esc(t('badge_x2'))+'</span>':'');
+    const ctrl=(isHost&&p.id!==pid)?(p.alive?'<button class="danger" style="width:auto;min-height:34px;padding:4px 10px;margin-top:4px;align-self:flex-start" onclick="send({action:\'kick\',target:\''+p.id+'\'})">'+esc(t('exile'))+'</button>':'<button class="sec" style="width:auto;min-height:34px;padding:4px 10px;margin-top:4px;align-self:flex-start" onclick="send({action:\'unkick\',target:\''+p.id+'\'})">'+esc(t('unexile'))+'</button>'):'';
+    return '<div class="pl bk-pl '+(p.alive?'':'dead')+'"><div class="bk-pl-head">'+av+
+      '<span class="bk-pl-name">'+(p.id===m.host?'👑 ':'')+esc(nm)+'</span>'+
+      (p.alive?'':'<span class="bk-exile-tag">'+esc(t('exiled_tag'))+'</span>')+
+      '<span class="bk-prog"><span>'+curKeys.length+'/'+p.total+'</span><span class="bk-prog-bar"><i class="bk-prog-fill" style="display:block;width:'+pct+'%"></i></span></span></div>'+
+      (badges?'<div class="bk-badges">'+badges+'</div>':'')+
+      '<div class="bk-traits">'+rev+'</div>'+ctrl+'</div>';
   }).join('');
+  prevBoardRevealed=nextBoardRev;
+  hasRenderedBunker=true;
   const log=m.log||[];
   document.getElementById('ablogcard').classList.toggle('hide',!log.length);
   document.getElementById('ablogtitle').textContent=t('log_title');
@@ -1432,6 +1566,8 @@ function handle(m){
     sessionStorage.setItem('jg_bunker_code',m.code);
   }
   else if(m.type==='lobby'){
+    prevMyRevealed=new Set();prevBoardRevealed={};hasRenderedBunker=false;
+    const ban=document.getElementById('voteResultBanner');if(ban)ban.classList.add('hide');
     show('lobby');
     const ld=document.getElementById('lcode');
     if(ld&&window.LobbyUI)ld.innerHTML=LobbyUI.renderCodeDigits(m.code||'');
@@ -1450,8 +1586,15 @@ function handle(m){
   else if(m.type==='bunker_state'){window._lastBunker=m;lastState=m;renderBunker(m);}
   else if(m.type==='bunker_private'){showPrivate(m);}
   else if(m.type==='ability_error'){toastMsg((t('ab_err')||{})[m.code]||m.code);}
-  else if(m.type==='vote_started'){/* доска придёт следом */}
-  else if(m.type==='vote_result'){toastMsg(msgTr(m.msg));}
+  else if(m.type==='vote_started'){const ban=document.getElementById('voteResultBanner');if(ban)ban.classList.add('hide');}
+  else if(m.type==='vote_result'){
+    const txt=msgTr(m.msg);
+    const ban=document.getElementById('voteResultBanner');
+    if(ban){ban.textContent=txt;ban.classList.remove('hide');}
+    toastMsg(txt);
+    if(window.ArcadeFX){ArcadeFX.flash('#ff2238',0.22,220);ArcadeFX.shake(document.getElementById('game'),5,240);ArcadeFX.vibrate([20,20,30]);}
+    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('lose');
+  }
   else if(m.type==='timer'){runTimer(m.secs);}
   else if(m.type==='error'){alert(T(m.msg));}
 }

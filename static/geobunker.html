@@ -8,7 +8,9 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="/games/static/i18n_common.js"></script>
+<script src="/games/static/ui.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <style>
   :root {
     --sat: env(safe-area-inset-top, 0px);
@@ -22,6 +24,7 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     user-select: none; -webkit-user-select: none; color: #fff;
   }
+  button::after { content: none; }
   
   /* StreetView Container */
   #pano-container {
@@ -40,7 +43,7 @@
   .lobby-overlay {
     position: fixed; inset: 0; z-index: 100005;
     background: radial-gradient(circle at 50% 30%, rgba(255, 34, 56, 0.22), transparent 70%), #09090b;
-    display: flex; align-items: center; justify-content: center; padding: 16px;
+    display: flex; align-items: center; justify-content: center; padding: 14px;
     -webkit-transform: translateZ(99999px); transform: translateZ(99999px);
     overflow-y: auto;
   }
@@ -48,58 +51,73 @@
   .lobby-card {
     background: linear-gradient(180deg, rgba(28,28,34,0.94), rgba(16,16,20,0.98));
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; padding: 24px;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 26px; padding: 18px 16px;
     max-width: 480px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.85); text-align: center;
+  }
+  .gb-lobby-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .gb-back-link {
+    display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 999px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); color: #fff;
+    text-decoration: none; font-size: 12px; font-weight: 800;
+  }
+  .gb-recon-pill {
+    font-size: 10.5px; font-weight: 900; letter-spacing: .7px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; background: rgba(245,197,24,.14);
+    border: 1px solid rgba(245,197,24,.35); color: #fde047;
   }
 
   .lobby-title {
-    font-size: 34px; font-weight: 900; letter-spacing: -0.5px;
+    font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -0.5px;
     background: linear-gradient(90deg, #fff 40%, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
     margin-bottom: 2px;
   }
-  .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }
+  .lobby-sub { font-size: 12px; color: var(--muted); margin: 10px 0 14px; font-weight: 700; }
 
   .option-group-title {
     font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px;
-    color: var(--muted); text-align: left; margin: 16px 0 8px;
+    color: var(--muted); text-align: left; margin: 12px 0 6px;
   }
 
-  .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .opt-btn {
     background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px; padding: 10px 12px; color: #fff; text-align: left;
-    cursor: pointer; transition: all 0.2s;
+    border-radius: 14px; padding: 9px 10px; color: #fff; text-align: left;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   }
   .opt-btn.active {
     background: rgba(255, 34, 56, 0.18); border-color: #ff2238;
     box-shadow: 0 0 16px rgba(255, 34, 56, 0.3);
   }
-  .opt-btn .title { font-size: 13px; font-weight: 800; }
+  .opt-btn .title { font-size: 12.5px; font-weight: 800; }
   .opt-btn .desc { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
   .btn-start-game {
     width: 100%; background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
-    border: 0; padding: 14px; border-radius: 18px; font-weight: 900; font-size: 15px;
+    border: 0; padding: 13px; border-radius: 16px; font-weight: 900; font-size: 14.5px;
     letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
-    box-shadow: 0 10px 30px rgba(255,34,56,0.5); margin-top: 24px; transition: transform 0.15s;
+    box-shadow: 0 10px 28px rgba(255,34,56,0.45); margin-top: 16px; transition: transform 0.15s;
   }
   .btn-start-game:active { transform: scale(0.97); }
 
   /* Top Header HUD */
   .hud-top {
     position: fixed; top: max(8px, var(--sat)); left: 8px; right: 8px; z-index: 99999;
-    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: nowrap;
     pointer-events: none;
   }
   .hud-top * { pointer-events: auto; }
 
   .hud-pill {
-    background: rgba(18, 18, 22, 0.85);
+    width: auto; min-height: 36px;
+    background: rgba(18, 18, 22, 0.88);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 999px;
-    padding: 5px 12px; color: #fff; font-size: 11.5px; font-weight: 800;
-    display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+    padding: 5px 11px; color: #fff; font-size: 11.5px; font-weight: 800;
+    display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    white-space: nowrap;
   }
+  .hud-pill.warn { border-color: rgba(255,34,56,.65); color: #fca5a5; animation: gbWarn 1s ease-in-out infinite; }
+  @keyframes gbWarn { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
 
   /* Compact Bottom Bar */
   .bottom-bar {
@@ -108,11 +126,12 @@
   }
 
   .btn-action-pill {
-    background: rgba(18, 18, 22, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    width: auto; min-height: 44px;
+    background: rgba(18, 18, 22, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 999px;
-    padding: 8px 16px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.6); cursor: pointer; transition: transform 0.15s, background 0.15s;
-    -webkit-transform: translateZ(9999px); transform: translateZ(9999px);
+    -webkit-transform: translateZ(9999px); transform: translateZ(9999px); white-space: nowrap;
   }
   .btn-action-pill:active { transform: scale(0.94) translateZ(9999px); }
   .btn-action-pill.primary { background: linear-gradient(135deg, #ff2238, #c40f23); border-color: rgba(255,255,255,0.3); box-shadow: 0 6px 20px rgba(255,34,56,0.5); }
@@ -135,11 +154,11 @@
   }
 
   .map-card-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 10px 14px; background: #18181c; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .map-card-title { font-size: 11px; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
-  .btn-close-modal { background: rgba(255,255,255,0.15); border: 0; color: #fff; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+  .btn-close-modal { width: auto; min-height: 32px; background: rgba(255,255,255,0.15); border: 0; color: #fff; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px; cursor: pointer; flex-shrink: 0; }
 
   #map { flex: 1; width: 100%; height: 100%; background: #cad2d3; }
 
@@ -147,16 +166,16 @@
 
   .map-action-bar { padding: 10px 14px; background: #18181c; }
   .btn-confirm-guess {
-    width: 100%; background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
-    border: 0; padding: 13px; border-radius: 14px; font-weight: 900; font-size: 13px;
+    width: 100%; min-height: 44px; background: linear-gradient(135deg, #ff2238, #c40f23); color: #fff;
+    border: 0; padding: 12px; border-radius: 14px; font-weight: 900; font-size: 13px;
     letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
     box-shadow: 0 4px 18px rgba(255,34,56,0.4); transition: all 0.2s;
   }
   .btn-confirm-guess:disabled { background: #27272a; color: #71717a; box-shadow: none; cursor: not-allowed; }
 
   .btn-view-score {
-    width: 100%; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
-    border: 0; padding: 13px; border-radius: 14px; font-weight: 900; font-size: 13px;
+    width: 100%; min-height: 44px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+    border: 0; padding: 12px; border-radius: 14px; font-weight: 900; font-size: 13px;
     letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
     box-shadow: 0 4px 18px rgba(34,197,94,0.4); transition: all 0.2s;
   }
@@ -169,10 +188,12 @@
     -webkit-transform: translateZ(99999px); transform: translateZ(99999px);
   }
   .result-card {
-    background: linear-gradient(180deg, rgba(28,28,34,0.95), rgba(16,16,20,0.98));
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 20px; max-width: 360px; width: 100%;
+    background: linear-gradient(180deg, rgba(28,28,34,0.96), rgba(16,16,20,0.99));
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 24px; padding: 20px; max-width: 360px; width: 100%;
     text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.9);
+    animation: gbResPop .35s cubic-bezier(.22,1.25,.36,1) both;
   }
+  @keyframes gbResPop { 0% { opacity: 0; transform: scale(.88) translateY(14px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
   .score-huge { font-size: 46px; font-weight: 900; color: #ff2238; margin: 4px 0; text-shadow: 0 0 25px rgba(255,34,56,0.5); }
   .dist-str { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px; }
   .loc-desc { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
@@ -186,9 +207,17 @@
     box-shadow: 0 0 18px #22c55e;
   }
 
-  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
-  .langbar button{width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar{display:flex;gap:4px;justify-content:center;margin:6px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;min-height:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
   .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+
+  @media (max-width: 360px) {
+    .hud-pill { padding: 4px 8px; font-size: 10.5px; }
+    .btn-action-pill { padding: 8px 11px; font-size: 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .result-card, .hud-pill.warn { animation: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -196,6 +225,10 @@
   <!-- PRE-GAME LOBBY MODAL -->
   <div class="lobby-overlay" id="lobbyModal">
     <div class="lobby-card">
+      <div class="gb-lobby-top">
+        <a href="/games/" class="gb-back-link" data-i18n="nav_games">‹ Игры</a>
+        <span class="gb-recon-pill" data-i18n="recon_badge">☢ РАЗВЕДКА</span>
+      </div>
       <div class="lobby-title" data-i18n="lobby_title">GEOBUNKER 🌍</div>
       <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
       <div class="lobby-sub" data-i18n="lobby_sub">200+ случайно перемешанных локаций со всех континентов</div>
@@ -247,22 +280,23 @@
         </div>
       </div>
 
-      <button class="btn-start-game" onclick="startLobbyGame()">🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ</button>
+      <button class="btn-start-game" onclick="startLobbyGame()" data-i18n="start_btn">🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ</button>
     </div>
   </div>
 
   <!-- 360° Fullscreen Panorama -->
   <div id="pano-container">
-    <iframe id="pano-iframe" src="" allow="fullscreen; geolocation; accelerometer; gyroscope" loading="lazy"></iframe>
+    <iframe id="pano-iframe" src="" allow="fullscreen; accelerometer *; gyroscope *" loading="lazy"></iframe>
   </div>
 
   <!-- Top HUD Overlay -->
   <div class="hud-top ios-overlay" id="gameHud" style="display:none;">
-    <button onclick="openLobby()" class="hud-pill" style="border:0;cursor:pointer;">⚙️ Меню</button>
+    <button onclick="openLobby()" class="hud-pill" style="border:0;cursor:pointer;" data-i18n="menu_btn">⚙️ Меню</button>
     <div class="hud-pill">
-      <span>🌍 GeoBunker</span>
+      <span>🌍</span>
       <span id="roundBadge" style="color:#ff2238;">1/5</span>
     </div>
+    <div class="hud-pill" id="timerPill" style="display:none;">⏱ <span id="timerBadge">60</span></div>
     <div class="hud-pill">
       <span>🏆 <span id="scoreBadge">0</span></span>
     </div>
@@ -271,10 +305,10 @@
   <!-- Compact Bottom Bar -->
   <div class="bottom-bar ios-overlay" id="gameBottomBar" style="display:none;">
     <button class="btn-action-pill" onclick="walkStepForward()">
-      <span>🚶 Шаг вперёд</span>
+      <span data-i18n="step_btn">🚶 Шаг вперёд</span>
     </button>
     <button class="btn-action-pill primary" onclick="openMapModal()">
-      <span>🗺️ Открыть Топо-Карту</span>
+      <span data-i18n="map_btn">🗺️ Открыть Топо-Карту</span>
     </button>
   </div>
 
@@ -282,12 +316,12 @@
   <div class="map-modal" id="mapModal">
     <div class="map-card">
       <div class="map-card-header">
-        <span class="map-card-title" id="mapHeaderTitle">Выберите точку на Топо-Карте</span>
-        <button class="btn-close-modal" onclick="closeMapModal()">✕ Закрыть</button>
+        <span class="map-card-title" id="mapHeaderTitle" data-i18n="map_title">Выберите точку на Топо-Карте</span>
+        <button class="btn-close-modal" onclick="closeMapModal()" data-i18n="map_close">✕ Закрыть</button>
       </div>
       <div id="map"></div>
       <div class="map-action-bar">
-        <button class="btn-confirm-guess" id="btnConfirmGuess" disabled onclick="submitGuess()">Поставьте метку на карте</button>
+        <button class="btn-confirm-guess" id="btnConfirmGuess" disabled onclick="submitGuess()" data-i18n="map_confirm">Поставьте метку на карте</button>
         <button class="btn-view-score" id="btnViewScore" style="display:none;" onclick="openScoreModal()" data-i18n="score_btn">Посмотреть результаты и очки →</button>
       </div>
     </div>
@@ -296,7 +330,7 @@
   <!-- Result Modal -->
   <div class="result-overlay" id="resultModal" style="display:none;">
     <div class="result-card">
-      <div style="font-size:11px;font-weight:800;color:#ff2238;text-transform:uppercase;letter-spacing:1px;" id="roundResultTitle">Результат раунда</div>
+      <div style="font-size:11px;font-weight:800;color:#ff2238;text-transform:uppercase;letter-spacing:1px;" id="roundResultTitle" data-i18n="res_title">Результат раунда</div>
       <div class="score-huge" id="modalScore">+0</div>
       <div class="dist-str" id="modalDist"><span id="modalDistNum">0</span><span data-i18n="dist_msg"> км до цели</span></div>
       <div class="loc-desc" id="modalLoc">Локация</div>
@@ -309,9 +343,13 @@
   <script src="/games/static/reconnect.js"></script>
   <script>
 
-const UI = {"uk": {"title": "GeoBunker 🌍 — 200+ локацій з усього світу", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ випадково перемішаних локацій з усіх континентів", "opt1_title": "1. РЕЖИМ ГРИ:", "mode_classic_title": "🎯 Одиночний", "mode_classic_desc": "5 раундів на очки", "mode_quick_title": "⚡ Експрес", "mode_quick_desc": "1 швидкий раунд", "opt2_title": "2. КРАЇНА / РЕГІОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% випадковий світ", "cat_capitals_title": "🏛️ Міста Світу (70+)", "cat_capitals_desc": "Париж, Токіо, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Дива (50+)", "cat_nature_desc": "Гори, каньйони, Ісландія...", "cat_ukraine_title": "🇺🇦 Україна (30+)", "cat_ukraine_desc": "Міста, замки, Карпати", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартний ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокійний пошук", "start_btn": "🚀 ПОГНАЛИ / ПОЧАТИ ГРУ", "nav_games": "🎮 Ігри", "map_btn": "🗺️ Відкрити Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Виберіть точку на Топо-Карти", "map_close": "✕ Закрити", "map_confirm": "Поставити мітку на карті", "res_title": "Результат раунду", "dist_msg": " км до цілі", "next_btn": "Наступний раунд →", "score_btn": "Подивитися результати та очки →"}, "ru": {"title": "GeoBunker 🌍 — 200+ Global Random Shuffled Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ случайно перемешанных локаций со всех континентов", "opt1_title": "1. РЕЖИМ ИГРЫ:", "mode_classic_title": "🎯 Одиночный", "mode_classic_desc": "5 раундов на очки", "mode_quick_title": "⚡ Экспресс", "mode_quick_desc": "1 быстрый раунд", "opt2_title": "2. СТРАНА / РЕГИОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% случайный мир", "cat_capitals_title": "🏛️ Города Мира (70+)", "cat_capitals_desc": "Париж, Токио, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Чудеса (50+)", "cat_nature_desc": "Горы, каньоны, Исландия...", "cat_ukraine_title": "🇺🇦 Украина (30+)", "cat_ukraine_desc": "Города, замки, Карпаты", "opt3_title": "3. ТАЙМЕР РАУНДА:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартный ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокойный поиск", "start_btn": "🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ", "nav_games": "🎮 Игры", "map_btn": "🗺️ Открыть Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Выберите точку на Топо-Карте", "map_close": "✕ Закрыть", "map_confirm": "Поставьте метку на карте", "res_title": "Результат раунда", "dist_msg": " км до цели", "next_btn": "Следующий раунд →", "score_btn": "Посмотреть результаты и очки →"}, "en": {"title": "GeoBunker 🌍 — 200+ Locations", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ randomly shuffled locations from all continents", "opt1_title": "1. GAME MODE:", "mode_classic_title": "🎯 Single Player", "mode_classic_desc": "5 rounds for points", "mode_quick_title": "⚡ Express", "mode_quick_desc": "1 quick round", "opt2_title": "2. COUNTRY / REGION:", "cat_all_title": "🌐 Whole Planet (200+)", "cat_all_desc": "100% random world", "cat_capitals_title": "🏛️ World Cities (70+)", "cat_capitals_desc": "Paris, Tokyo, New York...", "cat_nature_title": "🏔️ Nature & Wonders (50+)", "cat_nature_desc": "Mountains, canyons, Iceland...", "cat_ukraine_title": "🇺🇦 Ukraine (30+)", "cat_ukraine_desc": "Cities, castles, Carpathians", "opt3_title": "3. ROUND TIMER:", "timer_60_title": "⏱️ 60 seconds", "timer_60_desc": "Standard pace", "timer_0_title": "🧘 No timer", "timer_0_desc": "Relaxed search", "start_btn": "🚀 LET'S GO / START GAME", "nav_games": "🎮 Games", "map_btn": "🗺️ Open Topo Map", "menu_btn": "⚙️ Menu", "map_title": "Select a point on the Topo Map", "map_close": "✕ Close", "map_confirm": "Place marker on map", "res_title": "Round Result", "dist_msg": " km from target", "next_btn": "Next round →", "score_btn": "View results and scores →"},
+const UI = {
+  uk: {"title": "GeoBunker 🌍 — 200+ локацій з усього світу", "recon_badge": "☢ РОЗВІДКА", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ випадково перемішаних локацій з усіх континентів", "opt1_title": "1. РЕЖИМ ГРИ:", "mode_classic_title": "🎯 Одиночний", "mode_classic_desc": "5 раундів на очки", "mode_quick_title": "⚡ Експрес", "mode_quick_desc": "1 швидкий раунд", "opt2_title": "2. КРАЇНА / РЕГІОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% випадковий світ", "cat_capitals_title": "🏛️ Міста Світу (70+)", "cat_capitals_desc": "Париж, Токіо, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Дива (50+)", "cat_nature_desc": "Гори, каньйони, Ісландія...", "cat_ukraine_title": "🇺🇦 Україна (30+)", "cat_ukraine_desc": "Міста, замки, Карпати", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартний ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокійний пошук", "start_btn": "🚀 ПОГНАЛИ / ПОЧАТИ ГРУ", "nav_games": "‹ Ігри", "step_btn": "🚶 Крок уперед", "map_btn": "🗺️ Відкрити Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Виберіть точку на Топо-Карті", "map_close": "✕ Закрити", "map_confirm": "Поставити мітку на карті", "guess_ready": "ВГАДАТИ ТОЧКУ!", "res_title": "Результат раунду", "dist_msg": " до цілі", "next_btn": "Наступний раунд →", "finish_btn": "У Лобі / Підсумки 🏆", "score_btn": "Подивитися результати та очки →", "time_up": "⏱ Час вийшов! Постав мітку на карті."},
+  ru: {"title": "GeoBunker 🌍 — 200+ Global Random Shuffled Locations", "recon_badge": "☢ РАЗВЕДКА", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ случайно перемешанных локаций со всех континентов", "opt1_title": "1. РЕЖИМ ИГРЫ:", "mode_classic_title": "🎯 Одиночный", "mode_classic_desc": "5 раундов на очки", "mode_quick_title": "⚡ Экспресс", "mode_quick_desc": "1 быстрый раунд", "opt2_title": "2. СТРАНА / РЕГИОН:", "cat_all_title": "🌐 Вся Планета (200+)", "cat_all_desc": "100% случайный мир", "cat_capitals_title": "🏛️ Города Мира (70+)", "cat_capitals_desc": "Париж, Токио, Нью-Йорк...", "cat_nature_title": "🏔️ Природа & Чудеса (50+)", "cat_nature_desc": "Горы, каньоны, Исландия...", "cat_ukraine_title": "🇺🇦 Украина (30+)", "cat_ukraine_desc": "Города, замки, Карпаты", "opt3_title": "3. ТАЙМЕР РАУНДУ:", "timer_60_title": "⏱️ 60 секунд", "timer_60_desc": "Стандартный ритм", "timer_0_title": "🧘 Без таймера", "timer_0_desc": "Спокойный поиск", "start_btn": "🚀 ПОГНАЛИ / НАЧАТЬ ИГРУ", "nav_games": "‹ Игры", "step_btn": "🚶 Шаг вперёд", "map_btn": "🗺️ Открыть Топо-Карту", "menu_btn": "⚙️ Меню", "map_title": "Выберите точку на Топо-Карте", "map_close": "✕ Закрыть", "map_confirm": "Поставьте метку на карте", "guess_ready": "УГАДАТЬ ТОЧКУ!", "res_title": "Результат раунда", "dist_msg": " до цели", "next_btn": "Следующий раунд →", "finish_btn": "В Лобби / Итоги 🏆", "score_btn": "Посмотреть результаты и очки →", "time_up": "⏱ Время вышло! Отметь точку на карте."},
+  en: {"title": "GeoBunker 🌍 — 200+ Locations", "recon_badge": "☢ RECON", "lobby_title": "GEOBUNKER 🌍", "lobby_sub": "200+ randomly shuffled locations from all continents", "opt1_title": "1. GAME MODE:", "mode_classic_title": "🎯 Single Player", "mode_classic_desc": "5 rounds for points", "mode_quick_title": "⚡ Express", "mode_quick_desc": "1 quick round", "opt2_title": "2. COUNTRY / REGION:", "cat_all_title": "🌐 Whole Planet (200+)", "cat_all_desc": "100% random world", "cat_capitals_title": "🏛️ World Cities (70+)", "cat_capitals_desc": "Paris, Tokyo, New York...", "cat_nature_title": "🏔️ Nature & Wonders (50+)", "cat_nature_desc": "Mountains, canyons, Iceland...", "cat_ukraine_title": "🇺🇦 Ukraine (30+)", "cat_ukraine_desc": "Cities, castles, Carpathians", "opt3_title": "3. ROUND TIMER:", "timer_60_title": "⏱️ 60 seconds", "timer_60_desc": "Standard pace", "timer_0_title": "🧘 No timer", "timer_0_desc": "Relaxed search", "start_btn": "🚀 LET'S GO / START GAME", "nav_games": "‹ Games", "step_btn": "🚶 Step forward", "map_btn": "🗺️ Open Topo Map", "menu_btn": "⚙️ Menu", "map_title": "Select a point on the Topo Map", "map_close": "✕ Close", "map_confirm": "Place marker on map", "guess_ready": "GUESS SPOT!", "res_title": "Round Result", "dist_msg": " from target", "next_btn": "Next round →", "finish_btn": "Lobby / Summary 🏆", "score_btn": "View results and scores →", "time_up": "⏱ Time's up! Place your pin on the map."},
   de: {
     "title": "GeoBunker 🌍 — 200+ Orte",
+    "recon_badge": "☢ AUFKLÄRUNG",
     "lobby_title": "GEOBUNKER 🌍",
     "lobby_sub": "200+ zufällige Orte von allen Kontinenten",
     "opt1_title": "1. SPIELMODUS:",
@@ -334,16 +372,20 @@ const UI = {"uk": {"title": "GeoBunker 🌍 — 200+ локацій з усьо�
     "timer_0_title": "🧘 Kein Timer",
     "timer_0_desc": "Entspannte Suche",
     "start_btn": "🚀 LOS GEHT'S / SPIEL STARTEN",
-    "nav_games": "🎮 Spiele",
+    "nav_games": "‹ Spiele",
+    "step_btn": "🚶 Schritt vor",
     "map_btn": "🗺️ Topo-Karte öffnen",
     "menu_btn": "⚙️ Menü",
     "map_title": "Wähle einen Punkt auf der Topo-Karte",
     "map_close": "✕ Schließen",
     "map_confirm": "Marker auf Karte setzen",
+    "guess_ready": "PUNKT RATEN!",
     "res_title": "Rundenergebnis",
-    "dist_msg": " km vom Ziel entfernt",
+    "dist_msg": " vom Ziel entfernt",
     "next_btn": "Nächste Runde →",
-    "score_btn": "Ergebnisse und Punkte ansehen →"
+    "finish_btn": "Zur Lobby / Ergebnis 🏆",
+    "score_btn": "Ergebnisse und Punkte ansehen →",
+    "time_up": "⏱ Zeit um! Setze den Marker auf der Karte."
   }
 };
 let LANG = localStorage.getItem('jg_lang') || 'ru';
@@ -470,6 +512,38 @@ applyUI();
     let usedLocations = new Set();
     let pendingScore = 0;
     let pendingDist = 0;
+    let gbTimerInt = null;
+    let gbTimerLeft = 0;
+
+    function startRoundTimer() {
+      clearInterval(gbTimerInt);
+      const pill = document.getElementById('timerPill');
+      const badge = document.getElementById('timerBadge');
+      if (!pill || !badge) return;
+      if (!currentTimerSec || currentTimerSec <= 0) {
+        pill.style.display = 'none';
+        pill.classList.remove('warn');
+        return;
+      }
+      gbTimerLeft = currentTimerSec;
+      pill.style.display = 'inline-flex';
+      pill.classList.remove('warn');
+      badge.textContent = String(gbTimerLeft);
+      gbTimerInt = setInterval(() => {
+        gbTimerLeft--;
+        if (gbTimerLeft <= 0) {
+          clearInterval(gbTimerInt);
+          badge.textContent = '0';
+          pill.classList.add('warn');
+          document.getElementById('mapHeaderTitle').textContent = t('time_up');
+          openMapModal();
+          if (window.ArcadeFX) ArcadeFX.vibrate([20, 20, 20]);
+        } else {
+          badge.textContent = String(gbTimerLeft);
+          pill.classList.toggle('warn', gbTimerLeft <= 15);
+        }
+      }, 1000);
+    }
 
     // FISHER-YATES SHUFFLE ALGORITHM FOR 100% TRUE RANDOMNESS
     function shuffleArray(arr) {
@@ -492,6 +566,7 @@ applyUI();
     }
 
     function openLobby() {
+      clearInterval(gbTimerInt);
       document.getElementById('lobbyModal').style.display = 'flex';
       document.getElementById('gameHud').style.display = 'none';
       document.getElementById('gameBottomBar').style.display = 'none';
@@ -530,7 +605,7 @@ applyUI();
         
         const btn = document.getElementById('btnConfirmGuess');
         btn.disabled = false;
-        btn.textContent = 'УГАДАТЬ ТОЧКУ!';
+        btn.textContent = t('guess_ready');
         if (window.sfx) window.sfx.move();
       });
     }
@@ -592,15 +667,16 @@ applyUI();
       if (targetMarker) { map.removeLayer(targetMarker); targetMarker = null; }
       if (resultPolyline) { map.removeLayer(resultPolyline); resultPolyline = null; }
 
-      document.getElementById('mapHeaderTitle').textContent = 'Выберите точку на Топо-Карте';
+      document.getElementById('mapHeaderTitle').textContent = t('map_title');
       document.getElementById('btnConfirmGuess').style.display = 'block';
       document.getElementById('btnConfirmGuess').disabled = true;
-      document.getElementById('btnConfirmGuess').textContent = 'Поставьте метку на карте';
+      document.getElementById('btnConfirmGuess').textContent = t('map_confirm');
       document.getElementById('btnViewScore').style.display = 'none';
 
       closeMapModal();
       document.getElementById('resultModal').style.display = 'none';
       if (map) map.setView([20, 0], 2);
+      startRoundTimer();
     }
 
     function haversine(lat1, lon1, lat2, lon2) {
@@ -613,6 +689,7 @@ applyUI();
 
     function submitGuess() {
       if (!guessLatLng || !currentLoc) return;
+      clearInterval(gbTimerInt);
 
       const dist = haversine(guessLatLng.lat, guessLatLng.lng, currentLoc.lat, currentLoc.lng);
       const score = Math.max(0, Math.min(5000, Math.round(5000 * Math.exp(-dist / 2000))));
@@ -629,11 +706,11 @@ applyUI();
 
       map.fitBounds(resultPolyline.getBounds(), { padding: [50, 50] });
 
-            const isMeters = dist < 1;
-      const val = isMeters ? Math.round(dist*1000) : dist.toFixed(1);
-      const unit = isMeters ? (LANG === 'en' ? 'm' : 'м') : (LANG === 'en' ? 'km' : 'км');
+      const isMeters = dist < 1;
+      const val = isMeters ? Math.round(dist * 1000) : dist.toFixed(1);
+      const unit = isMeters ? ((LANG === 'en' || LANG === 'de') ? 'm' : 'м') : ((LANG === 'en' || LANG === 'de') ? 'km' : 'км');
       const distStr = `${val} ${unit}`;
-      const missMsg = LANG === 'en' ? `📍 Missed by: ${distStr} to target!` : (LANG === 'uk' ? `📍 Промах: ${distStr} до цілі!` : `📍 Промах: ${distStr} до цели!`);
+      const missMsg = LANG === 'en' ? `📍 Missed by: ${distStr}` : LANG === 'uk' ? `📍 Промах: ${distStr}` : LANG === 'de' ? `📍 Abweichung: ${distStr}` : `📍 Промах: ${distStr}`;
       document.getElementById('mapHeaderTitle').textContent = missMsg;
       document.getElementById('btnConfirmGuess').style.display = 'none';
       document.getElementById('btnViewScore').style.display = 'block';
@@ -644,14 +721,20 @@ applyUI();
     function openScoreModal() {
       const modal = document.getElementById('resultModal');
       document.getElementById('modalScore').textContent = `+${pendingScore}`;
-            const isM = pendingDist < 1;
-      const v = isM ? Math.round(pendingDist*1000) : pendingDist.toFixed(1);
-      const u = isM ? (LANG === 'en' ? 'm' : 'м') : (LANG === 'en' ? 'km' : 'км');
+      const isM = pendingDist < 1;
+      const v = isM ? Math.round(pendingDist * 1000) : pendingDist.toFixed(1);
+      const u = isM ? ((LANG === 'en' || LANG === 'de') ? 'm' : 'м') : ((LANG === 'en' || LANG === 'de') ? 'km' : 'км');
       document.getElementById('modalDist').textContent = `${v} ${u} ${t('dist_msg').trim()}`;
       document.getElementById('modalLoc').textContent = `${currentLoc.name}, ${currentLoc.country}`;
 
-      if (pendingScore > 3500 && window.confetti) {
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      if (window.ArcadeFX) {
+        if (pendingScore > 3000) {
+          ArcadeFX.confetti();
+          ArcadeFX.flash('#22c55e', 0.22, 240);
+          ArcadeFX.vibrate([20, 30, 40]);
+        } else {
+          ArcadeFX.vibrate(12);
+        }
       }
       if (window.sfx) {
         if (pendingScore > 3000) window.sfx.win(); else window.sfx.click();
@@ -675,11 +758,7 @@ applyUI();
       document.getElementById('roundBadge').textContent = `${round}/${maxRounds}`;
       document.getElementById('scoreBadge').textContent = totalScore;
       const btn = document.getElementById('modalActionBtn');
-      if (round >= maxRounds) {
-        btn.textContent = 'В Лобби / Итоги 🏆';
-      } else {
-        btn.textContent = 'Следующий раунд →';
-      }
+      btn.textContent = round >= maxRounds ? t('finish_btn') : t('next_btn');
     }
 
     window.onload = () => {

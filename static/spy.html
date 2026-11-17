@@ -8,19 +8,69 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(14px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(14px,var(--sal))}
+  body{display:flex;flex-direction:column;align-items:center;padding:max(12px,var(--sat)) max(12px,var(--sar)) max(64px,calc(var(--sab)+56px)) max(12px,var(--sal))}
+  button::after{content:none}
   .lobby-card{background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border-hi);border-radius:26px;padding:22px 18px;max-width:400px;width:100%;margin:8px auto;text-align:center;box-shadow:var(--inner),var(--shadow-lg),0 0 50px -18px rgba(255,34,56,.22)}
   .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
   .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
-  .card{max-width:380px;width:100%;text-align:center}
-  .role-title{font-size:32px;font-weight:900;margin:14px 0}
+  .card{max-width:410px;width:100%;text-align:center}
+  #game,#reveal{padding-bottom:72px}
+  .role-title{font-size:28px;font-weight:900;margin:8px 0;line-height:1.15;word-break:break-word}
   .spy{color:var(--crimson);text-shadow:0 0 18px var(--crimson-glow)}
   .loc{color:#5cff9e;text-shadow:0 0 18px rgba(92,255,158,.4)}
-  input,button{max-width:340px}
+  input,button{max-width:360px}
   .chip{display:inline-block;padding:9px 13px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.05);cursor:pointer;font-size:13px;user-select:none;position:relative;z-index:1;touch-action:manipulation}
   .chip.on{border-color:var(--crimson);background:rgba(255,34,56,.15);box-shadow:0 0 10px var(--crimson-glow)}
   .chip .cnt{color:var(--muted);font-size:11px}
   .chip .x{color:#ff8a95;margin-left:6px;font-weight:800}
+
+  .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content}
+  .langbar button{width:auto;min-height:0;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.4)}
+
+  /* 3D Hold-to-peek Role Card */
+  .spy-card-scene{position:relative;perspective:900px;width:100%;margin:6px auto 12px;min-height:178px;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}
+  .spy-card-3d{position:relative;width:100%;min-height:178px;transform-style:preserve-3d;transition:transform .46s cubic-bezier(.22,1,.36,1)}
+  .spy-card-scene.is-peeking .spy-card-3d,.spy-card-scene.is-pinned .spy-card-3d{transform:rotateY(180deg)}
+  .spy-face{position:absolute;inset:0;border-radius:20px;padding:18px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 16px 36px rgba(0,0,0,.55)}
+  .spy-cover{background:linear-gradient(155deg,#1b1e2e,#0f111c);border:1.5px solid rgba(255,255,255,.16);background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 8px,transparent 0,transparent 16px)}
+  .spy-cover-ico{font-size:38px;margin-bottom:8px;filter:drop-shadow(0 6px 14px rgba(255,34,56,.35))}
+  .spy-cover-lbl{font-size:14px;font-weight:900;color:#e2e8f0;letter-spacing:.3px}
+  .spy-cover-sub{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .spy-role{transform:rotateY(180deg);background:linear-gradient(160deg,#1a2230,#0f131c);border:1.5px solid rgba(92,255,158,.4)}
+  .spy-role.is-spy{background:linear-gradient(160deg,#2b131c,#13090d);border-color:rgba(255,34,56,.55);box-shadow:0 16px 38px rgba(255,34,56,.22)}
+  .spy-pin-btn{position:relative;z-index:4;width:auto;min-height:36px;margin:0 auto 10px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e2e8f0;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .spy-pin-btn.on{border-color:#fbbf24;background:rgba(251,191,36,.16);color:#fde047}
+
+  /* Suspect voting / marking avatars */
+  .spy-suspects-box{margin:10px 0 12px;text-align:left}
+  .spy-suspects-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px;text-align:center}
+  .spy-suspects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px}
+  .spy-sus-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#e5e7eb;font-size:11.5px;font-weight:800;width:100%;min-height:44px;cursor:pointer;position:relative;translate:0px;scale:1;transition:scale .2s ease,border-color .2s ease,background .2s ease}
+  .spy-sus-btn:active{scale:.95}
+  .spy-sus-btn.marked{border-color:#ff2238;background:rgba(255,34,56,.18);box-shadow:0 0 14px rgba(255,34,56,.3)}
+  .spy-sus-mark{position:absolute;top:4px;right:6px;font-size:12px;opacity:0;transform:scale(.6);transition:opacity .15s ease,transform .15s ease}
+  .spy-sus-btn.marked .spy-sus-mark{opacity:1;transform:scale(1)}
+  .spy-sus-nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .spy-reveal-pop{animation:spyRev .45s cubic-bezier(.22,1.25,.36,1) both}
+  @keyframes spyRev{0%{opacity:0;transform:rotateY(40deg) scale(.88)}100%{opacity:1;transform:rotateY(0) scale(1)}}
+
+  .spy-modal{position:fixed;inset:0;z-index:100001;background:rgba(4,6,14,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
+  .spy-modal.open{display:flex}
+  .spy-modal-card{max-width:340px;width:100%;background:linear-gradient(180deg,#1a1b26,#0e0f16);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.85)}
+  .spy-modal-btns{display:flex;gap:8px;margin-top:14px}
+  .spy-modal-btns button{min-height:44px;flex:1}
+
+  @media (max-width:360px){.spy-card-scene,.spy-card-3d{min-height:132px}#timer{font-size:22px !important;margin:2px 0 6px !important}.spy-pin-btn{margin-bottom:6px;padding:6px 12px}}
+  @media (prefers-reduced-motion:reduce){
+    .spy-card-3d,.spy-sus-btn,.spy-sus-mark{transition:none !important}
+    .spy-reveal-pop{animation:none !important}
+    .spy-card-scene.is-peeking .spy-card-3d,.spy-card-scene.is-pinned .spy-card-3d{transform:none}
+    .spy-card-scene.is-peeking .spy-cover,.spy-card-scene.is-pinned .spy-cover{opacity:0;pointer-events:none}
+    .spy-card-scene.is-peeking .spy-role,.spy-card-scene.is-pinned .spy-role{transform:none;opacity:1}
+    .spy-role{transform:none;opacity:0}
+  }
 </style>
 </head>
 <body>
@@ -71,18 +121,45 @@
 </div>
 
 <div id="game" class="card hide">
-  <div class="role-title" id="rtitle"></div>
-  <div class="sub" id="rsub"></div>
-  <div id="timer" style="font-size:28px;font-weight:800;margin:12px 0;color:var(--crimson);text-shadow:0 0 16px var(--crimson-glow)"></div>
+  <div id="timer" style="font-size:28px;font-weight:800;margin:4px 0 10px;color:var(--crimson);text-shadow:0 0 16px var(--crimson-glow);font-variant-numeric:tabular-nums"></div>
+  <div class="spy-card-scene" id="spyCard" tabindex="0" role="button">
+    <div class="spy-card-3d">
+      <div class="spy-face spy-cover">
+        <div class="spy-cover-ico">👁</div>
+        <div class="spy-cover-lbl" data-i18n="hold_to_peek">Удерживай, чтобы подсмотреть роль</div>
+        <div class="spy-cover-sub" data-i18n="hold_sub">Отпусти — карта снова закроется</div>
+      </div>
+      <div class="spy-face spy-role" id="spyRoleFace">
+        <div class="role-title" id="rtitle"></div>
+        <div class="sub" id="rsub"></div>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="spy-pin-btn" id="pinRoleBtn" onclick="togglePinRole()" data-i18n="btn_pin_role">📌 Показать / скрыть</button>
+  <div class="spy-suspects-box hide" id="suspectBox">
+    <div class="spy-suspects-lbl" data-i18n="suspects_lbl">🎯 Отметь подозреваемых:</div>
+    <div class="spy-suspects-grid" id="suspectGrid"></div>
+  </div>
   <button id="revealbtn" class="hide" onclick="doReveal()" data-i18n="btn_reveal">🕵️ Вскрыть шпиона</button>
-  <button class="sec" onclick="if(confirm(t('confirm_lobby')))send({action:'back'})" data-i18n="btn_lobby">← В лобби</button>
+  <button class="sec" style="margin-top:8px" onclick="askLobby()" data-i18n="btn_lobby">← В лобби</button>
 </div>
 
 <div id="reveal" class="card hide">
   <div class="role-title" data-i18n="reveal_summary">Итог</div>
+  <div id="rvSpyAv" style="display:flex;justify-content:center;margin:4px 0"></div>
   <div class="sub" data-i18n="reveal_spy_was">Шпионом был:</div><div class="role-title spy" id="rvspy"></div>
   <div class="sub" data-i18n="reveal_loc_was">Загадано было:</div><div class="role-title loc" id="rvloc"></div>
   <button id="againbtn" class="hide" onclick="send({action:'back'})" data-i18n="btn_again">Ещё раунд</button>
+</div>
+
+<div id="spyConfirmModal" class="spy-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeSpyModal()">
+  <div class="spy-modal-card">
+    <div id="spyModalText" style="font-size:15px;font-weight:700;line-height:1.45"></div>
+    <div class="spy-modal-btns">
+      <button type="button" class="sec btn-secondary" onclick="closeSpyModal()" data-i18n="btn_cancel">Отмена</button>
+      <button type="button" class="danger btn-primary" onclick="confirmSpyModal()" data-i18n="btn_confirm">Да</button>
+    </div>
+  </div>
 </div>
 
 <script src="/games/static/i18n_common.js"></script>
@@ -91,6 +168,7 @@
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/arcade_fx.js"></script>
 <script>
 const UI={
   uk:{
@@ -104,6 +182,8 @@ const UI={
     btn_start:"🚀 Почати гру", wait_host:"Чекаємо, поки хост почне…",
     btn_reveal:"🕵️ Розкрити шпигуна", btn_lobby:"← До лобі", reveal_summary:"Підсумок",
     reveal_spy_was:"Шпигуном був:", reveal_loc_was:"Загадано було:", btn_again:"Ще раунд",
+    hold_to_peek:"Утримуй, щоб підгледіти роль", hold_sub:"Відпусти — карта знову сховається", btn_pin_role:"📌 Показати / сховати",
+    suspects_lbl:"🎯 Познач підозрюваних:", btn_cancel:"Скасувати", btn_confirm:"Так",
     spy_title:"🕵️ ТИ ШПИГУН",
     spy_sub:c=>"Категорія: «"+c+"». Здогадайся, що загадано, і не викрий себе.",
     loc_sub_classic:"Знайди шпигуна запитаннями. Не називай локацію прямо.",
@@ -111,7 +191,7 @@ const UI={
     time_up:"⏰ ЧАС! Голосуйте, хто шпигун",
     confirm_reveal:"Розкрити шпигуна? Раунд закінчиться для всіх.",
     confirm_lobby:"Повернутися в лобі? Поточний раунд перерветься.",
-    crafting:t=>"🧠 Gemini крафтить пак «"+t+"»…",
+    crafting:t=>"🧠 ШІ крафтить пак «"+t+"»…",
     enter_code:"Введи код", def_player:"Гравець", conn_lost:"Зв'язок втрачено, онови сторінку."
   },
   ru:{
@@ -125,6 +205,8 @@ const UI={
     btn_start:"🚀 Начать игру", wait_host:"Ждём пока хост начнёт…",
     btn_reveal:"🕵️ Вскрыть шпиона", btn_lobby:"← В лобби", reveal_summary:"Итог",
     reveal_spy_was:"Шпионом был:", reveal_loc_was:"Загадано было:", btn_again:"Ещё раунд",
+    hold_to_peek:"Удерживай, чтобы подсмотреть роль", hold_sub:"Отпусти — карта снова закроется", btn_pin_role:"📌 Показать / скрыть",
+    suspects_lbl:"🎯 Отметь подозреваемых:", btn_cancel:"Отмена", btn_confirm:"Да",
     spy_title:"🕵️ ТЫ ШПИОН",
     spy_sub:c=>"Категория: «"+c+"». Вычисли что загадано и не спались.",
     loc_sub_classic:"Найди шпиона вопросами. Не называй локацию напрямую.",
@@ -132,7 +214,7 @@ const UI={
     time_up:"⏰ ВРЕМЯ! Голосуйте кто шпион",
     confirm_reveal:"Вскрыть шпиона? Раунд закончится для всех.",
     confirm_lobby:"Вернуться в лобби? Текущий раунд прервётся.",
-    crafting:t=>"🧠 Gemini крафтит пак «"+t+"»…",
+    crafting:t=>"🧠 ИИ крафтит пак «"+t+"»…",
     enter_code:"Введи код", def_player:"Игрок", conn_lost:"Соединение потеряно, обнови страницу."
   },
   en:{
@@ -146,6 +228,8 @@ const UI={
     btn_start:"🚀 Start game", wait_host:"Waiting for host to start…",
     btn_reveal:"🕵️ Reveal spy", btn_lobby:"← To lobby", reveal_summary:"Summary",
     reveal_spy_was:"The spy was:", reveal_loc_was:"The secret was:", btn_again:"Another round",
+    hold_to_peek:"Hold to peek at your role", hold_sub:"Release to hide again", btn_pin_role:"📌 Show / hide",
+    suspects_lbl:"🎯 Mark suspects:", btn_cancel:"Cancel", btn_confirm:"Yes",
     spy_title:"🕵️ YOU ARE THE SPY",
     spy_sub:c=>"Category: '"+c+"'. Figure out the secret without blowing your cover.",
     loc_sub_classic:"Find the spy with questions. Don't name the location directly.",
@@ -153,7 +237,7 @@ const UI={
     time_up:"⏰ TIME'S UP! Vote for the spy",
     confirm_reveal:"Reveal the spy? Round will end for everyone.",
     confirm_lobby:"Return to lobby? Current round will be aborted.",
-    crafting:t=>"🧠 Gemini is crafting pack '"+t+"'…",
+    crafting:t=>"🧠 AI is crafting pack '"+t+"'…",
     enter_code:"Enter room code", def_player:"Player", conn_lost:"Connection lost, please refresh."
   },
   de:{
@@ -169,6 +253,8 @@ const UI={
     btn_reveal:"🕵️ Spion aufdecken", btn_lobby:"← Zur Lobby",
     reveal_summary:"Ergebnis", reveal_spy_was:"Der Spion war:", reveal_loc_was:"Das Geheimnis war:",
     btn_again:"Noch eine Runde",
+    hold_to_peek:"Gedrückt halten zum Anschauen", hold_sub:"Loslassen zum Verbergen", btn_pin_role:"📌 Zeigen / verbergen",
+    suspects_lbl:"🎯 Verdächtige markieren:", btn_cancel:"Abbrechen", btn_confirm:"Ja",
     spy_title:"🕵️ DU BIST DER SPION",
     spy_sub:c=>"Kategorie: «"+c+"». Finde das Geheimnis heraus, ohne aufzufallen.",
     loc_sub_classic:"Finde den Spion durch Fragen. Nenne den Ort nicht direkt.",
@@ -176,7 +262,7 @@ const UI={
     time_up:"⏰ ZEIT UM! Stimme für den Spion ab",
     confirm_reveal:"Spion aufdecken? Die Runde endet für alle.",
     confirm_lobby:"Zurück zur Lobby? Die aktuelle Runde wird abgebrochen.",
-    crafting:"Gemini erstellt Orte…",
+    crafting:t=>"🧠 KI erstellt Paket «"+t+"»…",
     enter_code:"Raumcode eingeben", def_player:"Spieler", conn_lost:"Verbindung verloren, bitte aktualisieren."
   }
 };
@@ -301,9 +387,15 @@ const GT={
 
 let LANG=localStorage.getItem('jg_lang'); if(!UI[LANG])LANG='ru';
 function t(k){const v=UI[LANG]&&UI[LANG][k];return v!==undefined?v:(UI.ru[k]||k);}
-function T(s){if(s==null)return s;if(LANG==='ru')return s;const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);}
+function T(s){
+  if(s==null)return s;
+  if(window.LobbyI18n&&LobbyI18n.name){const nm=LobbyI18n.name(s); if(nm&&nm!==s)return nm;}
+  if(LANG==='ru')return s;
+  const e=GT[s];return e&&e[LANG]?e[LANG]:(window.LobbyI18n?LobbyI18n.T(s):s);
+}
 
 let ws = null, pid = null, isHost = false, lastRole = null, lastReveal = null, lastPacks = null, roomCode = null, firstOpenCb = null, opened = false;
+let roomPlayers = [], suspectsMarked = new Set(), rolePinned = false, spyModalAction = null, revealAnimPending = false;
 function applyUI(){
   document.documentElement.lang=LANG;
   document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.dataset.i18n);if(typeof v==='string')el.textContent=v;});
@@ -312,6 +404,7 @@ function applyUI(){
   if(lastPacks)renderPacks(lastPacks);
   if(lastRole)renderRole(lastRole);
   if(lastReveal)renderReveal(lastReveal);
+  renderSuspects();
 }
 document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
 document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
@@ -333,7 +426,63 @@ function connect(cb){
 function create(){const n=document.getElementById('name').value||t('def_player');connect(()=>send({action:'create',name:n,game:'spy'}));}
 function join(){const n=document.getElementById('name').value||t('def_player');const c=document.getElementById('joincode').value;if(!c)return alert(t('enter_code'));connect(()=>send({action:'join',name:n,code:c}));}
 function startSpy(){send({action:'start',timer:parseInt(document.getElementById('spytimer').value)});}
-function doReveal(){if(confirm(t('confirm_reveal')))send({action:'reveal'});}
+function openSpyModal(msg, act){
+  spyModalAction=act;
+  document.getElementById('spyModalText').textContent=msg;
+  document.getElementById('spyConfirmModal').classList.add('open');
+}
+function closeSpyModal(){spyModalAction=null;document.getElementById('spyConfirmModal').classList.remove('open');}
+function confirmSpyModal(){const fn=spyModalAction;closeSpyModal();if(fn)fn();}
+function doReveal(){openSpyModal(t('confirm_reveal'),()=>send({action:'reveal'}));}
+function askLobby(){openSpyModal(t('confirm_lobby'),()=>send({action:'back'}));}
+function togglePinRole(){
+  rolePinned=!rolePinned;
+  const sc=document.getElementById('spyCard');
+  if(sc)sc.classList.toggle('is-pinned',rolePinned);
+  const pb=document.getElementById('pinRoleBtn');
+  if(pb)pb.classList.toggle('on',rolePinned);
+  if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('flip');
+  if(window.ArcadeFX)ArcadeFX.vibrate(8);
+}
+function bindPeekCard(){
+  const sc=document.getElementById('spyCard');
+  if(!sc||sc.dataset.bound)return;
+  sc.dataset.bound='1';
+  const peek=()=>{
+    if(!rolePinned&&!sc.classList.contains('is-peeking')){
+      sc.classList.add('is-peeking');
+      if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('flip');
+      if(window.ArcadeFX)ArcadeFX.vibrate(6);
+    }
+  };
+  const hide=()=>{sc.classList.remove('is-peeking');};
+  sc.addEventListener('pointerdown',peek);
+  sc.addEventListener('pointerup',hide);
+  sc.addEventListener('pointercancel',hide);
+  sc.addEventListener('pointerleave',hide);
+  sc.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();togglePinRole();}});
+}
+function toggleSuspect(id){
+  if(suspectsMarked.has(id))suspectsMarked.delete(id);
+  else suspectsMarked.add(id);
+  if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('click');
+  if(window.ArcadeFX)ArcadeFX.vibrate(6);
+  renderSuspects();
+}
+function renderSuspects(){
+  const box=document.getElementById('suspectBox');
+  const grid=document.getElementById('suspectGrid');
+  if(!box||!grid)return;
+  if(!roomPlayers.length){box.classList.add('hide');return;}
+  box.classList.remove('hide');
+  grid.innerHTML=roomPlayers.map(p=>{
+    const nm=T(p.name);
+    const av=window.LobbyUI?LobbyUI.avatarHtml(nm,!!p.bot):'';
+    const mk=suspectsMarked.has(p.id);
+    return '<button type="button" class="spy-sus-btn'+(mk?' marked':'')+'" onclick="toggleSuspect(\''+attr(p.id)+'\')">'+
+      '<span class="spy-sus-mark">🎯</span>'+av+'<span class="spy-sus-nm">'+esc(nm)+'</span></button>';
+  }).join('');
+}
 let tInt=null;
 function startTimer(secs){
   clearInterval(tInt);const el=document.getElementById('timer');el.className='';el.style.color='var(--crimson)';
@@ -370,8 +519,10 @@ document.getElementById('hostopts').addEventListener('click',function(e){
 function renderRole(m){
   lastRole=m;
   show('game');
+  const face=document.getElementById('spyRoleFace');
   const tEl=document.getElementById('rtitle');
   const catTr=T(m.cat);
+  if(face)face.classList.toggle('is-spy',!!m.spy);
   if(m.spy){
     tEl.textContent=t('spy_title');
     tEl.className='role-title spy';
@@ -386,6 +537,7 @@ function renderRole(m){
       document.getElementById('rsub').textContent=typeof t('loc_sub_custom')==='function'?t('loc_sub_custom')(catTr):m.sub;
     }
   }
+  renderSuspects();
   document.getElementById('revealbtn').classList.remove('hide');
 }
 
@@ -393,19 +545,43 @@ function renderReveal(m){
   lastReveal=m;
   clearInterval(tInt);
   show('reveal');
-  document.getElementById('rvspy').textContent=m.spy;
+  const rv=document.getElementById('reveal');
+  const spyNm=T(m.spy||'');
+  const av=document.getElementById('rvSpyAv');
+  if(av)av.innerHTML=window.LobbyUI?LobbyUI.avatarHtml(spyNm,String(m.spy||'').includes('Бот')):'';
+  document.getElementById('rvspy').textContent=spyNm;
   document.getElementById('rvloc').textContent=T(m.location);
   document.getElementById('againbtn').classList.remove('hide');
+  if(revealAnimPending){
+    revealAnimPending=false;
+    rv.classList.remove('spy-reveal-pop');void rv.offsetWidth;rv.classList.add('spy-reveal-pop');
+    if(window.ArcadeFX){
+      ArcadeFX.flash('#ff2238',0.24,240);
+      ArcadeFX.vibrate([20,30,40]);
+      const r=rv.getBoundingClientRect();
+      if(r.width)ArcadeFX.burst(r.left+r.width/2,r.top+80,{count:28,speed:240,size:4,colors:['#ff2238','#fde047','#5cff9e','#ffffff'],shape:'spark'});
+    }
+    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
+  }
 }
 
 function handle(m){
   if(m.type==='joined'){
     pid=m.pid;isHost=m.host;roomCode=m.code;
     sessionStorage.setItem('jg_spy_code',m.code);
+    try{
+      const saved=JSON.parse(sessionStorage.getItem('jg_spy_players_'+m.code)||'[]');
+      if(Array.isArray(saved)&&saved.length)roomPlayers=saved;
+    }catch(_){}
   }
   else if(m.type==='spy_loading'){document.getElementById('craftstatus').textContent=typeof t('crafting')==='function'?t('crafting')(m.theme):m.theme;}
   else if(m.type==='spy_packs'){renderPacks(m);}
   else if(m.type==='lobby'){
+    rolePinned=false;suspectsMarked.clear();
+    const sc=document.getElementById('spyCard');if(sc)sc.classList.remove('is-pinned','is-peeking');
+    const pb=document.getElementById('pinRoleBtn');if(pb)pb.classList.remove('on');
+    roomPlayers=(m.players||[]).map(p=>({id:p.id,name:p.name,bot:String(p.id||'').startsWith('bot_')}));
+    if(roomCode)try{sessionStorage.setItem('jg_spy_players_'+roomCode,JSON.stringify(roomPlayers));}catch(_){}
     show('lobby');
     const ld=document.getElementById('lcode');
     if(ld&&window.LobbyUI)ld.innerHTML=LobbyUI.renderCodeDigits(m.code||'');
@@ -424,16 +600,21 @@ function handle(m){
     if(isHost)send({action:'spy_packs'});
   }
   else if(m.type==='role'){
+    rolePinned=false;
+    const sc=document.getElementById('spyCard');if(sc)sc.classList.remove('is-pinned','is-peeking');
+    const pb=document.getElementById('pinRoleBtn');if(pb)pb.classList.remove('on');
     renderRole(m);
     startTimer(m.timer);
   }
   else if(m.type==='reveal'){
+    revealAnimPending=true;
     renderReveal(m);
   }
-  else if(m.type==='error'){alert(m.msg);}
+  else if(m.type==='error'){alert(T(m.msg));}
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 document.addEventListener('DOMContentLoaded', () => {
+  bindPeekCard();
   if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
   const autoCode = sessionStorage.getItem('jg_spy_code');
   if (autoCode) {
