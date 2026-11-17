@@ -1,4 +1,4 @@
-"""Элиас (Alias) — объясни слово команде. Языки (ru/ua/en) × сложность (easy/medium/hard).
+"""Элиас (Alias) — объясни слово команде. Языки (ru/ua/en/de) × сложность (easy/medium/hard).
 Каждый со своего телефона: объясняющий видит слово, тапает «угадали»/«пропустить», таймер, счёт команд.
 """
 import random
@@ -39,7 +39,11 @@ WORDS = {
     },
 }
 
-LANGS = {"ru": "Русский", "ua": "Українська", "en": "English"}
+import alias_words  # noqa: E402
+
+alias_words.merge_into(WORDS)    # +~170 слов на язык и немецкая колода
+
+LANGS = {"ru": "Русский", "ua": "Українська", "en": "English", "de": "Deutsch"}
 DIFFS = {"easy": "Лёгкий", "medium": "Средний", "hard": "Сложный"}
 
 

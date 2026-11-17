@@ -4273,11 +4273,12 @@ async def ws(websocket: WebSocket):
                     elif act == "set_alias_settings" and room and room["host"] == pid and room.get("game") == "alias":
                         a = room.setdefault("al", {})
                         s = a.setdefault("settings", {"lang": "ru", "diff": "easy", "time": 60, "target": 20, "mode": "solo"})
-                        for k in ("lang", "diff", "mode"):
-                            if msg.get(k): s[k] = msg[k]
-                        for k in ("time", "target"):
+                        allowed = {"lang": al.LANGS, "diff": al.DIFFS, "mode": ("solo", "teams")}
+                        for k, ok in allowed.items():
+                            if msg.get(k) in ok: s[k] = msg[k]
+                        for k, hi in (("time", 300), ("target", 200)):
                             if k in msg:
-                                try: s[k] = max(5, int(msg[k]))
+                                try: s[k] = min(hi, max(5, int(msg[k])))
                                 except Exception: pass
                         await (broadcast(room, alias_public(room)) if room["state"] == "playing" else broadcast(room, lobby_state(room)))
                     elif act == "alias_begin" and room and room.get("game") == "alias" and not room.get("al", {}).get("round_active"):
