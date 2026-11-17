@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v20";  // v20: stage 11c precache and speed optimization
+const CACHE = "lobby-static-v21";  // v21: stage 12c sfx volume leveling, shell sound & vibration toggle
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [
@@ -12,6 +12,7 @@ const PRECACHE = [
   "/games/static/theme.css",
   "/games/static/game-ui.css",
   "/games/static/shell.css",
+  "/games/static/shell.js",
   "/games/static/ui.js",
   "/games/static/sfx.js",
   "/games/static/arcade_fx.js",

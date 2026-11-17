@@ -183,9 +183,43 @@
   .game .gt{margin-top:16px;min-width:0}
   .game .nm{font-size:17px;font-weight:700;letter-spacing:-.1px}
   .game .ds{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5}
-  .game .go{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  .game .go{position:absolute;top:14px;right:52px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-size:15px;color:#fff;background:rgba(255,255,255,.05);border:1px solid var(--border);opacity:0;transform:translateX(-6px);transition:.25s var(--ease)}
   .game:hover .go{opacity:1;transform:none;background:var(--c);border-color:transparent}
+
+  /* ── favorite star button ── */
+  .fav-btn{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);cursor:pointer;z-index:2;padding:0;margin:0;
+    transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s}
+  .fav-btn svg{width:16px;height:16px;pointer-events:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s,stroke .2s}
+  .fav-btn:hover{color:#ffb800;border-color:rgba(255,184,0,.4);background:rgba(255,184,0,.12);transform:scale(1.1)}
+  .fav-btn.is-fav{color:#ffb800;border-color:rgba(255,184,0,.5);background:rgba(255,184,0,.16);box-shadow:0 0 14px -2px rgba(255,184,0,.45)}
+  .fav-btn.is-fav svg{fill:#ffb800}
+  .fav-btn:focus-visible{outline:2px solid #ffb800;outline-offset:2px}
+  .feat .fav-btn{top:18px;right:18px}
+
+  /* ── recent section ── */
+  .recent-section{margin:10px 0 28px;animation:fadein .5s var(--ease) both}
+  .recent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+
+  /* ── library controls & search ── */
+  .lib-ctrls{display:flex;flex-direction:column;gap:14px;margin:20px 0 24px}
+  .search-wrap{width:100%}
+  .search-form{width:100%;margin:0}
+  .search-box{display:flex;align-items:center;width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:0 16px;height:46px;transition:border-color .2s,box-shadow .2s,background .2s}
+  .search-box:focus-within{border-color:rgba(255,34,56,.6);background:rgba(255,255,255,.06);box-shadow:0 0 18px -4px rgba(255,34,56,.35)}
+  .search-ico{width:19px;height:19px;color:var(--muted);flex-shrink:0;margin-right:10px}
+  .search-box input[type="search"]{flex:1;height:100%;background:transparent;border:none;color:#fff;font-size:15px;font-family:inherit;outline:none;padding:0;margin:0;min-width:0}
+  .search-box input[type="search"]::-webkit-search-cancel-button{display:none}
+  .search-clear{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;padding:0;margin-left:8px;flex-shrink:0;transition:background .2s,color .2s}
+  .search-clear:hover{color:#fff;background:rgba(255,255,255,.16)}
+  .filter-groups{display:flex;flex-direction:column;gap:10px}
+  .filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .filter-row-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:68px}
+  .no-results{text-align:center;padding:48px 20px;background:rgba(255,255,255,.02);border:1px dashed var(--border);border-radius:20px;margin:28px 0}
+  .no-results-ico{font-size:38px;margin-bottom:12px}
+  .no-results h3{font-size:20px;font-weight:700;margin-bottom:8px}
+  .no-results p{font-size:14px;color:var(--muted);max-width:380px;margin:0 auto 18px;line-height:1.5}
 
   #adminlink{text-align:center;margin-top:36px}
   #adminlink a{display:inline-block;color:var(--crimson-soft);font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,34,56,.3);background:rgba(255,34,56,.06)}
@@ -250,13 +284,17 @@
     .feat .ico svg{width:30px;height:30px}
     .feat .nm{font-size:18px}
     .grid{grid-template-columns:1fr;gap:10px}
-    .game{flex-direction:row;align-items:center;gap:14px;min-height:64px;padding:13px 14px}
+    .recent-grid{grid-template-columns:1fr;gap:10px}
+    .game{flex-direction:row;align-items:center;gap:12px;min-height:64px;padding:12px 14px}
     .game .ico{width:48px;height:48px;font-size:24px;border-radius:14px}
     .game .ico svg{width:24px;height:24px}
     .game .gt{margin-top:0;flex:1}
     .game .nm{font-size:15.5px}
     .game .ds{font-size:12.5px;margin-top:3px}
+    .game .fav-btn{position:static;flex-shrink:0;width:30px;height:30px}
     .game .go{position:static;opacity:.55;transform:none;width:28px;height:28px;flex-shrink:0;font-size:14px}
+    .feat .fav-btn{top:14px;right:14px}
+    .filter-row-lbl{display:none}
     .how{grid-template-columns:1fr;margin-top:56px}
     .ftr .tech{margin-left:0}
   }
@@ -318,6 +356,12 @@
           </button>
           <button type="button" data-tab="settings" aria-label="Settings" title="Settings">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <button type="button" id="nav-btn-sound" class="nav-btn-sfx" aria-label="Sound" title="Sound">
+            <span>🔊</span>
+          </button>
+          <button type="button" id="nav-btn-vibe" class="nav-btn-vibe" aria-label="Vibration" title="Vibration">
+            <span>📳</span>
           </button>
         </div>
         <a href="/games/profile" class="profile-card" data-tab="account" title="Profile">
@@ -391,72 +435,183 @@
 
     <div id="inviteBanner" style="display:none"></div>
 
+    <section id="recentSection" class="recent-section hide" aria-labelledby="h-recent">
+      <div class="section-head">
+        <div><div class="kicker" data-i18n="k_recent">Recent</div><h2 id="h-recent" data-i18n="h_recent">Jump back in</h2></div>
+      </div>
+      <div class="recent-grid" id="recentGrid"></div>
+    </section>
+
     <section id="games">
       <div class="section-head">
         <div><div class="kicker" data-i18n="k_featured">Featured</div><h2 data-i18n="h_featured">Fresh drops</h2></div>
       </div>
       <div class="featured">
-        <a class="feat" href="/games/geostake" style="--c:#22c55e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a13.5 13.5 0 0 1 0 18M12 3a13.5 13.5 0 0 0 0 18"/></svg></div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_geobunker">Geo$take</div><div class="ds" data-i18n="d_geobunker">Guess locations on 360° panoramas with coin stakes.</div></div></a>
-        <a class="feat" href="/games/raskol" style="--c:#d946ef"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="M10 3 8.5 7.5 11 9l-2 4.5"/></svg></div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_raskol">Raskol</div><div class="ds" data-i18n="d_raskol">Dungeon roguelite: pick a hero, smash through 10 rooms and two bosses.</div></div></a>
-        <a class="feat" href="/games/space_invaders" style="--c:#ff2238"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3.5 3.5 4.5 7.5 4.5 11.5L19 16v3l-4-1.5-3 2.5-3-2.5L5 19v-3l2.5-2.5C7.5 9.5 8.5 5.5 12 2z"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/></svg></div><div class="tx"><span class="pill" data-i18n="p_arcade">Arcade</span><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Neon shooter with weapon and skin upgrades.</div></div></a>
+        <a class="feat" href="/games/geostake" style="--c:#22c55e" data-slug="geostake" data-players="1,2,3" data-cat="solo"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a13.5 13.5 0 0 1 0 18M12 3a13.5 13.5 0 0 0 0 18"/></svg></div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_geobunker">Geo$take</div><div class="ds" data-i18n="d_geobunker">Guess locations on 360° panoramas with coin stakes.</div></div><button type="button" class="fav-btn" data-fav-slug="geostake" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button></a>
+        <a class="feat" href="/games/raskol" style="--c:#d946ef" data-slug="raskol" data-players="1" data-cat="solo"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="M10 3 8.5 7.5 11 9l-2 4.5"/></svg></div><div class="tx"><span class="pill" data-i18n="p_new">New</span><div class="nm" data-i18n="n_raskol">Raskol</div><div class="ds" data-i18n="d_raskol">Dungeon roguelite: pick a hero, smash through 10 rooms and two bosses.</div></div><button type="button" class="fav-btn" data-fav-slug="raskol" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button></a>
+        <a class="feat" href="/games/space_invaders" style="--c:#ff2238" data-slug="space_invaders" data-players="1" data-cat="solo"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3.5 3.5 4.5 7.5 4.5 11.5L19 16v3l-4-1.5-3 2.5-3-2.5L5 19v-3l2.5-2.5C7.5 9.5 8.5 5.5 12 2z"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/></svg></div><div class="tx"><span class="pill" data-i18n="p_arcade">Arcade</span><div class="nm" data-i18n="n_space_invaders">Shuttle Cruiser</div><div class="ds" data-i18n="d_space_invaders">Neon shooter with weapon and skin upgrades.</div></div><button type="button" class="fav-btn" data-fav-slug="space_invaders" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button></a>
       </div>
 
       <div class="section-head" style="margin-top:56px">
         <div><div class="kicker" data-i18n="k_all">Library</div><h2 data-i18n="h_all">Pick a game</h2></div>
-        <div class="filters" id="filters">
-          <button type="button" class="on" data-f="all"><span data-i18n="f_all">All</span><span class="n" data-n="all"></span></button>
-          <button type="button" data-f="party"><span data-i18n="f_party">Party</span><span class="n" data-n="party"></span></button>
-          <button type="button" data-f="duo"><span data-i18n="f_duo">1 vs 1</span><span class="n" data-n="duo"></span></button>
-          <button type="button" data-f="solo"><span data-i18n="f_solo">Solo</span><span class="n" data-n="solo"></span></button>
+      </div>
+
+      <div class="lib-ctrls">
+        <search class="search-wrap" role="search">
+          <form onsubmit="event.preventDefault();" role="search" class="search-form">
+            <label for="gameSearch" class="visually-hidden" data-i18n="search_ph">Search games by name...</label>
+            <div class="search-box">
+              <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" id="gameSearch" autocomplete="off" spellcheck="false" placeholder="Search games by name..." data-i18n-ph="search_ph">
+              <button type="button" id="searchClear" class="search-clear hide" aria-label="Clear search" data-i18n-aria="search_clear">✕</button>
+            </div>
+          </form>
+        </search>
+
+        <div class="filter-groups">
+          <div class="filter-row">
+            <span class="filter-row-lbl" data-i18n="flt_cat">Type</span>
+            <div class="filters" id="filters" role="group" aria-label="Game categories">
+              <button type="button" class="on" data-f="all"><span data-i18n="f_all">All</span><span class="n" data-n="all"></span></button>
+              <button type="button" data-f="party"><span data-i18n="f_party">Party</span><span class="n" data-n="party"></span></button>
+              <button type="button" data-f="duo"><span data-i18n="f_duo">1 vs 1</span><span class="n" data-n="duo"></span></button>
+              <button type="button" data-f="solo"><span data-i18n="f_solo">Solo</span><span class="n" data-n="solo"></span></button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <span class="filter-row-lbl" data-i18n="flt_players">Players</span>
+            <div class="filters" id="playerFilters" role="group" aria-label="Player count">
+              <button type="button" class="on" data-p="all"><span data-i18n="f_p_all">All players</span></button>
+              <button type="button" data-p="1"><span data-i18n="f_p_1">Solo</span></button>
+              <button type="button" data-p="2"><span data-i18n="f_p_2">2 players</span></button>
+              <button type="button" data-p="3"><span data-i18n="f_p_3">Party 3+</span></button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="cat" data-cat="party">
         <div class="cat-h"><h3 data-i18n="sect_party">🎉 Party · 3+ players</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/variants" style="--c:#a855f7"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4V5z"/><path d="M9 9.5h.01M12 9.5h.01M15 9.5h.01"/></svg></div><div class="gt"><div class="nm" data-i18n="n_variants">Variants</div><div class="ds" data-i18n="d_variants">Bluffing auction with an AI host.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/bunker" style="--c:#eab308"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 7V3a9 9 0 0 1 7.8 4.5l-3.4 2A5 5 0 0 0 12 7zM7.6 14.5l-3.4 2A9 9 0 0 0 12 21v-4a5 5 0 0 1-4.4-2.5zM16.4 14.5A5 5 0 0 1 12 17v4a9 9 0 0 0 7.8-4.5l-3.4-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bunker">Bunker</div><div class="ds" data-i18n="d_bunker">Who deserves a spot. Cards, voting, host.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/mafia" style="--c:#ff2238"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15h16l-2-7-6-3-6 3-2 7z"/><path d="M2 15h20"/><path d="M8 19a2 2 0 1 0 4 0M12 19a2 2 0 1 0 4 0"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mafia">Mafia</div><div class="ds" data-i18n="d_mafia">Night/day, roles, voting.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/spy" style="--c:#64748b"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-4.7-4.7"/><circle cx="10.5" cy="10.5" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_spy">Spy</div><div class="ds" data-i18n="d_spy">Find the spy.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/alias" style="--c:#38bdf8"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1.1-4.3A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg></div><div class="gt"><div class="nm" data-i18n="n_alias">Alias</div><div class="ds" data-i18n="d_alias">Explain the word to your team.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/durak" style="--c:#f97316"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M12 9l2.5 3-2.5 3-2.5-3z" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_durak">Durak</div><div class="ds" data-i18n="d_durak">Classic card game.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/uno" style="--c:#facc15"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="11" height="16" rx="2.5" transform="rotate(-8 10.5 12)"/><rect x="8" y="4" width="11" height="16" rx="2.5" fill="rgba(250,204,21,.15)"/><ellipse cx="13.5" cy="12" rx="3.2" ry="5" transform="rotate(-20 13.5 12)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">By color or number.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/poker" style="--c:#10b981"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 4-7 6.5-7 10.5a4 4 0 0 0 6.2 3.3L10 21h4l-1.2-4.2A4 4 0 0 0 19 13.5C19 9.5 15 7 12 3z" fill="rgba(16,185,129,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_poker">Poker</div><div class="ds" data-i18n="d_poker">Texas Hold'em.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/variants" style="--c:#a855f7" data-slug="variants" data-players="3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4V5z"/><path d="M9 9.5h.01M12 9.5h.01M15 9.5h.01"/></svg></div><div class="gt"><div class="nm" data-i18n="n_variants">Variants</div><div class="ds" data-i18n="d_variants">Bluffing auction with an AI host.</div></div><button type="button" class="fav-btn" data-fav-slug="variants" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/bunker" style="--c:#eab308" data-slug="bunker" data-players="3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 7V3a9 9 0 0 1 7.8 4.5l-3.4 2A5 5 0 0 0 12 7zM7.6 14.5l-3.4 2A9 9 0 0 0 12 21v-4a5 5 0 0 1-4.4-2.5zM16.4 14.5A5 5 0 0 1 12 17v4a9 9 0 0 0 7.8-4.5l-3.4-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bunker">Bunker</div><div class="ds" data-i18n="d_bunker">Who deserves a spot. Cards, voting, host.</div></div><button type="button" class="fav-btn" data-fav-slug="bunker" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/mafia" style="--c:#ff2238" data-slug="mafia" data-players="3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15h16l-2-7-6-3-6 3-2 7z"/><path d="M2 15h20"/><path d="M8 19a2 2 0 1 0 4 0M12 19a2 2 0 1 0 4 0"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mafia">Mafia</div><div class="ds" data-i18n="d_mafia">Night/day, roles, voting.</div></div><button type="button" class="fav-btn" data-fav-slug="mafia" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/spy" style="--c:#64748b" data-slug="spy" data-players="3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-4.7-4.7"/><circle cx="10.5" cy="10.5" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_spy">Spy</div><div class="ds" data-i18n="d_spy">Find the spy.</div></div><button type="button" class="fav-btn" data-fav-slug="spy" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/alias" style="--c:#38bdf8" data-slug="alias" data-players="3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1.1-4.3A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg></div><div class="gt"><div class="nm" data-i18n="n_alias">Alias</div><div class="ds" data-i18n="d_alias">Explain the word to your team.</div></div><button type="button" class="fav-btn" data-fav-slug="alias" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/durak" style="--c:#f97316" data-slug="durak" data-players="2,3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M12 9l2.5 3-2.5 3-2.5-3z" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_durak">Durak</div><div class="ds" data-i18n="d_durak">Classic card game.</div></div><button type="button" class="fav-btn" data-fav-slug="durak" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/uno" style="--c:#facc15" data-slug="uno" data-players="2,3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="11" height="16" rx="2.5" transform="rotate(-8 10.5 12)"/><rect x="8" y="4" width="11" height="16" rx="2.5" fill="rgba(250,204,21,.15)"/><ellipse cx="13.5" cy="12" rx="3.2" ry="5" transform="rotate(-20 13.5 12)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_uno">UNO</div><div class="ds" data-i18n="d_uno">By color or number.</div></div><button type="button" class="fav-btn" data-fav-slug="uno" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/poker" style="--c:#10b981" data-slug="poker" data-players="1,2,3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3 4-7 6.5-7 10.5a4 4 0 0 0 6.2 3.3L10 21h4l-1.2-4.2A4 4 0 0 0 19 13.5C19 9.5 15 7 12 3z" fill="rgba(16,185,129,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_poker">Poker</div><div class="ds" data-i18n="d_poker">Texas Hold'em.</div></div><button type="button" class="fav-btn" data-fav-slug="poker" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
         </div>
       </div>
 
       <div class="cat" data-cat="duo">
         <div class="cat-h"><h3 data-i18n="sect_duo">👥 Head-to-head · or vs bot</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/quoridor" style="--c:#00e5ff"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h9M12 14h9M10 3v7M14 14v7"/></svg></div><div class="gt"><div class="nm" data-i18n="n_quoridor">Quoridor</div><div class="ds" data-i18n="d_quoridor">Maze strategy.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/c4" style="--c:#ef4444"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8" cy="15" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="16" cy="9" r="1.8" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4">Connect 4</div><div class="ds" data-i18n="d_c4">Line up 4 in a row.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/c4_3d" style="--c:#8b5cf6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4_3d">Connect 4 · 3D</div><div class="ds" data-i18n="d_c4_3d">5×5×5 volumetric mode for 3 players.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/battleship" style="--c:#3b82f6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l2 3h14l2-3-9-4-9 4z"/><path d="M7 14V8h5v4M12 8V5h3v3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_battleship">Battleship</div><div class="ds" data-i18n="d_battleship">Place your fleet, sink them.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/reversi" style="--c:#a3a3a3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9.5" cy="9.5" r="4.5" fill="currentColor"/><circle cx="14.5" cy="14.5" r="4.5" fill="rgba(255,255,255,.15)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_reversi">Reversi</div><div class="ds" data-i18n="d_reversi">Flip the discs.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/checkers" style="--c:#f43f5e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><ellipse cx="12" cy="14" rx="7" ry="3.2"/><path d="M5 10.5v3.5c0 1.8 3.1 3.2 7 3.2s7-1.4 7-3.2v-3.5"/><ellipse cx="12" cy="10.5" rx="7" ry="3.2" fill="rgba(244,63,94,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_checkers">Checkers</div><div class="ds" data-i18n="d_checkers">Forced capture, chain jumps, kings.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/chess" style="--c:#e5e7eb"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a2.2 2.2 0 1 1 0 4.4A2.2 2.2 0 0 1 12 4z"/><path d="M9.5 9h5l1 5H8.5l1-5z"/><path d="M7 18h10l-1-4H8l-1 4z"/><path d="M6 20h12"/></svg></div><div class="gt"><div class="nm" data-i18n="n_chess">Chess</div><div class="ds" data-i18n="d_chess">Full rules.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/dots" style="--c:#14b8a6"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/><path d="M8 6h8M6 8v8M18 8v8M8 18h8"/></svg></div><div class="gt"><div class="nm" data-i18n="n_dots">Dots &amp; Boxes</div><div class="ds" data-i18n="d_dots">Close the boxes.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/bulls" style="--c:#d97706"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 10h2v4H8zM14 10h2v4h-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bulls">Bulls &amp; Cows</div><div class="ds" data-i18n="d_bulls">Crack the code.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/guesswho" style="--c:#ec4899"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="M18 5l1.5 1.5L21 5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_guesswho">Guess Who</div><div class="ds" data-i18n="d_guesswho">AI-generated characters.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/quoridor" style="--c:#00e5ff" data-slug="quoridor" data-players="1,2,3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h9M12 14h9M10 3v7M14 14v7"/></svg></div><div class="gt"><div class="nm" data-i18n="n_quoridor">Quoridor</div><div class="ds" data-i18n="d_quoridor">Maze strategy.</div></div><button type="button" class="fav-btn" data-fav-slug="quoridor" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/c4" style="--c:#ef4444" data-slug="c4" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8" cy="15" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="16" cy="9" r="1.8" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4">Connect 4</div><div class="ds" data-i18n="d_c4">Line up 4 in a row.</div></div><button type="button" class="fav-btn" data-fav-slug="c4" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/c4_3d" style="--c:#8b5cf6" data-slug="c4_3d" data-players="2,3"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_c4_3d">Connect 4 · 3D</div><div class="ds" data-i18n="d_c4_3d">5×5×5 volumetric mode for 3 players.</div></div><button type="button" class="fav-btn" data-fav-slug="c4_3d" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/battleship" style="--c:#3b82f6" data-slug="battleship" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l2 3h14l2-3-9-4-9 4z"/><path d="M7 14V8h5v4M12 8V5h3v3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_battleship">Battleship</div><div class="ds" data-i18n="d_battleship">Place your fleet, sink them.</div></div><button type="button" class="fav-btn" data-fav-slug="battleship" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/reversi" style="--c:#a3a3a3" data-slug="reversi" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9.5" cy="9.5" r="4.5" fill="currentColor"/><circle cx="14.5" cy="14.5" r="4.5" fill="rgba(255,255,255,.15)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_reversi">Reversi</div><div class="ds" data-i18n="d_reversi">Flip the discs.</div></div><button type="button" class="fav-btn" data-fav-slug="reversi" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/checkers" style="--c:#f43f5e" data-slug="checkers" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><ellipse cx="12" cy="14" rx="7" ry="3.2"/><path d="M5 10.5v3.5c0 1.8 3.1 3.2 7 3.2s7-1.4 7-3.2v-3.5"/><ellipse cx="12" cy="10.5" rx="7" ry="3.2" fill="rgba(244,63,94,.22)"/></svg></div><div class="gt"><div class="nm" data-i18n="n_checkers">Checkers</div><div class="ds" data-i18n="d_checkers">Forced capture, chain jumps, kings.</div></div><button type="button" class="fav-btn" data-fav-slug="checkers" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/chess" style="--c:#e5e7eb" data-slug="chess" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a2.2 2.2 0 1 1 0 4.4A2.2 2.2 0 0 1 12 4z"/><path d="M9.5 9h5l1 5H8.5l1-5z"/><path d="M7 18h10l-1-4H8l-1 4z"/><path d="M6 20h12"/></svg></div><div class="gt"><div class="nm" data-i18n="n_chess">Chess</div><div class="ds" data-i18n="d_chess">Full rules.</div></div><button type="button" class="fav-btn" data-fav-slug="chess" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/dots" style="--c:#14b8a6" data-slug="dots" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/><path d="M8 6h8M6 8v8M18 8v8M8 18h8"/></svg></div><div class="gt"><div class="nm" data-i18n="n_dots">Dots &amp; Boxes</div><div class="ds" data-i18n="d_dots">Close the boxes.</div></div><button type="button" class="fav-btn" data-fav-slug="dots" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/bulls" style="--c:#d97706" data-slug="bulls" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 10h2v4H8zM14 10h2v4h-2z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_bulls">Bulls &amp; Cows</div><div class="ds" data-i18n="d_bulls">Crack the code.</div></div><button type="button" class="fav-btn" data-fav-slug="bulls" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/guesswho" style="--c:#ec4899" data-slug="guesswho" data-players="1,2"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="M18 5l1.5 1.5L21 5"/></svg></div><div class="gt"><div class="nm" data-i18n="n_guesswho">Guess Who</div><div class="ds" data-i18n="d_guesswho">AI-generated characters.</div></div><button type="button" class="fav-btn" data-fav-slug="guesswho" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
         </div>
       </div>
 
       <div class="cat" data-cat="solo">
         <div class="cat-h"><h3 data-i18n="sect_solo">🕹️ Solo</h3><span class="cnt"></span><span class="line"></span></div>
         <div class="grid">
-          <a class="game" href="/games/wordle" style="--c:#22c55e"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="5" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="9.75" y="5" width="4.5" height="4.5" rx="1"/><rect x="15.5" y="5" width="4.5" height="4.5" rx="1" fill="rgba(34,197,94,.35)"/><rect x="4" y="11" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="11" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="15.5" y="11" width="4.5" height="4.5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_wordle">Wordle</div><div class="ds" data-i18n="d_wordle">Guess the word in 6 tries.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/arrows" style="--c:#06b6d4"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="gt"><div class="nm" data-i18n="n_arrows">Arrows</div><div class="ds" data-i18n="d_arrows">Clear the board.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/g2048" style="--c:#f59e0b"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="8" height="8" rx="2" fill="rgba(245,158,11,.25)"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Swipe, merge tiles.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/snake" style="--c:#84cc16"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17c0-3 3-3 5-3s4-1 4-4-2-4-5-4"/><circle cx="17" cy="17" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_snake">Snake</div><div class="ds" data-i18n="d_snake">Eat apples, grow.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/fifteen" style="--c:#6366f1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="9.5" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="rgba(99,102,241,.35)"/><rect x="16" y="9.5" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><rect x="9.5" y="16" width="5" height="5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_fifteen">15 Puzzle</div><div class="ds" data-i18n="d_fifteen">Slide tiles into order.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/mines" style="--c:#94a3b8"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="5" fill="rgba(148,163,184,.25)"/><path d="M12 5v3M12 18v3M4 13h3M17 13h3M6.3 7.3l2.1 2.1M15.6 16.6l2.1 2.1M17.7 7.3l-2.1 2.1M8.4 16.6l-2.1 2.1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mines">Minesweeper</div><div class="ds" data-i18n="d_mines">Open all cells without mines.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/tetris" style="--c:#d946ef"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 15h4v4H4zM8 15h4v4H8zM12 15h4v4h-4zM8 11h4v4H8z" fill="rgba(217,70,239,.25)"/><path d="M14 5h4v4h-4zM14 9h4v4h-4z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_tetris">Tetris</div><div class="ds" data-i18n="d_tetris">Classic Tetris.</div></div><span class="go">→</span></a>
-          <a class="game" href="/games/race" style="--c:#fb7185"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14l2-5h10l2 5v4H5v-4z"/><circle cx="7.5" cy="18" r="1.5" fill="currentColor"/><circle cx="16.5" cy="18" r="1.5" fill="currentColor"/><path d="M7 9l2-3h6l2 3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_race">Race</div><div class="ds" data-i18n="d_race">Dodge obstacles.</div></div><span class="go">→</span></a>
+          <a class="game" href="/games/wordle" style="--c:#22c55e" data-slug="wordle" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="5" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="9.75" y="5" width="4.5" height="4.5" rx="1"/><rect x="15.5" y="5" width="4.5" height="4.5" rx="1" fill="rgba(34,197,94,.35)"/><rect x="4" y="11" width="4.5" height="4.5" rx="1"/><rect x="9.75" y="11" width="4.5" height="4.5" rx="1" fill="currentColor"/><rect x="15.5" y="11" width="4.5" height="4.5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_wordle">Wordle</div><div class="ds" data-i18n="d_wordle">Guess the word in 6 tries.</div></div><button type="button" class="fav-btn" data-fav-slug="wordle" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/arrows" style="--c:#06b6d4" data-slug="arrows" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="gt"><div class="nm" data-i18n="n_arrows">Arrows</div><div class="ds" data-i18n="d_arrows">Clear the board.</div></div><button type="button" class="fav-btn" data-fav-slug="arrows" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/g2048" style="--c:#f59e0b" data-slug="g2048" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="8" height="8" rx="2" fill="rgba(245,158,11,.25)"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_g2048">2048</div><div class="ds" data-i18n="d_g2048">Swipe, merge tiles.</div></div><button type="button" class="fav-btn" data-fav-slug="g2048" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/snake" style="--c:#84cc16" data-slug="snake" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17c0-3 3-3 5-3s4-1 4-4-2-4-5-4"/><circle cx="17" cy="17" r="2" fill="currentColor"/></svg></div><div class="gt"><div class="nm" data-i18n="n_snake">Snake</div><div class="ds" data-i18n="d_snake">Eat apples, grow.</div></div><button type="button" class="fav-btn" data-fav-slug="snake" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/fifteen" style="--c:#6366f1" data-slug="fifteen" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="9.5" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="rgba(99,102,241,.35)"/><rect x="16" y="9.5" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><rect x="9.5" y="16" width="5" height="5" rx="1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_fifteen">15 Puzzle</div><div class="ds" data-i18n="d_fifteen">Slide tiles into order.</div></div><button type="button" class="fav-btn" data-fav-slug="fifteen" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/mines" style="--c:#94a3b8" data-slug="mines" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="5" fill="rgba(148,163,184,.25)"/><path d="M12 5v3M12 18v3M4 13h3M17 13h3M6.3 7.3l2.1 2.1M15.6 16.6l2.1 2.1M17.7 7.3l-2.1 2.1M8.4 16.6l-2.1 2.1"/></svg></div><div class="gt"><div class="nm" data-i18n="n_mines">Minesweeper</div><div class="ds" data-i18n="d_mines">Open all cells without mines.</div></div><button type="button" class="fav-btn" data-fav-slug="mines" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/tetris" style="--c:#d946ef" data-slug="tetris" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 15h4v4H4zM8 15h4v4H8zM12 15h4v4h-4zM8 11h4v4H8z" fill="rgba(217,70,239,.25)"/><path d="M14 5h4v4h-4zM14 9h4v4h-4z"/></svg></div><div class="gt"><div class="nm" data-i18n="n_tetris">Tetris</div><div class="ds" data-i18n="d_tetris">Classic Tetris.</div></div><button type="button" class="fav-btn" data-fav-slug="tetris" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
+          <a class="game" href="/games/race" style="--c:#fb7185" data-slug="race" data-players="1"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14l2-5h10l2 5v4H5v-4z"/><circle cx="7.5" cy="18" r="1.5" fill="currentColor"/><circle cx="16.5" cy="18" r="1.5" fill="currentColor"/><path d="M7 9l2-3h6l2 3"/></svg></div><div class="gt"><div class="nm" data-i18n="n_race">Race</div><div class="ds" data-i18n="d_race">Dodge obstacles.</div></div><button type="button" class="fav-btn" data-fav-slug="race" aria-label="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button><span class="go">→</span></a>
         </div>
+      </div>
+
+      <div id="noResults" class="no-results hide" role="status">
+        <div class="no-results-ico" aria-hidden="true">🔍</div>
+        <h3 data-i18n="no_res_title">Nothing found</h3>
+        <p data-i18n="no_res_desc">Try adjusting search query or resetting filters</p>
+        <button type="button" id="resetFiltersBtn" class="btn-g" data-i18n="reset_filters">Reset filters</button>
       </div>
 
       <div id="adminlink" class="hide"><a href="/games/admin/activity" data-i18n="adminlink">⚙️ Admin — activity monitor</a></div>
     </section>
+
+    <script>
+      (function bootRecentAndFavorites() {
+        try {
+          // 1. Assign origOrder to preserve initial catalog order
+          document.querySelectorAll('.featured, .cat .grid').forEach(function(container) {
+            Array.from(container.children).forEach(function(card, idx) {
+              if (card.matches('.game, .feat') && !card.dataset.origOrder) {
+                card.dataset.origOrder = String(idx);
+              }
+            });
+          });
+
+          // 2. Mark favorites and sort to the front
+          var favs = [];
+          try { favs = JSON.parse(localStorage.getItem('jg_favorites') || '[]'); } catch (e) { favs = []; }
+          if (Array.isArray(favs) && favs.length > 0) {
+            var favSet = {};
+            for (var f = 0; f < favs.length; f++) favSet[favs[f]] = true;
+            document.querySelectorAll('#games .game, #games .feat').forEach(function(card) {
+              var s = card.dataset.slug;
+              if (s && favSet[s]) {
+                card.classList.add('is-fav');
+                var btn = card.querySelector('.fav-btn');
+                if (btn) {
+                  btn.classList.add('is-fav');
+                  btn.setAttribute('aria-pressed', 'true');
+                }
+              }
+            });
+            document.querySelectorAll('.featured, .cat .grid').forEach(function(container) {
+              var items = Array.from(container.children).filter(function(c) {
+                return c.matches('.game, .feat');
+              });
+              items.sort(function(a, b) {
+                var aFav = a.classList.contains('is-fav') ? 1 : 0;
+                var bFav = b.classList.contains('is-fav') ? 1 : 0;
+                if (aFav !== bFav) return bFav - aFav;
+                return (parseInt(a.dataset.origOrder, 10) || 0) - (parseInt(b.dataset.origOrder, 10) || 0);
+              });
+              items.forEach(function(c) { container.appendChild(c); });
+            });
+          }
+
+          // 3. Render recent games synchronously before first paint (0ms flicker)
+          var rec = [];
+          try { rec = JSON.parse(localStorage.getItem('jg_recent') || '[]'); } catch (e) { rec = []; }
+          if (Array.isArray(rec) && rec.length > 0) {
+            var sec = document.getElementById('recentSection');
+            var grid = document.getElementById('recentGrid');
+            if (sec && grid) {
+              grid.textContent = '';
+              var count = 0;
+              for (var i = 0; i < rec.length; i++) {
+                if (count >= 4) break;
+                var s = rec[i];
+                var orig = document.querySelector('#games [data-slug="' + s + '"]');
+                if (!orig) continue;
+                var clone = orig.cloneNode(true);
+                clone.classList.add('recent-item');
+                grid.appendChild(clone);
+                count++;
+              }
+              if (count > 0) sec.classList.remove('hide');
+            }
+          }
+        } catch (err) {}
+      })();
+    </script>
 
     <section class="how">
       <div class="step"><div class="k">01</div><b data-i18n="h1t">Create a room</b><p data-i18n="h1p">Pick a game and tap “Create” — you get a 4-letter room code.</p></div>
@@ -714,6 +869,17 @@
 
               <div class="set-row">
                 <div class="set-ic">
+                  <svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M10 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+                </div>
+                <div class="r-mid">
+                  <b data-i18n="set_vibe">Vibration</b>
+                  <small data-i18n="set_vibe_sub">Haptic feedback on actions</small>
+                </div>
+                <button type="button" class="sw" id="set-vibe-sw" role="switch" aria-checked="true" aria-label="Vibration toggle"></button>
+              </div>
+
+              <div class="set-row">
+                <div class="set-ic">
                   <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
                 </div>
                 <div class="r-mid">
@@ -753,6 +919,10 @@
   // ═══════════ i18n: UA / RU / EN ═══════════
   const I18N={
     uk:{
+      k_recent:"Недавні", h_recent:"Продовжити гру", fav_add:"Додати в обране", fav_remove:"Видалити з обраного",
+      flt_cat:"Тип", flt_players:"Гравці", f_p_all:"Усі гравці", f_p_1:"Один", f_p_2:"Вдвох", f_p_3:"Компанія 3+",
+      search_ph:"Пошук ігор за назвою...", search_clear:"Очистити пошук",
+      no_res_title:"Нічого не знайдено", no_res_desc:"Спробуй змінити запит або скинути фільтри", reset_filters:"Скинути фільтри",
       eyebrow:"Мультиплеєр у реальному часі · прямо в браузері",
       h1a:"Паті-ігри з друзями.", h1b:"Без встановлення — лише посилання.",
       sub:"Створи кімнату, поділись 4-літерним кодом — і кожен заходить зі свого телефона. Мафія, Бункер, UNO, шахи та ще десятки ігор — у реальному часі.",
@@ -811,9 +981,13 @@
       fr_remove:"Видалити", fr_empty:"Поки що немає друзів — знайди за ніком нижче 👇", fr_find_player:"Знайти гравця", fr_search_ph:"нікнейм друга",
       fr_add:"+ Додати", fr_not_found:"Нікого не знайдено",
       ch_title:"Лобі-чат", ch_online:"Наживо", ch_ph:"Напиши повідомлення...", ch_hint:"Enter — надіслати", ch_send:"Надіслати", ch_new:"Нові повідомлення ↓", ch_empty:"У чаті поки тихо. Напиши першим!",
-      set_lang:"Мова інтерфейсу", set_sound:"Звукові ефекти", set_sound_sub:"Звук у лобі та іграх", set_rm:"Зменшити рух", set_rm_sub:"Мінімізувати анімації", set_about:"Про Lobby.gg", set_about_desc:"Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання."
+      set_lang:"Мова інтерфейсу", set_sound:"Звукові ефекти", set_sound_sub:"Звук у лобі та іграх", set_vibe:"Вібрація", set_vibe_sub:"Тактильний відгук у лобі та іграх", set_rm:"Зменшити рух", set_rm_sub:"Мінімізувати анімації", set_about:"Про Lobby.gg", set_about_desc:"Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання."
     },
     ru:{
+      k_recent:"Недавние", h_recent:"Продолжить игру", fav_add:"Добавить в избранное", fav_remove:"Удалить из избранного",
+      flt_cat:"Тип", flt_players:"Игроки", f_p_all:"Все игроки", f_p_1:"Один", f_p_2:"Вдвоём", f_p_3:"Компания 3+",
+      search_ph:"Поиск игр по названию...", search_clear:"Очистить поиск",
+      no_res_title:"Ничего не нашлось", no_res_desc:"Попробуй изменить запрос или сбросить фильтры", reset_filters:"Сбросить фильтры",
       eyebrow:"Мультиплеер в реальном времени · прямо в браузере",
       h1a:"Пати-игры с друзьями.", h1b:"Без установки — просто ссылка.",
       sub:"Создай комнату, поделись 4-буквенным кодом — и каждый заходит со своего телефона. Мафия, Бункер, UNO, шахматы и ещё десятки игр — в реальном времени.",
@@ -872,9 +1046,13 @@
       fr_remove:"Удалить", fr_empty:"Пока нет друзей — найди по нику ниже 👇", fr_find_player:"Найти игрока", fr_search_ph:"ник друга",
       fr_add:"+ Добавить", fr_not_found:"Никого не нашлось",
       ch_title:"Лобби-чат", ch_online:"Прямой эфир", ch_ph:"Напиши сообщение...", ch_hint:"Enter — отправить", ch_send:"Отправить", ch_new:"Новые сообщения ↓", ch_empty:"В чате пока тихо. Напиши первым!",
-      set_lang:"Язык интерфейса", set_sound:"Звуковые эффекты", set_sound_sub:"Звуки в лобби и играх", set_rm:"Уменьшить движение", set_rm_sub:"Минимизировать анимации", set_about:"О проекте", set_about_desc:"Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка."
+      set_lang:"Язык интерфейса", set_sound:"Звуковые эффекты", set_sound_sub:"Звуки в лобби и играх", set_vibe:"Вибрация", set_vibe_sub:"Тактильный отклик в лобби и играх", set_rm:"Уменьшить движение", set_rm_sub:"Минимизировать анимации", set_about:"О проекте", set_about_desc:"Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка."
     },
     en:{
+      k_recent:"Recent", h_recent:"Jump back in", fav_add:"Add to favorites", fav_remove:"Remove from favorites",
+      flt_cat:"Type", flt_players:"Players", f_p_all:"All players", f_p_1:"Solo", f_p_2:"2 players", f_p_3:"Party 3+",
+      search_ph:"Search games by name...", search_clear:"Clear search",
+      no_res_title:"Nothing found", no_res_desc:"Try adjusting search query or resetting filters", reset_filters:"Reset filters",
       eyebrow:"Real-time multiplayer · right in your browser",
       h1a:"Party games with friends.", h1b:"No installs — just a link.",
       sub:"Create a room, share the 4-letter code, and everyone joins from their own phone. Mafia, Bunker, UNO, Chess and dozens more — in real time.",
@@ -934,9 +1112,13 @@
       fr_remove:"Remove", fr_empty:"No friends yet — search by username below 👇", fr_find_player:"Find player", fr_search_ph:"friend's username",
       fr_add:"+ Add", fr_not_found:"Nobody found",
       ch_title:"Lobby Chat", ch_online:"Live", ch_ph:"Type a message...", ch_hint:"Enter to send", ch_send:"Send", ch_new:"New messages ↓", ch_empty:"Lobby chat is quiet. Say hello!",
-      set_lang:"Interface language", set_sound:"Sound effects", set_sound_sub:"In-game and UI audio", set_rm:"Reduce motion", set_rm_sub:"Minimize animations", set_about:"About Lobby.gg", set_about_desc:"Real-time multiplayer party games in your browser. No installs — just a link."
+      set_lang:"Interface language", set_sound:"Sound effects", set_sound_sub:"In-game and UI audio", set_vibe:"Vibration", set_vibe_sub:"Haptic feedback on actions", set_rm:"Reduce motion", set_rm_sub:"Minimize animations", set_about:"About Lobby.gg", set_about_desc:"Real-time multiplayer party games in your browser. No installs — just a link."
     },
   de: {
+    "k_recent": "Zuletzt gespielt", "h_recent": "Weiterspielen", "fav_add": "Zu Favoriten hinzufügen", "fav_remove": "Aus Favoriten entfernen",
+    "flt_cat": "Typ", "flt_players": "Spieler", "f_p_all": "Alle Spieler", "f_p_1": "Solo", "f_p_2": "2 Spieler", "f_p_3": "Party 3+",
+    "search_ph": "Spiele nach Namen suchen...", "search_clear": "Suche löschen",
+    "no_res_title": "Nichts gefunden", "no_res_desc": "Passe die Suchanfrage an oder setze Filter zurück", "reset_filters": "Filter zurücksetzen",
     "eyebrow": "Echtzeit-Multiplayer · direkt im Browser",
     "h1a": "Partyspiele mit Freunden.",
     "h1b": "Ohne Installation — einfach per Link.",
@@ -1088,6 +1270,8 @@
     "set_lang": "Sprache",
     "set_sound": "Soundeffekte",
     "set_sound_sub": "Sounds in Lobby und Spielen",
+    "set_vibe": "Vibration",
+    "set_vibe_sub": "Haptisches Feedback in Spielen",
     "set_rm": "Bewegung reduzieren",
     "set_rm_sub": "Animationen minimieren",
     "set_about": "Über Lobby.gg",
@@ -1113,6 +1297,14 @@
     document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
       const v = t(el.dataset.i18nPh);
       if(v) el.placeholder = v;
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el=>{
+      const v = t(el.dataset.i18nAria);
+      if(v) el.setAttribute('aria-label', v);
+    });
+    document.querySelectorAll('.fav-btn').forEach(btn=>{
+      const isFav = btn.classList.contains('is-fav');
+      btn.setAttribute('aria-label', t(isFav ? 'fav_remove' : 'fav_add'));
     });
     document.querySelectorAll('#langbar button').forEach(b=>{
       b.classList.toggle('active', b.dataset.lang===LANG);
@@ -1142,28 +1334,236 @@
     }
   });
 
+  // ═══════════ CATALOG CONTROLS: FILTERS, SEARCH, FAVORITES ═══════════
+  let activeCat = 'all';
+  let activePlayers = 'all';
+  let activeSearch = '';
+  const searchIndex = new Map();
+
+  function initSearchIndex() {
+    document.querySelectorAll('#games .game, #games .feat').forEach(card => {
+      const slug = card.dataset.slug || '';
+      const tokens = [slug];
+      const nKey = 'n_' + slug;
+      const dKey = 'd_' + slug;
+      ['uk', 'ru', 'en', 'de'].forEach(l => {
+        if (I18N[l]) {
+          if (I18N[l][nKey]) tokens.push(I18N[l][nKey]);
+          if (I18N[l][dKey]) tokens.push(I18N[l][dKey]);
+        }
+      });
+      const nm = card.querySelector('.nm');
+      if (nm && nm.textContent) tokens.push(nm.textContent);
+      const ds = card.querySelector('.ds');
+      if (ds && ds.textContent) tokens.push(ds.textContent);
+      searchIndex.set(card, tokens.join(' ').toLowerCase());
+    });
+  }
+
+  function applyFilters() {
+    const q = activeSearch.trim().toLowerCase();
+    const clearBtn = document.getElementById('searchClear');
+    if (clearBtn) clearBtn.classList.toggle('hide', !q);
+
+    let totalVisible = 0;
+
+    // Filter library categories
+    document.querySelectorAll('.cat').forEach(c => {
+      const catMatches = (activeCat === 'all' || c.dataset.cat === activeCat);
+      let catVisible = 0;
+      c.querySelectorAll('.game').forEach(card => {
+        const cardPlayers = (card.dataset.players || '').split(',');
+        const pMatches = (activePlayers === 'all' || cardPlayers.includes(activePlayers));
+        const sTxt = searchIndex.get(card) || '';
+        const sMatches = !q || sTxt.includes(q);
+
+        const show = catMatches && pMatches && sMatches;
+        card.classList.toggle('hide', !show);
+        if (show) catVisible++;
+      });
+      const showCat = catMatches && catVisible > 0;
+      c.classList.toggle('hide', !showCat);
+      totalVisible += catVisible;
+    });
+
+    // Filter featured cards
+    const featSec = document.querySelector('.featured');
+    if (featSec) {
+      let featVisible = 0;
+      featSec.querySelectorAll('.feat').forEach(card => {
+        const cardCat = card.dataset.cat || 'solo';
+        const catMatches = (activeCat === 'all' || activeCat === cardCat);
+        const cardPlayers = (card.dataset.players || '').split(',');
+        const pMatches = (activePlayers === 'all' || cardPlayers.includes(activePlayers));
+        const sTxt = searchIndex.get(card) || '';
+        const sMatches = !q || sTxt.includes(q);
+
+        const show = catMatches && pMatches && sMatches;
+        card.classList.toggle('hide', !show);
+        if (show) featVisible++;
+      });
+      const featHead = featSec.previousElementSibling;
+      const showFeat = featVisible > 0;
+      featSec.classList.toggle('hide', !showFeat);
+      if (featHead && featHead.classList.contains('section-head')) {
+        featHead.classList.toggle('hide', !showFeat);
+      }
+      totalVisible += featVisible;
+    }
+
+    // Filter or hide recent section when searching or filtering by player count
+    const recentSec = document.getElementById('recentSection');
+    if (recentSec && !recentSec.classList.contains('hide-perm')) {
+      const hasRecentItems = document.querySelectorAll('#recentGrid .recent-item').length > 0;
+      if (hasRecentItems) {
+        const isDefaultView = (activeCat === 'all' && activePlayers === 'all' && !q);
+        recentSec.classList.toggle('hide', !isDefaultView);
+      }
+    }
+
+    // Empty state
+    const noRes = document.getElementById('noResults');
+    if (noRes) noRes.classList.toggle('hide', totalVisible > 0);
+  }
+
+  function sortCardsInContainer(container) {
+    const cards = Array.from(container.children).filter(c => c.matches('.game, .feat'));
+    cards.sort((a, b) => {
+      const aFav = a.classList.contains('is-fav') ? 1 : 0;
+      const bFav = b.classList.contains('is-fav') ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return (parseInt(a.dataset.origOrder, 10) || 0) - (parseInt(b.dataset.origOrder, 10) || 0);
+    });
+    cards.forEach(c => container.appendChild(c));
+  }
+
+  function toggleFavorite(slug) {
+    if (!slug) return;
+    let favs = [];
+    try { favs = JSON.parse(localStorage.getItem('jg_favorites') || '[]'); } catch (e) { favs = []; }
+    if (!Array.isArray(favs)) favs = [];
+
+    const idx = favs.indexOf(slug);
+    const becomingFav = idx < 0;
+    if (becomingFav) {
+      favs.push(slug);
+    } else {
+      favs.splice(idx, 1);
+    }
+    try { localStorage.setItem('jg_favorites', JSON.stringify(favs)); } catch (e) {}
+
+    // Update all matching cards & buttons across library and recent
+    document.querySelectorAll('[data-slug="' + slug + '"]').forEach(card => {
+      card.classList.toggle('is-fav', becomingFav);
+      const btn = card.querySelector('.fav-btn');
+      if (btn) {
+        btn.classList.toggle('is-fav', becomingFav);
+        btn.setAttribute('aria-pressed', becomingFav ? 'true' : 'false');
+        btn.setAttribute('aria-label', t(becomingFav ? 'fav_remove' : 'fav_add'));
+      }
+    });
+
+    // Re-sort containers so favorites stay first
+    document.querySelectorAll('.featured, .cat .grid').forEach(sortCardsInContainer);
+
+    if (window.LobbyUI && typeof window.LobbyUI.vibrate === 'function') {
+      window.LobbyUI.vibrate(12);
+    }
+  }
+
+  // Click delegate for favorite stars
+  document.addEventListener('click', e => {
+    const btn = e.target && e.target.closest && e.target.closest('.fav-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const slug = btn.dataset.favSlug;
+    if (slug) toggleFavorite(slug);
+  });
+
+  // Keyboard delegate for favorite stars
+  document.addEventListener('keydown', e => {
+    if (e.key !== ' ' && e.key !== 'Enter') return;
+    const btn = e.target && e.target.closest && e.target.closest('.fav-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const slug = btn.dataset.favSlug;
+    if (slug) toggleFavorite(slug);
+  });
+
+  // Filter click handlers
+  document.getElementById('filters').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+    activeCat = b.dataset.f || 'all';
+    applyFilters();
+  });
+
+  document.getElementById('playerFilters').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#playerFilters button').forEach(x => x.classList.toggle('on', x === b));
+    activePlayers = b.dataset.p || 'all';
+    applyFilters();
+  });
+
+  // Search input handlers
+  const searchInp = document.getElementById('gameSearch');
+  if (searchInp) {
+    searchInp.addEventListener('input', e => {
+      activeSearch = e.target.value || '';
+      applyFilters();
+    });
+    searchInp.addEventListener('search', e => {
+      activeSearch = e.target.value || '';
+      applyFilters();
+    });
+    searchInp.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && activeSearch) {
+        searchInp.value = '';
+        activeSearch = '';
+        applyFilters();
+      }
+    });
+  }
+
+  const searchClear = document.getElementById('searchClear');
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      if (searchInp) searchInp.value = '';
+      activeSearch = '';
+      applyFilters();
+      if (searchInp) searchInp.focus();
+    });
+  }
+
+  const resetBtn = document.getElementById('resetFiltersBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      activeCat = 'all';
+      activePlayers = 'all';
+      activeSearch = '';
+      if (searchInp) searchInp.value = '';
+      document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x.dataset.f === 'all'));
+      document.querySelectorAll('#playerFilters button').forEach(x => x.classList.toggle('on', x.dataset.p === 'all'));
+      applyFilters();
+    });
+  }
+
   // счётчики игр (герой + фильтры + категории)
   (function(){
     const cats=[...document.querySelectorAll('.cat')];
-    let total=document.querySelectorAll('.game, .feat').length;
-    document.getElementById('st-games').textContent=total;
+    let total=document.querySelectorAll('#games .game, #games .feat').length;
+    const stGames = document.getElementById('st-games');
+    if (stGames) stGames.textContent = total;
     let all=0;
     cats.forEach(c=>{const n=c.querySelectorAll('.game').length;all+=n;
       c.querySelector('.cnt').textContent=n;
       const f=document.querySelector('[data-n="'+c.dataset.cat+'"]'); if(f) f.textContent=n;});
-    document.querySelector('[data-n="all"]').textContent=all;
+    const dnAll = document.querySelector('[data-n="all"]');
+    if (dnAll) dnAll.textContent = all;
+    initSearchIndex();
   })();
-  // фильтр категорий
-  document.getElementById('filters').addEventListener('click',e=>{
-    const b=e.target.closest('button'); if(!b) return;
-    document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));
-    const f=b.dataset.f;
-    document.querySelectorAll('.cat').forEach(c=>{
-      const show=f==='all'||c.dataset.cat===f;
-      c.classList.toggle('hide',!show);
-      if(show) c.querySelectorAll('.game').forEach((g,i)=>{g.style.animation='none';g.offsetWidth;g.style.animation='riseIn .45s '+(i*0.03)+'s var(--ease) both';});
-    });
-  });
   // подсветка карточки за курсором
   document.addEventListener('pointermove',e=>{
     const g=e.target.closest&&e.target.closest('.game'); if(!g) return;

@@ -1024,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyUI();
   });
 
-  document.getElementById('rulesBtn').onclick = () => document.getElementById('rulesModal').classList.add('open');
+  document.getElementById('rulesBtn').onclick = () => (window.LobbyUI ? LobbyUI.rules('geostake') : document.getElementById('rulesModal').classList.add('open'));
   document.getElementById('openLbBtn').onclick = openLeaderboard;
   document.getElementById('summaryLbBtn').onclick = openLeaderboard;
   document.querySelectorAll('.lb-tab').forEach(b => b.onclick = () => {

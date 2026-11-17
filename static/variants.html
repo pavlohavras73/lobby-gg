@@ -520,7 +520,7 @@
 <header class="game-topbar" style="max-width:480px">
   <a href="/games/" class="top-back" data-i18n="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="lobby_title">Аукцион Лжи</div>
-  <span style="width:44px"></span>
+  <button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn" title="Правила">i</button>
 </header>
 <div class="langbar" id="langbar" style="margin:0 auto 10px"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
 <div id="connectionStatus" class="conn-status" data-i18n="connecting">Подключение...</div>
@@ -637,7 +637,7 @@
 <script>
 const UI = {
   uk: {
-    "title": "Аукціон брехні (Варіанти)",
+    "title": "Аукціон брехні (Варіанти)", "rules_btn": "Правила",
     "nav_games": "‹ Ігри",
     "connecting": "Підключення...",
     "lobby_title": "Аукціон Брехні",
@@ -684,7 +684,7 @@ const UI = {
     "voted_badge": "Голос зараховано"
   },
   ru: {
-    "title": "Аукцион лжи (Варианты)",
+    "title": "Аукцион лжи (Варианты)", "rules_btn": "Правила",
     "nav_games": "‹ Игры",
     "connecting": "Подключение...",
     "lobby_title": "Аукцион Лжи",
@@ -731,7 +731,7 @@ const UI = {
     "voted_badge": "Голос принят"
   },
   en: {
-    "title": "Bluff Auction (Variants)",
+    "title": "Bluff Auction (Variants)", "rules_btn": "Rules",
     "nav_games": "‹ Games",
     "connecting": "Connecting...",
     "lobby_title": "Bluff Auction",
@@ -778,7 +778,7 @@ const UI = {
     "voted_badge": "Vote recorded"
   },
   de: {
-    "title": "Lügen-Auktion (Varianten)",
+    "title": "Lügen-Auktion (Varianten)", "rules_btn": "Regeln",
     "nav_games": "‹ Spiele",
     "connecting": "Verbinde...",
     "lobby_title": "Lügen-Auktion",
@@ -1580,6 +1580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     LANG = b.dataset.lang;
     localStorage.setItem('jg_lang', LANG);
     applyUI();
+  const rb = document.getElementById("rulesBtn"); if (rb) rb.onclick = () => window.LobbyUI && LobbyUI.rules("variants");
     if (window.ArcadeFX && ArcadeFX.refreshI18n) ArcadeFX.refreshI18n(LANG);
   });
   applyUI();

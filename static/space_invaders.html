@@ -207,7 +207,7 @@
   <header class="game-topbar">
     <a href="/games" class="back-btn" data-i18n="back_games">‹ Игры</a>
     <div class="top-title">🚀 Shuttle Cruiser</div>
-    <div class="dust-pill">✨ <span id="dustVal">0</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn" title="Правила">i</button><div class="dust-pill">✨ <span id="dustVal">0</span></div></div>
   </header>
 
   <div class="lang-wrap">
@@ -332,7 +332,7 @@
 <script>
 const UI = {
   uk: {
-    title: "Shuttle Cruiser — Lobby.gg",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
     back_games: "‹ Ігри",
     tab_galaxies: "Галактики",
     tab_hangar: "Ангар",
@@ -377,7 +377,7 @@ const UI = {
     boss_victory_ship: "Відкрито корабель: {name}"
   },
   ru: {
-    title: "Shuttle Cruiser — Lobby.gg",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
     back_games: "‹ Игры",
     tab_galaxies: "Галактики",
     tab_hangar: "Ангар",
@@ -422,7 +422,7 @@ const UI = {
     boss_victory_ship: "Открыт корабль: {name}"
   },
   en: {
-    title: "Shuttle Cruiser — Lobby.gg",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
     back_games: "‹ Games",
     tab_galaxies: "Galaxies",
     tab_hangar: "Hangar",
@@ -467,7 +467,7 @@ const UI = {
     boss_victory_ship: "Ship unlocked: {name}"
   },
   de: {
-    title: "Shuttle Cruiser — Lobby.gg",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
     back_games: "‹ Spiele",
     tab_galaxies: "Galaxien",
     tab_hangar: "Hangar",

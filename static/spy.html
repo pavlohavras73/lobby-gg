@@ -410,7 +410,7 @@ function applyUI(){
   renderSuspects();
 }
 document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
-document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesBtn').onclick=()=>(window.LobbyUI ? LobbyUI.rules('spy') : document.getElementById('rulesModal').style.display='flex');
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
 function show(id){for(const s of ['home','lobby','game','reveal'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}

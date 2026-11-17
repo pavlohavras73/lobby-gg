@@ -219,7 +219,7 @@
   <div class="top">
     <a class="back" href="/games/" data-i18n="back">‹ Игры</a>
     <span class="sp"></span>
-    <span class="shards"><i class="shard-ico"></i><span id="shardVal">0</span></span>
+    <span class="shards"><i class="shard-ico"></i><span id="shardVal">0</span></span><button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn" title="Правила" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;font-weight:900;font-size:15px;display:inline-flex;align-items:center;justify-content:center;margin:0 4px">i</button>
     <div id="langbar">
       <button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button>
     </div>
@@ -316,7 +316,7 @@
 <script src="/games/static/raskol/engine.js"></script>
 <script>
 const UI = {
-  uk: { doc_title: "Розкол — Lobby.gg", back: "‹ Ігри", logo: "РОЗКОЛ", tag_a: "Космос", tag_b: "Підземелля", choose: "Обери героя", atk: "Атака", sup: "Супер", pas: "Пасивка",
+  uk: { doc_title: "Розкол — Lobby.gg", rules_btn: "Правила", back: "‹ Ігри", logo: "РОЗКОЛ", tag_a: "Космос", tag_b: "Підземелля", choose: "Обери героя", atk: "Атака", sup: "Супер", pas: "Пасивка",
     play: "▶ У склеп", best_room: "Найкраща кімната", wins: "Перемоги", best_score: "Рекорд", records: "🏆 Рекорди", soon: "Скоро",
     unlock_for: "🔓 Відкрити ({n} уламків)", need_shards: "🔒 Не вистачає {n}",
     controls_touch: "<b>Лівий палець</b> — біг · <b>правий</b> — удари (тап = автоприціл, потягни = цілься сам) · кнопки <b>ривок</b> і <b>супер</b>",
@@ -326,7 +326,7 @@ const UI = {
     again: "Ще раз", menu: "У меню", death: "Ти впав у Розколі", victory: "Склеп очищено!", new_record: "🔥 Новий рекорд!", lb_title: "Рекорди Розколу",
     close: "Закрити", no_records: "Поки що порожньо — стань першим!", rotate: "Поверни телефон", rotate2: "Розкол грається горизонтально: лівий палець — біг, правий — удари.",
     lvl_short: "Рів", your_cards: "Твої навички:", none: "поки немає", room_word: "Кімната" },
-  ru: { doc_title: "Раскол — Lobby.gg", back: "‹ Игры", logo: "РАСКОЛ", tag_a: "Космос", tag_b: "Подземелья", choose: "Выбери героя", atk: "Атака", sup: "Супер", pas: "Пассивка",
+  ru: { doc_title: "Раскол — Lobby.gg", rules_btn: "Правила", back: "‹ Игры", logo: "РАСКОЛ", tag_a: "Космос", tag_b: "Подземелья", choose: "Выбери героя", atk: "Атака", sup: "Супер", pas: "Пассивка",
     play: "▶ В склеп", best_room: "Лучшая комната", wins: "Победы", best_score: "Рекорд", records: "🏆 Рекорды", soon: "Скоро",
     unlock_for: "🔓 Открыть ({n} осколков)", need_shards: "🔒 Не хватает {n}",
     controls_touch: "<b>Левый палец</b> — бег · <b>правый</b> — удары (тап = автоприцел, потяни = целься сам) · кнопки <b>рывок</b> и <b>супер</b>",
@@ -336,7 +336,7 @@ const UI = {
     again: "Ещё раз", menu: "В меню", death: "Ты пал в Расколе", victory: "Склеп очищен!", new_record: "🔥 Новый рекорд!", lb_title: "Рекорды Раскола",
     close: "Закрыть", no_records: "Пока пусто — стань первым!", rotate: "Поверни телефон", rotate2: "Раскол играется горизонтально: левый палец — бег, правый — удары.",
     lvl_short: "Ур", your_cards: "Твои навыки:", none: "пока нет", room_word: "Комната" },
-  en: { doc_title: "Raskol — Lobby.gg", back: "‹ Games", logo: "RASKOL", tag_a: "Space", tag_b: "Dungeons", choose: "Choose a hero", atk: "Attack", sup: "Super", pas: "Passive",
+  en: { doc_title: "Raskol — Lobby.gg", rules_btn: "Rules", back: "‹ Games", logo: "RASKOL", tag_a: "Space", tag_b: "Dungeons", choose: "Choose a hero", atk: "Attack", sup: "Super", pas: "Passive",
     play: "▶ Enter the crypt", best_room: "Best room", wins: "Wins", best_score: "Best score", records: "🏆 Leaderboard", soon: "Soon",
     unlock_for: "🔓 Unlock ({n} shards)", need_shards: "🔒 Need {n} more",
     controls_touch: "<b>Left thumb</b> — move · <b>right</b> — attack (tap = auto-aim, drag = aim yourself) · <b>dash</b> and <b>super</b> buttons",
@@ -346,7 +346,7 @@ const UI = {
     again: "Play again", menu: "Main menu", death: "You fell in the Raskol", victory: "Crypt cleared!", new_record: "🔥 New record!", lb_title: "Raskol leaderboard",
     close: "Close", no_records: "Empty so far — be the first!", rotate: "Rotate your phone", rotate2: "Raskol is played in landscape: left thumb moves, right thumb attacks.",
     lvl_short: "Lv", your_cards: "Your skills:", none: "none yet", room_word: "Room" },
-  de: { doc_title: "Raskol — Lobby.gg", back: "‹ Spiele", logo: "RASKOL", tag_a: "Weltraum", tag_b: "Verliese", choose: "Wähle einen Helden", atk: "Angriff", sup: "Super", pas: "Passiv",
+  de: { doc_title: "Raskol — Lobby.gg", rules_btn: "Rules", back: "‹ Spiele", logo: "RASKOL", tag_a: "Weltraum", tag_b: "Verliese", choose: "Wähle einen Helden", atk: "Angriff", sup: "Super", pas: "Passiv",
     play: "▶ In die Gruft", best_room: "Bester Raum", wins: "Siege", best_score: "Rekord", records: "🏆 Bestenliste", soon: "Bald",
     unlock_for: "🔓 Freischalten ({n} Splitter)", need_shards: "🔒 Es fehlen {n}",
     controls_touch: "<b>Linker Daumen</b> — laufen · <b>rechter</b> — angreifen (Tippen = Auto-Zielen, Ziehen = selbst zielen) · Tasten <b>Ausweichen</b> und <b>Super</b>",

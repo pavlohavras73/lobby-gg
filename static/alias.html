@@ -241,7 +241,7 @@ const UI={
     rules_title:"💬 Alias — Regeln",
     rules_body:"Erkläre das Wort deinem Team, <b>ohne es oder Wortstämme zu nennen</b>. Dein Team rät. Das Team mit den meisten erratenen Wörtern gewinnt.",
     rules_ok:"Verstanden 👍", nav_games:"‹ Spiele", title:"💬 ALIAS", tagline:"Erkläre das Wort deinem Team", or_code:"oder per Code",
-    ph_name:"Dein Name", btn_create:"Spiel erstellen", ph_code:"CODE", btn_join:"Mit Code beitreten", all_games:"← Alle Spiele",
+    ph_name:"Dein Name", btn_create:"Raum erstellen", ph_code:"CODE", btn_join:"Mit Code beitreten", all_games:"← Alle Spiele",
     lobby_code:"Spielcode:", lbl_wordlang:"Wortsprache", lbl_diff:"Schwierigkeit",
     diff_easy:"Leicht", diff_easy_desc:"einfache Wörter", diff_med:"Mittel", diff_med_desc:"Standard",
     diff_hard:"Schwer", diff_hard_desc:"selten & anspruchsvoll", lbl_mode:"Modus",
@@ -284,7 +284,7 @@ function applyUI(){
   if(lastState)renderState(lastState);
 }
 document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);if(!aliasLangManual){aliasLang=defaultAliasLang(LANG);syncAliasLangOpt();}applyUI();});
-document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesBtn').onclick=()=>(window.LobbyUI ? LobbyUI.rules('alias') : document.getElementById('rulesModal').style.display='flex');
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
 function show(id){for(const s of['home','lobby','game','win'])document.getElementById(s).classList.add('hide');document.getElementById(id).classList.remove('hide');}

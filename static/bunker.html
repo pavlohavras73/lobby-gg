@@ -1335,7 +1335,7 @@ function applyUI(){
   if(window._lastBunker)renderBunker(window._lastBunker); // перерисовать игру под язык
 }
 document.getElementById('langbar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;LANG=b.dataset.lang;localStorage.setItem('jg_lang',LANG);applyUI();});
-document.getElementById('rulesBtn').onclick=()=>document.getElementById('rulesModal').style.display='flex';
+document.getElementById('rulesBtn').onclick=()=>(window.LobbyUI ? LobbyUI.rules('bunker') : document.getElementById('rulesModal').style.display='flex');
 document.getElementById('rulesOk').onclick=()=>document.getElementById('rulesModal').style.display='none';
 
 let ws = null, pid = null, isHost = false, myChar = null, cats = [], roomCode = null, firstOpenCb = null, opened = false;

@@ -67,6 +67,10 @@
       set_lang: 'Мова інтерфейсу',
       set_sound: 'Звукові ефекти',
       set_sound_sub: 'Звук у лобі та іграх',
+      set_vibe: 'Вібрація',
+      set_vibe_sub: 'Тактильний відгук у лобі та іграх',
+      sh_sound: 'Звук',
+      sh_vibe: 'Вібрація',
       set_rm: 'Зменшити рух',
       set_rm_sub: 'Мінімізувати анімації',
       set_about: 'Про Lobby.gg',
@@ -133,6 +137,10 @@
       set_lang: 'Язык интерфейса',
       set_sound: 'Звуковые эффекты',
       set_sound_sub: 'Звуки в лобби и играх',
+      set_vibe: 'Вибрация',
+      set_vibe_sub: 'Тактильный отклик в лобби и играх',
+      sh_sound: 'Звук',
+      sh_vibe: 'Вибрация',
       set_rm: 'Уменьшить движение',
       set_rm_sub: 'Минимизировать анимации',
       set_about: 'О проекте',
@@ -199,6 +207,10 @@
       set_lang: 'Interface language',
       set_sound: 'Sound effects',
       set_sound_sub: 'In-game and UI audio',
+      set_vibe: 'Vibration',
+      set_vibe_sub: 'Haptic feedback in lobby and games',
+      sh_sound: 'Sound',
+      sh_vibe: 'Vibration',
       set_rm: 'Reduce motion',
       set_rm_sub: 'Minimize animations',
       set_about: 'About Lobby.gg',
@@ -265,6 +277,10 @@
       set_lang: 'Sprache',
       set_sound: 'Soundeffekte',
       set_sound_sub: 'Sounds in Lobby und Spielen',
+      set_vibe: 'Vibration',
+      set_vibe_sub: 'Haptisches Feedback in Spielen',
+      sh_sound: 'Sound',
+      sh_vibe: 'Vibration',
       set_rm: 'Bewegung reduzieren',
       set_rm_sub: 'Animationen minimieren',
       set_about: 'Über Lobby.gg',
@@ -427,12 +443,42 @@
         <button type="button" data-tab="settings" aria-label="Settings" title="Settings">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
+        <button type="button" id="nav-btn-sound" aria-label="Sound" title="Sound" class="nav-btn-sfx">
+          <span>🔊</span>
+        </button>
+        <button type="button" id="nav-btn-vibe" aria-label="Vibration" title="Vibration" class="nav-btn-vibe">
+          <span>📳</span>
+        </button>
       `;
       const profCard = navR.querySelector('.profile-card');
       if (profCard) {
         navR.insertBefore(navIc, profCard);
       } else {
         navR.appendChild(navIc);
+      }
+    } else {
+      const existingNavIc = document.getElementById('navIc');
+      if (existingNavIc) {
+        if (!document.getElementById('nav-btn-sound')) {
+          const sBtn = document.createElement('button');
+          sBtn.type = 'button';
+          sBtn.id = 'nav-btn-sound';
+          sBtn.className = 'nav-btn-sfx';
+          sBtn.setAttribute('aria-label', tr('sh_sound') || 'Sound');
+          sBtn.setAttribute('title', tr('sh_sound') || 'Sound');
+          sBtn.innerHTML = '<span>🔊</span>';
+          existingNavIc.appendChild(sBtn);
+        }
+        if (!document.getElementById('nav-btn-vibe')) {
+          const vBtn = document.createElement('button');
+          vBtn.type = 'button';
+          vBtn.id = 'nav-btn-vibe';
+          vBtn.className = 'nav-btn-vibe';
+          vBtn.setAttribute('aria-label', tr('sh_vibe') || 'Vibration');
+          vBtn.setAttribute('title', tr('sh_vibe') || 'Vibration');
+          vBtn.innerHTML = '<span>📳</span>';
+          existingNavIc.appendChild(vBtn);
+        }
       }
     }
 
@@ -658,6 +704,17 @@
 
                 <div class="set-row">
                   <div class="set-ic">
+                    <svg viewBox="0 0 24 24"><path d="M6 5v14M18 5v14M10 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+                  </div>
+                  <div class="r-mid">
+                    <b data-i18n="set_vibe">Vibration</b>
+                    <small data-i18n="set_vibe_sub">Haptic feedback on actions</small>
+                  </div>
+                  <button type="button" class="sw" id="set-vibe-sw" role="switch" aria-checked="true" aria-label="Vibration toggle"></button>
+                </div>
+
+                <div class="set-row">
+                  <div class="set-ic">
                     <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
                   </div>
                   <div class="r-mid">
@@ -721,24 +778,94 @@
     if (sw) sw.setAttribute('aria-checked', isRm ? 'true' : 'false');
   }
 
-  // ═══════════ SOUND TOGGLE ═══════════
+  // ═══════════ SOUND & VIBRATION ═══════════
+  function isSoundOn() {
+    try {
+      if (window.sfx && typeof window.sfx.isMuted === 'function') {
+        return !window.sfx.isMuted();
+      }
+      const s = localStorage.getItem('jg_sound');
+      if (s === '0' || s === 'false') return false;
+      if (localStorage.getItem('jarvis_sfx_muted') === 'true') return false;
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
   function syncSoundUI(soundOn) {
+    if (soundOn === undefined) soundOn = isSoundOn();
     state.draftSound = soundOn ? 1 : 0;
     const s1 = document.getElementById('acc-sound-sw');
     if (s1) s1.setAttribute('aria-checked', soundOn ? 'true' : 'false');
     const s2 = document.getElementById('set-sound-sw');
     if (s2) s2.setAttribute('aria-checked', soundOn ? 'true' : 'false');
+    const btn = document.getElementById('nav-btn-sound');
+    if (btn) {
+      btn.innerHTML = soundOn ? '<span>🔊</span>' : '<span>🔇</span>';
+      const label = (tr('sh_sound') || 'Sound') + (soundOn ? ': ON' : ': OFF');
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
+    }
   }
 
   function toggleSound() {
-    let nextSound = 1;
     if (window.sfx && typeof window.sfx.toggleMute === 'function') {
       const muted = window.sfx.toggleMute();
-      nextSound = muted ? 0 : 1;
+      syncSoundUI(!muted);
     } else {
-      nextSound = state.draftSound ? 0 : 1;
+      const nextOn = !isSoundOn();
+      try {
+        localStorage.setItem('jg_sound', nextOn ? '1' : '0');
+        localStorage.setItem('jarvis_sfx_muted', nextOn ? 'false' : 'true');
+      } catch (e) {}
+      syncSoundUI(nextOn);
     }
-    syncSoundUI(nextSound === 1);
+  }
+
+  function isVibeOn() {
+    try {
+      if (window.LobbyUI && typeof window.LobbyUI.isVibrationEnabled === 'function') {
+        return window.LobbyUI.isVibrationEnabled();
+      }
+      const v = localStorage.getItem('jg_vibrate');
+      if (v === '0' || v === 'false') return false;
+      if (localStorage.getItem('jarvis_haptics_off') === 'true') return false;
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function syncVibeUI(vibeOn) {
+    if (vibeOn === undefined) vibeOn = isVibeOn();
+    const sw = document.getElementById('set-vibe-sw');
+    if (sw) sw.setAttribute('aria-checked', vibeOn ? 'true' : 'false');
+    const btn = document.getElementById('nav-btn-vibe');
+    if (btn) {
+      btn.innerHTML = vibeOn ? '<span>📳</span>' : '<span>📴</span>';
+      const label = (tr('sh_vibe') || 'Vibration') + (vibeOn ? ': ON' : ': OFF');
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
+    }
+  }
+
+  function toggleVibe() {
+    if (window.LobbyUI && typeof window.LobbyUI.toggleVibration === 'function') {
+      const on = window.LobbyUI.toggleVibration();
+      syncVibeUI(on);
+      return on;
+    }
+    const nextOn = !isVibeOn();
+    try {
+      localStorage.setItem('jg_vibrate', nextOn ? '1' : '0');
+      localStorage.setItem('jarvis_haptics_off', nextOn ? 'false' : 'true');
+    } catch (e) {}
+    syncVibeUI(nextOn);
+    try {
+      window.dispatchEvent(new CustomEvent('lobbyvibechange', { detail: { enabled: nextOn } }));
+    } catch (e) {}
+    return nextOn;
   }
 
   // ═══════════ TABS SYSTEM ═══════════
@@ -1131,7 +1258,12 @@
     state.user = Object.assign({}, state.user, d.profile);
     state.draftAvatar = state.user.avatar || '🙂';
     state.draftColor = state.user.color || '#e0102e';
-    state.draftSound = state.user.sound !== undefined ? state.user.sound : 1;
+    const storedSound = localStorage.getItem('jg_sound');
+    if (storedSound !== null) {
+      state.draftSound = (storedSound === '1' || storedSound === 'true') ? 1 : 0;
+    } else {
+      state.draftSound = state.user.sound !== undefined ? (state.user.sound ? 1 : 0) : 1;
+    }
 
     // Header & Hero info
     const shName = document.getElementById('sh-name');
@@ -1931,11 +2063,20 @@
       accSoundSw.addEventListener('click', toggleSound);
     }
 
+    // Vibration toggle
+    const vibeSw = document.getElementById('set-vibe-sw');
+    if (vibeSw) {
+      vibeSw.addEventListener('click', toggleVibe);
+    }
+
     // Reduced motion toggle
     const rmSw = document.getElementById('set-rm-sw');
     if (rmSw) {
       rmSw.addEventListener('click', toggleReducedMotion);
     }
+
+    syncSoundUI();
+    syncVibeUI();
   }
 
   // ═══════════ EVENT LISTENERS & WIRING ═══════════
@@ -1964,6 +2105,20 @@
 
     // 4. Desktop Nav & Mobile Dock buttons
     document.addEventListener('click', e => {
+      const sfxBtn = e.target.closest('#nav-btn-sound');
+      if (sfxBtn) {
+        e.preventDefault();
+        toggleSound();
+        return;
+      }
+
+      const vibeBtn = e.target.closest('#nav-btn-vibe');
+      if (vibeBtn) {
+        e.preventDefault();
+        toggleVibe();
+        return;
+      }
+
       const navBtn = e.target.closest('#navIc button, #dock button');
       if (navBtn && navBtn.dataset.tab) {
         e.preventDefault();
@@ -2055,6 +2210,76 @@
       const curBtn = document.getElementById('tab-btn-' + state.activeTab);
       if (curBtn) updateIndicator(curBtn);
     });
+
+    // 9. Auto-record game link clicks
+    document.addEventListener('click', (e) => {
+      const a = e.target && e.target.closest && e.target.closest('a[href*="/games/"]');
+      if (!a) return;
+      const h = a.getAttribute('href') || '';
+      const m = h.match(/\/games\/([a-z0-9_]+)/i);
+      if (m && m[1]) recordRecentGame(m[1]);
+    }, { capture: true, passive: true });
+
+    // 10. Sound & Vibration external sync
+    window.addEventListener('storage', e => {
+      if (e.key === 'jg_sound' || e.key === 'jarvis_sfx_muted') syncSoundUI();
+      if (e.key === 'jg_vibrate' || e.key === 'jarvis_haptics_off') syncVibeUI();
+    });
+    window.addEventListener('lobbysfxchange', e => {
+      syncSoundUI(!e.detail.muted);
+    });
+    window.addEventListener('lobbyvibechange', e => {
+      syncVibeUI(e.detail.enabled);
+    });
+  }
+
+  // ═══════════ RECENT GAMES TRACKING (Stage 12a) ═══════════
+  const KNOWN_GAME_SLUGS = new Set([
+    'variants', 'bunker', 'mafia', 'spy', 'alias', 'durak', 'uno', 'poker',
+    'quoridor', 'c4', 'c4_3d', 'battleship', 'reversi', 'checkers', 'chess',
+    'dots', 'bulls', 'guesswho', 'wordle', 'arrows', 'g2048', 'snake',
+    'fifteen', 'mines', 'tetris', 'race', 'geostake', 'raskol', 'space_invaders'
+  ]);
+
+  function normalizeGameSlug(raw) {
+    if (!raw) return '';
+    let s = String(raw).trim().toLowerCase();
+    s = s.replace(/^\/games\//, '').replace(/^\//, '').replace(/\.html$/, '').replace(/[?#].*$/, '').replace(/\/$/, '');
+    if (!s || ['index', 'admin', 'login', 'leaderboard', 'learn', 'profile', 'static', 'api'].includes(s)) return '';
+    return s;
+  }
+
+  function recordRecentGame(rawSlug) {
+    const slug = normalizeGameSlug(rawSlug);
+    if (!slug) return;
+    try {
+      let rec = [];
+      try { rec = JSON.parse(localStorage.getItem('jg_recent') || '[]'); } catch (e) { rec = []; }
+      if (!Array.isArray(rec)) rec = [];
+      rec = rec.filter(x => x && x !== slug);
+      rec.unshift(slug);
+      if (rec.length > 4) rec = rec.slice(0, 4);
+      localStorage.setItem('jg_recent', JSON.stringify(rec));
+    } catch (e) {}
+  }
+
+  function getRecentGames() {
+    try {
+      const rec = JSON.parse(localStorage.getItem('jg_recent') || '[]');
+      return Array.isArray(rec) ? rec.slice(0, 4) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function autoRecordCurrentGame() {
+    try {
+      const p = window.location.pathname || '';
+      const m = p.match(/\/games\/([a-z0-9_]+)/i);
+      if (m && m[1]) {
+        recordRecentGame(m[1]);
+      }
+    } catch (e) {}
   }
 
   // ═══════════ INITIALIZATION ═══════════
@@ -2068,6 +2293,7 @@
     setupEvents();
     loadProfile();
     loadFriends();
+    autoRecordCurrentGame();
   }
 
   if (document.readyState === 'loading') {
@@ -2083,6 +2309,12 @@
     switchTab: switchTab,
     toast: showToast,
     refreshProfile: loadProfile,
-    refreshFriends: loadFriends
+    refreshFriends: loadFriends,
+    recordRecent: recordRecentGame,
+    getRecent: getRecentGames,
+    toggleSound: toggleSound,
+    toggleVibe: toggleVibe,
+    isSoundOn: isSoundOn,
+    isVibeOn: isVibeOn
   };
 })();
