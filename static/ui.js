@@ -261,6 +261,165 @@
     }
   }
 
+  // ── Universal Accessible Modal & Dialog Manager ──
+  const MODAL_SEL = '.rules-modal-overlay, .inv-modal-overlay, .afx-modal, .gw-modal, .bk-modal, .map-modal, .modal-bg, .modal-overlay, .modal, #inviteModal, #rulesModal';
+  // Закрывать по фону/Esc можно только справочные окна. Выбор карты, итоги, пауза, лобби — часть игры:
+  // их скрытие в обход игры оставляет движок в режиме «окно открыто» (Shuttle/Раскол намертво встают).
+  const DISMISS_SEL = '.rules-modal-overlay, .inv-modal-overlay, #inviteModal, #rulesModal, .map-modal, [data-dismiss="backdrop"]';
+
+  function isModalOpen(el) {
+    if (!el || !document.body.contains(el)) return false;
+    if (el.closest('.ui-toast-wrap, #dock, .dock, #rc-panel')) return false;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    return el.classList.contains('open') || el.classList.contains('on') || s.display === 'flex' || s.display === 'block';
+  }
+
+  function getOpenModals() {
+    const list = document.querySelectorAll(MODAL_SEL);
+    const open = [];
+    for (let i = 0; i < list.length; i++) {
+      if (isModalOpen(list[i])) open.push(list[i]);
+    }
+    return open;
+  }
+
+  function closeModalEl(m) {
+    if (!m) return;
+    if (typeof m.close === 'function') {
+      try { m.close(); } catch (e) {}
+    }
+    m.classList.remove('open', 'on');
+    if (m.style.display && m.style.display !== 'none') {
+      m.style.display = 'none';
+    }
+    if (m.__prevFocus && typeof m.__prevFocus.focus === 'function') {
+      try { m.__prevFocus.focus(); } catch (e) {}
+      m.__prevFocus = null;
+    }
+    document.body.classList.toggle('modal-open', getOpenModals().length > 0);
+  }
+
+  // Light dismiss on backdrop click
+  document.addEventListener('click', (e) => {
+    const open = getOpenModals();
+    for (const m of open) {
+      if (e.target === m) {
+        if (m.matches(DISMISS_SEL)) closeModalEl(m);
+        break;
+      }
+    }
+  }, true);
+
+  // Close on Escape & trap focus
+  document.addEventListener('keydown', (e) => {
+    const open = getOpenModals();
+    if (!open.length) return;
+    const top = open[open.length - 1];
+    if (e.key === 'Escape') {
+      if (top.matches(DISMISS_SEL)) { e.preventDefault(); closeModalEl(top); }
+      return;
+    }
+    if (e.key === 'Tab') {
+      const focusables = [...top.querySelectorAll('button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')];
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  // Track modal open/close via MutationObserver to preserve/restore focus and lock scroll
+  function initModalObserver() {
+    if (!document.body || typeof window === 'undefined' || !window.MutationObserver) return;
+    const update = () => {
+      try {
+        if (!document.body) return;
+        const open = getOpenModals();
+        document.body.classList.toggle('modal-open', open.length > 0);
+        for (const m of open) {
+          if (!m.__trapInit) {
+            m.__trapInit = true;
+            if (!m.getAttribute('role')) m.setAttribute('role', 'dialog');
+            if (!m.getAttribute('aria-modal')) m.setAttribute('aria-modal', 'true');
+            if (!m.getAttribute('aria-label') && !m.getAttribute('aria-labelledby')) {
+              const h = m.querySelector('h1, h2, h3, .rules-modal-title, .modal-title, [data-i18n*="title"]');
+              if (h) {
+                if (!h.id) h.id = 'mh_' + Math.random().toString(36).slice(2, 7);
+                m.setAttribute('aria-labelledby', h.id);
+              } else {
+                m.setAttribute('aria-label', 'Dialog');
+              }
+            }
+            m.__prevFocus = document.activeElement;
+            const target = m.querySelector('button:not(:disabled), [href], input:not(:disabled), [tabindex]:not([tabindex="-1"])');
+            if (target) {
+              try { target.focus(); } catch (e) {}
+            }
+          }
+        }
+        document.querySelectorAll(MODAL_SEL).forEach(m => {
+          if (!isModalOpen(m)) {
+            m.__trapInit = false;
+          }
+        });
+      } catch (err) {}
+    };
+    window._obsTarget = document.body;
+    window._modalObserver = new MutationObserver(update);
+    window._modalObserver.observe(document.body, { attributes: true, subtree: true, childList: true });
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initModalObserver);
+  } else {
+    initModalObserver();
+  }
+
+  // ── Accessible Names Synchronizer (uk, ru, en, de) ──
+  const A11Y_I18N = {
+    uk: { rules: 'Правила', back: 'Назад', close: 'Закрити', chat: 'Чат', invite: 'Покликати', sound: 'Звук', zoom_in: 'Збільшити', zoom_out: 'Зменшити' },
+    ru: { rules: 'Правила', back: 'Назад', close: 'Закрыть', chat: 'Чат', invite: 'Позвать', sound: 'Звук', zoom_in: 'Приблизить', zoom_out: 'Отдалить' },
+    en: { rules: 'Rules', back: 'Back', close: 'Close', chat: 'Chat', invite: 'Invite', sound: 'Sound', zoom_in: 'Zoom in', zoom_out: 'Zoom out' },
+    de: { rules: 'Regeln', back: 'Zurück', close: 'Schließen', chat: 'Chat', invite: 'Einladen', sound: 'Ton', zoom_in: 'Vergrößern', zoom_out: 'Verkleinern' }
+  };
+
+  function syncA11yLabels() {
+    const lang = (w.LobbyI18n && typeof w.LobbyI18n.lang === 'function' ? w.LobbyI18n.lang() : (localStorage.getItem('jg_lang') || 'ru'));
+    const tr = A11Y_I18N[lang] || A11Y_I18N.ru;
+    document.querySelectorAll('#rulesBtn, .top-icon-btn').forEach(b => {
+      const cur = b.getAttribute('aria-label');
+      if (!cur || cur === 'Info' || cur === 'Правила' || cur === 'Rules' || cur === 'Regeln') {
+        b.setAttribute('aria-label', tr.rules);
+      }
+    });
+    document.querySelectorAll('.top-back').forEach(b => {
+      if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', tr.back);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      if (el.title) el.setAttribute('aria-label', el.title);
+    });
+    document.querySelectorAll('button, a, [role="button"]').forEach(b => {
+      if (!b.getAttribute('aria-label') && b.title) {
+        b.setAttribute('aria-label', b.title);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', syncA11yLabels);
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.closest && e.target.closest('#langbar, .langbar')) {
+      setTimeout(syncA11yLabels, 30);
+    }
+  });
+
   w.LobbyUI = {
     esc,
     vibrate,
@@ -272,6 +431,8 @@
     avatarHtml,
     renderCodeDigits,
     initPinInput,
-    enableParallax
+    enableParallax,
+    closeModal: closeModalEl,
+    syncA11yLabels
   };
 })(window);

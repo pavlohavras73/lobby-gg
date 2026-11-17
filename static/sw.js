@@ -4,11 +4,41 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v19";  // v2: мобильная вёрстка (сменить версию = сбросить старый кэш у установленных приложений)
+const CACHE = "lobby-static-v20";  // v20: stage 11c precache and speed optimization
 const OFFLINE = "/games/static/offline.html";
 
+const PRECACHE = [
+  OFFLINE,
+  "/games/static/theme.css",
+  "/games/static/game-ui.css",
+  "/games/static/shell.css",
+  "/games/static/ui.js",
+  "/games/static/sfx.js",
+  "/games/static/arcade_fx.js",
+  "/games/static/rejoin.js",
+  "/games/static/reconnect.js",
+  "/games/static/invite.js",
+  "/games/static/room_chat.js",
+  "/games/static/i18n_common.js",
+  "/games/static/favicon.svg",
+  "/games/static/icons/icon-192.png",
+  "/games/static/icons/icon-512.png",
+  "/games/static/manifest.json",
+  "/games/static/race/engine.js",
+  "/games/static/shuttle/data.js",
+  "/games/static/shuttle/save.js",
+  "/games/static/shuttle/sprites.js",
+  "/games/static/shuttle/engine.js",
+  "/games/static/raskol/data.js",
+  "/games/static/raskol/sprites.js",
+  "/games/static/raskol/input.js",
+  "/games/static/raskol/save.js",
+  "/games/static/raskol/classes.js",
+  "/games/static/raskol/engine.js"
+];
+
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([OFFLINE])).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {

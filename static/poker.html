@@ -2,9 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lobby.gg — Покер</title>
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
@@ -26,7 +28,7 @@
 
   .game-layout {
     width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
-    padding: max(8px, var(--sat)) max(10px, env(safe-area-inset-right, 0px)) max(10px, var(--sab)) max(10px, env(safe-area-inset-left, 0px));
+    padding: max(8px, var(--sat)) max(10px, env(safe-area-inset-right, 0px)) max(64px, calc(var(--sab) + 56px)) max(10px, env(safe-area-inset-left, 0px));
     background: radial-gradient(circle at 50% 38%, rgba(16, 78, 44, 0.36), #06070b 75%);
   }
 
@@ -269,9 +271,9 @@
     .pot-badge, .seat-card, .poker-card { transition: none !important; }
   }
 </style>
-<script src="/games/static/i18n_common.js"></script>
-<script src="/games/static/ui.js"></script>
-<script src="/games/static/arcade_fx.js"></script>
+<script src="/games/static/i18n_common.js" defer></script>
+<script src="/games/static/ui.js" defer></script>
+<script src="/games/static/arcade_fx.js" defer></script>
 </head>
 <body>
 
@@ -384,11 +386,11 @@
   </div>
   <div class="pk-fly-layer" id="pkFlyLayer" aria-hidden="true"></div>
 
-  <script src="/games/static/sfx.js"></script>
-  <script src="/games/static/invite.js"></script>
-  <script src="/games/static/reconnect.js"></script>
-  <script src="/games/static/room_chat.js"></script>
-  <script src="/games/static/rejoin.js"></script>
+  <script src="/games/static/sfx.js" defer></script>
+  <script src="/games/static/invite.js" defer></script>
+  <script src="/games/static/reconnect.js" defer></script>
+  <script src="/games/static/room_chat.js" defer></script>
+  <script src="/games/static/rejoin.js" defer></script>
   <script>
     const UI={
       uk:{

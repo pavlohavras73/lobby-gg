@@ -95,7 +95,7 @@
 .langbar button::after { display: none !important; }
 .langbar button:hover { color: #fff !important; transform: none !important; }
 .langbar button.active {
-  background: var(--crimson) !important;
+  background: var(--crimson-deep) !important;
   color: #fff !important;
   box-shadow: 0 0 12px rgba(255, 34, 56, 0.45) !important;
 }

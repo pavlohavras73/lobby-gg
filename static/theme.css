@@ -17,8 +17,8 @@
   --emerald:#22c55e;
   --gold:#ffcc00;
   --text:#f4f4f7;
-  --muted:#8d8d98;
-  --faint:#5c5c66;
+  --muted:#a3a3b2;
+  --faint:#858595;
   --glass:rgba(16,16,21,.58);
   --glass-2:rgba(26,26,33,.66);
   --border:rgba(255,255,255,.08);
@@ -45,7 +45,15 @@ body{
   font-family:var(--font);font-feature-settings:"cv11","ss01";
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   background:var(--bg);color:var(--text);min-height:100vh;
-  padding:max(46px,6vh) 16px 40px;position:relative;overflow-x:hidden;
+  padding:max(46px,6vh) 16px max(72px, calc(var(--sab) + 64px));position:relative;overflow-x:hidden;
+}
+
+.lobby-card {
+  margin-bottom: max(72px, calc(var(--sab) + 64px)) !important;
+}
+
+#game, #reveal, #over {
+  padding-bottom: max(72px, calc(var(--sab) + 64px));
 }
 ::selection{background:rgba(255,34,56,.35);color:#fff}
 
@@ -136,7 +144,7 @@ button.sec:hover{border-color:rgba(255,34,56,.6);background:rgba(255,34,56,.07);
 button.danger{background:linear-gradient(135deg,#ff2238,#7a0c18);color:#fff}
 button.danger:hover{box-shadow:0 0 22px var(--crimson-glow)}
 button:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
-button:focus-visible,a:focus-visible,.opt:focus-visible{outline:2px solid var(--crimson-soft);outline-offset:2px}
+:where(a, button, input, select, textarea, [tabindex="0"], [role="button"]):focus-visible{outline:2px solid var(--crimson-soft)!important;outline-offset:2px!important}
 /* sweep highlight + lift */
 button::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);transition:left .6s ease}
@@ -191,16 +199,35 @@ input:focus,select:focus{transform:translateY(-1px)}
 .langbar button,#rulesBtn{box-shadow:none;margin:0;width:auto}
 .langbar button::after,#rulesBtn::after{display:none}
 .langbar button:not(:disabled):hover,#rulesBtn:hover{transform:none;box-shadow:none}
-.langbar button.active{box-shadow:0 0 14px rgba(255,34,56,.4)}
+.langbar button.active{background:var(--crimson-deep)!important;color:#fff!important;box-shadow:0 0 14px rgba(255,34,56,.4)}
 
 /* Переключатель языка по умолчанию — компактная «таблетка». :where() — низкий вес, чтобы стили страниц с ним спорили и выигрывали */
 .langbar{display:flex;gap:4px;justify-content:center;margin:8px auto 0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:4px;width:max-content;max-width:100%}
 .langbar :where(button){width:auto;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;letter-spacing:.5px;min-height:0}
-.langbar :where(button.active){background:var(--crimson);color:#fff}
+.langbar :where(button.active){background:var(--crimson-deep);color:#fff}
 
 /* ── Design System v2: tactile targets, toasts & screen transitions ── */
-button:not(.langbar button):not(#rulesBtn):not(.rules-btn),.btn,.opt{min-height:44px;touch-action:manipulation}
+button, .btn, .opt, [role="button"], a { touch-action: manipulation; }
+button:not(.langbar button):not(#rulesBtn):not(.rules-btn),.btn,.opt{min-height:44px}
 .screen-enter{animation:riseIn .32s var(--ease) both}
+
+/* Modal overlays: overscroll containment & scroll lock */
+.rules-modal-overlay,
+.inv-modal-overlay,
+.afx-modal,
+.gw-modal,
+.bk-modal,
+.map-modal,
+.modal,
+.modal-bg,
+.modal-overlay,
+.modal-box,
+[role="dialog"] {
+  overscroll-behavior: contain;
+}
+body.modal-open {
+  overflow: hidden !important;
+}
 
 .ui-toast-wrap{
   position:fixed;left:50%;bottom:calc(22px + var(--sab));transform:translateX(-50%);

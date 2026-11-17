@@ -9,6 +9,8 @@
 <meta property="og:title" content="Lobby.gg — party games with friends">
 <meta property="og:description" content="Real-time multiplayer party games in the browser. No installs — just a link.">
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/shell.css">
 <style>
@@ -31,7 +33,7 @@
     padding:6px 11px;border-radius:999px;cursor:pointer;letter-spacing:.6px;box-shadow:none;transition:background .18s,color .18s,box-shadow .3s}
   .langbar button::after{display:none}
   .langbar button:hover{transform:none;color:#fff;box-shadow:none}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.45)}
+  .langbar button.active{background:var(--crimson-deep);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.45)}
   .profile-card{position:relative;display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;color:var(--text);
     background:rgba(255,255,255,.045);border:1px solid var(--border);transition:border-color .25s,box-shadow .3s,background .25s;max-width:240px}
   .profile-card:hover{color:var(--text);border-color:rgba(255,34,56,.55);background:rgba(255,34,56,.07);box-shadow:0 0 22px -4px rgba(255,34,56,.4)}
@@ -84,7 +86,7 @@
   .stat{padding:0 26px;border-left:1px solid rgba(255,255,255,.08)}
   .stat:first-child{padding-left:0;border-left:0}
   .stat b{display:block;font-family:var(--display);font-size:28px;font-weight:700;color:#fff;letter-spacing:-.5px}
-  .stat span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px;white-space:nowrap}
+  .stat span{display:block;font-size:12.5px;color:#c0c0cc;margin-top:4px;white-space:nowrap}
 
   /* room preview card */
   .room-wrap{position:relative;animation:fadein .8s .2s var(--ease) both}
@@ -132,7 +134,7 @@
   .filters button::after{display:none}
   .filters button:hover{transform:none;color:#fff;border-color:var(--border-hi);box-shadow:none}
   .filters button.on{color:#fff;background:rgba(255,34,56,.16);border-color:rgba(255,34,56,.6);box-shadow:0 0 18px -4px rgba(255,34,56,.5)}
-  .filters button .n{opacity:.55;margin-left:5px;font-weight:700}
+  .filters button .n{opacity:.85;margin-left:5px;font-weight:700}
 
   .featured{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px}
   .feat{position:relative;display:flex;align-items:center;gap:20px;padding:26px;border-radius:24px;overflow:hidden;color:#fff;min-height:150px;
@@ -1348,11 +1350,11 @@
 
   setInterval(loadInvites,10000);
   </script>
-<script src="/games/static/ui.js"></script>
-<script src="/games/static/sfx.js"></script>
+<script src="/games/static/ui.js" defer></script>
+<script src="/games/static/sfx.js" defer></script>
 <script src="/games/static/shell.js" defer></script>
 <script>
-  (function () {
+  document.addEventListener('DOMContentLoaded', function () {
     const rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const sc = document.getElementById('showcase3d');
     if (sc && window.LobbyUI && LobbyUI.enableParallax) LobbyUI.enableParallax(sc, 8);
@@ -1410,7 +1412,7 @@
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-  })();
+  });
 </script>
 </body>
 </html>

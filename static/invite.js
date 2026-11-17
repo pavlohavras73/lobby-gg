@@ -108,40 +108,114 @@
   // ─── кнопка «Позвать» + модалка ───
   function el(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
 
-  var btn = el('<button id="inviteBtn" style="position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:14px;z-index:99998;display:none;width:auto;margin:0;' +
+  var btn = el('<button id="inviteBtn" type="button" aria-label="' + invT('btn') + '" style="position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:14px;z-index:99998;display:none;width:auto;margin:0;' +
     'padding:11px 16px;border-radius:22px;border:none;font-weight:800;font-size:14px;cursor:pointer;' +
     'background:linear-gradient(135deg,#e0102e,#a00d22);color:#fff;box-shadow:0 4px 16px rgba(224,16,46,.5)">' + invT('btn') + '</button>');
-  var modal = el('<div id="inviteModal" style="display:none;position:fixed;inset:0;z-index:100000;' +
-    'background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">' +
+  var modal = el('<div id="inviteModal" role="dialog" aria-modal="true" aria-labelledby="inviteModalTitle" style="display:none;position:fixed;inset:0;z-index:100000;' +
+    'background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);overscroll-behavior:contain">' +
     '<div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);' +
     'border-radius:16px;padding:20px;max-height:70vh;overflow-y:auto">' +
     '<div id="inviteModalTitle" style="font-size:18px;font-weight:800;margin-bottom:4px">' + invT('modal_title') + '</div>' +
     '<div id="inviteModalSub" style="font-size:13px;color:#9a9aa4;margin-bottom:12px">' + invT('modal_sub') + '</div>' +
     '<div id="inviteFriends">' + invT('loading') + '</div>' +
-    '<button id="inviteModalClose" onclick="document.getElementById(\'inviteModal\').style.display=\'none\'" ' +
+    '<button id="inviteModalClose" type="button" aria-label="' + invT('close') + '" onclick="document.getElementById(\'inviteModal\').style.display=\'none\'" ' +
     'style="margin-top:14px;width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.2);' +
     'background:transparent;color:#fff;font-weight:700;cursor:pointer">' + invT('close') + '</button></div></div>');
 
+  // ─── автоподъём кнопки «Позвать», чтобы не перекрывать кнопки страницы ───
+  var invLift = 0, invLiftRaf = 0;
+  function overlapsClickableInv(r) {
+    var top = Infinity;
+    var els = document.querySelectorAll("button, a[href], input, select, textarea, [onclick], [role=button], .card, .pin-box, .cell, .chip, .opt, .choice, .action-btn, .tapbtn, [data-action], .spy-sus-btn, .selectable, .pl");
+    var vh = window.innerHeight;
+    var vw = window.innerWidth;
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el === btn || btn.contains(el) || modal.contains(el)) continue;
+      var mParent = el.closest("#rulesModal, #inviteModal");
+      if (mParent && getComputedStyle(mParent).display === "none") continue;
+      var b = el.getBoundingClientRect();
+      if (!b.width || !b.height || (b.height > vh * 0.55 && b.width > vw * 0.8)) continue;
+      if (b.bottom <= 0 || b.top >= vh || b.right <= 0 || b.left >= vw) continue;
+      var ix = Math.min(r.right, b.right) - Math.max(r.left, b.left);
+      var iy = Math.min(r.bottom, b.bottom) - Math.max(r.top, b.top);
+      if (ix <= 4 || iy <= 4) continue;
+      var cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.pointerEvents === "none" || +cs.opacity === 0 || cs.display === "none") continue;
+      if (b.top < top) top = b.top;
+    }
+    return top;
+  }
+  function avoidOverlapInv() {
+    invLiftRaf = 0;
+    if (!btn || btn.style.display === "none") return;
+    var r0 = btn.getBoundingClientRect();
+    if (!r0.width || !r0.height) return;
+    var currentY = 0;
+    try {
+      var tr = getComputedStyle(btn).transform;
+      if (tr && tr !== "none") {
+        var m = new DOMMatrixReadOnly(tr);
+        currentY = m.m42 || 0;
+      }
+    } catch (e) {
+      currentY = -invLift;
+    }
+    var base = { left: r0.left, right: r0.right, top: r0.top - currentY, bottom: r0.bottom - currentY };
+    var want = 0;
+    var maxLift = Math.max(0, window.innerHeight - 80);
+    for (var k = 0; k < 8; k++) {
+      var r = { left: base.left, right: base.right, top: base.top - want, bottom: base.bottom - want };
+      var top = overlapsClickableInv(r);
+      if (top === Infinity) break;
+      want = Math.round(base.bottom - top + 10);
+      if (want > maxLift) { want = maxLift; break; }
+    }
+    if (want !== invLift) {
+      invLift = want;
+      btn.style.transform = invLift ? "translateY(" + -invLift + "px)" : "";
+    }
+  }
+  function scheduleOverlapInv() {
+    avoidOverlapInv();
+    if (!invLiftRaf) invLiftRaf = requestAnimationFrame(avoidOverlapInv);
+  }
+
   function updateInviteLabels() {
-    if (btn) btn.textContent = invT('btn');
+    if (btn) {
+      btn.textContent = invT('btn');
+      btn.setAttribute('aria-label', invT('btn'));
+    }
     var t = document.getElementById('inviteModalTitle');
     if (t) t.textContent = invT('modal_title');
     var s = document.getElementById('inviteModalSub');
     if (s) s.textContent = invT('modal_sub');
     var c = document.getElementById('inviteModalClose');
-    if (c) c.textContent = invT('close');
+    if (c) {
+      c.textContent = invT('close');
+      c.setAttribute('aria-label', invT('close'));
+    }
   }
 
   document.addEventListener('click', function (e) {
     if (e.target && e.target.closest && e.target.closest('#langbar, .langbar')) {
       updateInviteLabels();
     }
-  });
+    setTimeout(scheduleOverlapInv, 30);
+    setTimeout(scheduleOverlapInv, 180);
+  }, true);
 
   window.addEventListener('load', function () {
+    btn.style.transition = "transform .04s ease";
     document.body.appendChild(btn);
     document.body.appendChild(modal);
     updateInviteLabels();
+    window.addEventListener('scroll', scheduleOverlapInv, { passive: true, capture: true });
+    window.addEventListener('resize', scheduleOverlapInv);
+    if (window.MutationObserver) {
+      new MutationObserver(function () { scheduleOverlapInv(); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    }
+    setInterval(scheduleOverlapInv, 600);
   });
 
   function curCode() {
@@ -155,7 +229,9 @@
   setInterval(function () {
     if (!document.getElementById('inviteBtn')) return;
     var code = curCode();
+    var prevDisp = btn.style.display;
     btn.style.display = code ? 'block' : 'none';
+    if (code && prevDisp !== 'block') scheduleOverlapInv();
     // пришли из профиля «позвать @друг» → как только комната создана, зовём автоматически
     if (inviteTarget && !autoInvited && code) {
       autoInvited = true;
