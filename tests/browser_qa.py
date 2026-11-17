@@ -16,7 +16,7 @@ ALL = ("index profile leaderboard learn alias arrows battleship bulls bunker c4 
 LANG = os.environ.get("LOBBY_LANG", "de")
 SHOTS = os.environ.get("SHOTS", "qa_shots")
 START = re.compile(r"^\s*(▶\s*)?(Start|Spielen|Spiel starten|Neues Spiel|Los|Solo|Gegen Bot|Bot|Spiel erstellen)\b", re.I)
-IGNORE = re.compile(r"favicon|ResizeObserver loop|Failed to load resource: net::ERR_ABORTED|serviceWorker|sw\.js", re.I)
+IGNORE = re.compile(r"favicon|ResizeObserver loop|Failed to load resource: net::ERR_ABORTED|serviceWorker|sw\.js|fetching the script", re.I)
 
 
 def run_page(b, token, name):

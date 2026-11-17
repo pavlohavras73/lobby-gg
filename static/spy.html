@@ -169,6 +169,7 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script src="/games/static/arcade_fx.js"></script>
+<script src="/games/static/rejoin.js"></script>
 <script>
 const UI={
   uk:{
@@ -567,8 +568,10 @@ function renderReveal(m){
 
 function handle(m){
   if(m.type==='joined'){
-    pid=m.pid;isHost=m.host;roomCode=m.code;
-    sessionStorage.setItem('jg_spy_code',m.code);
+    window.pid=pid=m.pid;window.roomCode=roomCode=m.code;isHost=m.host;
+    const nInp = document.getElementById('name');
+    if (window.LobbyRejoin) LobbyRejoin.save('spy', m.code, nInp ? nInp.value : '');
+    else sessionStorage.setItem('jg_spy_code', m.code);
     try{
       const saved=JSON.parse(sessionStorage.getItem('jg_spy_players_'+m.code)||'[]');
       if(Array.isArray(saved)&&saved.length)roomPlayers=saved;
@@ -607,21 +610,30 @@ function handle(m){
     startTimer(m.timer);
   }
   else if(m.type==='reveal'){
+    if (window.LobbyRejoin) LobbyRejoin.clear('spy');
     revealAnimPending=true;
     renderReveal(m);
   }
-  else if(m.type==='error'){alert(T(m.msg));}
+  else if(m.type==='error'){
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('spy');
+    alert(T(m.msg));
+  }
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 document.addEventListener('DOMContentLoaded', () => {
   bindPeekCard();
   if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
-  const autoCode = sessionStorage.getItem('jg_spy_code');
+  const autoCode = (window.LobbyRejoin && LobbyRejoin.getCode('spy')) || sessionStorage.getItem('jg_spy_code');
   if (autoCode) {
     const jc = document.getElementById('joincode');
     if (jc) jc.value = autoCode;
   }
+  const topBack = document.querySelector('.top-back');
+  if (topBack) {
+    topBack.addEventListener('click', () => { if (window.LobbyRejoin) LobbyRejoin.clear('spy'); });
+  }
   applyUI();
+  if (window.LobbyRejoin) LobbyRejoin.autoJoin('spy', join);
 });
 </script>
 </body>

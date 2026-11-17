@@ -732,23 +732,29 @@ async def start_spy(room, timer_min=5):
     is_loc = (cat == "Классика")
     spy = random.choice(pids)
     room["state"] = "playing"
+    room["spy_ends"] = time.time() + secs if secs else 0
     for pid, p in room["players"].items():
         if pid == spy:
             p["role"] = {"spy": True, "location": None}
+            p["role_msg"] = {"type": "role", "spy": True, "cat": cat, "title": "🕵️ ТЫ ШПИОН",
+                             "sub": f"Категория: «{cat}». Вычисли что загадано и не спались."}
         else:
             p["role"] = {"spy": False, "location": loc}
-        if not p.get("ws"):
-            continue
-        if p["role"]["spy"]:
-            await p["ws"].send_json({"type": "role", "spy": True, "timer": secs, "cat": cat,
-                                     "title": "🕵️ ТЫ ШПИОН",
-                                     "sub": f"Категория: «{cat}». Вычисли что загадано и не спались."})
-        else:
-            await p["ws"].send_json({"type": "role", "spy": False, "timer": secs, "cat": cat,
-                                     "title": f"🎴 {loc}",
-                                     "sub": ("Найди шпиона вопросами. Не называй локацию напрямую." if is_loc
-                                             else f"Персонаж из «{cat}». Найди шпиона, не называй имя напрямую.")})
+            p["role_msg"] = {"type": "role", "spy": False, "cat": cat, "title": f"🎴 {loc}",
+                             "sub": ("Найди шпиона вопросами. Не называй локацию напрямую." if is_loc
+                                     else f"Персонаж из «{cat}». Найди шпиона, не называй имя напрямую.")}
+        if p.get("ws"):
+            await p["ws"].send_json({**p["role_msg"], "timer": secs})
     await broadcast(room, {"type": "started", "n": len(pids)})
+
+
+async def resend_spy_role(room, pid):
+    """Вернувшемуся в партию шпиона — его карта и оставшееся время (остальным ничего не шлём)."""
+    p = room["players"].get(pid) or {}
+    if p.get("ws") and p.get("role_msg"):
+        ends = room.get("spy_ends") or 0
+        left = max(1, int(ends - time.time())) if ends else 0
+        await p["ws"].send_json({**p["role_msg"], "timer": left})
 
 
 # ─────────────── БУНКЕР ───────────────
@@ -3529,22 +3535,17 @@ async def start_quoridor(room):
     room["state"] = "playing"
     await push_quoridor(room)
 
-async def push_game(room):
-    if not room or "game" not in room: return
-    g = room["game"]
-    pmap = {"spy": push_spy, "al": alias_public, "durak": push_durak, "mafia": mafia_broadcast, "variants": push_variants,
-            "bunker": push_bunker, "uno": push_uno, "c4": push_c4, "reversi": push_rv,
-            "checkers": push_ck, "chess": push_chess, "dots": push_db,
-            "bulls": push_bc, "battleship": push_bs, "poker": push_poker, "c4_3d": push_c4_3d_resync, "quoridor": push_quoridor}
-    if g in pmap: await pmap[g](room)
-
-
-async def resync_game(room):
-    """Разослать актуальное состояние текущей игры (после переподключения игрока)."""
+async def resync_game(room, pid=None):
+    """Разослать актуальное состояние текущей игры (после переподключения игрока).
+    pid — кто вернулся; без него (кто-то отвалился) Шпиону ничего не шлём: роли у остальных не меняются."""
     g = room.get("game")
     try:
         if room.get("state") != "playing":
             await broadcast(room, lobby_state(room)); return
+        if g == "spy":
+            if pid:
+                await resend_spy_role(room, pid)
+            return
         RESYNC = {
             "bunker": push_bunker, "uno": push_uno, "c4": push_c4, "reversi": push_rv,
             "dots": push_db, "bulls": push_bc, "battleship": push_bs, "checkers": push_ck,
@@ -3807,7 +3808,7 @@ async def ws(websocket: WebSocket):
                             room["players"][pid]["ws"] = websocket
                             await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})
                             await websocket.send_json({"type": "room_chat_history", "code": code, "messages": room["chat"][-50:]})
-                            await resync_game(room)   # вернуть игрока в текущее состояние игры
+                            await resync_game(room, pid)   # вернуть игрока в текущее состояние игры
                         else:
                             room["players"][pid] = {"name": msg.get("name", "Игрок")[:20], "ws": websocket, "role": None, "alive": True, "user": auth_user["username"]}
                             await websocket.send_json({"type": "joined", "code": code, "pid": pid, "host": room["host"] == pid})

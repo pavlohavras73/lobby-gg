@@ -175,6 +175,7 @@
 <script src="/games/static/sfx.js"></script>
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
+<script src="/games/static/rejoin.js"></script>
 <script>
 const UI={
   uk:{
@@ -424,6 +425,7 @@ function renderState(m){
   isHost=(m.host===pid);
   const teams=(m.mode==='teams');
   if(m.winner!=null){
+    if (window.LobbyRejoin) LobbyRejoin.clear('alias');
     clearInterval(tInt);updateTimerRing(null,1);show('win');
     const wname=T(m.winner_name||t('def_player'));
     const who=teams?(typeof t('winner_team')==='function'?t('winner_team')(m.winner==0?1:2):'Team '+m.winner):(typeof t('winner_solo')==='function'?t('winner_solo')(wname):wname);
@@ -478,8 +480,10 @@ function renderState(m){
 
 function handle(m){
   if(m.type==='joined'){
-    pid=m.pid;isHost=m.host;roomCode=m.code;
-    sessionStorage.setItem('jg_alias_code',m.code);
+    window.pid=pid=m.pid;window.roomCode=roomCode=m.code;isHost=m.host;
+    const nInp = document.getElementById('name');
+    if (window.LobbyRejoin) LobbyRejoin.save('alias', m.code, nInp ? nInp.value : '');
+    else sessionStorage.setItem('jg_alias_code', m.code);
   }
   else if(m.type==='lobby'){
     hasRenderedAlias=false;prevScores={};prevSoloScores={};prevWinner=null;clearInterval(tInt);updateTimerRing(null,1);
@@ -512,18 +516,26 @@ function handle(m){
   }
   else if(m.type==='alias_turn'){runTimer(m.secs);}
   else if(m.type==='alias_state'){renderState(m);}
-  else if(m.type==='error'){alert(T(m.msg));}
+  else if(m.type==='error'){
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('alias');
+    alert(T(m.msg));
+  }
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 document.addEventListener('DOMContentLoaded', () => {
   bindSwipeCard();
   if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
-  const autoCode = sessionStorage.getItem('jg_alias_code');
+  const autoCode = (window.LobbyRejoin && LobbyRejoin.getCode('alias')) || sessionStorage.getItem('jg_alias_code');
   if (autoCode) {
     const jc = document.getElementById('joincode');
     if (jc) jc.value = autoCode;
   }
+  const topBack = document.querySelector('.top-back');
+  if (topBack) {
+    topBack.addEventListener('click', () => { if (window.LobbyRejoin) LobbyRejoin.clear('alias'); });
+  }
   applyUI();
+  if (window.LobbyRejoin) LobbyRejoin.autoJoin('alias', join);
 });
 </script>
 </body>

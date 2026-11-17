@@ -388,6 +388,7 @@
   <script src="/games/static/invite.js"></script>
   <script src="/games/static/reconnect.js"></script>
   <script src="/games/static/room_chat.js"></script>
+  <script src="/games/static/rejoin.js"></script>
   <script>
     const UI={
       uk:{
@@ -1048,10 +1049,12 @@
 
     function handle(m) {
       if (m.type === 'joined') {
-        pid = m.pid;
+        window.pid = pid = m.pid;
+        window.roomCode = roomCode = m.code;
         isHost = m.host;
-        roomCode = m.code;
-        sessionStorage.setItem('jg_poker_code', m.code);
+        const nInp = document.getElementById('name');
+        if (window.LobbyRejoin) LobbyRejoin.save('poker', m.code, nInp ? nInp.value : '');
+        else sessionStorage.setItem('jg_poker_code', m.code);
       }
       else if (m.type === 'lobby') {
         hasRenderedOnce = false; seatLayoutKey = ''; prevCommKeys = []; prevHoleKeys = []; prevBets = {}; prevPot = 0; prevDone = false;
@@ -1077,6 +1080,7 @@
         render();
       }
       else if (m.type === 'error') {
+        if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('poker');
         alert(T(m.msg));
       }
     }
@@ -1092,12 +1096,17 @@
       if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
       if (window.LobbyUI && LobbyUI.enableParallax) LobbyUI.enableParallax(document.getElementById('pokerLogo'), 10);
 
-      const autoCode = sessionStorage.getItem('jg_poker_code');
+      const autoCode = (window.LobbyRejoin && LobbyRejoin.getCode('poker')) || sessionStorage.getItem('jg_poker_code');
       if (autoCode) {
         const jc = document.getElementById('joincode');
         if (jc) jc.value = autoCode;
       }
+      const topBack = document.querySelector('.top-back');
+      if (topBack) {
+        topBack.addEventListener('click', () => { if (window.LobbyRejoin) LobbyRejoin.clear('poker'); });
+      }
       applyUI();
+      if (window.LobbyRejoin) LobbyRejoin.autoJoin('poker', join);
     });
   </script>
 </body>

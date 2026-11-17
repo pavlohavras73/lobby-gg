@@ -8,53 +8,229 @@
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
-  body{display:flex;flex-direction:column;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px max(18px,env(safe-area-inset-bottom));-webkit-user-select:none;user-select:none}
-  .wrap{max-width:460px;width:100%}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-  .card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
-  .phead{display:flex;align-items:center;gap:14px}
-  .avatar{width:66px;height:66px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
-  .phead .nm{font-size:20px;font-weight:800;word-break:break-word}
-  .phead .role{font-size:12px;color:var(--muted)}
-  .stats{display:flex;gap:8px;margin-top:12px}
-  .stat{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:10px;padding:8px 6px;text-align:center}
-  .stat .v{font-size:20px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .stat .l{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sh{font-weight:800;color:var(--crimson);margin:2px 0 10px;font-size:15px}
-  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-  input{width:100%;box-sizing:border-box;margin:0;text-align:left}
-  .emoji-grid{display:flex;flex-wrap:wrap;gap:6px}
-  .emo{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);
-    display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
-  .emo.on{border-color:var(--crimson);background:rgba(255,34,56,.16);box-shadow:0 0 10px var(--crimson-glow)}
-  .colors{display:flex;gap:8px;flex-wrap:wrap}
-  .col{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent}
-  .col.on{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.4)}
-  .toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
-  .sw{width:48px;height:28px;border-radius:14px;background:#3a3d44;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
-  .sw.on{background:#2fbf5f}.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
-  .sw.on::after{left:23px}
-  .frow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .frow .fav{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-  .frow .fn{flex:1;min-width:90px;font-weight:700;word-break:break-word}
-  .frow button{margin:0;padding:6px 10px;font-size:12.5px;width:auto}
-  .btn-mini{padding:6px 10px !important;font-size:12.5px !important;width:auto !important;margin:0 !important}
-  .backlink{display:inline-flex;align-items:center;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:700;white-space:nowrap}
-  .backlink:hover{color:#fff}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--border);
-    padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;transition:.2s;z-index:50;pointer-events:none;white-space:nowrap}
-  .toast.show{opacity:1}
-  .empty{color:var(--muted);font-size:13px;padding:8px 0}
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: max(10px, env(safe-area-inset-top)) 12px max(72px, calc(env(safe-area-inset-bottom) + 54px));
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .wrap { max-width: 480px; width: 100%; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .card {
+    background: linear-gradient(180deg, rgba(32, 34, 44, 0.88), rgba(18, 20, 26, 0.92));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    box-sizing: border-box;
+    width: 100%;
+  }
 
-  .langbar{display:flex;gap:2px;justify-content:center;margin:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:3px;width:max-content;flex-shrink:0}
-  .langbar button{width:auto;margin:0;border:0;background:transparent;box-shadow:none;color:var(--muted);font:inherit;font-weight:800;font-size:11px;padding:4px 8px;border-radius:999px;cursor:pointer;letter-spacing:.3px}
-  .langbar button::after{display:none}
-  .langbar button.active{background:var(--crimson);color:#fff;box-shadow:0 0 12px rgba(255,34,56,.4)}
-  @media (max-width:360px){
-    body{padding:10px 8px}
-    .card{padding:13px}
-    .langbar button{padding:3px 6px;font-size:10px;letter-spacing:0}
-    .backlink{font-size:12.5px}
+  /* ШАПКА ПРОФИЛЯ */
+  .phead { display: flex; align-items: center; gap: 14px; }
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+  }
+  .phead .nm { font-size: 21px; font-weight: 900; color: #fff; word-break: break-word; letter-spacing: -0.2px; }
+  .phead .role { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .user-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 34, 56, 0.16);
+    border: 1px solid rgba(255, 34, 56, 0.38);
+    color: #ff8a98;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
+  .stat {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 4px;
+    text-align: center;
+    min-width: 0;
+  }
+  .stat .v { font-size: 17px; font-weight: 800; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stat .l { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+
+  .sh { font-weight: 800; color: var(--crimson); margin: 2px 0 12px; font-size: 15.5px; display: flex; align-items: center; justify-content: space-between; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; font-weight: 600; }
+  input { width: 100%; box-sizing: border-box; margin: 0; text-align: left; }
+
+  /* ПЛИТКИ СТАТИСТИКИ ИГР */
+  .grid-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .game-tile {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    text-decoration: none;
+    color: inherit;
+    translate: 0 0;
+    scale: 1;
+    transition: scale 0.14s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .game-tile:hover {
+    scale: 1.02;
+    border-color: rgba(255, 34, 56, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .game-tile:active { scale: 0.98; }
+  .gt-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gt-icon { font-size: 18px; line-height: 1; }
+  .gt-name { font-size: 13px; font-weight: 800; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gt-metrics {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .gt-elo { font-size: 14px; font-weight: 800; color: #4ade80; }
+  .gt-wld { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  /* ПЛИТКИ АРКАД */
+  .arcade-tile {
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    translate: 0 0;
+    scale: 1;
+    transition: scale 0.14s ease, border-color 0.2s ease;
+  }
+  .arcade-tile:hover {
+    scale: 1.02;
+    border-color: rgba(255, 106, 122, 0.4);
+  }
+  .arcade-tile:active { scale: 0.98; }
+  .at-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .at-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+  .at-name { font-size: 13px; font-weight: 800; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .at-badge {
+    background: rgba(251, 191, 36, 0.16);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #fde047;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Настройки / Эмодзи / Цвета */
+  .emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .emo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    min-height: 38px;
+  }
+  .emo.on {
+    border-color: var(--crimson);
+    background: rgba(255, 34, 56, 0.16);
+    box-shadow: 0 0 10px var(--crimson-glow);
+  }
+  .colors { display: flex; gap: 8px; flex-wrap: wrap; }
+  .col {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .col.on { border-color: #fff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+  .sw { width: 48px; height: 28px; border-radius: 14px; background: #3a3d44; position: relative; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+  .sw.on { background: #2fbf5f; }
+  .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: 0.2s; }
+  .sw.on::after { left: 23px; }
+
+  /* Друзья */
+  .frow { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .frow .fav { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .frow .fn { flex: 1; min-width: 90px; font-weight: 700; word-break: break-word; }
+  .frow button { margin: 0; padding: 6px 12px; font-size: 12.5px; width: auto; min-height: 36px; }
+  .btn-mini { padding: 6px 12px !important; font-size: 12.5px !important; width: auto !important; margin: 0 !important; min-height: 36px !important; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #181a24; border: 1px solid var(--border);
+    padding: 10px 18px; border-radius: 20px; font-size: 14px;
+    opacity: 0; transition: 0.2s; z-index: 50; pointer-events: none; white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .toast.show { opacity: 1; }
+  .empty { color: var(--muted); font-size: 13px; padding: 8px 0; text-align: center; }
+
+  .langbar {
+    display: flex; gap: 2px; justify-content: center; margin: 0;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px; width: max-content; flex-shrink: 0;
+  }
+  .langbar button {
+    width: auto; margin: 0; border: 0; background: transparent;
+    box-shadow: none; color: var(--muted); font: inherit; font-weight: 800;
+    font-size: 11px; padding: 4px 8px; border-radius: 999px; cursor: pointer;
+    letter-spacing: 0.3px; min-height: auto;
+  }
+  .langbar button::after { display: none; }
+  .langbar button.active { background: var(--crimson); color: #fff; box-shadow: 0 0 12px rgba(255, 34, 56, 0.4); }
+
+  @media (max-width: 360px) {
+    body { padding: 10px 8px 72px; }
+    .card { padding: 14px 12px; }
+    .grid-tiles { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .langbar button { padding: 3px 6px; font-size: 10px; }
   }
 </style>
 </head>
@@ -62,23 +238,47 @@
 <div class="wrap">
   <div class="topbar">
     <a class="top-back" href="/games/" data-i18n="nav_games">‹ Игры</a>
-    <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
+    <div class="langbar" id="langbar">
+      <button type="button" data-lang="uk">УКР</button>
+      <button type="button" data-lang="ru">РУС</button>
+      <button type="button" data-lang="en">ENG</button>
+      <button type="button" data-lang="de">DEU</button>
+    </div>
   </div>
 
   <!-- ШАПКА ПРОФИЛЯ -->
   <div class="card">
     <div class="phead">
-      <div class="avatar" id="pAvatar">🙂</div>
+      <div class="avatar-wrap">
+        <div class="avatar" id="pAvatar">🙂</div>
+      </div>
       <div style="flex:1;min-width:0">
         <div class="nm" id="pName">—</div>
         <div class="role" id="pRole"></div>
+        <div class="user-level-badge" id="pTier">🌟 <span data-i18n="level_novice">Новичок</span></div>
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="v" id="sPlayed">—</div><div class="l" data-i18n="played">сыграно</div></div>
-      <div class="stat"><div class="v" id="sFav" style="font-size:14px">—</div><div class="l" data-i18n="fav">любимая</div></div>
-      <div class="stat"><div class="v" id="sFriends">—</div><div class="l" data-i18n="friends">друзей</div></div>
+      <div class="stat"><div class="v" id="sPlayed">0</div><div class="l" data-i18n="played">сыграно</div></div>
+      <div class="stat"><div class="v" id="sWins">0</div><div class="l" data-i18n="stat_wins">побед</div></div>
+      <div class="stat"><div class="v" id="sWinrate">0%</div><div class="l" data-i18n="stat_winrate">винрейт</div></div>
+      <div class="stat"><div class="v" id="sFriends">0</div><div class="l" data-i18n="friends">друзей</div></div>
     </div>
+  </div>
+
+  <!-- СТАТИСТИКА ДУЭЛЕЙ ПЛИТКАМИ -->
+  <div class="card">
+    <div class="sh">
+      <span data-i18n="game_stats_title">📊 Статистика дуэлей</span>
+      <a href="/games/leaderboard" style="font-size:12px;color:var(--muted);text-decoration:none;font-weight:600;">🏆 <span data-i18n="nav_leaderboard">Лидерборд ›</span></a>
+    </div>
+    <div class="grid-tiles" id="duelTilesGrid"></div>
+  </div>
+
+  <!-- РЕКОРДЫ В АРКАДАХ -->
+  <div class="card">
+    <div class="sh" data-i18n="arcade_bests_title">🕹️ Рекорды в аркадах</div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="arcadeTilesList"></div>
   </div>
 
   <!-- ДРУЗЬЯ -->
@@ -103,7 +303,7 @@
     <label data-i18n="color_lbl">Цвет</label>
     <div class="colors" id="colorGrid"></div>
     <div class="toggle"><span data-i18n="sound_lbl">🔊 Звук в играх</span><div class="sw" id="soundSw" onclick="toggleSound()"></div></div>
-    <button onclick="saveProfile()" style="margin-top:14px" data-i18n="save_btn">💾 Сохранить</button>
+    <button onclick="saveProfile()" style="margin-top:14px;min-height:48px;" data-i18n="save_btn">💾 Сохранить</button>
   </div>
 
   <!-- ПАРОЛЬ -->
@@ -111,16 +311,16 @@
     <div class="sh" data-i18n="pwd_title">🔒 Смена пароля</div>
     <label data-i18n="pwd_old">Старый пароль</label><input id="oldPw" type="password" data-i18n-ph="pwd_old">
     <label data-i18n="pwd_new">Новый пароль</label><input id="newPw" type="password" data-i18n-ph="pwd_new">
-    <button class="sec" onclick="changePw()" style="margin-top:12px" data-i18n="pwd_btn">Обновить пароль</button>
+    <button class="sec" onclick="changePw()" style="margin-top:12px;min-height:44px;" data-i18n="pwd_btn">Обновить пароль</button>
   </div>
-  
+
   <!-- SUPPORT INBOX (Admin Only) -->
   <div class="card hide" id="adminSupportInbox">
     <div class="sh" style="display:flex; justify-content:space-between; align-items:center">
       <span data-i18n="sup_title">Support inbox</span>
       <span class="pc-badge" id="supportUnreadBadge" style="display:none">0</span>
     </div>
-    
+
     <div style="display:flex; gap:8px; margin-bottom:12px">
       <select id="supFilter" onchange="loadSupportTickets()" style="flex:1;min-width:0;padding:6px 30px 6px 10px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:8px; color:#fff">
         <option value="" data-i18n="sup_all">All</option>
@@ -130,7 +330,7 @@
       </select>
       <button class="sec btn-mini" style="flex-shrink:0;white-space:nowrap" onclick="loadSupportTickets()" data-i18n="sup_refresh">Refresh</button>
     </div>
-    
+
     <div id="supportTicketsList" style="display:flex; flex-direction:column; gap:12px"></div>
   </div>
 </div>
@@ -143,6 +343,7 @@ const UI = {
     sup_title:"Звернення в підтримку",sup_all:"Усі",sup_new:"Нові",sup_prog:"В роботі",sup_done:"Готово",sup_refresh:"Оновити",sup_note:"Нотатка адміна",sup_save:"Зберегти",sup_guest:"гість",sup_empty:"Звернень немає",cat_Bug:"Баг",cat_Complaint:"Скарга",cat_Idea:"Ідея",cat_Other:"Інше",
     "title": "Lobby.gg — Профіль",
     "nav_games": "‹ Ігри",
+    "nav_leaderboard": "Лідерборд ›",
     "role_admin": "👑 адмін",
     "role_player": "гравець",
     "played": "зіграно",
@@ -184,12 +385,24 @@ const UI = {
     "btn_add": "+ у друзі",
     "call_title": "🎮 Покликати",
     "call_sub": "Обери гру — створю кімнату і надішлю запрошення.",
-    "cancel_btn": "Скасувати"
+    "cancel_btn": "Скасувати",
+    "game_stats_title": "📊 Статистика дуелей",
+    "arcade_bests_title": "🕹️ Рекорди в аркадах",
+    "stat_wins": "перемог",
+    "stat_winrate": "вінрейт",
+    "level_novice": "Новачок",
+    "level_adept": "Знавець",
+    "level_veteran": "Ветеран",
+    "level_master": "Майстер",
+    "level_grandmaster": "Гросмейстер",
+    "play_game_btn": "Грати",
+    "no_records_yet": "Поки немає рекордів"
   },
   ru: {
     sup_title:"Обращения в поддержку",sup_all:"Все",sup_new:"Новые",sup_prog:"В работе",sup_done:"Готово",sup_refresh:"Обновить",sup_note:"Заметка админа",sup_save:"Сохранить",sup_guest:"гость",sup_empty:"Обращений нет",cat_Bug:"Баг",cat_Complaint:"Жалоба",cat_Idea:"Идея",cat_Other:"Другое",
     "title": "Lobby.gg — Профиль",
     "nav_games": "‹ Игры",
+    "nav_leaderboard": "Лидерборд ›",
     "role_admin": "👑 админ",
     "role_player": "игрок",
     "played": "сыграно",
@@ -231,12 +444,24 @@ const UI = {
     "btn_add": "+ в друзья",
     "call_title": "🎮 Позвать",
     "call_sub": "Выбери игру — создам комнату и отправлю приглашение.",
-    "cancel_btn": "Отмена"
+    "cancel_btn": "Отмена",
+    "game_stats_title": "📊 Статистика дуэлей",
+    "arcade_bests_title": "🕹️ Рекорды в аркадах",
+    "stat_wins": "побед",
+    "stat_winrate": "винрейт",
+    "level_novice": "Новичок",
+    "level_adept": "Знаток",
+    "level_veteran": "Ветеран",
+    "level_master": "Мастер",
+    "level_grandmaster": "Гроссмейстер",
+    "play_game_btn": "Играть",
+    "no_records_yet": "Пока нет рекордов"
   },
   en: {
     sup_title:"Support inbox",sup_all:"All",sup_new:"New",sup_prog:"In progress",sup_done:"Done",sup_refresh:"Refresh",sup_note:"Admin note",sup_save:"Save",sup_guest:"guest",sup_empty:"No messages",cat_Bug:"Bug",cat_Complaint:"Complaint",cat_Idea:"Idea",cat_Other:"Other",
     "title": "Lobby.gg — Profile",
     "nav_games": "‹ Games",
+    "nav_leaderboard": "Leaderboard ›",
     "role_admin": "👑 admin",
     "role_player": "player",
     "played": "played",
@@ -278,12 +503,24 @@ const UI = {
     "btn_add": "+ Add",
     "call_title": "🎮 Invite",
     "call_sub": "Pick a game — a room will open and send the invite.",
-    "cancel_btn": "Cancel"
+    "cancel_btn": "Cancel",
+    "game_stats_title": "📊 Duel Stats",
+    "arcade_bests_title": "🕹️ Arcade High Scores",
+    "stat_wins": "wins",
+    "stat_winrate": "win rate",
+    "level_novice": "Novice",
+    "level_adept": "Adept",
+    "level_veteran": "Veteran",
+    "level_master": "Master",
+    "level_grandmaster": "Grandmaster",
+    "play_game_btn": "Play",
+    "no_records_yet": "No records yet"
   },
   de: {
     sup_title:"Support-Postfach",sup_all:"Alle",sup_new:"Neu",sup_prog:"In Arbeit",sup_done:"Erledigt",sup_refresh:"Aktualisieren",sup_note:"Admin-Notiz",sup_save:"Speichern",sup_guest:"Gast",sup_empty:"Keine Nachrichten",cat_Bug:"Fehler",cat_Complaint:"Beschwerde",cat_Idea:"Idee",cat_Other:"Sonstiges",
     "title": "Lobby.gg — Profil",
     "nav_games": "‹ Spiele",
+    "nav_leaderboard": "Bestenliste ›",
     "role_admin": "👑 Admin",
     "role_player": "Spieler",
     "played": "gespielt",
@@ -325,9 +562,41 @@ const UI = {
     "btn_add": "+ Freund",
     "call_title": "🎮 Einladen",
     "call_sub": "Wähle ein Spiel — ein Raum wird erstellt und die Einladung verschickt.",
-    "cancel_btn": "Abbrechen"
+    "cancel_btn": "Abbrechen",
+    "game_stats_title": "📊 Duell-Statistiken",
+    "arcade_bests_title": "🕹️ Arcade-Bestleistungen",
+    "stat_wins": "Siege",
+    "stat_winrate": "Siegquote",
+    "level_novice": "Neuling",
+    "level_adept": "Fortgeschrittener",
+    "level_veteran": "Veteran",
+    "level_master": "Meister",
+    "level_grandmaster": "Großmeister",
+    "play_game_btn": "Spielen",
+    "no_records_yet": "Noch keine Rekorde"
   }
 };
+
+const DUEL_GAMES = [
+  { id: 'c4', icon: '🔴', path: '/games/c4', ru: '4 в ряд', uk: '4 в ряд', en: 'Connect 4', de: '4 Gewinnt' },
+  { id: 'chess', icon: '♟️', path: '/games/chess', ru: 'Шахматы', uk: 'Шахи', en: 'Chess', de: 'Schach' },
+  { id: 'checkers', icon: '🏁', path: '/games/checkers', ru: 'Шашки', uk: 'Шашки', en: 'Checkers', de: 'Dame' },
+  { id: 'reversi', icon: '⚫', path: '/games/reversi', ru: 'Реверси', uk: 'Реверсі', en: 'Reversi', de: 'Reversi' },
+  { id: 'dots', icon: '🟦', path: '/games/dots', ru: 'Точки', uk: 'Крапки', en: 'Dots & Boxes', de: 'Käsekästchen' },
+  { id: 'bulls', icon: '🐂', path: '/games/bulls', ru: 'Быки и коровы', uk: 'Бики і корови', en: 'Bulls & Cows', de: 'Bullen & Kühe' },
+  { id: 'battleship', icon: '🚢', path: '/games/battleship', ru: 'Морской бой', uk: 'Морський бій', en: 'Battleship', de: 'Schiffe versenken' },
+  { id: 'quoridor', icon: '🧱', path: '/games/quoridor', ru: 'Коридор', uk: 'Коридор', en: 'Corridor', de: 'Quoridor' }
+];
+
+const ARCADE_GAMES = [
+  { id: 'race', icon: '🏎️', path: '/games/race', storageKey: 'jg_race_best', suffix: ' м', ru: 'Гонки', uk: 'Перегони', en: 'Race', de: 'Rennen' },
+  { id: 'snake', icon: '🐍', path: '/games/snake', storageKey: 'snake_best', suffix: ' pts', ru: 'Змейка', uk: 'Змійка', en: 'Snake', de: 'Snake' },
+  { id: 'g2048', icon: '🔢', path: '/games/g2048', storageKey: 'g2048_best', suffix: ' pts', ru: '2048', uk: '2048', en: '2048', de: '2048' },
+  { id: 'tetris', icon: '🧱', path: '/games/tetris', storageKey: 'jg_tetris_best', suffix: ' pts', ru: 'Тетрис', uk: 'Тетріс', en: 'Tetris', de: 'Tetris' },
+  { id: 'arrows', icon: '🏹', path: '/games/arrows', storageKey: 'arrows_best_lvl', suffix: ' lvl', ru: 'Стрелки', uk: 'Стрілки', en: 'Arrows', de: 'Pfeile' },
+  { id: 'fifteen', icon: '🧩', path: '/games/fifteen', storageKey: 'fifteen_best_4', suffix: ' ходов', ru: 'Пятнашки', uk: "П'ятнашки", en: '15 Puzzle', de: '15-Puzzle' },
+  { id: 'wordle', icon: '🔤', path: '/games/wordle', storageKey: 'wordle_best_streak', suffix: ' streak', ru: 'Вордли', uk: 'Вордлі', en: 'Wordle', de: 'Wordle' }
+];
 
 const GAME_LABELS = {
   uno: { uk: 'UNO', ru: 'UNO', en: 'UNO', de: 'UNO' },
@@ -348,7 +617,7 @@ const GAME_LABELS = {
   guesswho: { uk: 'Хто я?', ru: 'Кто есть кто', en: 'Guess Who', de: 'Wer ist es?' },
   mafia: { uk: 'Мафія', ru: 'Мафия', en: 'Mafia', de: 'Mafia' },
   quoridor: { uk: 'Коридор', ru: 'Коридор', en: 'Quoridor', de: 'Quoridor' },
-  variants: { uk: 'Варіанти', ru: 'Варианты', en: 'Fibbage', de: 'Fibbage' },
+  variants: { uk: 'Варіанти', ru: 'Варианты', en: 'Bluff Auction', de: 'Lügen-Auktion' },
   arrows: { uk: 'Стрілки', ru: 'Стрелки', en: 'Arrows', de: 'Pfeile' },
   g2048: { uk: '2048', ru: '2048', en: '2048', de: '2048' },
   n2048: { uk: '2048', ru: '2048', en: '2048', de: '2048' },
@@ -378,6 +647,7 @@ const COLORS=['#e0102e','#f59e0b','#22c55e','#3b82f6','#a04bf0','#2fd9d9','#ff6b
 let LANG = localStorage.getItem('jg_lang') || 'ru';
 if (!UI[LANG]) LANG = 'ru';
 let prof = { avatar: '🙂', color: '#e0102e', sound: 1, display_name: '', username: '', role: '', stats: null };
+let ratingsCache = null;
 let friendsCache = null;
 let searchCache = null;
 let activeCallUser = null;
@@ -393,11 +663,75 @@ function gameLabel(g) {
   return (m && (m[LANG] || m.ru)) || g;
 }
 
+function computeTier(played, wins) {
+  if (played >= 100 && wins >= 50) return t('level_grandmaster');
+  if (played >= 50 && wins >= 25) return t('level_master');
+  if (played >= 25) return t('level_veteran');
+  if (played >= 8) return t('level_adept');
+  return t('level_novice');
+}
+
 function renderProfileMeta() {
   if (!prof || !prof.username) return;
   document.getElementById('pRole').textContent = (prof.role === 'root' ? t('role_admin') : t('role_player')) + ' · @' + prof.username;
   const st = prof.stats || {};
-  document.getElementById('sFav').textContent = st.top_games && st.top_games[0] ? gameLabel(st.top_games[0][0]) : '—';
+  const played = Number(st.played) || 0;
+  const wins = Number(st.wins) || 0;
+  const wr = played > 0 ? Math.round((wins / played) * 100) : 0;
+
+  document.getElementById('sPlayed').textContent = played;
+  document.getElementById('sWins').textContent = wins;
+  document.getElementById('sWinrate').textContent = wr + '%';
+
+  const tierText = computeTier(played, wins);
+  document.getElementById('pTier').textContent = `🌟 ${tierText}`;
+}
+
+function renderDuelTiles() {
+  const grid = document.getElementById('duelTilesGrid');
+  if (!grid) return;
+  const ratings = ratingsCache || {};
+
+  grid.innerHTML = DUEL_GAMES.map(g => {
+    const r = ratings[g.id] || { elo: 1000, wins: 0, losses: 0, draws: 0, games: 0 };
+    const name = g[LANG] || g.ru;
+    const elo = Math.round(Number(r.elo) || 1000);
+    const wld = `${r.wins || 0}W / ${r.losses || 0}L`;
+    return `
+      <a class="game-tile" href="${g.path}">
+        <div class="gt-head">
+          <span class="gt-icon">${g.icon}</span>
+          <span class="gt-name">${esc(name)}</span>
+        </div>
+        <div class="gt-metrics">
+          <span class="gt-elo">${elo} ELO</span>
+          <span class="gt-wld">${wld}</span>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function renderArcadeTiles() {
+  const list = document.getElementById('arcadeTilesList');
+  if (!list) return;
+
+  list.innerHTML = ARCADE_GAMES.map(g => {
+    let val = null;
+    try { val = localStorage.getItem(g.storageKey); } catch (_) {}
+    const hasRecord = val !== null && val !== '' && val !== '0';
+    const displayVal = hasRecord ? `${val}${g.suffix}` : t('no_records_yet');
+    const name = g[LANG] || g.ru;
+    return `
+      <a class="arcade-tile" href="${g.path}">
+        <div class="at-left">
+          <span class="at-icon">${g.icon}</span>
+          <span class="at-name">${esc(name)}</span>
+        </div>
+        <div class="at-badge">${hasRecord ? '🔥 ' : ''}${esc(displayVal)}</div>
+      </a>
+    `;
+  }).join('');
 }
 
 function applyUI() {
@@ -411,6 +745,8 @@ function applyUI() {
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   renderProfileMeta();
+  renderDuelTiles();
+  renderArcadeTiles();
   renderFriends();
   renderSearch();
   if (activeCallUser && document.getElementById('callModal')) callToGame(activeCallUser);
@@ -436,17 +772,20 @@ function syncPickers(){
 }
 
 async function loadProfile(){
-  const d=await jget('/me');
+  const [d, ratingsData] = await Promise.all([jget('/me'), jget('/me/ratings')]);
   if(!d||!d.profile){toast(t('not_logged'));return;}
   prof=Object.assign(prof,d.profile);
+  if(ratingsData && ratingsData.ok && ratingsData.ratings) {
+    ratingsCache = ratingsData.ratings;
+  }
   document.getElementById('pName').textContent=prof.display_name;
   document.getElementById('dispName').value=prof.display_name;
   document.getElementById('soundSw').classList.toggle('on',!!prof.sound);
-  const st=d.profile.stats||{};
-  document.getElementById('sPlayed').textContent=st.played||0;
   renderProfileMeta();
+  renderDuelTiles();
+  renderArcadeTiles();
   syncPickers();
-  
+
   if(prof.role === 'root') {
     document.getElementById('adminSupportInbox').classList.remove('hide');
     loadSupportTickets();
@@ -457,7 +796,7 @@ async function loadSupportTickets() {
   const status = document.getElementById('supFilter').value;
   const d = await jget(`/api/support/tickets?status=${encodeURIComponent(status)}`);
   if(!d || !d.ok) return;
-  
+
   const badge = document.getElementById('supportUnreadBadge');
   if(d.unread > 0) {
     badge.style.display = 'inline-block';
@@ -465,25 +804,25 @@ async function loadSupportTickets() {
   } else {
     badge.style.display = 'none';
   }
-  
+
   const list = document.getElementById('supportTicketsList');
   list.innerHTML = '';
-  
+
   if(!d.tickets.length) {
     list.innerHTML = `<div class="empty">${esc(t('sup_empty'))}</div>`;
     return;
   }
-  
+
   d.tickets.forEach(tk => {
     const card = document.createElement('div');
     card.style.cssText = 'background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:12px; padding:12px';
-    
+
     let stColor = '#555';
     if(tk.status === 'new') stColor = '#2fbf5f';
     else if(tk.status === 'in_progress') stColor = '#f59e0b';
-    
+
     const ts = new Date(tk.created_at).toLocaleString(LANG === 'uk' ? 'uk-UA' : LANG);
-    
+
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
         <div style="display:flex; gap:6px; align-items:center">
@@ -494,12 +833,12 @@ async function loadSupportTickets() {
       </div>
       <div style="font-size:13px; font-weight:700; margin-bottom:4px">${esc(tk.username || t('sup_guest'))} <span style="font-weight:400; color:var(--muted)">${esc(tk.contact || '')}</span></div>
       <div style="font-size:14px; margin-bottom:12px; white-space:pre-wrap; word-break:break-word">${esc(tk.message)}</div>
-      
+
       <div style="display:flex; gap:6px; margin-bottom:8px">
         <input type="text" id="note_${tk.id}" value="${esc(tk.admin_note || '')}" placeholder="${esc(t('sup_note'))}" style="flex:1; padding:6px; font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; color:#fff">
         <button class="sec btn-mini" onclick="updateTicket(${tk.id}, null, document.getElementById('note_${tk.id}').value)">${esc(t('sup_save'))}</button>
       </div>
-      
+
       <div style="display:flex; gap:6px">
         <button class="btn-mini" style="background:#f59e0b; color:#fff" onclick="updateTicket(${tk.id}, 'in_progress', null)">${esc(t('sup_prog'))}</button>
         <button class="btn-mini" style="background:#222; color:#fff" onclick="updateTicket(${tk.id}, 'done', null)">${esc(t('sup_done'))}</button>
@@ -513,12 +852,11 @@ async function updateTicket(id, status, note) {
   const payload = {};
   if(status !== null) payload.status = status;
   if(note !== null) payload.admin_note = note;
-  
+
   const r = await jpost(`/api/support/tickets/${id}`, payload);
   if(r.ok) {
     toast('Ticket updated');
     loadSupportTickets();
-    // Refresh global badge if it exists
     if(window.LobbyShell && window.LobbyShell.refreshProfile) {
       window.LobbyShell.refreshProfile();
     }

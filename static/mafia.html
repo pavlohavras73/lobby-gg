@@ -191,6 +191,7 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script src="/games/static/arcade_fx.js"></script>
+<script src="/games/static/rejoin.js"></script>
 <script>
 // ═══════════ i18n Мафии: УКР / РУС / ENG ═══════════
 const UI={
@@ -434,8 +435,16 @@ function confirmVote(){
 }
 
 function handle(m){
-  if(m.type==='joined'){pid=m.pid;isHost=m.host;roomCode=m.code;sessionStorage.setItem('jg_mafia_code',m.code);}
-  if(m.type==='error'){const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;}
+  if(m.type==='joined'){
+    window.pid=pid=m.pid;window.roomCode=roomCode=m.code;isHost=m.host;
+    const nInp = document.getElementById('name');
+    if(window.LobbyRejoin) LobbyRejoin.save('mafia', m.code, nInp ? nInp.value : '');
+    else sessionStorage.setItem('jg_mafia_code', m.code);
+  }
+  if(m.type==='error'){
+    if(window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('mafia');
+    const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;
+  }
   if(m.type==='lobby'||m.type==='room'){
     prevAlive={};prevVotes={};prevPhaseMafia='lobby';hasRenderedMafia=false;
     show('lobby');
@@ -584,6 +593,7 @@ function renderVote(m){
 }
 
 function renderOver(m){
+  if(window.LobbyRejoin) LobbyRejoin.clear('mafia');
   show('over');
   document.body.className='';
   const wb=document.getElementById('winban');
@@ -610,12 +620,17 @@ function renderOver(m){
 }
 document.addEventListener('DOMContentLoaded', () => {
   if (window.LobbyUI && LobbyUI.initPinInput) LobbyUI.initPinInput('joincode', 'pinBoxes', join);
-  const autoCode = sessionStorage.getItem('jg_mafia_code');
+  const autoCode = (window.LobbyRejoin && LobbyRejoin.getCode('mafia')) || sessionStorage.getItem('jg_mafia_code');
   if (autoCode) {
     const jc = document.getElementById('joincode');
     if (jc) jc.value = autoCode;
   }
+  const topBack = document.querySelector('.top-back');
+  if (topBack) {
+    topBack.addEventListener('click', () => { if (window.LobbyRejoin) LobbyRejoin.clear('mafia'); });
+  }
   applyUI();
+  if (window.LobbyRejoin) LobbyRejoin.autoJoin('mafia', join);
 });
 </script>
 </body>
