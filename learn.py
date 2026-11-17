@@ -12,13 +12,11 @@ import difflib
 import logging
 import base64
 import tempfile
-import subprocess
 from fastapi import APIRouter, Request, Response, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 
 logger = logging.getLogger("jarvis_learn")
 
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "")   # set via container environment, never commit keys
 
 def get_db_path():
     # На сервере база в /data/users.db, локально в текущей папке
@@ -423,18 +421,26 @@ def evaluate_pronunciation(target: str, recognized: str):
     }
 
 def transcribe_audio_groq(file_path: str) -> str:
+    """Распознавание речи через Groq Whisper. Ключ — только в заголовке запроса (не в argv/логах)."""
+    key = os.environ.get("GROQ_API_KEY", "") or os.environ.get("GROQ_KEY", "")
+    if not key:
+        return ""
+    import urllib.request, uuid
+    boundary = uuid.uuid4().hex
+    with open(file_path, "rb") as f:
+        audio = f.read()
+    name = os.path.basename(file_path)
+    body = (f"--{boundary}\r\nContent-Disposition: form-data; name=\"model\"\r\n\r\nwhisper-large-v3\r\n"
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{name}\"\r\n"
+            f"Content-Type: application/octet-stream\r\n\r\n").encode() + audio + f"\r\n--{boundary}--\r\n".encode()
+    req = urllib.request.Request("https://api.groq.com/openai/v1/audio/transcriptions", data=body,
+                                 headers={"Content-Type": f"multipart/form-data; boundary={boundary}",
+                                          "Authorization": f"Bearer {key}", "User-Agent": "lobby-gg"})
     try:
-        cmd = [
-            "curl", "-s", "https://api.groq.com/openai/v1/audio/transcriptions",
-            "-H", f"Authorization: bearer {GROQ_KEY}",
-            "-F", f"file=@{file_path}",
-            "-F", "model=whisper-large-v3"
-        ]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
-        data = json.loads(res.stdout)
-        return data.get("text", "")
+        with urllib.request.urlopen(req, timeout=25) as r:
+            return json.load(r).get("text", "")
     except Exception as e:
-        logger.error(f"Groq transcription failed: {e}")
+        logger.error("Groq transcription failed: %s", type(e).__name__)
         return ""
 
 # ══════════════════════════════════════════════════════════════
@@ -561,8 +567,21 @@ async def get_lesson(lesson_id: str):
     finally:
         con.close()
 
+VOICE_MAX_BYTES = 3 * 1024 * 1024          # ~3 МБ хватает на минуту webm с микрофона
+VOICE_EXTS = {"webm", "ogg", "mp3", "wav", "m4a", "mp4"}
+
+
 @router.post("/learn/api/voice-check")
 async def voice_check(request: Request):
+    # Платный по квоте ключ Groq: лимит по IP и общий, размер тела ограничен ДО чтения.
+    try:
+        from server import _rate_ok, _client_ip
+        if not (_rate_ok("voice_ip", _client_ip(request), 12, 60) and _rate_ok("voice_all", "all", 60, 60)):
+            raise HTTPException(429, detail="Too many requests")
+    except ImportError:
+        pass
+    if int(request.headers.get("content-length") or 0) > VOICE_MAX_BYTES * 4 // 3 + 4096:
+        raise HTTPException(413, detail="Audio too large")
     content_type = request.headers.get("content-type", "")
     target_phrase = ""
     audio_bytes = b""
@@ -573,7 +592,10 @@ async def voice_check(request: Request):
         target_phrase = body.get("target_phrase", "")
         b64 = body.get("audio_base64", "")
         if b64:
-            audio_bytes = base64.b64decode(b64)
+            try:
+                audio_bytes = base64.b64decode(b64)
+            except Exception:
+                raise HTTPException(400, detail="Bad audio payload")
         ext = body.get("format", "webm")
     else:
         try:
@@ -591,7 +613,11 @@ async def voice_check(request: Request):
             
     if not audio_bytes:
         raise HTTPException(400, detail="No audio data received")
-        
+    if len(audio_bytes) > VOICE_MAX_BYTES:
+        raise HTTPException(413, detail="Audio too large")
+    ext = str(ext).lower() if str(ext).lower() in VOICE_EXTS else "webm"
+    target_phrase = str(target_phrase)[:300]
+
     with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as tmp:
         tmp_path = tmp.name
         tmp.write(audio_bytes)

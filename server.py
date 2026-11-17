@@ -6,6 +6,11 @@ import asyncio, json, random, string, os, re, html, urllib.request, logging, thr
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Response, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+try:
+    from starlette.websockets import WebSocketDisconnected as _WSGone
+except ImportError:  # старый starlette
+    class _WSGone(Exception):
+        pass
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # без публичной автодокументации API
 
 app.mount("/games/static", StaticFiles(directory="/app/static"), name="static")
@@ -447,6 +452,7 @@ def _load_crafted():
 
 
 def _save_crafted():
+    _trim_cache(CRAFTED, CRAFT_MAX)
     for path in (CRAFT_CACHE, "/tmp/spy_packs.json"):
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -458,6 +464,44 @@ def _save_crafted():
 
 
 CRAFTED = _load_crafted()
+CRAFT_MAX = 80          # общая библиотека паков: больше — выкидываем самые старые
+
+
+def _trim_cache(d, cap):
+    while len(d) > cap:
+        d.pop(next(iter(d)))
+
+
+# «Хто є хто»: персонажи по теме генерируются один раз и дальше берутся с диска.
+GW_CACHE = os.environ.get("GW_CACHE", "/data/gw_packs.json")
+GW_CACHE_MAX = 200
+
+
+def _gw_key(title):
+    return re.sub(r"\s+", " ", title.strip().lower().replace("ё", "е"))
+
+
+def _load_gw_cache():
+    try:
+        with open(GW_CACHE, encoding="utf-8") as f:
+            d = json.load(f)
+        return {k: v for k, v in d.items() if isinstance(v, list) and len(v) >= 8} if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+GW_PACKS = _load_gw_cache()
+
+
+def _save_gw_cache():
+    _trim_cache(GW_PACKS, GW_CACHE_MAX)
+    try:
+        tmp = GW_CACHE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(GW_PACKS, f, ensure_ascii=False)
+        os.replace(tmp, GW_CACHE)
+    except Exception as e:
+        logging.warning("gw cache save: %s", type(e).__name__)
 
 
 def spy_lookup(name):
@@ -1288,11 +1332,23 @@ async def start_gw(room, title):
     pids = list(room["players"].keys())[:2]
     if len(pids) < 2:
         await broadcast(room, {"type": "error", "msg": "Нужно 2 игрока."}); return
-    title = (title or "Знаменитости").strip()[:60]
-    await broadcast(room, {"type": "gw_loading", "title": title})
-    chars = await asyncio.get_event_loop().run_in_executor(None, gemini_chars, title)
+    title = (title or "Знаменитости").strip()[:60] or "Знаменитости"
+    if room.get("gw_loading"):
+        return                                    # двойное нажатие «Старт» — генерация уже идёт
+    key = _gw_key(title)
+    chars = GW_PACKS.get(key)
     if not chars:
-        chars = DEFAULT_CHARS
+        room["gw_loading"] = True
+        await broadcast(room, {"type": "gw_loading", "title": title})
+        try:
+            chars = await asyncio.get_event_loop().run_in_executor(None, gemini_chars, title)
+        finally:
+            room.pop("gw_loading", None)
+        if chars:
+            GW_PACKS[key] = chars
+            _save_gw_cache()
+        else:
+            chars = DEFAULT_CHARS
     room["gw"] = {"chars": chars, "title": title, "players": pids,
                   "secret": {pids[0]: random.randrange(len(chars)), pids[1]: random.randrange(len(chars))},
                   "flipped": {p: set() for p in pids}, "winner": None}
@@ -4460,9 +4516,13 @@ async def ws(websocket: WebSocket):
                     elif act == "spy_craft" and room and room["host"] == pid:
                         spy_init(room)
                         theme = str(msg.get("theme", "")).strip()[:50]
-                        if theme and theme not in CRAFTED and theme not in SPY_PACKS:
+                        if theme and theme not in CRAFTED and theme not in SPY_PACKS and not room.get("spy_crafting"):
                             await broadcast(room, {"type": "spy_loading", "theme": theme})
-                            items = await asyncio.get_event_loop().run_in_executor(None, gemini_people, theme, 15)
+                            room["spy_crafting"] = True       # одна генерация на комнату за раз
+                            try:
+                                items = await asyncio.get_event_loop().run_in_executor(None, gemini_people, theme, 15)
+                            finally:
+                                room.pop("spy_crafting", None)
                             if items:
                                 CRAFTED[theme] = items
                                 _save_crafted()
@@ -4494,7 +4554,7 @@ async def ws(websocket: WebSocket):
                 except Exception:
                     pass
 
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, _WSGone):   # обычный уход клиента (новый starlette кидает WebSocketDisconnected)
         pass
     except Exception:
         logging.exception("ws loop crashed")

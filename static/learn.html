@@ -1682,15 +1682,22 @@
               })
             });
             const data = await res.json();
-            if (data.ok) {
+            if (!data.ok) {
+              status.textContent = t('audio_check_err');
+              document.getElementById('check-btn').disabled = false;
+              return;
+            }
+            {
               const resObj = data.result;
               evalBox.classList.remove('hide');
-              evalBox.innerHTML = `
-                <div style="font-weight:700; color:${resObj.pass ? 'var(--green)' : 'var(--red)'};">
-                  ${t('accuracy_label')} ${resObj.score}%
-                </div>
-                <div>${resObj.feedback}</div>
-              `;
+              // распознанный текст пришёл от пользователя — только textContent, без innerHTML
+              const head = document.createElement('div');
+              head.style.fontWeight = '700';
+              head.style.color = resObj.pass ? 'var(--green)' : 'var(--red)';
+              head.textContent = t('accuracy_label') + ' ' + Number(resObj.score) + '%';
+              const fb = document.createElement('div');
+              fb.textContent = resObj.feedback;
+              evalBox.replaceChildren(head, fb);
               evalBox.style.background = resObj.pass ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 34, 56, 0.1)';
               status.textContent = resObj.pass ? t('sheet_great') : t('try_again_or_next');
 
