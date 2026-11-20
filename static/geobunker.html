@@ -229,7 +229,10 @@
     <div class="lobby-card">
       <div class="gb-lobby-top">
         <a href="/games/" class="gb-back-link" data-i18n="nav_games">‹ Игры</a>
-        <span class="gb-recon-pill" data-i18n="recon_badge">☢ РАЗВЕДКА</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('geobunker') : null" data-i18n-title="rules_btn" title="Правила" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;font-weight:900;font-size:15px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">i</button>
+          <span class="gb-recon-pill" data-i18n="recon_badge">☢ РАЗВЕДКА</span>
+        </div>
       </div>
       <div class="lobby-title" data-i18n="lobby_title">GEOBUNKER 🌍</div>
       <div class="langbar" id="langbar"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>

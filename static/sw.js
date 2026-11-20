@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v21";  // v21: stage 12c sfx volume leveling, shell sound & vibration toggle
+const CACHE = "lobby-static-v22";  // v22: stage 13c device vibration detection, settings drawer i18n, header 320px
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [
@@ -35,7 +35,29 @@ const PRECACHE = [
   "/games/static/raskol/input.js",
   "/games/static/raskol/save.js",
   "/games/static/raskol/classes.js",
-  "/games/static/raskol/engine.js"
+  "/games/static/raskol/engine.js",
+  "/games/static/rules/alias.js",
+  "/games/static/rules/bunker.js",
+  "/games/static/rules/geostake.js",
+  "/games/static/rules/guesswho.js",
+  "/games/static/rules/mafia.js",
+  "/games/static/rules/poker.js",
+  "/games/static/rules/raskol.js",
+  "/games/static/rules/space_invaders.js",
+  "/games/static/rules/spy.js",
+  "/games/static/rules/variants.js",
+  "/games/static/rules/uno.js",
+  "/games/static/rules/durak.js",
+  "/games/static/rules/chess.js",
+  "/games/static/rules/checkers.js",
+  "/games/static/rules/battleship.js",
+  "/games/static/rules/reversi.js",
+  "/games/static/rules/dots.js",
+  "/games/static/rules/bulls.js",
+  "/games/static/rules/quoridor.js",
+  "/games/static/rules/connect4_3d.js",
+  "/games/static/rules/race.js",
+  "/games/static/rules/geobunker.js"
 ];
 
 self.addEventListener("install", (e) => {

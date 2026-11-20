@@ -69,6 +69,7 @@
       set_sound_sub: 'Звук у лобі та іграх',
       set_vibe: 'Вібрація',
       set_vibe_sub: 'Тактильний відгук у лобі та іграх',
+      set_vibe_na: 'недоступно на цьому пристрої',
       sh_sound: 'Звук',
       sh_vibe: 'Вібрація',
       set_rm: 'Зменшити рух',
@@ -139,6 +140,7 @@
       set_sound_sub: 'Звуки в лобби и играх',
       set_vibe: 'Вибрация',
       set_vibe_sub: 'Тактильный отклик в лобби и играх',
+      set_vibe_na: 'недоступно на этом устройстве',
       sh_sound: 'Звук',
       sh_vibe: 'Вибрация',
       set_rm: 'Уменьшить движение',
@@ -209,6 +211,7 @@
       set_sound_sub: 'In-game and UI audio',
       set_vibe: 'Vibration',
       set_vibe_sub: 'Haptic feedback in lobby and games',
+      set_vibe_na: 'not available on this device',
       sh_sound: 'Sound',
       sh_vibe: 'Vibration',
       set_rm: 'Reduce motion',
@@ -279,6 +282,7 @@
       set_sound_sub: 'Sounds in Lobby und Spielen',
       set_vibe: 'Vibration',
       set_vibe_sub: 'Haptisches Feedback in Spielen',
+      set_vibe_na: 'auf diesem Gerät nicht verfügbar',
       sh_sound: 'Sound',
       sh_vibe: 'Vibration',
       set_rm: 'Bewegung reduzieren',
@@ -446,7 +450,7 @@
         <button type="button" id="nav-btn-sound" aria-label="Sound" title="Sound" class="nav-btn-sfx">
           <span>🔊</span>
         </button>
-        <button type="button" id="nav-btn-vibe" aria-label="Vibration" title="Vibration" class="nav-btn-vibe">
+        <button type="button" id="nav-btn-vibe" aria-label="Vibration" title="Vibration" class="nav-btn-vibe"${!isVibeSupported() ? ' style="display:none;"' : ''}>
           <span>📳</span>
         </button>
       `;
@@ -474,6 +478,7 @@
           vBtn.type = 'button';
           vBtn.id = 'nav-btn-vibe';
           vBtn.className = 'nav-btn-vibe';
+          if (!isVibeSupported()) vBtn.style.display = 'none';
           vBtn.setAttribute('aria-label', tr('sh_vibe') || 'Vibration');
           vBtn.setAttribute('title', tr('sh_vibe') || 'Vibration');
           vBtn.innerHTML = '<span>📳</span>';
@@ -823,7 +828,19 @@
     }
   }
 
+  function isVibeSupported() {
+    if (window.LobbyUI && typeof window.LobbyUI.isVibrationSupported === 'function') {
+      return window.LobbyUI.isVibrationSupported();
+    }
+    try {
+      return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function' && !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function isVibeOn() {
+    if (!isVibeSupported()) return false;
     try {
       if (window.LobbyUI && typeof window.LobbyUI.isVibrationEnabled === 'function') {
         return window.LobbyUI.isVibrationEnabled();
@@ -838,19 +855,48 @@
   }
 
   function syncVibeUI(vibeOn) {
-    if (vibeOn === undefined) vibeOn = isVibeOn();
-    const sw = document.getElementById('set-vibe-sw');
-    if (sw) sw.setAttribute('aria-checked', vibeOn ? 'true' : 'false');
+    const supported = isVibeSupported();
     const btn = document.getElementById('nav-btn-vibe');
     if (btn) {
-      btn.innerHTML = vibeOn ? '<span>📳</span>' : '<span>📴</span>';
-      const label = (tr('sh_vibe') || 'Vibration') + (vibeOn ? ': ON' : ': OFF');
-      btn.setAttribute('title', label);
-      btn.setAttribute('aria-label', label);
+      if (!supported) {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = '';
+        if (vibeOn === undefined) vibeOn = isVibeOn();
+        btn.innerHTML = vibeOn ? '<span>📳</span>' : '<span>📴</span>';
+        const label = (tr('sh_vibe') || 'Vibration') + (vibeOn ? ': ON' : ': OFF');
+        btn.setAttribute('title', label);
+        btn.setAttribute('aria-label', label);
+      }
+    }
+    const sw = document.getElementById('set-vibe-sw');
+    const subEls = document.querySelectorAll('#shell [data-i18n="set_vibe_sub"], .set-row [data-i18n="set_vibe_sub"], #shell [data-i18n="set_vibe_na"], .set-row [data-i18n="set_vibe_na"]');
+    if (sw) {
+      if (!supported) {
+        sw.disabled = true;
+        sw.setAttribute('aria-disabled', 'true');
+        sw.setAttribute('aria-checked', 'false');
+        sw.classList.add('disabled');
+        subEls.forEach(el => {
+          el.setAttribute('data-i18n', 'set_vibe_na');
+          el.textContent = tr('set_vibe_na') || 'not available on this device';
+        });
+      } else {
+        sw.disabled = false;
+        sw.removeAttribute('aria-disabled');
+        sw.classList.remove('disabled');
+        if (vibeOn === undefined) vibeOn = isVibeOn();
+        sw.setAttribute('aria-checked', vibeOn ? 'true' : 'false');
+        subEls.forEach(el => {
+          el.setAttribute('data-i18n', 'set_vibe_sub');
+          el.textContent = tr('set_vibe_sub') || 'Haptic feedback in lobby and games';
+        });
+      }
     }
   }
 
   function toggleVibe() {
+    if (!isVibeSupported()) return false;
     if (window.LobbyUI && typeof window.LobbyUI.toggleVibration === 'function') {
       const on = window.LobbyUI.toggleVibration();
       syncVibeUI(on);
@@ -2315,6 +2361,7 @@
     toggleSound: toggleSound,
     toggleVibe: toggleVibe,
     isSoundOn: isSoundOn,
-    isVibeOn: isVibeOn
+    isVibeOn: isVibeOn,
+    isVibeSupported: isVibeSupported
   };
 })();

@@ -110,10 +110,10 @@
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">ШАШКИ</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('checkers') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left">
     <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🏁 Шашки — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">
@@ -300,7 +300,7 @@ const UI = {
     "page_title": "🏁 DAME",
     "page_sub": "Klassische Dame · Schlagpflicht · 2 Spieler",
     "name_ph": "Name",
-    "create_btn": "Spiel erstellen",
+    "create_btn": "Raum erstellen",
     "code_ph": "CODE",
     "join_btn": "Mit Code beitreten",
     "back_btn": "← Alle Spiele",

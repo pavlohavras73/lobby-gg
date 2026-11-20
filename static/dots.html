@@ -141,10 +141,10 @@
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">ТОЧКИ</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('dots') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left">
     <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">▦ Точки — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">По очереди рисуй линии между точками. Замкнул квадрат — он твой, и ходишь ещё раз. У кого больше квадратов в конце — победил.</div>
@@ -250,7 +250,7 @@ const UI = {
     title: "Punkte — Lobby.gg", rules_btn: "Regeln", rules_title: "🟣 Punkte — Regeln",
     rules_body: "Verbindet abwechselnd zwei benachbarte Punkte mit einer Linie. Wer ein Kästchen schließt, bekommt es und ist nochmal dran. Wer am Ende die meisten Kästchen hat, gewinnt.",
     rules_ok: "Verstanden 👍", nav_games: "‹ Spiele", page_title: "PUNKTE", page_sub: "Taktik · Einkreisen · 2 Spieler",
-    name_ph: "Name", create_btn: "Spiel erstellen", or_code: "oder mit Code", code_ph: "CODE", join_btn: "Beitreten",
+    name_ph: "Name", create_btn: "Raum erstellen", or_code: "oder mit Code", code_ph: "CODE", join_btn: "Beitreten",
     room_code: "Code", diff_easy: "🤖 Leicht", diff_medium: "Mittel", diff_hard: "Schwer", add_bot_btn: "🤖 Hinzufügen",
     wait_msg: "Warte auf Gegner…", restart_btn: "Neustart", you_won: "🏆 Du hast gewonnen!", someone_won: "{n} hat gewonnen!",
     draw: "🤝 Unentschieden!", your_turn: "DU BIST DRAN", your_turn_sub: " — tippe auf eine Linie", turn_of: "Am Zug: {n}", alert_code: "Code?",

@@ -250,10 +250,10 @@
 <header class="game-topbar" style="max-width:520px">
   <a href="/games/" class="top-back" title="Все игры" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">🌌 4 В РЯД : 3D</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('connect4_3d') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
 </header>
 
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8);max-height:85vh;overflow-y:auto">
     <div style="font-size:20px;font-weight:800;color:var(--c4-neon);margin-bottom:12px" data-i18n="rules_title">🌌 4 в ряд 3D — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#e2e8f0" data-i18n="rules_body">

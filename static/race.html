@@ -131,10 +131,10 @@
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="back_btn">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">🏎️ Гонки</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('race') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
 </header>
 
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)">
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)">
   <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;text-align:left">
     <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🏎️ Гонки — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Объезжай машины и барьеры свайпами, стрелками или кнопками. Собирай 🪙 монеты для бонусной дистанции и заряда ⚡ Нитро!</div>

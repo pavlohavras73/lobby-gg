@@ -118,7 +118,19 @@ html.rm *, html.rm *::before, html.rm *::after {
 /* ── Mobile dock ── */
 #dock { display: none; }
 @media (max-width: 760px) {
-  #navIc { display: none; }
+  #navIc {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  #navIc button[data-tab] {
+    display: none !important;
+  }
+  #navIc button {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
   body { padding-bottom: calc(96px + var(--sab)); }
   #dock {
     display: flex;
@@ -150,6 +162,30 @@ html.rm *, html.rm *::before, html.rm *::after {
     border-radius: 9px;
     background: rgba(255, 255, 255, .18);
   }
+}
+@media (max-width: 480px) {
+  #navIc {
+    gap: 3px;
+  }
+  #navIc button {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 360px) {
+  #navIc {
+    gap: 3px;
+  }
+  #navIc button {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+}
+.no-vibe #nav-btn-vibe,
+#nav-btn-vibe[hidden] {
+  display: none !important;
 }
 @keyframes dockIn {
   from { opacity: 0; transform: translate(-50%, 30px) scale(.96); }
@@ -905,6 +941,14 @@ details.pw .pw-b { display: flex; flex-direction: column; gap: 8px; margin-top: 
 }
 #shell .sw[aria-checked="true"]::before {
   transform: translateX(20px);
+}
+#shell .sw:disabled,
+#shell .sw[aria-disabled="true"],
+#shell .sw.disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
 }
 
 /* Interface language segmented selector (.opts / .opt) */

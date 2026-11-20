@@ -298,26 +298,37 @@
     .how{grid-template-columns:1fr;margin-top:56px}
     .ftr .tech{margin-left:0}
   }
-  @media (max-width:400px){
+  @media (max-width:500px){
     .nav{padding:10px 12px}
     .nav .wrap{gap:8px}
-    .logo{gap:8px}
+    .logo{gap:6px}
     .logo .lgg-word{font-size:16px}
-    .lgg-mark{width:27px;height:27px}
+    .lgg-mark{width:26px;height:26px}
     .nav-r{gap:6px}
-    .langbar button{padding:6px 7px;letter-spacing:0}
+    .langbar{padding:2px;gap:2px}
+    .langbar button{padding:5px 6px;font-size:11px;letter-spacing:0}
   }
-  @media (max-width:360px){
+  @media (max-width:400px){
     .nav{padding:8px 10px}
     .nav .wrap{gap:6px}
-    .logo{gap:6px}
+    .logo{gap:5px}
     .logo .lgg-word{font-size:14.5px}
     .lgg-mark{width:24px;height:24px}
     .nav-r{gap:5px}
     .langbar{padding:2px;gap:1px}
-    .langbar button{padding:6px 6px;font-size:10.5px;letter-spacing:0;min-height:28px}
+    .langbar button{padding:4px 5px;font-size:10.5px;letter-spacing:0;min-height:28px}
+  }
+  @media (max-width:360px){
+    .nav{padding:8px 8px}
+    .nav .wrap{gap:4px}
+    .logo{gap:4px}
+    .logo .lgg-word{font-size:13.5px}
+    .lgg-mark{width:22px;height:22px}
+    .nav-r{gap:4px}
+    .langbar{padding:1px;gap:1px}
+    .langbar button{padding:4px 5px;font-size:10px;letter-spacing:0;min-height:26px}
     .profile-card{padding:2px}
-    .pc-av{width:28px;height:28px;font-size:15px}
+    .pc-av{width:26px;height:26px;font-size:14px}
   }
 </style>
 </head>
@@ -981,7 +992,7 @@
       fr_remove:"Видалити", fr_empty:"Поки що немає друзів — знайди за ніком нижче 👇", fr_find_player:"Знайти гравця", fr_search_ph:"нікнейм друга",
       fr_add:"+ Додати", fr_not_found:"Нікого не знайдено",
       ch_title:"Лобі-чат", ch_online:"Наживо", ch_ph:"Напиши повідомлення...", ch_hint:"Enter — надіслати", ch_send:"Надіслати", ch_new:"Нові повідомлення ↓", ch_empty:"У чаті поки тихо. Напиши першим!",
-      set_lang:"Мова інтерфейсу", set_sound:"Звукові ефекти", set_sound_sub:"Звук у лобі та іграх", set_vibe:"Вібрація", set_vibe_sub:"Тактильний відгук у лобі та іграх", set_rm:"Зменшити рух", set_rm_sub:"Мінімізувати анімації", set_about:"Про Lobby.gg", set_about_desc:"Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання."
+      set_lang:"Мова інтерфейсу", set_sound:"Звукові ефекти", set_sound_sub:"Звук у лобі та іграх", set_vibe:"Вібрація", set_vibe_sub:"Тактильний відгук у лобі та іграх", set_vibe_na:"недоступно на цьому пристрої", set_rm:"Зменшити рух", set_rm_sub:"Мінімізувати анімації", set_about:"Про Lobby.gg", set_about_desc:"Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання."
     },
     ru:{
       k_recent:"Недавние", h_recent:"Продолжить игру", fav_add:"Добавить в избранное", fav_remove:"Удалить из избранного",
@@ -1046,7 +1057,7 @@
       fr_remove:"Удалить", fr_empty:"Пока нет друзей — найди по нику ниже 👇", fr_find_player:"Найти игрока", fr_search_ph:"ник друга",
       fr_add:"+ Добавить", fr_not_found:"Никого не нашлось",
       ch_title:"Лобби-чат", ch_online:"Прямой эфир", ch_ph:"Напиши сообщение...", ch_hint:"Enter — отправить", ch_send:"Отправить", ch_new:"Новые сообщения ↓", ch_empty:"В чате пока тихо. Напиши первым!",
-      set_lang:"Язык интерфейса", set_sound:"Звуковые эффекты", set_sound_sub:"Звуки в лобби и играх", set_vibe:"Вибрация", set_vibe_sub:"Тактильный отклик в лобби и играх", set_rm:"Уменьшить движение", set_rm_sub:"Минимизировать анимации", set_about:"О проекте", set_about_desc:"Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка."
+      set_lang:"Язык интерфейса", set_sound:"Звуковые эффекты", set_sound_sub:"Звуки в лобби и играх", set_vibe:"Вибрация", set_vibe_sub:"Тактильный отклик в лобби и играх", set_vibe_na:"недоступно на этом устройстве", set_rm:"Уменьшить движение", set_rm_sub:"Минимизировать анимации", set_about:"О проекте", set_about_desc:"Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка."
     },
     en:{
       k_recent:"Recent", h_recent:"Jump back in", fav_add:"Add to favorites", fav_remove:"Remove from favorites",
@@ -1112,7 +1123,7 @@
       fr_remove:"Remove", fr_empty:"No friends yet — search by username below 👇", fr_find_player:"Find player", fr_search_ph:"friend's username",
       fr_add:"+ Add", fr_not_found:"Nobody found",
       ch_title:"Lobby Chat", ch_online:"Live", ch_ph:"Type a message...", ch_hint:"Enter to send", ch_send:"Send", ch_new:"New messages ↓", ch_empty:"Lobby chat is quiet. Say hello!",
-      set_lang:"Interface language", set_sound:"Sound effects", set_sound_sub:"In-game and UI audio", set_vibe:"Vibration", set_vibe_sub:"Haptic feedback on actions", set_rm:"Reduce motion", set_rm_sub:"Minimize animations", set_about:"About Lobby.gg", set_about_desc:"Real-time multiplayer party games in your browser. No installs — just a link."
+      set_lang:"Interface language", set_sound:"Sound effects", set_sound_sub:"In-game and UI audio", set_vibe:"Vibration", set_vibe_sub:"Haptic feedback on actions", set_vibe_na:"not available on this device", set_rm:"Reduce motion", set_rm_sub:"Minimize animations", set_about:"About Lobby.gg", set_about_desc:"Real-time multiplayer party games in your browser. No installs — just a link."
     },
   de: {
     "k_recent": "Zuletzt gespielt", "h_recent": "Weiterspielen", "fav_add": "Zu Favoriten hinzufügen", "fav_remove": "Aus Favoriten entfernen",
@@ -1272,6 +1283,7 @@
     "set_sound_sub": "Sounds in Lobby und Spielen",
     "set_vibe": "Vibration",
     "set_vibe_sub": "Haptisches Feedback in Spielen",
+    "set_vibe_na": "auf diesem Gerät nicht verfügbar",
     "set_rm": "Bewegung reduzieren",
     "set_rm_sub": "Animationen minimieren",
     "set_about": "Über Lobby.gg",
@@ -1317,7 +1329,32 @@
     renderPcStats();   // обновить динамические строки под язык
     renderHpBadge();
     loadInvites();
+    checkVibeSupport();
   }
+  function checkVibeSupport() {
+    const supported = (window.LobbyShell && typeof window.LobbyShell.isVibeSupported === 'function')
+      ? window.LobbyShell.isVibeSupported()
+      : (window.LobbyUI && typeof window.LobbyUI.isVibrationSupported === 'function')
+        ? window.LobbyUI.isVibrationSupported()
+        : (typeof navigator !== 'undefined' && 'vibrate' in navigator && typeof navigator.vibrate === 'function');
+    if (!supported) {
+      document.documentElement.classList.add('no-vibe');
+      const vb = document.getElementById('nav-btn-vibe');
+      if (vb) vb.style.display = 'none';
+      const sw = document.getElementById('set-vibe-sw');
+      if (sw) {
+        sw.disabled = true;
+        sw.setAttribute('aria-disabled', 'true');
+        sw.setAttribute('aria-checked', 'false');
+        sw.classList.add('disabled');
+      }
+      document.querySelectorAll('[data-i18n="set_vibe_sub"], [data-i18n="set_vibe_na"]').forEach(el => {
+        el.setAttribute('data-i18n', 'set_vibe_na');
+        el.textContent = t('set_vibe_na');
+      });
+    }
+  }
+  window.checkVibeSupport = checkVibeSupport;
   window.I18N = I18N;
   window.LANG = LANG;
   window.t = t;

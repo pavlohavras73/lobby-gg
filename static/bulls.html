@@ -49,9 +49,9 @@
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">🐂 БЫКИ И КОРОВЫ</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('bulls') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
 <div id="home" class="lobby-card">
   <svg id="bullsLogo" class="bc-hero-svg" viewBox="0 0 88 72" fill="none" aria-hidden="true">
     <rect x="12" y="14" width="64" height="44" rx="12" fill="#1b1c26" stroke="#fbbf24" stroke-opacity=".55" stroke-width="2"/>
@@ -226,7 +226,7 @@ const UI = {
     "page_title": "🐂 BULLEN UND KÜHE",
     "page_sub": "Logikduell · Errate die 4-stellige Zahl",
     "name_ph": "Name",
-    "create_btn": "Spiel erstellen",
+    "create_btn": "Raum erstellen",
     "code_ph": "CODE",
     "join_btn": "Beitreten",
     "back_btn": "← Alle Spiele",

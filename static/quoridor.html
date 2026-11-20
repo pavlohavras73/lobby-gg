@@ -218,10 +218,10 @@
 <header class="game-topbar">
   <a class="top-back" href="/games/" data-i18n="nav_games" data-i18n-title="nav_games_title" title="Ко всем играм">‹ Игры</a>
   <div class="topbar-title" data-i18n="title">🧱 КОРИДОР</div>
-  <button type="button" class="top-icon-btn" onclick="document.getElementById('rulesModal').style.display='flex'" data-i18n-title="rules_btn_title" title="Правила">i</button>
+  <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('quoridor') : document.getElementById('rulesModal').style.display='flex'" data-i18n-title="rules_btn_title" title="Правила">i</button>
 </header>
 
-<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
   <div style="max-width:400px;width:100%;background:#141724;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8)">
     <div style="font-size:20px;font-weight:800;color:#ffd166;margin-bottom:12px" data-i18n="rules_title">🧱 Коридор — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#e2e8f0" data-i18n="rules_body">
