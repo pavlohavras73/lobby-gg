@@ -741,6 +741,498 @@
     checkAutoRules(game);
   }
 
+  const RESULTS_I18N = {
+    ru: {
+      victory: "Победа!",
+      defeat: "Поражение",
+      draw: "Ничья",
+      game_over: "Игра окончена",
+      rematch: "Реванш",
+      again: "Ещё раз",
+      to_lobby: "В лобби",
+      you: "Вы",
+      winner_badge: "Победитель"
+    },
+    uk: {
+      victory: "Перемога!",
+      defeat: "Поразка",
+      draw: "Нічия",
+      game_over: "Гру завершено",
+      rematch: "Реванш",
+      again: "Ще раз",
+      to_lobby: "В лобі",
+      you: "Ви",
+      winner_badge: "Переможець"
+    },
+    en: {
+      victory: "Victory!",
+      defeat: "Defeat",
+      draw: "Draw",
+      game_over: "Game Over",
+      rematch: "Rematch",
+      again: "Again",
+      to_lobby: "To Lobby",
+      you: "You",
+      winner_badge: "Winner"
+    },
+    de: {
+      victory: "Sieg!",
+      defeat: "Niederlage",
+      draw: "Unentschieden",
+      game_over: "Spiel vorbei",
+      rematch: "Revanche",
+      again: "Nochmal",
+      to_lobby: "Zur Lobby",
+      you: "Du",
+      winner_badge: "Gewinner"
+    }
+  };
+
+  const SHARE_I18N = {
+    ru: { copied: "Скопировано в буфер!", share: "Поделиться" },
+    uk: { copied: "Скопійовано в буфер!", share: "Поділитися" },
+    en: { copied: "Copied to clipboard!", share: "Share" },
+    de: { copied: "In die Zwischenablage kopiert!", share: "Teilen" }
+  };
+
+  async function shareResult(opts) {
+    if (!opts) return false;
+    const lang = getActiveLang();
+    const tr = SHARE_I18N[lang] || SHARE_I18N.ru;
+    const shareTitle = opts.title || document.title;
+    const shareText = opts.text || "";
+    const shareUrl = opts.url || (window.location.origin + window.location.pathname);
+    const fullText = shareText ? (shareUrl ? `${shareText}\n${shareUrl}` : shareText) : shareUrl;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl
+        });
+        vibrate(12);
+        sound("click");
+        return true;
+      } catch (err) {
+        if (err && (err.name === "AbortError" || String(err).includes("abort"))) {
+          return false;
+        }
+      }
+    }
+    const okMsg = opts.copiedMsg || tr.copied;
+    return await copyText(fullText, okMsg);
+  }
+
+  function showResults(opts) {
+    if (!opts) return;
+    const lang = getActiveLang();
+    const tr = RESULTS_I18N[lang] || RESULTS_I18N.ru;
+
+    let modal = document.getElementById("lobbyResultsModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "lobbyResultsModal";
+      modal.className = "lobby-results-overlay";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "lobbyResultsTitle");
+      document.body.appendChild(modal);
+    }
+
+    const places = Array.isArray(opts.places) ? opts.places : [];
+    const myId = opts.me != null ? String(opts.me) : null;
+
+    const isFirstPlaceWinner = places.length > 0 && (
+      places[0].isMe ||
+      (myId && (String(places[0].id) === myId || String(places[0].name) === myId)) ||
+      places[0].isWinner
+    );
+    const isMeWinner = opts.isWinner !== undefined
+      ? Boolean(opts.isWinner)
+      : (places.some(p => (p.isMe || (myId && (String(p.id) === myId || String(p.name) === myId))) && (p.isWinner || p.place === 1)) || isFirstPlaceWinner);
+
+    const isDraw = Boolean(opts.isDraw || opts.draw);
+
+    let defaultTitle = isDraw ? tr.draw : (isMeWinner ? tr.victory : tr.game_over);
+    let titleText = opts.title || defaultTitle;
+    let subtitleText = opts.subtitle || "";
+    let iconChar = opts.icon || (isDraw ? "🤝" : (isMeWinner ? "🏆" : (places.length ? "🏁" : "🎮")));
+
+    const medals = ["🥇", "🥈", "🥉"];
+
+    let itemsHtml = places.map((p, idx) => {
+      const placeNum = p.place || (idx + 1);
+      const medal = p.medal || (placeNum <= 3 ? medals[placeNum - 1] : (placeNum + "."));
+      const isMe = Boolean(p.isMe || (myId && (String(p.id) === myId || String(p.name) === myId)));
+      const name = p.name || tr.you;
+      const isBot = Boolean(p.bot || String(p.id || "").startsWith("bot_") || name.includes("Bot") || name.includes("Бот"));
+      const avHtml = p.avatar ? p.avatar : avatarHtml(name, isBot);
+      const scoreStr = p.score != null ? esc(String(p.score)) : (p.isWinner ? tr.winner_badge : "");
+      const detailStr = p.detail ? `<span class="lobby-results-detail">${esc(String(p.detail))}</span>` : "";
+      const meBadge = isMe ? `<span class="lobby-results-badge-me">${esc(tr.you)}</span>` : "";
+
+      return `<div class="lobby-results-item place-${placeNum}${isMe ? " is-me" : ""}" role="listitem">
+        <span class="lobby-results-medal" aria-hidden="true">${medal}</span>
+        <span class="lobby-results-avatar">${avHtml}</span>
+        <div class="lobby-results-info">
+          <span class="lobby-results-name">${esc(name)}${meBadge}</span>
+          ${detailStr}
+        </div>
+        ${scoreStr ? `<span class="lobby-results-score">${scoreStr}</span>` : ""}
+      </div>`;
+    }).join("");
+
+    const rematchLabel = opts.rematchText || ((opts.again || opts.isAgain) ? tr.again : tr.rematch);
+    const rematchBtnHtml = opts.onRematch
+      ? `<button type="button" class="lobby-results-rematch" id="lobbyResultsRematchBtn">${esc(rematchLabel)}</button>`
+      : "";
+    const showLobby = opts.onLobby !== false;
+    const lobbyBtnHtml = showLobby
+      ? `<button type="button" class="lobby-results-lobby" id="lobbyResultsLobbyBtn">${esc(opts.lobbyText || tr.to_lobby)}</button>`
+      : "";
+
+    modal.innerHTML = `
+      <div class="lobby-results-box">
+        <div class="lobby-results-header">
+          <div class="lobby-results-icon" aria-hidden="true">${iconChar}</div>
+          <h2 id="lobbyResultsTitle" class="lobby-results-title">${esc(titleText)}</h2>
+          ${subtitleText ? `<p id="lobbyResultsSubtitle" class="lobby-results-subtitle">${esc(subtitleText)}</p>` : ""}
+        </div>
+        <div class="lobby-results-list" role="list">
+          ${itemsHtml}
+        </div>
+        <div class="lobby-results-actions">
+          ${rematchBtnHtml}
+          ${lobbyBtnHtml}
+        </div>
+      </div>
+    `;
+
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+
+    if (isMeWinner && !isDraw) {
+      burstConfetti({ particleCount: 110, spread: 85 });
+      sound("win");
+      vibrate([20, 40, 30]);
+    } else {
+      sound("lose");
+    }
+
+    if (opts.onRematch) {
+      const rBtn = document.getElementById("lobbyResultsRematchBtn");
+      if (rBtn) {
+        rBtn.onclick = (e) => {
+          e.preventDefault();
+          sound("click");
+          vibrate(10);
+          closeResults();
+          try { opts.onRematch(); } catch (err) {}
+        };
+        rBtn.focus();
+      }
+    }
+    if (showLobby) {
+      const lBtn = document.getElementById("lobbyResultsLobbyBtn");
+      if (lBtn) {
+        lBtn.onclick = (e) => {
+          e.preventDefault();
+          sound("click");
+          vibrate(10);
+          closeResults();
+          if (typeof opts.onLobby === "function") {
+            try { opts.onLobby(); } catch (err) {}
+          } else {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = "/";
+          }
+        };
+        if (!opts.onRematch) lBtn.focus();
+      }
+    }
+  }
+
+  function closeResults() {
+    const modal = document.getElementById("lobbyResultsModal");
+    if (modal) {
+      modal.classList.remove("open");
+    }
+    document.body.classList.remove("modal-open");
+  }
+
+  const ROOM_ERROR_I18N = {
+    ru: {
+      room_not_found: {
+        icon: "🔍",
+        title: "Комната не найдена",
+        desc: "Проверь 4-значный код комнаты или создай новую игру."
+      },
+      room_full: {
+        icon: "🚪",
+        title: "Комната заполнена",
+        desc: "В этой комнате уже заняты все свободные места."
+      },
+      already_playing: {
+        icon: "⏳",
+        title: "Партия уже идёт",
+        desc: "Игра началась без тебя. Дождись окончания или начни новую."
+      },
+      kicked: {
+        icon: "🚫",
+        title: "Исключён из комнаты",
+        desc: "Ведущий исключил тебя из этой игровой комнаты."
+      },
+      server_unavailable: {
+        icon: "📡",
+        title: "Сервер недоступен",
+        desc: "Не удалось подключиться к серверу. Попробуй позже."
+      },
+      timeout_disconnect: {
+        icon: "🔌",
+        title: "Связь потеряна",
+        desc: "Соединение разорвано более чем на 30 секунд."
+      },
+      generic_error: {
+        icon: "⚠️",
+        title: "Ошибка входа",
+        desc: "Не удалось войти в комнату. Попробуй ещё раз."
+      },
+      retry: "Попробовать снова",
+      to_home: "На главную"
+    },
+    uk: {
+      room_not_found: {
+        icon: "🔍",
+        title: "Кімнату не знайдено",
+        desc: "Перевір 4-значний код кімнати або створи нову гру."
+      },
+      room_full: {
+        icon: "🚪",
+        title: "Кімната заповнена",
+        desc: "У цій кімнаті вже зайняті всі вільні місця."
+      },
+      already_playing: {
+        icon: "⏳",
+        title: "Партія вже триває",
+        desc: "Гра розпочалася без тебе. Дочекайся завершення або почни нову."
+      },
+      kicked: {
+        icon: "🚫",
+        title: "Виключено з кімнати",
+        desc: "Ведучий виключив тебе з цієї ігрової кімнати."
+      },
+      server_unavailable: {
+        icon: "📡",
+        title: "Сервер недоступний",
+        desc: "Не вдалося підключитися до сервера. Спробуй пізніше."
+      },
+      timeout_disconnect: {
+        icon: "🔌",
+        title: "Зв'язок втрачено",
+        desc: "З'єднання розірвано більш ніж на 30 секунд."
+      },
+      generic_error: {
+        icon: "⚠️",
+        title: "Помилка входу",
+        desc: "Не вдалося увійти до кімнати. Спробуй ще раз."
+      },
+      retry: "Спробувати знову",
+      to_home: "На головну"
+    },
+    en: {
+      room_not_found: {
+        icon: "🔍",
+        title: "Room Not Found",
+        desc: "Check the 4-letter room code or create a new game."
+      },
+      room_full: {
+        icon: "🚪",
+        title: "Room Is Full",
+        desc: "All player spots in this room are currently taken."
+      },
+      already_playing: {
+        icon: "⏳",
+        title: "Game in Progress",
+        desc: "The game has already started without you."
+      },
+      kicked: {
+        icon: "🚫",
+        title: "Removed from Room",
+        desc: "The host has removed you from this game room."
+      },
+      server_unavailable: {
+        icon: "📡",
+        title: "Server Unavailable",
+        desc: "Could not connect to the server. Please try again later."
+      },
+      timeout_disconnect: {
+        icon: "🔌",
+        title: "Connection Lost",
+        desc: "Disconnected from the game server for more than 30 seconds."
+      },
+      generic_error: {
+        icon: "⚠️",
+        title: "Join Error",
+        desc: "Could not join the game room. Please try again."
+      },
+      retry: "Try Again",
+      to_home: "Home"
+    },
+    de: {
+      room_not_found: {
+        icon: "🔍",
+        title: "Raum nicht gefunden",
+        desc: "Überprüfe den 4-stelligen Raumcode oder erstelle ein neues Spiel."
+      },
+      room_full: {
+        icon: "🚪",
+        title: "Raum ist voll",
+        desc: "Alle Plätze in diesem Raum sind bereits belegt."
+      },
+      already_playing: {
+        icon: "⏳",
+        title: "Spiel läuft bereits",
+        desc: "Die Runde hat bereits begonnen. Warte auf das Ende oder starte neu."
+      },
+      kicked: {
+        icon: "🚫",
+        title: "Aus dem Raum entfernt",
+        desc: "Der Spielleiter hat dich aus diesem Raum entfernt."
+      },
+      server_unavailable: {
+        icon: "📡",
+        title: "Server nicht erreichbar",
+        desc: "Verbindung zum Server fehlgeschlagen. Bitte später versuchen."
+      },
+      timeout_disconnect: {
+        icon: "🔌",
+        title: "Verbindung verloren",
+        desc: "Verbindung zum Server seit mehr als 30 Sekunden getrennt."
+      },
+      generic_error: {
+        icon: "⚠️",
+        title: "Beitrittsfehler",
+        desc: "Konnte dem Raum nicht beitreten. Bitte erneut versuchen."
+      },
+      retry: "Erneut versuchen",
+      to_home: "Zur Startseite"
+    }
+  };
+
+  function detectErrorKey(str) {
+    if (!str) return "generic_error";
+    if (typeof str === "object") {
+      if (str.type) return detectErrorKey(str.type);
+      if (str.msg) return detectErrorKey(str.msg);
+    }
+    const s = String(str).toLowerCase();
+    if (s === "room_not_found" || s.includes("не найден") || s.includes("не знайдено") || s.includes("не знайдена") || s.includes("not found") || s.includes("nicht gefunden")) return "room_not_found";
+    if (s === "room_full" || s.includes("заполнен") || s.includes("заповнен") || s.includes("full") || s.includes("voll")) return "room_full";
+    if (s === "already_playing" || s.includes("идёт") || s.includes("триває") || s.includes("progress") || s.includes("started") || s.includes("läuft")) return "already_playing";
+    if (s === "kicked" || s.includes("исключ") || s.includes("виключ") || s.includes("kicked") || s.includes("removed") || s.includes("entfernt")) return "kicked";
+    if (s === "server_unavailable" || s.includes("недоступ") || s.includes("unavailable") || s.includes("nicht erreichbar")) return "server_unavailable";
+    if (s === "timeout_disconnect" || s.includes("разрыв") || s.includes("втрачено") || s.includes("lost") || s.includes("disconnect") || s.includes("getrennt") || s.includes("30")) return "timeout_disconnect";
+    return "generic_error";
+  }
+
+  function item_fallback_text(dict) {
+    const g = dict.generic_error || {};
+    return g.title || g.desc || "";
+  }
+
+  function showRoomError(typeOrMsg, opts = {}) {
+    const lang = getActiveLang();
+    const dict = ROOM_ERROR_I18N[lang] || ROOM_ERROR_I18N.ru;
+    const key = detectErrorKey(typeOrMsg);
+    // Окно — только для ошибок входа/связи. Обычные ответы сервера («Нужно минимум 3 игрока…»,
+    // «Не твой ход») показываем коротким тостом с исходным текстом, без «На главную».
+    if (key === "generic_error" && !opts.force) {
+      const raw = typeof typeOrMsg === "string" ? typeOrMsg : (typeOrMsg && typeOrMsg.msg) || "";
+      toast(raw || item_fallback_text(dict), "err", 3200);
+      return null;
+    }
+    const item = dict[key] || dict.generic_error;
+
+    const icon = opts.icon || item.icon;
+    const title = opts.title || item.title;
+    const desc = opts.desc || item.desc;
+    const retryText = opts.retryText || dict.retry;
+    const homeText = opts.homeText || dict.to_home;
+
+    if (key === "room_not_found" && w.LobbyRejoin && typeof w.LobbyRejoin.clear === "function") {
+      const curGame = (w.location.pathname.split("/").filter(Boolean).pop() || "").toLowerCase();
+      if (curGame) w.LobbyRejoin.clear(curGame);
+    }
+
+    let modal = document.getElementById("lobbyRoomErrorModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "lobbyRoomErrorModal";
+      modal.className = "lobby-room-error-overlay";
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      modal.setAttribute("aria-labelledby", "lobbyRoomErrorTitle");
+      document.body.appendChild(modal);
+    }
+
+    const homeHref = (w.location.pathname.startsWith("/games") ? "/games/" : "/");
+
+    modal.innerHTML = `
+      <div class="lobby-room-error-box">
+        <div class="lobby-room-error-icon" aria-hidden="true">${icon}</div>
+        <h2 id="lobbyRoomErrorTitle" class="lobby-room-error-title">${esc(title)}</h2>
+        <p id="lobbyRoomErrorDesc" class="lobby-room-error-desc">${esc(desc)}</p>
+        <div class="lobby-room-error-actions">
+          <button type="button" class="lobby-room-error-retry" id="lobbyRoomErrorRetryBtn">${esc(retryText)}</button>
+          <a class="lobby-room-error-home" id="lobbyRoomErrorHomeBtn" href="${homeHref}">${esc(homeText)}</a>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+    sound("lose");
+    vibrate(25);
+
+    const retryBtn = document.getElementById("lobbyRoomErrorRetryBtn");
+    if (retryBtn) {
+      retryBtn.onclick = (e) => {
+        e.preventDefault();
+        sound("click");
+        vibrate(10);
+        closeRoomError();
+        if (typeof opts.onRetry === "function") {
+          opts.onRetry();
+        } else {
+          const params = new URLSearchParams(w.location.search);
+          if (params.has("code") || params.has("join")) {
+            params.delete("code");
+            params.delete("join");
+            const newSearch = params.toString() ? ("?" + params.toString()) : "";
+            w.history.replaceState({}, "", w.location.pathname + newSearch);
+          }
+          const inp = document.getElementById("joincode") || document.querySelector("input:not([type=hidden])");
+          if (inp) {
+            inp.value = "";
+            inp.focus();
+          } else {
+            w.location.reload();
+          }
+        }
+      };
+      retryBtn.focus();
+    }
+  }
+
+  function closeRoomError() {
+    const modal = document.getElementById("lobbyRoomErrorModal");
+    if (modal) {
+      modal.classList.remove("open");
+    }
+    document.body.classList.remove("modal-open");
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", autoInitRules);
   } else {
@@ -766,6 +1258,13 @@
     syncA11yLabels,
     rules: showRules,
     showRules,
+    results: showResults,
+    closeResults,
+    shareResult,
+    share: shareResult,
+    roomError: showRoomError,
+    showRoomError,
+    closeRoomError,
     checkAutoRules,
     RULES_CACHE,
     loadGameRules,

@@ -320,7 +320,7 @@
 <script src="/games/static/reconnect.js"></script>
 <script src="/games/static/room_chat.js"></script>
 <script>
-let ws = null, pid = null, myName = "", isHost = false, roomCode = null, firstOpenCb = null, opened = false;
+let ws = null, pid = null, myName = "", isHost = false, roomCode = null, firstOpenCb = null, opened = false, celebratedDone = false;
 let state = null;
 let currentMode = 'pawn'; // 'pawn' | 'wall'
 let currentWallDir = 'h';  // 'h' | 'v'
@@ -485,7 +485,9 @@ function handle(msg) {
     document.getElementById("game").classList.remove("hide");
     renderGame();
   } else if (msg.type === "error") {
-    showToast(msg.msg, true);
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(msg.msg)) LobbyRejoin.clear('quoridor');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(msg.msg);
+    else showToast(msg.msg, true);
   }
 }
 
@@ -598,12 +600,54 @@ function renderGame() {
     document.getElementById("overbox").classList.remove("hide");
     const winName = state.names[state.winner] || t('default_player');
     const isMeWin = (state.winner === pid);
-    document.getElementById("overtext").textContent = isMeWin ? t('you_won') : t('someone_won',{n:winName});
+    const titleText = isMeWin ? t('you_won') : t('someone_won',{n:winName});
+    document.getElementById("overtext").textContent = titleText;
     document.getElementById("oversub").textContent = isMeWin ? t('you_won_sub') : t('you_lost_sub');
-    if (isMeWin && window.SFX) SFX.win();
-    if (isMeWin && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
     turnBanner.innerHTML = `<span style="color:#ffd166">${t('game_over')}</span>`;
+    if (window.LobbyUI && LobbyUI.results && !celebratedDone) {
+      celebratedDone = true;
+      const order = state.player_order || [];
+      const winnerPid = state.winner;
+      const places = [];
+      if (winnerPid && state.names[winnerPid]) {
+        places.push({
+          id: winnerPid,
+          name: T(state.names[winnerPid]),
+          score: t('you_won'),
+          isMe: winnerPid === pid,
+          isWinner: true,
+          place: 1
+        });
+      }
+      order.filter(p => p !== winnerPid).forEach((p, idx) => {
+        if (state.names[p]) {
+          places.push({
+            id: p,
+            name: T(state.names[p]),
+            score: t('walls_suffix') ? ((state.players[p] ? state.players[p].walls : 0) + ' ' + t('walls_suffix')) : '',
+            isMe: p === pid,
+            isWinner: false,
+            place: idx + 2
+          });
+        }
+      });
+      LobbyUI.results({
+        title: titleText,
+        subtitle: isMeWin ? t('you_won_sub') : t('you_lost_sub'),
+        places,
+        me: pid,
+        isWinner: isMeWin,
+        onRematch: () => restart(),
+        onLobby: () => { window.location.href = '/'; }
+      });
+    } else if (!celebratedDone) {
+      celebratedDone = true;
+      if (isMeWin && window.SFX) SFX.win();
+      if (isMeWin && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
+    }
   } else {
+    celebratedDone = false;
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     document.getElementById("overbox").classList.add("hide");
     const curP = state.players[state.turn_pid];
     const curColor = curP ? curP.color : "#fff";

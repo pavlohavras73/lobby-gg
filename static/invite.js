@@ -81,13 +81,16 @@
 
   // ─── авто-join по ссылке-приглашению ───
   var params = new URLSearchParams(location.search);
-  var invCode = (params.get('code') || '').toUpperCase();
+  var invCode = (params.get('code') || params.get('join') || '').toUpperCase().trim();
   if (invCode) {
     window.addEventListener('load', function () {
       setTimeout(function () {
         var inp = document.getElementById('joincode');
         if (inp) inp.value = invCode;
-        try { if (typeof join === 'function') join(); } catch (e) {}
+        try {
+          if (typeof join === 'function') join();
+          else if (typeof joinGame === 'function') joinGame();
+        } catch (e) {}
       }, 500);
     });
   }

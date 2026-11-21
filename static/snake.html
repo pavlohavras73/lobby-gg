@@ -690,6 +690,10 @@ function gameOver() {
         best,
         isNewRecord,
         stats: [{ label: t('len_lbl'), value: snake.length }],
+        share: () => ({
+          title: '🐍 Snake — Lobby.gg',
+          text: `🐍 Snake — Lobby.gg\n🍎 ${score} · ${t('len_lbl')}: ${snake.length}`
+        }),
         onRestart: () => restart()
       });
     }, 360);

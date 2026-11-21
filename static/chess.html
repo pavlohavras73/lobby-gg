@@ -759,7 +759,44 @@ function render() {
     document.getElementById('ot').textContent = title;
     if (!celebrated) {
       celebrated = true;
-      if (st.winner === pid && window.LobbyUI) {
+      if (window.LobbyUI && LobbyUI.results) {
+        const isWin = st.winner === pid;
+        const isDraw = !st.winner;
+        const p1 = st.winner || (st.order && st.order[0]);
+        const p2 = (st.order || []).find(p => p !== p1) || (st.order && st.order[1]);
+        const places = [];
+        if (p1 && st.names[p1]) {
+          places.push({
+            id: p1,
+            name: T(st.names[p1]),
+            score: isDraw ? t('draw_stalemate') : (st.winner === p1 ? t('mate_win') : ''),
+            isMe: p1 === pid,
+            isWinner: !isDraw && st.winner === p1,
+            place: 1
+          });
+        }
+        if (p2 && st.names[p2]) {
+          places.push({
+            id: p2,
+            name: T(st.names[p2]),
+            score: isDraw ? t('draw_stalemate') : (st.winner === p2 ? t('mate_win') : ''),
+            isMe: p2 === pid,
+            isWinner: !isDraw && st.winner === p2,
+            place: isDraw ? 1 : 2
+          });
+        }
+        LobbyUI.results({
+          title,
+          places,
+          me: pid,
+          isWinner: isWin,
+          isDraw,
+          onRematch: () => {
+            send({action: 'restart'});
+          },
+          onLobby: () => { window.location.href = '/'; }
+        });
+      } else if (st.winner === pid && window.LobbyUI) {
         LobbyUI.confetti({ particleCount: 110, spread: 85 });
         LobbyUI.sound('win');
         LobbyUI.vibrate([20, 40, 30]);
@@ -769,6 +806,7 @@ function render() {
     }
   } else {
     celebrated = false;
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     ov.classList.add('hide');
     tp.className = 'turn-pill ' + (myturn ? 'my-turn' : 'opp-turn');
     const curNm = T(st.names[st.turn_pid] || '?');
@@ -802,9 +840,9 @@ function handle(m) {
     render();
   }
   else if (m.type === 'error') {
-    const msg = T(m.msg);
-    if (window.LobbyUI) LobbyUI.toast(msg, 'err');
-    else alert(msg);
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('chess');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 

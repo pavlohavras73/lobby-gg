@@ -432,15 +432,69 @@ function renderState(m){
     const wname=T(m.winner_name||t('def_player'));
     const who=teams?(typeof t('winner_team')==='function'?t('winner_team')(m.winner==0?1:2):'Team '+m.winner):(typeof t('winner_solo')==='function'?t('winner_solo')(wname):wname);
     document.getElementById('wintext').textContent=who;
+    const isMeWin = teams ? (m.teams && m.teams[m.winner] && m.teams[m.winner].includes(pid)) : (m.winner === pid);
     if(hasRenderedAlias && prevWinner==null){
-      if(window.ArcadeFX){ArcadeFX.confetti();ArcadeFX.vibrate([20,30,40]);}
-      if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
+      if (window.LobbyUI && LobbyUI.results) {
+        const places = [];
+        if (teams) {
+          const wTeam = m.winner;
+          const otherTeam = wTeam == 0 ? 1 : 0;
+          places.push({
+            name: typeof t('winner_team') === 'function' ? t('winner_team')(wTeam == 0 ? 1 : 2) : ('Team ' + (wTeam + 1)),
+            score: (+m.scores[wTeam] || 0) + ' ' + t('lbl_score', 'очков'),
+            isMe: isMeWin,
+            isWinner: true,
+            place: 1
+          });
+          places.push({
+            name: typeof t('winner_team') === 'function' ? t('winner_team')(otherTeam == 0 ? 1 : 2) : ('Team ' + (otherTeam + 1)),
+            score: (+m.scores[otherTeam] || 0) + ' ' + t('lbl_score', 'очков'),
+            isMe: !isMeWin,
+            isWinner: false,
+            place: 2
+          });
+        } else {
+          places.push({
+            id: m.winner,
+            name: wname,
+            score: (+m.scores[m.winner] || 0) + ' ' + t('lbl_score', 'очков'),
+            isMe: isMeWin,
+            isWinner: true,
+            place: 1
+          });
+          Object.keys(m.scores || {}).filter(p => p !== m.winner).forEach((p, idx) => {
+            places.push({
+              id: p,
+              name: T(m.names && m.names[p] ? m.names[p] : t('def_player')),
+              score: (+m.scores[p] || 0) + ' ' + t('lbl_score', 'очков'),
+              isMe: p === pid,
+              isWinner: false,
+              place: idx + 2
+            });
+          });
+        }
+        LobbyUI.results({
+          title: who,
+          places,
+          me: pid,
+          isWinner: isMeWin,
+          onRematch: () => {
+            if (typeof ws !== 'undefined' && ws && ws.send) ws.send({action: 'restart'});
+            else location.reload();
+          },
+          onLobby: () => { window.location.href = '/'; }
+        });
+      } else {
+        if(window.ArcadeFX){ArcadeFX.confetti();ArcadeFX.vibrate([20,30,40]);}
+        if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
+      }
     }
     prevWinner=m.winner;
     hasRenderedAlias=true;
     return;
   }
   prevWinner=null;
+  if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
   show('game');
   const amExp=(m.explainer===pid);
   const expName=esc(T(m.explainer_name||''));
@@ -520,7 +574,8 @@ function handle(m){
   else if(m.type==='alias_state'){renderState(m);}
   else if(m.type==='error'){
     if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('alias');
-    alert(T(m.msg));
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}

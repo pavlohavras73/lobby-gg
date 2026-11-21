@@ -114,6 +114,9 @@ window.JarvisWS = function(url, options = {}) {
         setTimeout(connect, delay);
       } else {
         showBanner(msg('failed'));
+        if (window.LobbyUI && typeof window.LobbyUI.roomError === 'function') {
+          window.LobbyUI.roomError('timeout_disconnect');
+        }
       }
       if (options.onclose) options.onclose(e);
     };

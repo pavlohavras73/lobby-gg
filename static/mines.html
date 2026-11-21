@@ -479,6 +479,10 @@ function click(x, y) {
         best: best + t('sec_suf'),
         isNewRecord,
         stats: [{ label: t('opened_lbl'), value: COLS * ROWS - MINES }],
+        share: () => ({
+          title: '🚩 Minesweeper — Lobby.gg',
+          text: `🚩 ${t('win_title')} (${elapsed}${t('sec_suf')}) · ${t('opened_lbl')}: ${COLS * ROWS - MINES} — Lobby.gg`
+        }),
         onRestart: () => newGame()
       });
     }, 280));
@@ -557,6 +561,10 @@ function triggerMineChain(hx, hy) {
       score: `${opened}/${totalSafe}`,
       best: `${bestCleared}/${totalSafe}`,
       isNewRecord: false,
+      share: () => ({
+        title: '💣 Minesweeper — Lobby.gg',
+        text: `💣 ${t('boom_title')} (${opened}/${totalSafe} ${t('opened_lbl')}) — Lobby.gg`
+      }),
       onRestart: () => newGame()
     });
   }, totalSpan + 200));

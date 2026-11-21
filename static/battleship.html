@@ -179,7 +179,7 @@
 <script src="/games/static/room_chat.js"></script>
 <script src="/games/static/quickplay.js"></script>
 <script>
-let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false;
+let ws = null, pid = null, st = null, roomCode = null, firstOpenCb = null, opened = false, celebratedDone = false;
 
 const UI = {
   uk: {
@@ -562,11 +562,59 @@ function handle(m){
     if(m.winner){
       ov.classList.remove('hide');
       const win=(m.winner===pid);
-      document.getElementById('ot').textContent=win?t('win_fleet'):t('lose_fleet');
-      if(win&&typeof confetti==='function')confetti({particleCount:80,spread:65,origin:{y:0.6}});
+      const titleText = win ? t('win_fleet') : t('lose_fleet');
+      document.getElementById('ot').textContent = titleText;
+      if (window.LobbyUI && LobbyUI.results && !celebratedDone) {
+        celebratedDone = true;
+        const p1 = m.winner;
+        const p2 = (m.players || []).find(p => p !== p1) || ((st && st.players) || []).find(p => p !== p1);
+        const places = [];
+        if (p1 && m.names[p1]) {
+          places.push({
+            id: p1,
+            name: T(m.names[p1]),
+            score: t('win_fleet'),
+            isMe: p1 === pid,
+            isWinner: true,
+            place: 1
+          });
+        }
+        if (p2 && m.names[p2]) {
+          places.push({
+            id: p2,
+            name: T(m.names[p2]),
+            score: t('lose_fleet'),
+            isMe: p2 === pid,
+            isWinner: false,
+            place: 2
+          });
+        }
+        LobbyUI.results({
+          title: titleText,
+          places,
+          me: pid,
+          isWinner: win,
+          onRematch: () => {
+            send({action: 'restart'});
+          },
+          onLobby: () => { window.location.href = '/'; }
+        });
+      } else if (!celebratedDone) {
+        celebratedDone = true;
+        if(win&&typeof confetti==='function')confetti({particleCount:80,spread:65,origin:{y:0.6}});
+      }
     }
-    else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:esc(T(m.names[m.turn_pid]||'?'))});}}
-  else if(m.type==='error'){alert(T(m.msg));}
+    else{
+      celebratedDone = false;
+      if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+      ov.classList.add('hide');
+      document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:esc(T(m.names[m.turn_pid]||'?'))});
+    }}
+  else if(m.type==='error'){
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('battleship');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
+  }
 }
 </script>
 </body></html>

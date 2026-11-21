@@ -1209,7 +1209,7 @@ function connectWS() {
   let wsUrl = protocol + '//' + window.location.host + '/games/ws';
   wsInstance = JarvisWS(wsUrl, {
     onopen: () => {
-      let code = roomCode || new URLSearchParams(window.location.search).get('code') || (window.LobbyRejoin && LobbyRejoin.getCode('variants'));
+      let code = roomCode || new URLSearchParams(window.location.search).get('code') || new URLSearchParams(window.location.search).get('join') || (window.LobbyRejoin && LobbyRejoin.getCode('variants'));
       let stored = '';
       try { stored = localStorage.getItem('jg_player_name') || localStorage.getItem('username') || ''; } catch (_) {}
       let name = stored.trim() || t('default_player');
@@ -1497,25 +1497,46 @@ function updateUI() {
     });
     document.getElementById('finalLeaderboard').innerHTML = lbHtml;
 
-    if (prevPhase !== 'game_over' && window.ArcadeFX && ArcadeFX.showGameOver) {
-      const topPlayer = sorted[0];
-      const myObj = sorted.find(p => p.id === myId);
-      ArcadeFX.showGameOver({
-        score: myObj ? myObj.score : 0,
-        best: topPlayer ? topPlayer.score : 0,
-        title: t('over_title'),
-        scoreLabel: t('final_score') || 'Счёт',
-        againLabel: t('again_btn'),
-        allGamesLabel: t('menu_btn'),
-        onRestart: () => restartGame(),
-        onMenu: () => { location.href = '/games/'; },
-        lang: LANG,
-        stats: sorted.slice(0, 3).map((p, idx) => ({
-          label: (idx === 0 ? '🥇 ' : idx === 1 ? '🥈 ' : '🥉 ') + trName(p.name),
-          value: p.score
-        }))
-      });
+    if (prevPhase !== 'game_over') {
+      const isWinner = sorted[0] && sorted[0].id === myId;
+      if (window.LobbyUI && LobbyUI.results) {
+        LobbyUI.results({
+          title: t('over_title'),
+          places: sorted.map((p, idx) => ({
+            id: p.id,
+            name: trName(p.name),
+            score: p.score,
+            isMe: p.id === myId,
+            isWinner: idx === 0,
+            place: idx + 1
+          })),
+          me: myId,
+          isWinner,
+          onRematch: isHost ? () => restartGame() : null,
+          onLobby: () => { location.href = '/games/'; }
+        });
+      } else if (window.ArcadeFX && ArcadeFX.showGameOver) {
+        const topPlayer = sorted[0];
+        const myObj = sorted.find(p => p.id === myId);
+        ArcadeFX.showGameOver({
+          score: myObj ? myObj.score : 0,
+          best: topPlayer ? topPlayer.score : 0,
+          title: t('over_title'),
+          scoreLabel: t('final_score') || 'Счёт',
+          againLabel: t('again_btn'),
+          allGamesLabel: t('menu_btn'),
+          onRestart: () => restartGame(),
+          onMenu: () => { location.href = '/games/'; },
+          lang: LANG,
+          stats: sorted.slice(0, 3).map((p, idx) => ({
+            label: (idx === 0 ? '🥇 ' : idx === 1 ? '🥈 ' : '🥉 ') + trName(p.name),
+            value: p.score
+          }))
+        });
+      }
     }
+  } else {
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
   }
 }
 
@@ -1565,7 +1586,8 @@ window.onWsMessage = (msg) => {
   }
   if (msg.type === "error" && msg.msg) {
     if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(msg.msg)) LobbyRejoin.clear('variants');
-    alert((window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(msg.msg) : msg.msg);
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(msg.msg);
+    else alert((window.LobbyI18n && window.LobbyI18n.T) ? window.LobbyI18n.T(msg.msg) : msg.msg);
   }
 };
 

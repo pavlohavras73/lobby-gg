@@ -790,7 +790,8 @@
       if (m.winner) {
         show('over');
         const won = m.winner === pid;
-        document.getElementById('overtext').textContent = won ? t('win_you') : (typeof t('win_other') === 'function' ? t('win_other')(m.names[m.winner] || '?') : ('Winner: ' + (m.names[m.winner] || '?')));
+        const overTitle = won ? t('win_you') : (typeof t('win_other') === 'function' ? t('win_other')(m.names[m.winner] || '?') : ('Winner: ' + (m.names[m.winner] || '?')));
+        document.getElementById('overtext').textContent = overTitle;
         document.getElementById('overIcon').innerHTML = won
           ? '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22h10c0-2-0.85-3.25-2.03-3.79-.5-.23-.97-.66-.97-1.21v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="rgba(255,204,0,.22)"/></svg>'
           : '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#8d8d98" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
@@ -800,7 +801,40 @@
           const av = window.LobbyUI ? LobbyUI.avatarHtml(nm, String(p).startsWith('bot_')) : '';
           return `<div class="player-row-item">${av}<span>${esc(nm)}</span><span class="player-tag">${p === m.winner ? '🏆' : esc(t('cards_left')(cnt))}</span></div>`;
         }).join('');
-        if (won && window.LobbyUI) {
+        if (window.LobbyUI && LobbyUI.results) {
+          const places = [];
+          if (m.winner && m.names[m.winner]) {
+            places.push({
+              id: m.winner,
+              name: T(m.names[m.winner]),
+              score: '0 ' + esc(typeof t('cards_left') === 'function' ? t('cards_left')(0) : 'карт'),
+              isMe: m.winner === pid,
+              isWinner: true,
+              place: 1
+            });
+          }
+          (m.order || []).filter(p => p !== m.winner).forEach((p, idx) => {
+            const cnt = m.counts[p] ?? 0;
+            places.push({
+              id: p,
+              name: T(m.names[p] || '?'),
+              score: esc(typeof t('cards_left') === 'function' ? t('cards_left')(cnt) : (cnt + ' карт')),
+              isMe: p === pid,
+              isWinner: false,
+              place: idx + 2
+            });
+          });
+          LobbyUI.results({
+            title: overTitle,
+            places,
+            me: pid,
+            isWinner: won,
+            onRematch: () => {
+              send({action: 'restart'});
+            },
+            onLobby: () => { window.location.href = '/'; }
+          });
+        } else if (won && window.LobbyUI) {
           LobbyUI.confetti({ particleCount: 120, spread: 88 });
           LobbyUI.sound('win');
           LobbyUI.vibrate([20, 40, 30]);
@@ -809,6 +843,7 @@
         }
         return;
       }
+      if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
       show('game');
       const myturn = (m.turn_pid === pid);
       const opps = m.order.filter(p => p !== pid);
@@ -896,9 +931,9 @@
         renderState(m);
       }
       else if (m.type === 'error') {
-        const msg = window.LobbyI18n ? LobbyI18n.T(m.msg) : m.msg;
-        if (window.LobbyUI) LobbyUI.toast(msg, 'err');
-        else alert(msg);
+        if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('uno');
+        if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+        else alert(window.LobbyI18n ? LobbyI18n.T(m.msg) : m.msg);
       }
     }
 

@@ -644,19 +644,62 @@ function renderState(m, animate) {
     prevTable = []; prevDefender = null; prevCounts = null; prevDeck = null;
     show('over');
     const won = (m.durak !== 'draw' && m.durak !== pid);
-    document.getElementById('overEmoji').textContent = m.durak === 'draw' ? '🤝' : (won ? '🏆' : '🃏');
+    const isDraw = m.durak === 'draw';
+    document.getElementById('overEmoji').textContent = isDraw ? '🤝' : (won ? '🏆' : '🃏');
     const durakName = T(m.names[m.durak] || '?');
-    document.getElementById('overtext').textContent = m.durak === 'draw'
+    const overText = isDraw
       ? t('res_draw')
       : (m.durak === pid ? t('res_you_durak') : (typeof t('res_durak') === 'function' ? t('res_durak')(durakName) : durakName));
-    if (won && !overCelebrated) {
+    document.getElementById('overtext').textContent = overText;
+    if (!overCelebrated) {
       overCelebrated = true;
-      if (window.ArcadeFX) ArcadeFX.confetti();
-      if (window.sfx && sfx.win) sfx.win();
+      if (window.LobbyUI && LobbyUI.results) {
+        const places = [];
+        const order = m.order || Object.keys(m.names || {});
+        // Winners first (everyone except durak)
+        order.filter(p => isDraw || p !== m.durak).forEach(p => {
+          places.push({
+            id: p,
+            name: T(m.names[p] || '?'),
+            score: isDraw ? t('res_draw') : (p === pid ? t('winner_badge', 'Победитель') : ''),
+            isMe: p === pid,
+            isWinner: !isDraw,
+            place: 1
+          });
+        });
+        // Fool last
+        if (!isDraw && m.durak && m.names[m.durak]) {
+          places.push({
+            id: m.durak,
+            name: durakName,
+            score: m.durak === pid ? t('res_you_durak') : 'Дурак',
+            isMe: m.durak === pid,
+            isWinner: false,
+            place: places.length + 1
+          });
+        }
+        LobbyUI.results({
+          title: overText,
+          places,
+          me: pid,
+          isWinner: won,
+          isDraw,
+          onRematch: () => {
+            send({action: 'restart'});
+          },
+          onLobby: () => { window.location.href = '/'; }
+        });
+      } else {
+        if (won) {
+          if (window.ArcadeFX) ArcadeFX.confetti();
+          if (window.sfx && sfx.win) sfx.win();
+        }
+      }
     }
     return;
   }
   overCelebrated = false;
+  if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
   show('game');
 
   if (animate && prevT.length > 0 && m.table.length === 0) {
@@ -735,7 +778,9 @@ function handle(m) {
   } else if (m.type === 'durak_state') {
     renderState(m, true);
   } else if (m.type === 'error') {
-    alert(T(m.msg));
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('durak');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 

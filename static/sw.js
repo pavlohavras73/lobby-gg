@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v22";  // v22: stage 13c device vibration detection, settings drawer i18n, header 320px
+const CACHE = "lobby-static-v23";  // v23: stage 14c unified results, rematch, share, and room errors
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [

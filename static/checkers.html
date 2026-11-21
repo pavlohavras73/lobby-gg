@@ -185,7 +185,7 @@
 <script src="/games/static/quickplay.js"></script>
 <script src="/games/static/sfx.js"></script>
 <script>
-let ws = null, pid = null, st = null, sel = null, roomCode = null, firstOpenCb = null, opened = false;
+let ws = null, pid = null, st = null, sel = null, roomCode = null, firstOpenCb = null, opened = false, celebratedDone = false;
 
 const UI = {
   uk: {
@@ -506,10 +506,51 @@ function render(){
   if (st.done) {
     ov.classList.remove('hide');
     const isMeWin = (st.winner === pid);
-    document.getElementById('ot').textContent = isMeWin ? t('you_won') : t('someone_won', { n: T(st.names[st.winner] || '?') });
-    if (window.JarvisSFX) JarvisSFX.play(isMeWin ? 'win' : 'lose');
-    if (isMeWin && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
+    const winTitle = isMeWin ? t('you_won') : (st.winner ? t('someone_won', { n: T(st.names[st.winner] || '?') }) : t('draw', 'Ничья'));
+    document.getElementById('ot').textContent = winTitle;
+    if (window.LobbyUI && LobbyUI.results && !celebratedDone) {
+      celebratedDone = true;
+      const isDraw = !st.winner;
+      const p1 = st.winner || (st.players && st.players[0]);
+      const p2 = (st.players || []).find(p => p !== p1) || (st.players && st.players[1]);
+      const places = [];
+      if (p1 && st.names[p1]) {
+        places.push({
+          id: p1,
+          name: T(st.names[p1]),
+          score: isDraw ? t('draw', 'Ничья') : (st.winner === p1 ? t('you_won') : ''),
+          isMe: p1 === pid,
+          isWinner: !isDraw && st.winner === p1,
+          place: 1
+        });
+      }
+      if (p2 && st.names[p2]) {
+        places.push({
+          id: p2,
+          name: T(st.names[p2]),
+          score: isDraw ? t('draw', 'Ничья') : (st.winner === p2 ? t('you_won') : ''),
+          isMe: p2 === pid,
+          isWinner: !isDraw && st.winner === p2,
+          place: isDraw ? 1 : 2
+        });
+      }
+      LobbyUI.results({
+        title: winTitle,
+        places,
+        me: pid,
+        isWinner: isMeWin,
+        isDraw,
+        onRematch: () => restart(),
+        onLobby: () => { window.location.href = '/'; }
+      });
+    } else if (!celebratedDone) {
+      celebratedDone = true;
+      if (window.JarvisSFX) JarvisSFX.play(isMeWin ? 'win' : 'lose');
+      if (isMeWin && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
+    }
   } else {
+    celebratedDone = false;
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     ov.classList.add('hide');
     let info = myturn ? '<span class="me">' + t('your_turn') + '</span>' : t('turn_of', { n: st.names[st.turn_pid] || t('opponent') });
     if (myturn) {
@@ -551,7 +592,9 @@ function handle(m){
     sel = m.must_continue ? [m.must_continue[0], m.must_continue[1]] : (sel || null);
     render();
   } else if (m.type === 'error') {
-    alert(T(m.msg));
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('checkers');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 

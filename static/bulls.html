@@ -429,7 +429,11 @@ function handle(m){
       if(win&&typeof confetti==='function')confetti({particleCount:80,spread:65,origin:{y:0.6}});
     }
     else{ov.classList.add('hide');document.getElementById('turninfo').innerHTML=my?'<span class="me">'+t('your_turn')+'</span>'+t('your_turn_sub'):t('turn_of',{n:esc(T(m.names[m.turn_pid]||'?'))});}}
-  else if(m.type==='error'){alert(T(m.msg));}
+  else if(m.type==='error'){
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('bulls');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
+  }
 }
 </script>
 </body></html>

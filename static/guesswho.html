@@ -360,30 +360,67 @@ function handle(m){
       if (window.LobbyRejoin) LobbyRejoin.clear('guesswho');
       ov.classList.remove('hide');
       const win=(m.winner===pid);
-      document.getElementById('ot').textContent=win?t('win_msg'):t('lose_msg');
+      const titleText = win ? t('win_msg') : t('lose_msg');
+      document.getElementById('ot').textContent = titleText;
       if(m.winner!==prevWinner){
-        if(window.ArcadeFX){
-          if(win){
-            ArcadeFX.confetti();
-            ArcadeFX.flash('#22c55e',0.24,240);
-            ArcadeFX.vibrate([20,30,40]);
-          } else {
-            ArcadeFX.flash('#ff2238',0.26,240);
-            ArcadeFX.shake(document.getElementById('board'),6,260);
-            ArcadeFX.vibrate([15,20,35]);
+        if (window.LobbyUI && LobbyUI.results) {
+          const places = [];
+          if (m.winner) {
+            places.push({
+              id: m.winner,
+              name: m.winner === pid ? t('you_lbl', 'Ты') : t('opponent', 'Соперник'),
+              score: win ? t('win_msg') : t('lose_msg'),
+              isMe: win,
+              isWinner: true,
+              place: 1
+            });
           }
+          const otherId = (m.winner === pid ? 'opp' : pid);
+          places.push({
+            id: otherId,
+            name: otherId === pid ? t('you_lbl', 'Ты') : t('opponent', 'Соперник'),
+            score: !win ? t('win_msg') : t('lose_msg'),
+            isMe: !win,
+            isWinner: false,
+            place: 2
+          });
+          LobbyUI.results({
+            title: titleText,
+            places,
+            me: pid,
+            isWinner: win,
+            onRematch: () => {
+              if (typeof ws !== 'undefined' && ws && ws.send) ws.send({action: 'restart'});
+              else location.reload();
+            },
+            onLobby: () => { window.location.href = '/'; }
+          });
+        } else {
+          if(window.ArcadeFX){
+            if(win){
+              ArcadeFX.confetti();
+              ArcadeFX.flash('#22c55e',0.24,240);
+              ArcadeFX.vibrate([20,30,40]);
+            } else {
+              ArcadeFX.flash('#ff2238',0.26,240);
+              ArcadeFX.shake(document.getElementById('board'),6,260);
+              ArcadeFX.vibrate([15,20,35]);
+            }
+          }
+          if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound(win?'win':'lose');
         }
-        if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound(win?'win':'lose');
       }
       prevWinner=m.winner;
     } else {
+      if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
       ov.classList.add('hide');
       prevWinner=null;
     }
   }
   else if(m.type==='error'){
     if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('guesswho');
-    alert(T(m.msg));
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 </script>

@@ -551,6 +551,7 @@ function endGame(isWin) {
   if (window.LobbyUI) LobbyUI.sound(isWin ? 'win' : 'lose');
   if (isWin && window.ArcadeFX) ArcadeFX.confetti();
   if (window.ArcadeFX) {
+    const mx = maxTile();
     ArcadeFX.showGameOver({
       lang: LANG,
       title: isWin ? t('win_title') : undefined,
@@ -558,7 +559,11 @@ function endGame(isWin) {
       score,
       best,
       isNewRecord,
-      stats: [{ label: t('max_tile_lbl'), value: maxTile() }],
+      stats: [{ label: t('max_tile_lbl'), value: mx }],
+      share: () => ({
+        title: '🔢 2048 — Lobby.gg',
+        text: `🔢 2048 — Lobby.gg\n🏆 ${t('score')}: ${score} · ${t('max_tile_lbl')}: ${mx}`
+      }),
       onRestart: () => newGame()
     });
   }

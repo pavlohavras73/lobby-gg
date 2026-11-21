@@ -550,21 +550,54 @@ function renderReveal(m){
   show('reveal');
   const rv=document.getElementById('reveal');
   const spyNm=T(m.spy||'');
+  const locNm=T(m.location);
   const av=document.getElementById('rvSpyAv');
   if(av)av.innerHTML=window.LobbyUI?LobbyUI.avatarHtml(spyNm,String(m.spy||'').includes('Бот')):'';
   document.getElementById('rvspy').textContent=spyNm;
-  document.getElementById('rvloc').textContent=T(m.location);
+  document.getElementById('rvloc').textContent=locNm;
   document.getElementById('againbtn').classList.remove('hide');
   if(revealAnimPending){
     revealAnimPending=false;
     rv.classList.remove('spy-reveal-pop');void rv.offsetWidth;rv.classList.add('spy-reveal-pop');
-    if(window.ArcadeFX){
-      ArcadeFX.flash('#ff2238',0.24,240);
-      ArcadeFX.vibrate([20,30,40]);
-      const r=rv.getBoundingClientRect();
-      if(r.width)ArcadeFX.burst(r.left+r.width/2,r.top+80,{count:28,speed:240,size:4,colors:['#ff2238','#fde047','#5cff9e','#ffffff'],shape:'spark'});
+    const isMeSpy = Boolean(lastRole && lastRole.spy);
+    if (window.LobbyUI && LobbyUI.results) {
+      const places = [];
+      const spyP = roomPlayers.find(p => T(p.name) === spyNm);
+      places.push({
+        name: spyNm,
+        score: '🕵️ ' + t('reveal_spy_was', 'Шпион'),
+        isMe: isMeSpy,
+        isWinner: isMeSpy,
+        place: 1
+      });
+      roomPlayers.filter(p => T(p.name) !== spyNm).forEach((p, idx) => {
+        places.push({
+          id: p.id,
+          name: T(p.name),
+          score: '📍 ' + locNm,
+          isMe: p.id === pid,
+          isWinner: !isMeSpy,
+          place: idx + 2
+        });
+      });
+      LobbyUI.results({
+        title: t('reveal_summary', 'Итог'),
+        subtitle: `${t('reveal_spy_was', 'Шпионом был')}: ${spyNm} · ${t('reveal_loc_was', 'Локация')}: ${locNm}`,
+        places,
+        me: pid,
+        isWinner: !isMeSpy,
+        onRematch: () => send({action: 'back'}),
+        onLobby: () => { window.location.href = '/'; }
+      });
+    } else {
+      if(window.ArcadeFX){
+        ArcadeFX.flash('#ff2238',0.24,240);
+        ArcadeFX.vibrate([20,30,40]);
+        const r=rv.getBoundingClientRect();
+        if(r.width)ArcadeFX.burst(r.left+r.width/2,r.top+80,{count:28,speed:240,size:4,colors:['#ff2238','#fde047','#5cff9e','#ffffff'],shape:'spark'});
+      }
+      if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
     }
-    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
   }
 }
 
@@ -582,6 +615,7 @@ function handle(m){
   else if(m.type==='spy_loading'){document.getElementById('craftstatus').textContent=typeof t('crafting')==='function'?t('crafting')(m.theme):m.theme;}
   else if(m.type==='spy_packs'){renderPacks(m);}
   else if(m.type==='lobby'){
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     rolePinned=false;suspectsMarked.clear();
     const sc=document.getElementById('spyCard');if(sc)sc.classList.remove('is-pinned','is-peeking');
     const pb=document.getElementById('pinRoleBtn');if(pb)pb.classList.remove('on');
@@ -618,7 +652,8 @@ function handle(m){
   }
   else if(m.type==='error'){
     if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('spy');
-    alert(T(m.msg));
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}

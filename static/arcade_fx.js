@@ -12,6 +12,7 @@
       best: 'Рекорд',
       new_record: '🔥 Новий рекорд!',
       again: '↻ Ще раз',
+      share: 'Поділитися',
       all_games: '‹ Усі ігри'
     },
     ru: {
@@ -20,6 +21,7 @@
       best: 'Рекорд',
       new_record: '🔥 Новый рекорд!',
       again: '↻ Ещё раз',
+      share: 'Поделиться',
       all_games: '‹ Все игры'
     },
     en: {
@@ -28,6 +30,7 @@
       best: 'Best',
       new_record: '🔥 New Record!',
       again: '↻ Play again',
+      share: 'Share',
       all_games: '‹ All games'
     },
     de: {
@@ -36,6 +39,7 @@
       best: 'Rekord',
       new_record: '🔥 Neuer Rekord!',
       again: '↻ Nochmal',
+      share: 'Teilen',
       all_games: '‹ Alle Spiele'
     }
   };
@@ -395,12 +399,18 @@
     const scoreLbl = o.scoreLabel || d.score;
     const bestLbl = o.bestLabel || d.best;
     const againLbl = o.againLabel || d.again;
+    const shareLbl = o.shareLabel || d.share || 'Share';
     const allLbl = o.allGamesLabel || d.all_games;
     const newRecLbl = o.newRecordLabel || d.new_record;
     const href = o.allGamesHref || '/games/';
 
     const statsHtml = Array.isArray(o.stats) && o.stats.length
       ? '<div class="afx-extra">' + o.stats.map(s => `<span class="afx-pill">${esc(s.label)}: <b>${esc(s.value)}</b></span>`).join('') + '</div>'
+      : '';
+
+    const showShare = o.share !== false;
+    const shareBtnHtml = showShare
+      ? `<button type="button" class="afx-btn-ghost afx-btn-share" id="afxShareBtn" style="display:flex;align-items:center;justify-content:center;gap:6px"><span>🔗</span> ${esc(shareLbl)}</button>`
       : '';
 
     modalEl.innerHTML = `
@@ -415,6 +425,7 @@
         ${statsHtml}
         <div class="afx-actions">
           <button type="button" class="afx-btn-main" id="afxRestartBtn">${esc(againLbl)}</button>
+          ${shareBtnHtml}
           <a class="afx-btn-ghost" href="${esc(href)}">${esc(allLbl)}</a>
         </div>
       </div>
@@ -424,6 +435,23 @@
       btn.onclick = () => {
         hideGameOver();
         if (typeof o.onRestart === 'function') o.onRestart();
+      };
+    }
+    const shareBtn = modalEl.querySelector('#afxShareBtn');
+    if (shareBtn) {
+      shareBtn.onclick = () => {
+        if (typeof o.onShare === 'function') {
+          o.onShare();
+        } else if (w.LobbyUI && w.LobbyUI.shareResult) {
+          const s = typeof o.share === 'function' ? o.share() : (typeof o.share === 'object' && o.share !== null ? o.share : {});
+          const statText = Array.isArray(o.stats) && o.stats.length ? (' · ' + o.stats.map(st => `${st.label}: ${st.value}`).join(' · ')) : '';
+          const defaultText = `${title}\n${scoreLbl}: ${o.score ?? 0}${statText}`;
+          w.LobbyUI.shareResult({
+            title: s.title || document.title || 'Lobby.gg',
+            text: s.text || defaultText,
+            url: s.url || (w.location.origin + w.location.pathname)
+          });
+        }
       };
     }
   }

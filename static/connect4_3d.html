@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyUI();
 });
 
-let ws, pid = null, st = null;
+let ws, pid = null, st = null, celebratedDone = false;
 let scene, camera, renderer, controls, raycaster, mouse;
 let boardGroup, columnHitboxes = [];
 let chipsMap = {};
@@ -603,6 +603,7 @@ function joinGame() {
   if (!c) return alert(t('enter_code'));
   connect(() => send({action: 'join', name: n, code: c}));
 }
+window.join = joinGame;
 
 function selectColor(color) {
   if (window.SFX) SFX.tap();
@@ -661,7 +662,9 @@ function handle(m) {
       renderGameState();
     }
   } else if (m.type === 'error') {
-    alert(T(m.msg));
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('connect4_3d');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
     if (window.SFX) SFX.err();
   }
 }
@@ -750,20 +753,56 @@ function renderGameState() {
   const winOverlay = document.getElementById('win-overlay');
   if (st.winner) {
     winOverlay.classList.remove('hide');
-    if (st.winner === 'draw') {
-      document.getElementById('win-heading').textContent = t('draw_title');
-      document.getElementById('win-heading').style.color = '#fff';
-      document.getElementById('win-desc').textContent = t('draw_desc');
-    } else {
-      const isWinner = (st.winner === pid);
-      const wName = T(st.names[st.winner] || t('player_default'));
-      const wCol = st.colors[st.winner] || '#fff';
-      document.getElementById('win-heading').textContent = isWinner ? t('win_you') : `${t('win_other')}: ${wName}!`;
-      document.getElementById('win-heading').style.color = wCol;
-      document.getElementById('win-desc').textContent = t('win_desc');
+    const isDraw = st.winner === 'draw';
+    const isWinner = (st.winner === pid);
+    const wName = T(st.names[st.winner] || t('player_default'));
+    const wCol = st.colors[st.winner] || '#fff';
+    const titleText = isDraw ? t('draw_title') : (isWinner ? t('win_you') : `${t('win_other')}: ${wName}!`);
+    const descText = isDraw ? t('draw_desc') : t('win_desc');
+    document.getElementById('win-heading').textContent = titleText;
+    document.getElementById('win-heading').style.color = isDraw ? '#fff' : wCol;
+    document.getElementById('win-desc').textContent = descText;
+
+    if (window.LobbyUI && LobbyUI.results && !celebratedDone) {
+      celebratedDone = true;
+      const places = [];
+      if (!isDraw && st.winner && st.names[st.winner]) {
+        places.push({
+          id: st.winner,
+          name: wName,
+          score: t('win_desc'),
+          isMe: isWinner,
+          isWinner: true,
+          place: 1
+        });
+      }
+      (st.players || []).filter(p => isDraw || p !== st.winner).forEach((p, idx) => {
+        places.push({
+          id: p,
+          name: T(st.names[p] || t('player_default')),
+          score: isDraw ? t('draw_title') : '',
+          isMe: p === pid,
+          isWinner: false,
+          place: isDraw ? 1 : idx + 2
+        });
+      });
+      LobbyUI.results({
+        title: titleText,
+        subtitle: descText,
+        places,
+        me: pid,
+        isWinner,
+        isDraw,
+        onRematch: () => restartGame(),
+        onLobby: () => { window.location.href = '/'; }
+      });
+    } else if (!celebratedDone) {
+      celebratedDone = true;
       if (isWinner && window.SFX) SFX.win();
     }
   } else {
+    celebratedDone = false;
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     winOverlay.classList.add('hide');
   }
 }

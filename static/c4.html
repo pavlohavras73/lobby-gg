@@ -358,7 +358,9 @@ function handle(m) {
     renderTurnOrOver(m);
     if (m.winner === pid && typeof confetti === 'function') confetti({ particleCount: 80, spread: 65, origin: { y: 0.6 } });
   } else if (m.type === 'error') {
-    alert(T(m.msg));
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('c4');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 

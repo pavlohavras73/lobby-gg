@@ -354,7 +354,29 @@ const engine = new window.RaceEngine(canvas, {
       updateBestLabel();
     }
     const suf = t('score_suffix');
-    if (window.ArcadeFX) {
+    if (window.LobbyUI && LobbyUI.results) {
+      LobbyUI.results({
+        title: t('over_title'),
+        subtitle: `${t('stat_coins', 'Монеты')}: ${info.coins} · ${t('stat_maxspd', 'Макс. скорость')}: ${info.maxSpeed}`,
+        places: [{
+          name: t('page_title', 'Гонщик'),
+          score: info.distance + suf,
+          isMe: true,
+          isWinner: isNewRecord,
+          place: 1
+        }],
+        isWinner: isNewRecord,
+        again: true,
+        onRematch: () => {
+          if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+          scoreEl.textContent = '0';
+          coinsEl.textContent = '0';
+          engine.start();
+          showBiomeToast('city');
+        },
+        onLobby: () => { window.location.href = '/'; }
+      });
+    } else if (window.ArcadeFX) {
       ArcadeFX.showGameOver({
         lang: LANG,
         title: t('over_title'),

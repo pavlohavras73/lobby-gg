@@ -942,7 +942,8 @@
       const nextBtn = document.getElementById('nextBtn');
       if (st.done) {
         won.classList.remove('hide');
-        won.textContent = '🏆 ' + trMsg(st.msg);
+        const winTitle = '🏆 ' + trMsg(st.msg);
+        won.textContent = winTitle;
         nextBtn.classList.remove('hide');
         if (!prevDone && hasRenderedOnce) {
           for (const w of (st.winners || [])) {
@@ -954,7 +955,38 @@
               if (r.width) ArcadeFX.floatText(r.left + r.width / 2, r.top, '+' + wonAmt + ' 🪙', { color: '#fde047', size: 17 });
             }
           }
-          if (winnersSet.has(pid) || (st.msg && st.msg.includes(st.names[pid]))) {
+          const isWinner = winnersSet.has(pid) || (st.msg && st.msg.includes(st.names[pid]));
+          if (window.LobbyUI && LobbyUI.results) {
+            const places = [];
+            (st.winners || []).forEach(w => {
+              places.push({
+                id: w,
+                name: T(st.names[w] || '?'),
+                score: (st.stacks[w] || 0) + ' 🪙',
+                isMe: w === pid,
+                isWinner: true,
+                place: 1
+              });
+            });
+            (st.seats || []).filter(s => !(st.winners || []).includes(s)).forEach((s, idx) => {
+              places.push({
+                id: s,
+                name: T(st.names[s] || '?'),
+                score: (st.stacks[s] || 0) + ' 🪙',
+                isMe: s === pid,
+                isWinner: false,
+                place: idx + 2
+              });
+            });
+            LobbyUI.results({
+              title: winTitle,
+              places,
+              me: pid,
+              isWinner,
+              onRematch: () => send({action: 'poker_next'}),
+              onLobby: () => { window.location.href = '/'; }
+            });
+          } else if (isWinner) {
             if (window.ArcadeFX) {
               ArcadeFX.confetti();
               ArcadeFX.flash('#22c55e', 0.2, 220);
@@ -965,6 +997,7 @@
         }
         renderActions([]);
       } else {
+        if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
         won.classList.add('hide');
         nextBtn.classList.add('hide');
         renderActions(myturn && !st.folded.includes(pid) && !st.allin.includes(pid) ? buildActions() : []);
@@ -1083,7 +1116,8 @@
       }
       else if (m.type === 'error') {
         if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('poker');
-        alert(T(m.msg));
+        if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+        else alert(T(m.msg));
       }
     }
 

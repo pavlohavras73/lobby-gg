@@ -527,7 +527,8 @@ function endRun(r) {
   runActive = false;
   const rec = SAVE.recordRun(save, r);
   if (!SAVE.DEBUG_RUN) SAVE.pushCloud(save);
-  $('resTitle').textContent = r.win ? t('victory') : t('death');
+  const titleText = r.win ? t('victory') : t('death');
+  $('resTitle').textContent = titleText;
   $('resTitle').style.color = r.win ? '#67e8f9' : '#fca5a5';
   $('resRec').innerHTML = rec && r.score > 0 ? `<span class="newrec">${LobbyUI.esc(t('new_record'))}</span>` : '';
   $('rRoom').textContent = r.room + '/10';
@@ -537,7 +538,31 @@ function endRun(r) {
   $('rTime').textContent = fmtTime(r.time);
   $('rLvl').textContent = r.lvl;
   $('resModal').classList.add('on');
-  if (r.win || rec) try { LobbyUI.confetti(); } catch (_) {}
+  if (window.LobbyUI && LobbyUI.results) {
+    LobbyUI.results({
+      title: titleText,
+      subtitle: `${t('r_room', 'Комната')}: ${r.room}/10 · ${t('r_kills', 'Убийств')}: ${r.kills} · ${t('r_shards', 'Осколков')}: +${r.shards}`,
+      places: [{
+        name: t('def_player', 'Герой'),
+        score: r.score,
+        isMe: true,
+        isWinner: r.win,
+        place: 1
+      }],
+      isWinner: r.win,
+      again: true,
+      onRematch: () => {
+        if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+        $('resModal').classList.remove('on');
+        startRun();
+      },
+      onLobby: () => {
+        if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+        $('resModal').classList.remove('on');
+        exitToMenu();
+      }
+    });
+  } else if (r.win || rec) try { LobbyUI.confetti(); } catch (_) {}
 }
 
 function enterFullscreen() {

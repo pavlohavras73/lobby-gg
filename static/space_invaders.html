@@ -310,7 +310,10 @@
   <div class="modal-box" style="text-align:center">
     <div style="font-size:22px;font-weight:900" id="endTitle">Корабль уничтожен</div>
     <div style="font-size:14px;color:#cbd5e1;margin:10px 0 14px" id="endStats"></div>
-    <button type="button" class="btn-main" id="endBackBtn" data-i18n="to_map">На карту галактик</button>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button type="button" class="btn-ghost" id="endShareBtn" style="display:flex;align-items:center;justify-content:center;gap:6px" data-i18n="share_btn">🔗 Поделиться</button>
+      <button type="button" class="btn-main" id="endBackBtn" data-i18n="to_map">На карту галактик</button>
+    </div>
   </div>
 </div>
 
@@ -374,7 +377,8 @@ const UI = {
     unlock_ship_mini: "Переможи міні-боса галактики {g} або купи за ✨ {c}",
     boss_victory_name: "Боса подолано: {name}",
     boss_victory_gal: "Відкрито галактику {n}: {name}",
-    boss_victory_ship: "Відкрито корабель: {name}"
+    boss_victory_ship: "Відкрито корабель: {name}",
+    share_btn: "🔗 Поділитися"
   },
   ru: {
     title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
@@ -419,7 +423,8 @@ const UI = {
     unlock_ship_mini: "Победи мини-босса галактики {g} или купи за ✨ {c}",
     boss_victory_name: "Босс повержен: {name}",
     boss_victory_gal: "Открыта галактика {n}: {name}",
-    boss_victory_ship: "Открыт корабль: {name}"
+    boss_victory_ship: "Открыт корабль: {name}",
+    share_btn: "🔗 Поделиться"
   },
   en: {
     title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
@@ -464,7 +469,8 @@ const UI = {
     unlock_ship_mini: "Defeat Galaxy {g} mini-boss or buy for ✨ {c}",
     boss_victory_name: "Boss defeated: {name}",
     boss_victory_gal: "Galaxy {n} unlocked: {name}",
-    boss_victory_ship: "Ship unlocked: {name}"
+    boss_victory_ship: "Ship unlocked: {name}",
+    share_btn: "🔗 Share"
   },
   de: {
     title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
@@ -509,7 +515,8 @@ const UI = {
     unlock_ship_mini: "Besiege Mini-Boss von Galaxie {g} oder kaufe für ✨ {c}",
     boss_victory_name: "Boss besiegt: {name}",
     boss_victory_gal: "Galaxie {n} freigeschaltet: {name}",
-    boss_victory_ship: "Schiff freigeschaltet: {name}"
+    boss_victory_ship: "Schiff freigeschaltet: {name}",
+    share_btn: "🔗 Teilen"
   }
 };
 
@@ -801,6 +808,8 @@ function exitToMenu() {
   renderHangar();
 }
 
+let lastGameOverInfo = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('gameCanvas');
   engine = new window.ShuttleEngine(canvas, {
@@ -860,6 +869,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('sectorModal').classList.add('open');
     },
     onGameOver: info => {
+      lastGameOverInfo = info;
       saveState.dust = (saveState.dust || 0) + info.dust;
       saveState.best_score = Math.max(saveState.best_score || 0, info.score);
       SAVE.pushCloud(saveState);
@@ -917,6 +927,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('quitBtn').onclick = exitToMenu;
   document.getElementById('backMapBtn').onclick = exitToMenu;
   document.getElementById('endBackBtn').onclick = exitToMenu;
+  const endShareBtn = document.getElementById('endShareBtn');
+  if (endShareBtn) {
+    endShareBtn.onclick = () => {
+      if (window.LobbyUI && LobbyUI.shareResult) {
+        const info = lastGameOverInfo || {};
+        const titleStr = '🚀 Shuttle Cruiser — Lobby.gg';
+        const txt = `🚀 Shuttle Cruiser — Lobby.gg\n🌌 ${t('sector_lbl')} ${info.galaxy || 1}-${info.sector || 1} · ${t('score_lbl')}: ${info.score || 0} · +✨ ${info.dust || 0}`;
+        LobbyUI.shareResult({ title: titleStr, text: txt });
+      }
+    };
+  }
   document.getElementById('nextSectorBtn').onclick = () => {
     document.getElementById('sectorModal').classList.remove('open');
     engine.nextSector();

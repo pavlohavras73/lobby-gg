@@ -18,7 +18,7 @@ CREATE = re.compile(r"(Raum|Tisch|Spiel|Bunker)\s*erstellen|^\s*Erstellen", re.I
 JOIN = re.compile(r"beitreten", re.I)
 ADD_BOT = re.compile(r"Bot", re.I)
 START = re.compile(r"(Spiel\s*)?starten|Austeilen|Karten (aus)?teilen|Start", re.I)
-IGNORE = re.compile(r"favicon|ResizeObserver|ERR_ABORTED|serviceWorker|sw\.js", re.I)
+IGNORE = re.compile(r"favicon|ResizeObserver|ERR_ABORTED|serviceWorker|sw\.js|fetching the script|bad HTTP response code \(404\)", re.I)
 CODE_RE = re.compile(r"\b[A-Z0-9]{4}\b")
 
 

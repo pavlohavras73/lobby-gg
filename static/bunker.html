@@ -1475,6 +1475,44 @@ function renderBunker(m){
   if(lastLogSeq!==null)for(const e of log)if((e.seq||0)>lastLogSeq)toastMsg(evText(e,true));
   lastLogSeq=maxSeq;
   if(abSel)renderAb();
+
+  const alivePlayers = (m.players || []).filter(p => p.alive);
+  if (m.seats > 0 && alivePlayers.length > 0 && alivePlayers.length <= m.seats && (m.round > 1 || (m.players || []).some(p => !p.alive))) {
+    if (!window._bunkerOverCelebrated && window.LobbyUI && LobbyUI.results) {
+      window._bunkerOverCelebrated = true;
+      const isMeSurvivor = alivePlayers.some(p => p.id === pid);
+      const places = [];
+      alivePlayers.forEach(p => {
+        places.push({
+          id: p.id,
+          name: T(p.name),
+          score: t('survivor', 'Выжил в бункере'),
+          isMe: p.id === pid,
+          isWinner: true,
+          place: 1
+        });
+      });
+      (m.players || []).filter(p => !p.alive).forEach((p, idx) => {
+        places.push({
+          id: p.id,
+          name: T(p.name),
+          score: t('exiled_tag', 'Изгнан'),
+          isMe: p.id === pid,
+          isWinner: false,
+          place: idx + 2
+        });
+      });
+      LobbyUI.results({
+        title: isMeSurvivor ? t('bunker_saved', 'Ты спасся в бункере!') : t('bunker_over', 'Бункер заполнен'),
+        subtitle: `${t('survivors_count', 'Выживших')}: ${alivePlayers.length} / ${m.seats}`,
+        places,
+        me: pid,
+        isWinner: isMeSurvivor,
+        onRematch: isHost ? () => send({action: 'restart'}) : null,
+        onLobby: () => { window.location.href = '/'; }
+      });
+    }
+  }
 }
 
 // ── Спецспособности ──
@@ -1571,6 +1609,8 @@ function handle(m){
     else sessionStorage.setItem('jg_bunker_code', m.code);
   }
   else if(m.type==='lobby'){
+    window._bunkerOverCelebrated = false;
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     prevMyRevealed=new Set();prevBoardRevealed={};hasRenderedBunker=false;
     const ban=document.getElementById('voteResultBanner');if(ban)ban.classList.add('hide');
     show('lobby');
@@ -1603,7 +1643,8 @@ function handle(m){
   else if(m.type==='timer'){runTimer(m.secs);}
   else if(m.type==='error'){
     if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('bunker');
-    alert(T(m.msg));
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 document.addEventListener('DOMContentLoaded', () => {

@@ -445,9 +445,11 @@ function handle(m){
   }
   if(m.type==='error'){
     if(window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('mafia');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
     const h=document.getElementById('acthint');if(h)h.textContent='⚠️ '+m.msg; return;
   }
   if(m.type==='lobby'||m.type==='room'){
+    if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
     prevAlive={};prevVotes={};prevPhaseMafia='lobby';hasRenderedMafia=false;
     show('lobby');
     const ld=document.getElementById('lcode');
@@ -600,7 +602,8 @@ function renderOver(m){
   document.body.className='';
   const wb=document.getElementById('winban');
   wb.className='winbanner '+(m.winner||'town');
-  wb.textContent=m.winner==='mafia'?t('win_mafia'):t('win_town');
+  const winTitle = m.winner==='mafia'?t('win_mafia'):t('win_town');
+  wb.textContent=winTitle;
   const RMETA={mafia:['🔪','mafia'],doctor:['💉','town'],sheriff:['🔎','town'],patrol:['🚓','town'],civilian:['👤','town']};
   document.getElementById('finalroles').innerHTML=(m.players||[]).map(p=>{
     const rm=RMETA[p.role]||['👤','town'];
@@ -611,13 +614,54 @@ function renderOver(m){
       '</span><span class="roletag '+rm[1]+'">'+rm[0]+' '+label+'</span></div>';
   }).join('');
   document.getElementById('againbtn').classList.toggle('hide',!isHost);
+  const me=(m.players||[]).find(p=>p.id===pid);
+  const isMeWin = me ? (m.winner === 'mafia' ? me.role === 'mafia' : me.role !== 'mafia') : false;
   if(hasRenderedMafia && prevPhaseMafia!=='over'){
-    if(window.ArcadeFX){
-      ArcadeFX.confetti();
-      ArcadeFX.flash(m.winner==='mafia'?'#ff2238':'#22c55e',0.22,250);
-      ArcadeFX.vibrate([20,30,40]);
+    if (window.LobbyUI && LobbyUI.results) {
+      const places = [];
+      const winningRole = m.winner === 'mafia' ? (p => p.role === 'mafia') : (p => p.role !== 'mafia');
+      // Winners first
+      (m.players || []).filter(winningRole).forEach(p => {
+        const rm = RMETA[p.role] || ['👤', 'town'];
+        const label = (UI[LANG].rid && UI[LANG].rid[p.role]) || p.role || '?';
+        places.push({
+          id: p.id,
+          name: T(p.name),
+          score: rm[0] + ' ' + label,
+          isMe: p.id === pid,
+          isWinner: true,
+          place: 1
+        });
+      });
+      // Losers
+      (m.players || []).filter(p => !winningRole(p)).forEach((p, idx) => {
+        const rm = RMETA[p.role] || ['👤', 'town'];
+        const label = (UI[LANG].rid && UI[LANG].rid[p.role]) || p.role || '?';
+        places.push({
+          id: p.id,
+          name: T(p.name),
+          score: rm[0] + ' ' + label,
+          isMe: p.id === pid,
+          isWinner: false,
+          place: idx + 2
+        });
+      });
+      LobbyUI.results({
+        title: winTitle,
+        places,
+        me: pid,
+        isWinner: isMeWin,
+        onRematch: isHost ? () => send({action: 'restart'}) : null,
+        onLobby: () => send({action: 'back'})
+      });
+    } else {
+      if(window.ArcadeFX){
+        ArcadeFX.confetti();
+        ArcadeFX.flash(m.winner==='mafia'?'#ff2238':'#22c55e',0.22,250);
+        ArcadeFX.vibrate([20,30,40]);
+      }
+      if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
     }
-    if(window.LobbyUI&&LobbyUI.sound)LobbyUI.sound('win');
   }
 }
 document.addEventListener('DOMContentLoaded', () => {

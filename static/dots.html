@@ -581,17 +581,59 @@ function handle(m) {
     if (m.done) {
       ov.classList.remove('hide');
       const win = (m.winner === pid);
-      document.getElementById('ot').textContent = m.winner ? (win ? t('you_won') : t('someone_won', { n: T(m.names[m.winner] || '?') })) : t('draw');
+      const titleText = m.winner ? (win ? t('you_won') : t('someone_won', { n: T(m.names[m.winner] || '?') })) : t('draw');
+      document.getElementById('ot').textContent = titleText;
       document.getElementById('turninfo').textContent = '';
       if (!prevDone) {
-        if (win) {
-          if (window.ArcadeFX) ArcadeFX.confetti();
-          if (window.sfx && sfx.win) sfx.win();
-        } else if (m.winner && window.sfx && sfx.lose) {
-          sfx.lose();
+        if (window.LobbyUI && LobbyUI.results) {
+          const isDraw = !m.winner;
+          const p1 = m.winner || (m.players && m.players[0]);
+          const p2 = (m.players || []).find(p => p !== p1) || (m.players && m.players[1]);
+          const places = [];
+          if (p1 && m.names[p1]) {
+            const sc1 = m.scores ? m.scores[m.players.indexOf(p1) + 1] : null;
+            places.push({
+              id: p1,
+              name: T(m.names[p1]),
+              score: sc1 != null ? (sc1 + ' ' + t('boxes', 'квадратов')) : (isDraw ? t('draw') : t('you_won')),
+              isMe: p1 === pid,
+              isWinner: !isDraw && m.winner === p1,
+              place: 1
+            });
+          }
+          if (p2 && m.names[p2]) {
+            const sc2 = m.scores ? m.scores[m.players.indexOf(p2) + 1] : null;
+            places.push({
+              id: p2,
+              name: T(m.names[p2]),
+              score: sc2 != null ? (sc2 + ' ' + t('boxes', 'квадратов')) : (isDraw ? t('draw') : ''),
+              isMe: p2 === pid,
+              isWinner: !isDraw && m.winner === p2,
+              place: isDraw ? 1 : 2
+            });
+          }
+          LobbyUI.results({
+            title: titleText,
+            places,
+            me: pid,
+            isWinner: win,
+            isDraw,
+            onRematch: () => {
+              send({action: 'restart'});
+            },
+            onLobby: () => { window.location.href = '/'; }
+          });
+        } else {
+          if (win) {
+            if (window.ArcadeFX) ArcadeFX.confetti();
+            if (window.sfx && sfx.win) sfx.win();
+          } else if (m.winner && window.sfx && sfx.lose) {
+            sfx.lose();
+          }
         }
       }
     } else {
+      if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
       ov.classList.add('hide');
       document.getElementById('turninfo').innerHTML = my ? '<span class="me">' + t('your_turn') + '</span>' + t('your_turn_sub') : t('turn_of', { n: esc(T(m.names[m.turn_pid] || '?')) });
     }
@@ -601,7 +643,9 @@ function handle(m) {
     prevDone = !!m.done;
     prevTurnPid = m.turn_pid;
   } else if (m.type === 'error') {
-    alert(T(m.msg));
+    if (window.LobbyRejoin && LobbyRejoin.isRoomNotFoundError(m.msg)) LobbyRejoin.clear('dots');
+    if (window.LobbyUI && LobbyUI.roomError) LobbyUI.roomError(m.msg);
+    else alert(T(m.msg));
   }
 }
 

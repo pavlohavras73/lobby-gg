@@ -752,6 +752,10 @@ function showGameOverScreen() {
         { label: t('lvl_lbl'), value: level },
         { label: t('lines_lbl'), value: lines }
       ],
+      share: () => ({
+        title: '🧱 Tetris — Lobby.gg',
+        text: `🧱 Tetris — Lobby.gg\n🏆 ${score} · ${t('lines_lbl')}: ${lines} · ${t('lvl_lbl')}: ${level}`
+      }),
       onRestart: () => {
         resetGame();
         drop();

@@ -480,11 +480,17 @@ function submit(){
         ArcadeFX.confetti();
         ArcadeFX.vibrate([20,30,20]);
         setTimeout(()=>{
+          const gridEmoji = guesses.map(g => g.res.map(r => r === 'correct' ? '🟩' : (r === 'present' ? '🟨' : '⬛')).join('')).join('\n');
           if(over) ArcadeFX.showGameOver({
             lang: LANG, title: t('over_win'), subtitle: t('word_was') + answer.toUpperCase(),
             score: `${row + 1}/6`, scoreLabel: t('tries_lbl'),
             best: bestStreak, bestLabel: t('streak_lbl'),
-            isNewRecord: isNewBest, onRestart: () => resetToNewWord()
+            isNewRecord: isNewBest,
+            share: () => ({
+              title: `Wordle (${LANG.toUpperCase()}) ${row + 1}/6 — Lobby.gg`,
+              text: `Wordle (${LANG.toUpperCase()}) ${row + 1}/6 — Lobby.gg\n\n${gridEmoji}`
+            }),
+            onRestart: () => resetToNewWord()
           });
         }, 480);
       }
@@ -501,11 +507,17 @@ function submit(){
         ArcadeFX.shake(document.getElementById('grid'), 7, 320);
         ArcadeFX.vibrate(25);
         setTimeout(()=>{
+          const gridEmoji = guesses.map(g => g.res.map(r => r === 'correct' ? '🟩' : (r === 'present' ? '🟨' : '⬛')).join('')).join('\n');
           if(over) ArcadeFX.showGameOver({
             lang: LANG, title: t('over_lose'), subtitle: t('word_was') + answer.toUpperCase(),
             score: '✕/6', scoreLabel: t('tries_lbl'),
             best: prevBestStreak, bestLabel: t('streak_lbl'),
-            isNewRecord: false, onRestart: () => resetToNewWord()
+            isNewRecord: false,
+            share: () => ({
+              title: `Wordle (${LANG.toUpperCase()}) ✕/6 — Lobby.gg`,
+              text: `Wordle (${LANG.toUpperCase()}) ✕/6 — Lobby.gg\n\n${gridEmoji}`
+            }),
+            onRestart: () => resetToNewWord()
           });
         }, 320);
       }
