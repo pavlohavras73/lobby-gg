@@ -945,7 +945,7 @@
             try { opts.onLobby(); } catch (err) {}
           } else {
             if (window.history.length > 1) window.history.back();
-            else window.location.href = "/";
+            else window.location.href = "/games/";
           }
         };
         if (!opts.onRematch) lBtn.focus();

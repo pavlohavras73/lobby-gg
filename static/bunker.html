@@ -1509,7 +1509,7 @@ function renderBunker(m){
         me: pid,
         isWinner: isMeSurvivor,
         onRematch: isHost ? () => send({action: 'restart'}) : null,
-        onLobby: () => { window.location.href = '/'; }
+        onLobby: () => { window.location.href = '/games/'; }
       });
     }
   }

@@ -375,7 +375,7 @@ const engine = new window.RaceEngine(canvas, {
           engine.start();
           showBiomeToast('city');
         },
-        onLobby: () => { window.location.href = '/'; }
+        onLobby: () => { window.location.href = '/games/'; }
       });
     } else if (window.ArcadeFX) {
       ArcadeFX.showGameOver({

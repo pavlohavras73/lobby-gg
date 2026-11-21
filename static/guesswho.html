@@ -393,7 +393,7 @@ function handle(m){
               if (typeof ws !== 'undefined' && ws && ws.send) ws.send({action: 'restart'});
               else location.reload();
             },
-            onLobby: () => { window.location.href = '/'; }
+            onLobby: () => { window.location.href = '/games/'; }
           });
         } else {
           if(window.ArcadeFX){

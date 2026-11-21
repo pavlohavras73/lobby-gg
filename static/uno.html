@@ -832,7 +832,7 @@
             onRematch: () => {
               send({action: 'restart'});
             },
-            onLobby: () => { window.location.href = '/'; }
+            onLobby: () => { window.location.href = '/games/'; }
           });
         } else if (won && window.LobbyUI) {
           LobbyUI.confetti({ particleCount: 120, spread: 88 });

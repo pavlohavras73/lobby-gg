@@ -587,7 +587,7 @@ function renderReveal(m){
         me: pid,
         isWinner: !isMeSpy,
         onRematch: () => send({action: 'back'}),
-        onLobby: () => { window.location.href = '/'; }
+        onLobby: () => { window.location.href = '/games/'; }
       });
     } else {
       if(window.ArcadeFX){
