@@ -568,7 +568,7 @@ function endRun(r) {
       onLobby: () => {
         if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
         $('resModal').classList.remove('on');
-        exitToMenu();
+        toMenu();
       }
     });
   } else if (r.win || rec) try { LobbyUI.confetti(); } catch (_) {}

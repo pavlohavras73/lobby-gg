@@ -928,7 +928,8 @@
           sound("click");
           vibrate(10);
           closeResults();
-          try { opts.onRematch(); } catch (err) {}
+          // если обработчик игры упал — не оставляем игрока на замершем экране: перезагружаем страницу игры
+          try { opts.onRematch(); } catch (err) { console.error("results onRematch failed", err); window.location.reload(); }
         };
         rBtn.focus();
       }
@@ -941,11 +942,11 @@
           sound("click");
           vibrate(10);
           closeResults();
+          // только внутри /games/: history.back() мог увести на чужой сайт, а упавший обработчик — оставить игрока в тупике
           if (typeof opts.onLobby === "function") {
-            try { opts.onLobby(); } catch (err) {}
+            try { opts.onLobby(); } catch (err) { console.error("results onLobby failed", err); window.location.href = "/games/"; }
           } else {
-            if (window.history.length > 1) window.history.back();
-            else window.location.href = "/games/";
+            window.location.href = "/games/";
           }
         };
         if (!opts.onRematch) lBtn.focus();
