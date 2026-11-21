@@ -726,6 +726,11 @@ const UI = {
     loading_msg: "Завантаження рейтингу…",
     empty_msg: "Поки немає зіграних рейтингових партій. Зіграй дуель із другом першим!",
     error_msg: "Не вдалося завантажити таблицю лідерів.",
+    net_err_title: "Не вдалося завантажити дані",
+    net_err_desc: "Перевірте підключення до мережі та спробуйте знову",
+    retry_btn: "Повторити",
+    empty_lb_title: "Поки немає зіграних партій",
+    empty_lb_desc: "Зіграйте дуель із другом першим!",
     unranked: "—",
     elo_note: "Враховуються лише дуелі 1×1 між двома різними акаунтами (партії з ботами не впливають на рейтинг)."
   },
@@ -756,6 +761,11 @@ const UI = {
     loading_msg: "Загрузка рейтинга…",
     empty_msg: "Пока нет сыгранных рейтинговых партий. Сыграй дуэль с другом первым!",
     error_msg: "Не удалось загрузить таблицу лидеров.",
+    net_err_title: "Не удалось загрузить данные",
+    net_err_desc: "Проверьте подключение к сети и попробуйте снова",
+    retry_btn: "Повторить",
+    empty_lb_title: "Пока нет сыгранных партий",
+    empty_lb_desc: "Сыграйте дуэль с другом первым!",
     unranked: "—",
     elo_note: "Учитываются только дуэли 1×1 между двумя разными аккаунтами (партии с ботами не влияют на рейтинг)."
   },
@@ -786,6 +796,11 @@ const UI = {
     loading_msg: "Loading leaderboard…",
     empty_msg: "No rated matches played yet. Challenge a friend to claim #1!",
     error_msg: "Could not load leaderboard.",
+    net_err_title: "Failed to load data",
+    net_err_desc: "Check your connection and try again",
+    retry_btn: "Retry",
+    empty_lb_title: "No ranked matches yet",
+    empty_lb_desc: "Be the first to challenge a friend to a duel!",
     unranked: "—",
     elo_note: "Only 1v1 duels between two distinct human accounts are rated (bot matches do not affect ELO)."
   },
@@ -816,6 +831,11 @@ const UI = {
     loading_msg: "Bestenliste wird geladen…",
     empty_msg: "Noch keine gewerteten Partien gespielt. Fordere einen Freund zum Duell heraus!",
     error_msg: "Bestenliste konnte nicht geladen werden.",
+    net_err_title: "Daten konnten nicht geladen werden",
+    net_err_desc: "Überprüfe deine Verbindung und versuche es erneut",
+    retry_btn: "Wiederholen",
+    empty_lb_title: "Noch keine gewerteten Partien",
+    empty_lb_desc: "Fordere als Erster einen Freund zum Duell heraus!",
     unranked: "—",
     elo_note: "Gewertet werden nur 1-gegen-1-Duelle zwischen zwei verschiedenen Konten (Spiele gegen Bots zählen nicht)."
   }
@@ -929,18 +949,38 @@ function renderRows() {
   const podiumEl = document.getElementById('podiumWrap');
 
   if (loadState === 'loading') {
-    tableEl.classList.add('hide');
     podiumEl.classList.add('hide');
-    emptyEl.classList.remove('hide');
-    emptyEl.textContent = t('loading_msg');
-    tbody.innerHTML = '';
+    emptyEl.classList.add('hide');
+    tableEl.classList.remove('hide');
+    tbody.innerHTML = Array(10).fill(0).map((_, i) => `
+      <tr class="sk-row">
+        <td class="col-rank"><div class="sk-shimmer" style="width:24px;height:18px;margin:auto;border-radius:4px;"></div></td>
+        <td class="col-player">
+          <div class="p-cell">
+            <div class="p-ava sk-shimmer" style="background:rgba(255,255,255,.05);border-radius:50%;"></div>
+            <div class="p-info" style="gap:6px;">
+              <div class="sk-shimmer" style="width:${70 + (i % 4) * 20}px;height:14px;border-radius:4px;"></div>
+            </div>
+          </div>
+        </td>
+        <td class="col-elo"><div class="sk-shimmer" style="width:52px;height:16px;margin-left:auto;border-radius:4px;"></div></td>
+        <td class="col-wld"><div class="sk-shimmer" style="width:64px;height:16px;margin:auto;border-radius:4px;"></div></td>
+      </tr>
+    `).join('');
     return;
   }
   if (loadState === 'error') {
     tableEl.classList.add('hide');
     podiumEl.classList.add('hide');
     emptyEl.classList.remove('hide');
-    emptyEl.textContent = t('error_msg');
+    emptyEl.innerHTML = `
+      <div class="error-state">
+        <div class="error-state-ico">📡</div>
+        <div class="error-state-title">${esc(t('net_err_title'))}</div>
+        <div class="error-state-desc">${esc(t('net_err_desc'))}</div>
+        <button type="button" class="error-state-btn" onclick="loadGameLeaderboard(currentGame)">${esc(t('retry_btn'))}</button>
+      </div>
+    `;
     tbody.innerHTML = '';
     return;
   }
@@ -948,7 +988,14 @@ function renderRows() {
     tableEl.classList.add('hide');
     podiumEl.classList.add('hide');
     emptyEl.classList.remove('hide');
-    emptyEl.textContent = t('empty_msg');
+    emptyEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-ico">🏆</div>
+        <div class="empty-state-title">${esc(t('empty_lb_title'))}</div>
+        <div class="empty-state-desc">${esc(t('empty_lb_desc'))}</div>
+        <a href="/games/${esc(currentGame)}" class="empty-state-btn">${esc(t('play_btn'))}</a>
+      </div>
+    `;
     tbody.innerHTML = '';
     return;
   }

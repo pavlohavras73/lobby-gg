@@ -41,15 +41,20 @@
 
   /* Lobby / Cards */
   .card-box {
-    max-width: 420px;
-    margin: 12px auto;
-    background: rgba(18, 22, 38, 0.85);
-    border: 1px solid rgba(0, 240, 255, 0.2);
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
+    max-width: 400px;
+    margin: 8px auto;
+    background: linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
+    border: 1px solid var(--border-hi);
+    border-radius: 26px;
+    padding: 22px 18px;
+    text-align: center;
+    box-shadow: var(--inner), var(--shadow-lg), 0 0 50px -18px rgba(0,240,255,.24);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
   }
+  .c4-hero-svg { width:76px; height:64px; margin:0 auto 6px; display:block; filter:drop-shadow(0 10px 18px rgba(0,240,255,.28)); transition:transform .2s var(--ease); }
+  .lobby-title { font-family:var(--display,system-ui); font-size:26px; font-weight:800; margin-bottom:4px; color:#fff; text-shadow:0 0 18px #38bdf866; } /* без background-clip: эмодзи в заголовке иначе становится белым квадратом */
+  .lobby-sub { font-size:12.5px; color:var(--muted); margin-bottom:14px; font-weight:600; }
   .palette-row {
     display: flex;
     justify-content: center;
@@ -57,12 +62,14 @@
     margin: 14px 0 18px;
   }
   .color-dot {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 3px solid transparent;
     cursor: pointer;
     transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
     position: relative;
   }
   .color-dot:hover {
@@ -253,27 +260,29 @@
   <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('connect4_3d') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_title">i</button>
 </header>
 
-<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
-  <div style="max-width:420px;width:100%;background:#131726;border:1px solid rgba(0,240,255,.3);border-radius:18px;padding:22px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.8);max-height:85vh;overflow-y:auto">
-    <div style="font-size:20px;font-weight:800;color:var(--c4-neon);margin-bottom:12px" data-i18n="rules_title">🌌 4 в ряд 3D — правила</div>
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.76);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:420px;width:100%;background:linear-gradient(180deg,#181a24,#0e1017);border:1px solid var(--border-hi);border-radius:20px;padding:22px;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.85);max-height:85vh;overflow-y:auto">
+    <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:12px;font-family:var(--display,system-ui)" data-i18n="rules_title">🌌 4 в ряд 3D — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#e2e8f0" data-i18n="rules_body">
       Игра в пространственном кубе <b>5 × 5 × 5</b> (125 ячеек) для <b>2–3 игроков</b>.<br><br>
       • <b>Ход:</b> кликни/тапни по любой из 25 колонок сверху. Фишка упадёт вниз.<br>
       • <b>Вращение:</b> зажми и крути куб пальцем или мышью.<br>
       • <b>Победа:</b> собери <b>4 фишки своего цвета в линию</b> в любом направлении (горизонталь, вертикаль или 3D-диагональ).
     </div>
-    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;min-height:44px;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:800;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
   </div>
-</div>
-
-<div class="title-wrap">
-  <h1 data-i18n="page_title">🌌 4 В РЯД : 3D</h1>
-  <div class="langbar" id="langbar" style="margin-bottom:8px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
-  <div class="sub" data-i18n="page_sub">битва в объёмном кубе 5×5×5 · до 3 игроков</div>
 </div>
 
 <!-- 1. HOME SCREEN -->
 <div id="home" class="card-box">
+  <svg id="c43dLogo" class="c4-hero-svg" viewBox="0 0 88 72" fill="none" aria-hidden="true">
+    <path d="M44 10 L74 24 L74 54 L44 68 L14 54 L14 24 Z" fill="#131726" stroke="#38bdf8" stroke-width="2"/>
+    <path d="M44 10 L44 68 M14 24 L74 54 M74 24 L14 54" stroke="#0284c7" stroke-opacity=".4" stroke-width="1.5"/>
+    <circle cx="44" cy="38" r="8" fill="#38bdf8" filter="drop-shadow(0 0 6px #38bdf8)"/>
+  </svg>
+  <div class="lobby-title" data-i18n="page_title">4 В РЯД : 3D</div>
+  <div class="lobby-sub" data-i18n="page_sub">битва в объёмном кубе 5×5×5 · до 3 игроков</div>
+  <div class="langbar" id="langbar" style="margin-bottom:14px;"><button type="button" data-lang="uk">УКР</button><button type="button" data-lang="ru">РУС</button><button type="button" data-lang="en">ENG</button><button type="button" data-lang="de">DEU</button></div>
   <input id="name" class="inp" placeholder="Твоё имя" data-i18n-ph="name_ph" maxlength="20">
   <button class="btn-primary" style="width:100%;margin-top:10px" onclick="createGame()" data-i18n="create_btn">Создать игру</button>
   <div style="margin:14px 0 10px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px" data-i18n="or_code">или по коду</div>

@@ -487,6 +487,8 @@
               <button type="button" data-f="party"><span data-i18n="f_party">Party</span><span class="n" data-n="party"></span></button>
               <button type="button" data-f="duo"><span data-i18n="f_duo">1 vs 1</span><span class="n" data-n="duo"></span></button>
               <button type="button" data-f="solo"><span data-i18n="f_solo">Solo</span><span class="n" data-n="solo"></span></button>
+              <button type="button" data-f="fav"><span data-i18n="f_fav">⭐ Favorites</span><span class="n" data-n="fav"></span></button>
+              <button type="button" data-f="recent"><span data-i18n="f_recent">🕒 Recent</span><span class="n" data-n="recent"></span></button>
             </div>
           </div>
           <div class="filter-row">
@@ -931,6 +933,15 @@
   const I18N={
     uk:{
       k_recent:"Недавні", h_recent:"Продовжити гру", fav_add:"Додати в обране", fav_remove:"Видалити з обраного",
+      f_fav:"⭐ Обране", f_recent:"🕒 Недавні",
+      empty_fav_title:"Додайте ігри зірочкою",
+      empty_fav_desc:"Натисніть на зірочку на будь-якій картці, щоб додати гру в обране",
+      empty_recent_title:"Ви ще не зіграли в жодну гру",
+      empty_recent_desc:"Запустіть будь-яку гру з бібліотеки нижче",
+      all_games_btn:"Всі ігри",
+      net_err_title:"Не вдалося завантажити дані",
+      net_err_desc:"Перевірте підключення до мережі та спробуйте знову",
+      retry_btn:"Повторити",
       flt_cat:"Тип", flt_players:"Гравці", f_p_all:"Усі гравці", f_p_1:"Один", f_p_2:"Вдвох", f_p_3:"Компанія 3+",
       search_ph:"Пошук ігор за назвою...", search_clear:"Очистити пошук",
       no_res_title:"Нічого не знайдено", no_res_desc:"Спробуй змінити запит або скинути фільтри", reset_filters:"Скинути фільтри",
@@ -996,6 +1007,15 @@
     },
     ru:{
       k_recent:"Недавние", h_recent:"Продолжить игру", fav_add:"Добавить в избранное", fav_remove:"Удалить из избранного",
+      f_fav:"⭐ Избранное", f_recent:"🕒 Недавние",
+      empty_fav_title:"Добавьте игры звёздочкой",
+      empty_fav_desc:"Нажмите на звёздочку на любой карточке, чтобы добавить игру в избранное",
+      empty_recent_title:"Вы ещё не сыграли ни в одну игру",
+      empty_recent_desc:"Запустите любую игру из библиотеки ниже",
+      all_games_btn:"Все игры",
+      net_err_title:"Не удалось загрузить данные",
+      net_err_desc:"Проверьте подключение к сети и попробуйте снова",
+      retry_btn:"Повторить",
       flt_cat:"Тип", flt_players:"Игроки", f_p_all:"Все игроки", f_p_1:"Один", f_p_2:"Вдвоём", f_p_3:"Компания 3+",
       search_ph:"Поиск игр по названию...", search_clear:"Очистить поиск",
       no_res_title:"Ничего не нашлось", no_res_desc:"Попробуй изменить запрос или сбросить фильтры", reset_filters:"Сбросить фильтры",
@@ -1061,6 +1081,15 @@
     },
     en:{
       k_recent:"Recent", h_recent:"Jump back in", fav_add:"Add to favorites", fav_remove:"Remove from favorites",
+      f_fav:"⭐ Favorites", f_recent:"🕒 Recent",
+      empty_fav_title:"Add games with the star icon",
+      empty_fav_desc:"Tap the star icon on any card to add a game to your favorites",
+      empty_recent_title:"You haven't played any games yet",
+      empty_recent_desc:"Launch any game from the library below",
+      all_games_btn:"All games",
+      net_err_title:"Failed to load data",
+      net_err_desc:"Check your connection and try again",
+      retry_btn:"Retry",
       flt_cat:"Type", flt_players:"Players", f_p_all:"All players", f_p_1:"Solo", f_p_2:"2 players", f_p_3:"Party 3+",
       search_ph:"Search games by name...", search_clear:"Clear search",
       no_res_title:"Nothing found", no_res_desc:"Try adjusting search query or resetting filters", reset_filters:"Reset filters",
@@ -1127,6 +1156,15 @@
     },
   de: {
     "k_recent": "Zuletzt gespielt", "h_recent": "Weiterspielen", "fav_add": "Zu Favoriten hinzufügen", "fav_remove": "Aus Favoriten entfernen",
+    "f_fav": "⭐ Favoriten", "f_recent": "🕒 Zuletzt gespielt",
+    "empty_fav_title": "Füge Spiele mit dem Stern hinzu",
+    "empty_fav_desc": "Tippe auf das Stern-Symbol bei einer Karte, um das Spiel zu den Favoriten hinzuzufügen",
+    "empty_recent_title": "Du hast noch kein Spiel gespielt",
+    "empty_recent_desc": "Starte ein beliebiges Spiel aus der Bibliothek unten",
+    "all_games_btn": "Alle Spiele",
+    "net_err_title": "Daten konnten nicht geladen werden",
+    "net_err_desc": "Überprüfe deine Verbindung und versuche es erneut",
+    "retry_btn": "Wiederholen",
     "flt_cat": "Typ", "flt_players": "Spieler", "f_p_all": "Alle Spieler", "f_p_1": "Solo", "f_p_2": "2 Spieler", "f_p_3": "Party 3+",
     "search_ph": "Spiele nach Namen suchen...", "search_clear": "Suche löschen",
     "no_res_title": "Nichts gefunden", "no_res_desc": "Passe die Suchanfrage an oder setze Filter zurück", "reset_filters": "Filter zurücksetzen",
@@ -1402,19 +1440,33 @@
     const clearBtn = document.getElementById('searchClear');
     if (clearBtn) clearBtn.classList.toggle('hide', !q);
 
+    let favs = [];
+    try { favs = JSON.parse(localStorage.getItem('jg_favorites') || '[]'); } catch (e) { favs = []; }
+    if (!Array.isArray(favs)) favs = [];
+    let rec = [];
+    try { rec = JSON.parse(localStorage.getItem('jg_recent') || '[]'); } catch (e) { rec = []; }
+    if (!Array.isArray(rec)) rec = [];
+
     let totalVisible = 0;
 
     // Filter library categories
     document.querySelectorAll('.cat').forEach(c => {
-      const catMatches = (activeCat === 'all' || c.dataset.cat === activeCat);
+      let catMatches = (activeCat === 'all' || c.dataset.cat === activeCat);
+      if (activeCat === 'fav' || activeCat === 'recent') catMatches = true;
+
       let catVisible = 0;
       c.querySelectorAll('.game').forEach(card => {
+        const slug = card.dataset.slug || '';
+        let cardCatMatch = (activeCat === 'all' || c.dataset.cat === activeCat);
+        if (activeCat === 'fav') cardCatMatch = favs.includes(slug) || card.classList.contains('is-fav');
+        if (activeCat === 'recent') cardCatMatch = rec.includes(slug);
+
         const cardPlayers = (card.dataset.players || '').split(',');
         const pMatches = (activePlayers === 'all' || cardPlayers.includes(activePlayers));
         const sTxt = searchIndex.get(card) || '';
         const sMatches = !q || sTxt.includes(q);
 
-        const show = catMatches && pMatches && sMatches;
+        const show = cardCatMatch && pMatches && sMatches;
         card.classList.toggle('hide', !show);
         if (show) catVisible++;
       });
@@ -1428,14 +1480,18 @@
     if (featSec) {
       let featVisible = 0;
       featSec.querySelectorAll('.feat').forEach(card => {
+        const slug = card.dataset.slug || '';
         const cardCat = card.dataset.cat || 'solo';
-        const catMatches = (activeCat === 'all' || activeCat === cardCat);
+        let cardCatMatch = (activeCat === 'all' || activeCat === cardCat);
+        if (activeCat === 'fav') cardCatMatch = favs.includes(slug) || card.classList.contains('is-fav');
+        if (activeCat === 'recent') cardCatMatch = rec.includes(slug);
+
         const cardPlayers = (card.dataset.players || '').split(',');
         const pMatches = (activePlayers === 'all' || cardPlayers.includes(activePlayers));
         const sTxt = searchIndex.get(card) || '';
         const sMatches = !q || sTxt.includes(q);
 
-        const show = catMatches && pMatches && sMatches;
+        const show = cardCatMatch && pMatches && sMatches;
         card.classList.toggle('hide', !show);
         if (show) featVisible++;
       });
@@ -1460,7 +1516,55 @@
 
     // Empty state
     const noRes = document.getElementById('noResults');
-    if (noRes) noRes.classList.toggle('hide', totalVisible > 0);
+    if (noRes) {
+      noRes.classList.toggle('hide', totalVisible > 0);
+      if (totalVisible === 0) {
+        const ico = noRes.querySelector('.no-results-ico');
+        const h3 = noRes.querySelector('h3');
+        const p = noRes.querySelector('p');
+        const btn = noRes.querySelector('button');
+
+        if (activeCat === 'fav') {
+          if (ico) ico.textContent = '⭐';
+          if (h3) h3.textContent = t('empty_fav_title');
+          if (p) p.textContent = t('empty_fav_desc');
+          if (btn) {
+            btn.textContent = t('all_games_btn');
+            btn.onclick = () => {
+              const allBtn = document.querySelector('#filters button[data-f="all"]');
+              if (allBtn) allBtn.click();
+            };
+          }
+        } else if (activeCat === 'recent') {
+          if (ico) ico.textContent = '🕹️';
+          if (h3) h3.textContent = t('empty_recent_title');
+          if (p) p.textContent = t('empty_recent_desc');
+          if (btn) {
+            btn.textContent = t('all_games_btn');
+            btn.onclick = () => {
+              const allBtn = document.querySelector('#filters button[data-f="all"]');
+              if (allBtn) allBtn.click();
+            };
+          }
+        } else {
+          if (ico) ico.textContent = '🔍';
+          if (h3) h3.textContent = t('no_res_title');
+          if (p) p.textContent = t('no_res_desc');
+          if (btn) {
+            btn.textContent = t('reset_filters');
+            btn.onclick = () => {
+              activeSearch = '';
+              const inp = document.getElementById('gameSearch');
+              if (inp) inp.value = '';
+              const allF = document.querySelector('#filters button[data-f="all"]');
+              if (allF) allF.click();
+              const allP = document.querySelector('#playerFilters button[data-p="all"]');
+              if (allP) allP.click();
+            };
+          }
+        }
+      }
+    }
   }
 
   function sortCardsInContainer(container) {
@@ -1694,50 +1798,78 @@
   // входящие приглашения в игру от друзей
   const GNAME={uno:'🎴 UNO',c4:'🔴 4',quoridor:'🧱 Quoridor',poker:'🂡 Poker',checkers:'🏁',chess:'♟️',bunker:'☢ Bunker',spy:'🕵️ Spy',alias:'💬 Alias',durak:'🃏 Durak',battleship:'🚢',reversi:'⚫ Reversi',dots:'▦ Dots',bulls:'🐂',guesswho:'🎭',mafia:'🔪 Mafia'};
   function loadInvites(){
-    fetch('/games/invites',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
-      const box=document.getElementById('inviteBanner');
-      const inv=(d&&d.invites)||[];
-      box.replaceChildren();
-      if(!inv.length){box.style.display='none';return;}
+    const box=document.getElementById('inviteBanner');
+    if(box && !box.children.length){
       box.style.display='block';
-      inv.forEach(i=>{
-        const a=document.createElement('a');
-        const safeGame=encodeURIComponent(i.game||'');
-        const safeCode=encodeURIComponent(i.code||'');
-        a.href='/games/'+safeGame+'?code='+safeCode;
-        a.style.cssText='display:flex;align-items:center;gap:12px;padding:13px 15px;'+
-          'border-radius:16px;text-decoration:none;color:#fff;margin-bottom:8px;'+
-          'background:linear-gradient(135deg,rgba(47,191,95,.2),rgba(255,255,255,.05));border:1px solid rgba(47,191,95,.5);'+
-          'box-shadow:0 0 18px rgba(47,191,95,.2)';
+      box.innerHTML='<div class="sk-card sk-shimmer" style="margin:8px 0;height:66px;border-radius:16px;"></div>';
+    }
+    fetch('/games/invites',{credentials:'include'})
+      .then(r => {
+        if (!r.ok && r.status >= 500) throw new Error('HTTP ' + r.status);
+        return r.ok ? r.json() : null;
+      })
+      .then(d=>{
+        if(!box) return;
+        const inv=(d&&d.invites)||[];
+        box.replaceChildren();
+        if(!inv.length){box.style.display='none';return;}
+        box.style.display='block';
+        inv.forEach(i=>{
+          const a=document.createElement('a');
+          const safeGame=encodeURIComponent(i.game||'');
+          const safeCode=encodeURIComponent(i.code||'');
+          a.href='/games/'+safeGame+'?code='+safeCode;
+          a.style.cssText='display:flex;align-items:center;gap:12px;padding:13px 15px;'+
+            'border-radius:16px;text-decoration:none;color:#fff;margin-bottom:8px;'+
+            'background:linear-gradient(135deg,rgba(47,191,95,.2),rgba(255,255,255,.05));border:1px solid rgba(47,191,95,.5);'+
+            'box-shadow:0 0 18px rgba(47,191,95,.2)';
 
-        const av=document.createElement('div');
-        av.style.cssText='width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i.color||'#333');
-        av.textContent=i.avatar||'🙂';
+          const av=document.createElement('div');
+          av.style.cssText='width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:'+(i.color||'#333');
+          av.textContent=i.avatar||'🙂';
 
-        const mid=document.createElement('div');
-        mid.style.flex='1';
+          const mid=document.createElement('div');
+          mid.style.flex='1';
 
-        const title=document.createElement('div');
-        title.style.fontWeight='800';
-        title.textContent=(i.from_name||'')+' '+t('inv_calls');
+          const title=document.createElement('div');
+          title.style.fontWeight='800';
+          title.textContent=(i.from_name||'')+' '+t('inv_calls');
 
-        const sub=document.createElement('div');
-        sub.style.cssText='font-size:13px;color:#9adfb5';
-        sub.textContent=(GNAME[i.game]||i.game||'')+' · '+t('inv_tap');
+          const sub=document.createElement('div');
+          sub.style.cssText='font-size:13px;color:#9adfb5';
+          sub.textContent=(GNAME[i.game]||i.game||'')+' · '+t('inv_tap');
 
-        mid.appendChild(title);
-        mid.appendChild(sub);
+          mid.appendChild(title);
+          mid.appendChild(sub);
 
-        const arr=document.createElement('div');
-        arr.style.fontSize='22px';
-        arr.textContent='▶';
+          const arr=document.createElement('div');
+          arr.style.fontSize='22px';
+          arr.textContent='▶';
 
-        a.appendChild(av);
-        a.appendChild(mid);
-        a.appendChild(arr);
-        box.appendChild(a);
+          a.appendChild(av);
+          a.appendChild(mid);
+          a.appendChild(arr);
+          box.appendChild(a);
+        });
+      })
+      .catch(err => {
+        if (!box) return;
+        box.style.display = 'block';
+        box.innerHTML = `
+          <div class="error-state" style="margin:8px 0;padding:16px 20px;">
+            <div style="display:flex;align-items:center;gap:12px;width:100%;justify-content:space-between;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="error-state-ico" style="font-size:24px;">📡</span>
+                <div style="text-align:left;">
+                  <b style="font-size:14px;color:#fff;">${t('net_err_title')}</b>
+                  <div style="font-size:12px;color:var(--muted);">${t('net_err_desc')}</div>
+                </div>
+              </div>
+              <button type="button" class="error-state-btn" onclick="loadInvites()" style="min-height:38px;padding:6px 16px;font-size:12.5px;margin:0;">${t('retry_btn')}</button>
+            </div>
+          </div>
+        `;
       });
-    }).catch(()=>{});
   }
   applyI18n();
   function updateSupportChars() {

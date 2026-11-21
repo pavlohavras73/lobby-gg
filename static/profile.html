@@ -248,6 +248,8 @@
     </div>
   </div>
 
+  <div id="profileErrorContainer" class="hide"></div>
+
   <!-- ШАПКА ПРОФИЛЯ -->
   <div class="card">
     <div class="phead">
@@ -398,7 +400,13 @@ const UI = {
     "level_master": "Майстер",
     "level_grandmaster": "Гросмейстер",
     "play_game_btn": "Грати",
-    "no_records_yet": "Поки немає рекордів"
+    "no_records_yet": "Поки немає рекордів",
+    "empty_history_title": "Зіграйте першу партію!",
+    "empty_history_desc": "Тут з'явиться ваша статистика перемог та рейтинг ELO",
+    "empty_history_btn": "Обрати гру",
+    "net_err_title": "Не вдалося завантажити дані",
+    "net_err_desc": "Перевірте підключення до мережі та спробуйте знову",
+    "retry_btn": "Повторити"
   },
   ru: {
     sup_title:"Обращения в поддержку",sup_all:"Все",sup_new:"Новые",sup_prog:"В работе",sup_done:"Готово",sup_refresh:"Обновить",sup_note:"Заметка админа",sup_save:"Сохранить",sup_guest:"гость",sup_empty:"Обращений нет",cat_Bug:"Баг",cat_Complaint:"Жалоба",cat_Idea:"Идея",cat_Other:"Другое",
@@ -457,7 +465,13 @@ const UI = {
     "level_master": "Мастер",
     "level_grandmaster": "Гроссмейстер",
     "play_game_btn": "Играть",
-    "no_records_yet": "Пока нет рекордов"
+    "no_records_yet": "Пока нет рекордов",
+    "empty_history_title": "Сыграйте первую партию!",
+    "empty_history_desc": "Здесь появится ваша статистика побед и рейтинг ELO",
+    "empty_history_btn": "Выбрать игру",
+    "net_err_title": "Не удалось загрузить данные",
+    "net_err_desc": "Проверьте подключение к сети и попробуйте снова",
+    "retry_btn": "Повторить"
   },
   en: {
     sup_title:"Support inbox",sup_all:"All",sup_new:"New",sup_prog:"In progress",sup_done:"Done",sup_refresh:"Refresh",sup_note:"Admin note",sup_save:"Save",sup_guest:"guest",sup_empty:"No messages",cat_Bug:"Bug",cat_Complaint:"Complaint",cat_Idea:"Idea",cat_Other:"Other",
@@ -516,7 +530,13 @@ const UI = {
     "level_master": "Master",
     "level_grandmaster": "Grandmaster",
     "play_game_btn": "Play",
-    "no_records_yet": "No records yet"
+    "no_records_yet": "No records yet",
+    "empty_history_title": "Play your first game!",
+    "empty_history_desc": "Your win statistics and ELO rating will appear here",
+    "empty_history_btn": "Choose a game",
+    "net_err_title": "Failed to load data",
+    "net_err_desc": "Check your connection and try again",
+    "retry_btn": "Retry"
   },
   de: {
     sup_title:"Support-Postfach",sup_all:"Alle",sup_new:"Neu",sup_prog:"In Arbeit",sup_done:"Erledigt",sup_refresh:"Aktualisieren",sup_note:"Admin-Notiz",sup_save:"Speichern",sup_guest:"Gast",sup_empty:"Keine Nachrichten",cat_Bug:"Fehler",cat_Complaint:"Beschwerde",cat_Idea:"Idee",cat_Other:"Sonstiges",
@@ -575,7 +595,13 @@ const UI = {
     "level_master": "Meister",
     "level_grandmaster": "Großmeister",
     "play_game_btn": "Spielen",
-    "no_records_yet": "Noch keine Rekorde"
+    "no_records_yet": "Noch keine Rekorde",
+    "empty_history_title": "Spiele deine erste Partie!",
+    "empty_history_desc": "Hier werden deine Spielstatistiken und ELO-Wertung angezeigt",
+    "empty_history_btn": "Spiel auswählen",
+    "net_err_title": "Daten konnten nicht geladen werden",
+    "net_err_desc": "Überprüfe deine Verbindung und versuche es erneut",
+    "retry_btn": "Wiederholen"
   }
 };
 
@@ -712,6 +738,19 @@ function renderDuelTiles() {
       </a>
     `;
   }).join('');
+
+  const st = prof.stats || {};
+  const played = Number(st.played) || 0;
+  if (played === 0) {
+    grid.innerHTML += `
+      <div class="empty-state" style="grid-column:1/-1;margin:8px 0;">
+        <div class="empty-state-ico">🎮</div>
+        <div class="empty-state-title">${esc(t('empty_history_title'))}</div>
+        <div class="empty-state-desc">${esc(t('empty_history_desc'))}</div>
+        <a href="/games/" class="empty-state-btn">${esc(t('empty_history_btn'))}</a>
+      </div>
+    `;
+  }
 }
 
 function renderArcadeTiles() {
@@ -774,23 +813,78 @@ function syncPickers(){
 }
 
 async function loadProfile(){
-  const [d, ratingsData] = await Promise.all([jget('/me'), jget('/me/ratings')]);
-  if(!d||!d.profile){toast(t('not_logged'));return;}
-  prof=Object.assign(prof,d.profile);
-  if(ratingsData && ratingsData.ok && ratingsData.ratings) {
-    ratingsCache = ratingsData.ratings;
-  }
-  document.getElementById('pName').textContent=prof.display_name;
-  document.getElementById('dispName').value=prof.display_name;
-  document.getElementById('soundSw').classList.toggle('on',!!prof.sound);
-  renderProfileMeta();
-  renderDuelTiles();
-  renderArcadeTiles();
-  syncPickers();
+  const errBox = document.getElementById('profileErrorContainer');
+  if (errBox) { errBox.classList.add('hide'); errBox.innerHTML = ''; }
 
-  if(prof.role === 'root') {
-    document.getElementById('adminSupportInbox').classList.remove('hide');
-    loadSupportTickets();
+  const ava = document.getElementById('pAvatar');
+  const nm = document.getElementById('pName');
+  if (ava && (!prof || !prof.username)) ava.classList.add('sk-shimmer');
+  if (nm && (!prof || !prof.username)) nm.classList.add('sk-shimmer');
+
+  const duelGrid = document.getElementById('duelTilesGrid');
+  if (duelGrid && (!ratingsCache || !Object.keys(ratingsCache).length)) {
+    duelGrid.innerHTML = Array(6).fill(0).map(() => `
+      <div class="sk-card sk-shimmer" style="height:76px;border-radius:14px;"></div>
+    `).join('');
+  }
+  const arcList = document.getElementById('arcadeTilesList');
+  if (arcList && !arcList.children.length) {
+    arcList.innerHTML = Array(4).fill(0).map(() => `
+      <div class="sk-card sk-shimmer" style="height:54px;border-radius:12px;"></div>
+    `).join('');
+  }
+
+  try {
+    const [d, ratingsData] = await Promise.all([jget('/me'), jget('/me/ratings')]);
+    if (!d || !d.profile) {
+      if (ava) ava.classList.remove('sk-shimmer');
+      if (nm) nm.classList.remove('sk-shimmer');
+      if (errBox) {
+        errBox.classList.remove('hide');
+        errBox.innerHTML = `
+          <div class="error-state">
+            <div class="error-state-ico">📡</div>
+            <div class="error-state-title">${esc(t('net_err_title'))}</div>
+            <div class="error-state-desc">${esc(t('net_err_desc'))}</div>
+            <button type="button" class="error-state-btn" onclick="loadProfile()">${esc(t('retry_btn'))}</button>
+          </div>
+        `;
+      }
+      toast(t('not_logged'));
+      return;
+    }
+    if (ava) ava.classList.remove('sk-shimmer');
+    if (nm) nm.classList.remove('sk-shimmer');
+    prof = Object.assign(prof, d.profile);
+    if (ratingsData && ratingsData.ok && ratingsData.ratings) {
+      ratingsCache = ratingsData.ratings;
+    }
+    document.getElementById('pName').textContent = prof.display_name;
+    document.getElementById('dispName').value = prof.display_name;
+    document.getElementById('soundSw').classList.toggle('on', !!prof.sound);
+    renderProfileMeta();
+    renderDuelTiles();
+    renderArcadeTiles();
+    syncPickers();
+
+    if (prof.role === 'root') {
+      document.getElementById('adminSupportInbox').classList.remove('hide');
+      loadSupportTickets();
+    }
+  } catch (err) {
+    if (ava) ava.classList.remove('sk-shimmer');
+    if (nm) nm.classList.remove('sk-shimmer');
+    if (errBox) {
+      errBox.classList.remove('hide');
+      errBox.innerHTML = `
+        <div class="error-state">
+          <div class="error-state-ico">📡</div>
+          <div class="error-state-title">${esc(t('net_err_title'))}</div>
+          <div class="error-state-desc">${esc(t('net_err_desc'))}</div>
+          <button type="button" class="error-state-btn" onclick="loadProfile()">${esc(t('retry_btn'))}</button>
+        </div>
+      `;
+    }
   }
 }
 

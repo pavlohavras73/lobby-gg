@@ -11,8 +11,6 @@
 <link rel="stylesheet" href="/games/static/game-ui.css">
 <style>
   body { display:flex; flex-direction:column; align-items:center; min-height:100dvh; padding:max(12px,var(--sat)) max(14px,env(safe-area-inset-right,0px)) max(64px,calc(var(--sab)+56px)) max(14px,env(safe-area-inset-left,0px)); }
-  .dt-header { width:100%; max-width:440px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .dt-brand-mini { font-family:var(--display); font-size:16px; font-weight:800; background:linear-gradient(95deg,#fff 20%,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .lobby-card {
     background:linear-gradient(180deg,rgba(28,28,36,.92),rgba(14,14,19,.96));
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
@@ -117,20 +115,21 @@
 
   .turn { text-align:center; font-weight:800; margin:8px 0; font-size:14px; }
   .me { color:#a78bfa; }
-  .score { display:flex; justify-content:space-between; align-items:center; gap:10px; max-width:340px; width:100%; margin:4px auto 8px; }
+  .score { display:flex; justify-content:space-between; align-items:center; gap:10px; max-width:360px; width:100%; margin:4px auto 8px; }
   .score-pill {
     flex:1; display:flex; align-items:center; justify-content:space-between; gap:8px;
-    background:rgba(22,22,29,.88); border:1px solid var(--border); border-radius:14px;
-    padding:7px 10px; font-size:12.5px; font-weight:700;
+    background:linear-gradient(180deg,rgba(28,28,36,.88),rgba(14,14,19,.94)); border:1px solid var(--border-hi); border-radius:14px;
+    padding:8px 12px; font-size:13px; font-weight:700;
     transition:border-color .2s ease, box-shadow .2s ease;
   }
   .score-pill.active-p1 { border-color:rgba(255,71,100,.68); box-shadow:0 0 16px -4px rgba(255,71,100,.45); }
   .score-pill.active-p2 { border-color:rgba(56,189,248,.68); box-shadow:0 0 16px -4px rgba(56,189,248,.45); }
   .score-pill .player-av { width:24px; height:24px; font-size:11px; }
-  .score-pill b { font-size:20px; font-family:var(--display); }
+  .score-pill b { font-size:20px; font-family:var(--display,system-ui); }
   .opts { display:flex; gap:6px; justify-content:center; margin:6px 0; }
-  .opt { flex:1; padding:8px 6px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.04); cursor:pointer; font-weight:700; font-size:12.5px; text-align:center; }
-  .opt.on { border-color:var(--crimson); background:rgba(255,34,56,.18); color:#fff; }
+  .opt { flex:1; padding:10px 6px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:12px; border:1px solid var(--border-hi); background:rgba(255,255,255,.04); cursor:pointer; font-weight:800; font-size:13px; text-align:center; transition:transform .12s,background .15s; }
+  .opt:active { transform:scale(.97); }
+  .opt.on { border-color:var(--crimson); background:rgba(255,34,56,.18); color:#fff; box-shadow:0 0 14px rgba(255,34,56,.3); }
   @media (prefers-reduced-motion:reduce) {
     .he.just-drawn .bar, .ve.just-drawn .bar, .box.just-won { animation:none; }
     .he .bar, .ve .bar, .box, .score-pill { transition:none; }
@@ -144,11 +143,11 @@
   <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('dots') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
 
-<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
-  <div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left">
-    <div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">▦ Точки — правила</div>
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.76);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:390px;width:100%;background:linear-gradient(180deg,#181a24,#0e1017);border:1px solid var(--border-hi);border-radius:20px;padding:22px;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.85)">
+    <div style="font-size:20px;font-weight:900;color:#a78bfa;margin-bottom:10px;font-family:var(--display,system-ui)" data-i18n="rules_title">▦ Точки — правила</div>
     <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">По очереди рисуй линии между точками. Замкнул квадрат — он твой, и ходишь ещё раз. У кого больше квадратов в конце — победил.</div>
-    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;min-height:44px;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:800;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
   </div>
 </div>
 

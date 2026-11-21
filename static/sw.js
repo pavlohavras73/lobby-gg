@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v24";  // v24: stage 15c pwa install prompt, ios instructions, manifest shortcuts
+const CACHE = "lobby-static-v25";  // v25: stage 16c performance benchmarks, core asset size audit, skeletons and states
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [

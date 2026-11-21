@@ -873,6 +873,9 @@
         victory_continue: "Продовжити",
         sheet_next: "Далі",
         no_courses: "У цьому напрямку поки немає доступних курсів.",
+        load_courses_err: "Не вдалося завантажити курси",
+        net_err_desc: "Перевірте підключення до мережі та спробуйте знову",
+        retry_btn: "Повторити",
         load_lesson_err: "Не вдалося завантажити урок.",
         confirm_exit: "Вийти з уроку? Прогрес поточної сесії не збережеться.",
         btn_theory_ok: "Зрозумів, погнали ▶",
@@ -912,6 +915,9 @@
         victory_continue: "Продолжить",
         sheet_next: "Дальше",
         no_courses: "В этом направлении пока нет доступных курсов.",
+        load_courses_err: "Не удалось загрузить курсы",
+        net_err_desc: "Проверьте подключение к сети и попробуйте снова",
+        retry_btn: "Повторить",
         load_lesson_err: "Не удалось загрузить урок.",
         confirm_exit: "Выйти из урока? Прогресс текущей сессии не сохранится.",
         btn_theory_ok: "Понял, погнали ▶",
@@ -951,6 +957,9 @@
         victory_continue: "Continue",
         sheet_next: "Next",
         no_courses: "No courses available in this track yet.",
+        load_courses_err: "Failed to load courses",
+        net_err_desc: "Check your connection and try again",
+        retry_btn: "Retry",
         load_lesson_err: "Failed to load lesson.",
         confirm_exit: "Exit lesson? Progress for this session will not be saved.",
         btn_theory_ok: "Got it, let's go ▶",
@@ -990,6 +999,9 @@
         "victory_continue": "Weiter",
         "sheet_next": "Weiter",
         "no_courses": "In diesem Bereich sind noch keine Kurse verfügbar.",
+        "load_courses_err": "Kurse konnten nicht geladen werden",
+        "net_err_desc": "Überprüfe deine Verbindung und versuche es erneut",
+        "retry_btn": "Wiederholen",
         "load_lesson_err": "Lektion konnte nicht geladen werden.",
         "confirm_exit": "Lektion verlassen? Der Fortschritt dieser Sitzung geht verloren.",
         "btn_theory_ok": "Verstanden, los geht's ▶",
@@ -1155,7 +1167,6 @@
 
       async init() {
         await this.loadCourses();
-        this.renderCatalog();
         
         // Шорткат Enter для перехода дальше
         window.addEventListener('keydown', (e) => {
@@ -1169,17 +1180,52 @@
       },
 
       async loadCourses() {
+        const container = document.getElementById('course-container');
+        if (container && (!this.coursesData || !this.coursesData.length)) {
+          container.innerHTML = Array(3).fill(0).map(() => `
+            <div class="course-card" style="opacity:0.85;">
+              <div class="course-header" style="align-items:center;">
+                <div class="course-icon sk-shimmer" style="background:rgba(255,255,255,.05);border-radius:14px;width:48px;height:48px;"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                  <div class="sk-shimmer" style="width:140px;height:18px;border-radius:4px;"></div>
+                  <div class="sk-shimmer" style="width:200px;height:12px;border-radius:3px;"></div>
+                  <div class="sk-shimmer" style="width:60px;height:16px;border-radius:6px;margin-top:2px;"></div>
+                </div>
+              </div>
+              <div style="margin-top:14px;">
+                <div class="sk-shimmer" style="width:100%;height:8px;border-radius:999px;"></div>
+              </div>
+            </div>
+          `).join('');
+        }
+
         try {
           const res = await fetch('/learn/api/courses');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
-          if (data.ok) {
-            this.coursesData = data.courses;
-            this.userStats = data.stats;
-            document.getElementById('hdr-streak').textContent = this.userStats.streak;
-            document.getElementById('hdr-xp').textContent = this.userStats.total_xp;
+          if (data && data.ok) {
+            this.coursesData = data.courses || [];
+            this.userStats = data.stats || { streak: 0, total_xp: 0 };
+            const streakEl = document.getElementById('hdr-streak');
+            if (streakEl) streakEl.textContent = this.userStats.streak;
+            const xpEl = document.getElementById('hdr-xp');
+            if (xpEl) xpEl.textContent = this.userStats.total_xp;
+            this.renderCatalog();
+          } else {
+            throw new Error('bad payload');
           }
         } catch (e) {
           console.error("Failed to load courses:", e);
+          if (container) {
+            container.innerHTML = `
+              <div class="error-state">
+                <div class="error-state-ico">📡</div>
+                <div class="error-state-title">${t('load_courses_err')}</div>
+                <div class="error-state-desc">${t('net_err_desc')}</div>
+                <button type="button" class="error-state-btn" onclick="App.loadCourses()">${t('retry_btn')}</button>
+              </div>
+            `;
+          }
         }
       },
 
@@ -1196,7 +1242,12 @@
 
         const trackCourses = this.coursesData.filter(c => c.track === this.currentTrack);
         if (trackCourses.length === 0) {
-          container.innerHTML = `<div class="sub">${t('no_courses')}</div>`;
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-ico">📚</div>
+              <div class="empty-state-title">${t('no_courses')}</div>
+            </div>
+          `;
           return;
         }
 

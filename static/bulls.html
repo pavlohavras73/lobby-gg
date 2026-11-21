@@ -40,22 +40,29 @@
   button.pad-key.pad-del{background:rgba(255,255,255,.04);color:var(--muted);font-size:17px}
   button.pad-key.pad-ok{background:linear-gradient(135deg,var(--crimson),#b91c1c);border-color:rgba(255,100,120,.45);color:#fff;font-size:15px}
   .turn{text-align:center;font-weight:800;margin:8px 0;font-size:14px}.me{color:#fbbf24}
-  .col{display:flex;gap:10px;width:100%;max-width:400px;margin:10px auto}.col>div{flex:1;min-width:0}
-  .lbl2{font-size:12px;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:700}
+  .col{display:flex;gap:10px;width:100%;max-width:420px;margin:10px auto}.col>div{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:16px;padding:12px 10px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .lbl2{font-size:12px;color:var(--muted);text-align:center;margin-bottom:8px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
   .opts{display:flex;gap:6px;justify-content:center;margin:6px 0}
-  .opt{flex:1;padding:8px 6px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:12.5px;text-align:center}
-  .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.18);color:#fff}
+  .opt{flex:1;padding:10px 6px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--border-hi);background:rgba(255,255,255,.04);cursor:pointer;font-weight:800;font-size:13px;text-align:center;transition:transform .12s,background .15s}
+  .opt:active{transform:scale(.97)}
+  .opt.on{border-color:var(--crimson);background:rgba(255,34,56,.18);color:#fff;box-shadow:0 0 14px rgba(255,34,56,.3)}
 </style></head><body>
 <header class="game-topbar">
   <a href="/games/" class="top-back" data-i18n="nav_games" data-i18n-title="nav_games">‹ Игры</a>
   <div class="topbar-title" data-i18n="page_title">🐂 БЫКИ И КОРОВЫ</div>
   <button type="button" id="rulesBtn" class="top-icon-btn" onclick="window.LobbyUI ? LobbyUI.rules('bulls') : document.getElementById('rulesModal').style.display='flex'" title="Правила" data-i18n-title="rules_btn">i</button>
 </header>
-<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.74);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)"><div style="max-width:380px;width:100%;background:#15151b;border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:22px;text-align:left"><div style="font-size:19px;font-weight:800;margin-bottom:10px" data-i18n="rules_title">🐂 Быки и коровы — правила</div><div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div><button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:700;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button></div></div>
+<div id="rulesModal" data-dismiss="backdrop" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.76);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:390px;width:100%;background:linear-gradient(180deg,#181a24,#0e1017);border:1px solid var(--border-hi);border-radius:20px;padding:22px;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.85)">
+    <div style="font-size:20px;font-weight:900;color:#fbbf24;margin-bottom:10px;font-family:var(--display,system-ui)" data-i18n="rules_title">🐂 Быки и коровы — правила</div>
+    <div style="font-size:14px;line-height:1.6;color:#d8d8de" data-i18n="rules_body">Соперник загадал код из 4 разных цифр. Угадывай: <b>🐂 бык</b> — цифра верна и на своём месте, <b>🐄 корова</b> — цифра есть в коде, но не на том месте. Разгадай код первым.</div>
+    <button onclick="document.getElementById('rulesModal').style.display='none'" style="margin-top:16px;width:100%;min-height:44px;padding:12px;border-radius:12px;border:none;background:var(--crimson,#e0102e);color:#fff;font-weight:800;cursor:pointer" data-i18n="rules_ok">Понятно 👍</button>
+  </div>
+</div>
 <div id="home" class="lobby-card">
   <svg id="bullsLogo" class="bc-hero-svg" viewBox="0 0 88 72" fill="none" aria-hidden="true">
-    <rect x="12" y="14" width="64" height="44" rx="12" fill="#1b1c26" stroke="#fbbf24" stroke-opacity=".55" stroke-width="2"/>
-    <text x="44" y="42" text-anchor="middle" fill="#fbbf24" font-size="20" font-weight="900" font-family="monospace" letter-spacing="4">4071</text>
+    <rect x="12" y="14" width="64" height="44" rx="14" fill="#181a26" stroke="#fbbf24" stroke-opacity=".75" stroke-width="2"/>
+    <text x="44" y="42" text-anchor="middle" fill="#fbbf24" font-size="20" font-weight="900" font-family="var(--display,monospace)" letter-spacing="4">4071</text>
   </svg>
   <div class="lobby-title" data-i18n="page_title">БЫКИ И КОРОВЫ</div>
   <div class="lobby-sub" data-i18n="page_sub">взломай 4-значный код соперника · на двоих</div>

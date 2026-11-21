@@ -46,6 +46,12 @@
       fr_choose_game: 'Обери гру для запрошення:',
       fr_remove: 'Видалити',
       fr_empty: 'Поки що немає друзів — знайди за ніком нижче 👇',
+      fr_empty_title: 'У вас поки немає друзів',
+      fr_copy_invite: 'Скопіювати посилання-запрошення',
+      fr_copied: 'Скопійовано! ✓',
+      net_err_title: 'Не вдалося завантажити дані',
+      net_err_desc: 'Перевірте підключення до мережі та спробуйте знову',
+      retry_btn: 'Повторити',
       fr_find_player: 'Знайти гравця',
       fr_search_ph: 'нікнейм друга',
       fr_add: '+ Додати',
@@ -125,6 +131,12 @@
       fr_choose_game: 'Выбери игру для приглашения:',
       fr_remove: 'Удалить',
       fr_empty: 'Пока нет друзей — найди по нику ниже 👇',
+      fr_empty_title: 'У вас пока нет друзей',
+      fr_copy_invite: 'Скопировать ссылку-приглашение',
+      fr_copied: 'Скопировано! ✓',
+      net_err_title: 'Не удалось загрузить данные',
+      net_err_desc: 'Проверьте подключение к сети и попробуйте снова',
+      retry_btn: 'Повторить',
       fr_find_player: 'Найти игрока',
       fr_search_ph: 'ник друга',
       fr_add: '+ Добавить',
@@ -204,6 +216,12 @@
       fr_choose_game: 'Choose a game to invite:',
       fr_remove: 'Remove',
       fr_empty: 'No friends yet — search by username below 👇',
+      fr_empty_title: 'No friends yet',
+      fr_copy_invite: 'Copy invite link',
+      fr_copied: 'Copied! ✓',
+      net_err_title: 'Failed to load data',
+      net_err_desc: 'Check your connection and try again',
+      retry_btn: 'Retry',
       fr_find_player: 'Find player',
       fr_search_ph: "friend's username",
       fr_add: '+ Add',
@@ -283,6 +301,12 @@
       fr_choose_game: 'Spiel für die Einladung wählen:',
       fr_remove: 'Entfernen',
       fr_empty: 'Noch keine Freunde — suche unten nach Namen 👇',
+      fr_empty_title: 'Noch keine Freunde',
+      fr_copy_invite: 'Einladungslink kopieren',
+      fr_copied: 'Kopiert! ✓',
+      net_err_title: 'Daten konnten nicht geladen werden',
+      net_err_desc: 'Überprüfe deine Verbindung und versuche es erneut',
+      retry_btn: 'Wiederholen',
       fr_find_player: 'Spieler finden',
       fr_search_ph: 'Benutzername des Freundes',
       fr_add: '+ Hinzufügen',
@@ -1507,8 +1531,72 @@
   }
 
   async function loadFriends() {
+    const frList = document.getElementById('fr-friends-list');
+    if (frList && !state.friends.length) {
+      frList.replaceChildren();
+      for (let i = 0; i < 4; i++) {
+        const skRow = document.createElement('div');
+        skRow.className = 'row2';
+        skRow.style.opacity = '0.85';
+        const skAv = document.createElement('div');
+        skAv.className = 'r-av sk-shimmer';
+        skAv.style.background = 'rgba(255,255,255,.05)';
+        const skMid = document.createElement('div');
+        skMid.className = 'r-mid';
+        skMid.style.gap = '6px';
+        const skL1 = document.createElement('div');
+        skL1.className = 'sk-line sk-shimmer short';
+        skL1.style.width = (90 + (i % 3) * 20) + 'px';
+        const skL2 = document.createElement('div');
+        skL2.className = 'sk-line sk-shimmer short';
+        skL2.style.width = '60px';
+        skL2.style.height = '10px';
+        skMid.appendChild(skL1);
+        skMid.appendChild(skL2);
+        skRow.appendChild(skAv);
+        skRow.appendChild(skMid);
+        frList.appendChild(skRow);
+      }
+    }
+
     const d = await apiGet('/friends');
-    if (!d) return;
+    if (!d) {
+      if (frList) {
+        frList.replaceChildren();
+        const errBox = document.createElement('div');
+        errBox.className = 'error-state';
+        errBox.style.cssText = 'padding:24px 16px;margin:8px 0;';
+
+        const errIco = document.createElement('div');
+        errIco.className = 'error-state-ico';
+        errIco.style.fontSize = '32px';
+        errIco.textContent = '📡';
+
+        const errT = document.createElement('div');
+        errT.className = 'error-state-title';
+        errT.style.fontSize = '14px';
+        errT.textContent = tr('net_err_title');
+
+        const errD = document.createElement('div');
+        errD.className = 'error-state-desc';
+        errD.style.fontSize = '12px';
+        errD.textContent = tr('net_err_desc');
+
+        const errBtn = document.createElement('button');
+        errBtn.type = 'button';
+        errBtn.className = 'error-state-btn';
+        errBtn.style.cssText = 'min-height:38px;padding:6px 18px;font-size:12.5px;';
+        errBtn.textContent = tr('retry_btn');
+        errBtn.onclick = () => loadFriends();
+
+        errBox.appendChild(errIco);
+        errBox.appendChild(errT);
+        errBox.appendChild(errD);
+        errBox.appendChild(errBtn);
+        frList.appendChild(errBox);
+      }
+      return;
+    }
 
     state.friends = d.friends || [];
     state.incoming = d.incoming || [];
@@ -1584,20 +1672,48 @@
     }
 
     // 2. Friends list (online first)
-    const frList = document.getElementById('fr-friends-list');
     if (frList) {
       frList.replaceChildren();
 
       if (!state.friends.length) {
         const empty = document.createElement('div');
-        empty.className = 'empty2';
-        const emo = document.createElement('span');
-        emo.className = 'e';
+        empty.className = 'empty-state';
+        empty.style.cssText = 'padding:28px 16px;margin:8px 0;';
+
+        const emo = document.createElement('div');
+        emo.className = 'empty-state-ico';
         emo.textContent = '👥';
-        const txt = document.createElement('span');
+
+        const txtTitle = document.createElement('div');
+        txtTitle.className = 'empty-state-title';
+        txtTitle.textContent = tr('fr_empty_title');
+
+        const txt = document.createElement('div');
+        txt.className = 'empty-state-desc';
         txt.textContent = tr('fr_empty');
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'empty-state-btn';
+        copyBtn.textContent = tr('fr_copy_invite');
+        copyBtn.onclick = () => {
+          const url = location.origin + '/games/';
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+              copyBtn.textContent = tr('fr_copied');
+              setTimeout(() => { copyBtn.textContent = tr('fr_copy_invite'); }, 2000);
+            }).catch(() => {
+              prompt('Copy link:', url);
+            });
+          } else {
+            prompt('Copy link:', url);
+          }
+        };
+
         empty.appendChild(emo);
+        empty.appendChild(txtTitle);
         empty.appendChild(txt);
+        empty.appendChild(copyBtn);
         frList.appendChild(empty);
       } else {
         const sorted = [...state.friends].sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0));
