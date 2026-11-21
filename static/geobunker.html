@@ -70,7 +70,7 @@
 
   .lobby-title {
     font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -0.5px;
-    background: linear-gradient(90deg, #fff 40%, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
+    color: #fff; text-shadow: 0 0 18px rgba(255, 34, 56, 0.4); /* без background-clip: эмодзи в заголовке иначе становится белым квадратом */
     margin-bottom: 2px;
   }
   .lobby-sub { font-size: 12px; color: var(--muted); margin: 10px 0 14px; font-weight: 700; }

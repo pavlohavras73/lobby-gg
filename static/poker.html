@@ -43,7 +43,7 @@
   .or-sep::before, .or-sep::after { content:""; flex:1; height:1px; background:var(--border); }
   .lobby-title {
     font-size: 32px; font-weight: 900; letter-spacing: -0.5px;
-    background: linear-gradient(90deg, #fff 40%, #ff2238); -webkit-background-clip: text; background-clip: text; color: transparent;
+    color: #fff; text-shadow: 0 0 18px rgba(255, 34, 56, 0.4); /* без background-clip: эмодзи в заголовке иначе становится белым квадратом */
     margin-bottom: 4px;
   }
   .lobby-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; font-weight: 700; }

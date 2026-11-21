@@ -45,8 +45,7 @@
   }
   .lobby-title {
     font-family: var(--display); font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
-    background: linear-gradient(95deg, #fff 0%, #ffd2d8 55%, #ff2238 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+    color: #fff; text-shadow: 0 0 18px rgba(255, 34, 56, 0.4); /* без background-clip: эмодзи в заголовке иначе становится белым квадратом */
     margin-bottom: 4px;
   }
   .lobby-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }

@@ -807,6 +807,7 @@ function launchGame(gal, sec, singleSector) {
 }
 
 function exitToMenu() {
+  if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
   engine.stop();
   // иначе последний кадр боя (босс, цифры урона) просвечивает сквозь полупрозрачное меню
   const cv = document.getElementById('gameCanvas'), cx = cv.getContext('2d');
@@ -897,6 +898,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (isNewRecord && window.ArcadeFX) {
         ArcadeFX.confetti();
         ArcadeFX.vibrate([20, 30, 20]);
+      }
+      if (window.LobbyUI && LobbyUI.results) {
+        LobbyUI.results({
+          title: t('ship_lost', 'Корабль уничтожен'),
+          subtitle: `${t('sector_lbl', 'Сектор')} ${info.galaxy || 1}-${info.sector} · ${t('score_lbl', 'Счёт')}: ${info.score} · +✨ ${info.dust}${recLine}`,
+          places: [{
+            name: t('title', 'Shuttle'),
+            score: info.score,
+            isMe: true,
+            isWinner: isNewRecord,
+            place: 1
+          }],
+          isWinner: isNewRecord,
+          again: true,
+          onRematch: () => {
+            if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+            document.getElementById('endModal').classList.remove('open');
+            launchGame(selectedGalaxy, selectedSector, false);
+          },
+          onLobby: () => {
+            if (window.LobbyUI && LobbyUI.closeResults) LobbyUI.closeResults();
+            exitToMenu();
+          }
+        });
       }
     }
   });

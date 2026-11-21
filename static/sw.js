@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v27";  // v27: raskol To Lobby softlock hotfix, safe results fallbacks
+const CACHE = "lobby-static-v28";  // v28: stage 17 shell lazy-drawer, emoji title fixes, index perf optimization, results lobby/rematch actions
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [
@@ -13,6 +13,7 @@ const PRECACHE = [
   "/games/static/game-ui.css",
   "/games/static/shell.css",
   "/games/static/shell.js",
+  "/games/static/shell_drawer.js",
   "/games/static/ui.js",
   "/games/static/sfx.js",
   "/games/static/arcade_fx.js",

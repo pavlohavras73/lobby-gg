@@ -106,16 +106,18 @@ def test_states():
         # ----------------------------------------------------------------------
         print("Testing Friends drawer states...")
         # 4a. Skeleton
+        # Шторка подгружается в фоне сразу после load и тут же грузит друзей (этап 17),
+        # поэтому задержку ставим ДО загрузки страницы: скелетон виден, пока данных ещё нет.
+        # time.sleep в обработчике блокирует сам Playwright — держим запросы без ответа и отвечаем после проверки
+        held = []
+        page.route("**/games/friends", lambda route: held.append(route))
         page.goto(f"{BASE}/", wait_until="load")
-        def delay_friends(route):
-            time.sleep(2)
-            route.fulfill(status=200, content_type="application/json", body='{"friends":[],"incoming":[],"outgoing":[]}')
-
-        page.route("**/games/friends", delay_friends)
         page.evaluate("window.LobbyShell.open('friends')")
         page.wait_for_selector("#fr-friends-list .sk-shimmer", timeout=5000)
         page.screenshot(path=f"{SHOTS}/friends_skeleton.png")
         print("  -> Saved friends_skeleton.png")
+        for r in held:
+            r.fulfill(status=200, content_type="application/json", body='{"friends":[],"incoming":[],"outgoing":[]}')
         page.unroute("**/games/friends")
 
         # 4b. Empty state (0 friends)

@@ -11,6 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="/games/static/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Unbounded:wght@500;600;700;800&display=swap">
 <link rel="stylesheet" href="/games/static/theme.css">
 <link rel="stylesheet" href="/games/static/shell.css">
 <style>
@@ -900,6 +901,17 @@
                   <small data-i18n="set_rm_sub">Minimize animations and motion</small>
                 </div>
                 <button type="button" class="sw" id="set-rm-sw" role="switch" aria-checked="false" aria-label="Reduce motion toggle"></button>
+              </div>
+
+              <div class="set-row" id="set-install-row" style="cursor:pointer">
+                <div class="set-ic">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="r-mid">
+                  <b data-i18n="set_install">Install App</b>
+                  <small data-i18n="set_install_sub">Add to Home Screen</small>
+                </div>
+                <button type="button" class="btn-ghost" id="set-install-btn" style="width:auto;padding:6px 12px;font-size:12px;font-weight:800;border-radius:10px" data-i18n="set_install_btn">Install</button>
               </div>
             </div>
 
