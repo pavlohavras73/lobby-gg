@@ -321,7 +321,7 @@ function showBiomeToast(id) {
 }
 
 function updateBestLabel() {
-  bestEl.textContent = localStorage.getItem('jg_race_best') || '0';
+  bestEl.textContent = localStorage.getItem('jg_best_race') || localStorage.getItem('jg_race_best') || '0';
 }
 
 const canvas = document.getElementById('gameCanvas');
@@ -346,10 +346,11 @@ const engine = new window.RaceEngine(canvas, {
     if (window.LobbyUI) LobbyUI.sound('err');
   },
   onCrash: info => {
-    const prevBest = parseInt(localStorage.getItem('jg_race_best') || '0', 10);
+    const prevBest = parseInt(localStorage.getItem('jg_best_race') || localStorage.getItem('jg_race_best') || '0', 10);
     const isNewRecord = !IS_DEBUG && info.distance > prevBest && info.distance > 0;
     const best = isNewRecord ? info.distance : Math.max(prevBest, IS_DEBUG ? 0 : info.distance);
     if (!IS_DEBUG) {
+      localStorage.setItem('jg_best_race', String(best));
       localStorage.setItem('jg_race_best', String(best));
       updateBestLabel();
     }

@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v23";  // v23: stage 14c unified results, rematch, share, and room errors
+const CACHE = "lobby-static-v24";  // v24: stage 15c pwa install prompt, ios instructions, manifest shortcuts
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [
@@ -25,6 +25,7 @@ const PRECACHE = [
   "/games/static/icons/icon-192.png",
   "/games/static/icons/icon-512.png",
   "/games/static/manifest.json",
+  "/games/static/manifest.webmanifest",
   "/games/static/race/engine.js",
   "/games/static/shuttle/data.js",
   "/games/static/shuttle/save.js",

@@ -42,7 +42,7 @@
       fr_online: 'онлайн',
       fr_offline: 'офлайн',
       fr_in_game: 'у грі',
-      fr_call: 'Позвати',
+      fr_call: 'Покликати',
       fr_choose_game: 'Обери гру для запрошення:',
       fr_remove: 'Видалити',
       fr_empty: 'Поки що немає друзів — знайди за ніком нижче 👇',
@@ -74,8 +74,16 @@
       sh_vibe: 'Вібрація',
       set_rm: 'Зменшити рух',
       set_rm_sub: 'Мінімізувати анімації',
+      set_install: 'Встановити застосунок',
+      set_install_sub: 'Додати на головний екран',
+      set_install_btn: 'Встановити',
+      ios_install_title: 'Встановлення на iPhone / iPad',
+      ios_install_step1: 'Натисни кнопку «Поділитися» в нижній панелі Safari',
+      ios_install_step2: 'Прокрути вниз і обери «На екран „Додому“»',
+      ios_install_ok: 'Зрозуміло 👍',
+      install_browser_hint: 'У меню браузера оберіть «Встановити застосунок»',
       set_about: 'Про Lobby.gg',
-      set_about_desc: 'Мультиплеєр паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання.',
+      set_about_desc: 'Мультиплеєрні паті-ігри в реальному часі прямо в браузері. Без встановлення — лише посилання.',
       close: 'Закрити'
     },
     ru: {
@@ -125,7 +133,7 @@
       fr_now_friends: 'Теперь друзья! 🎉',
       fr_accepted: 'Добавлен в друзья ✓',
       fr_declined: 'Заявка отклонена',
-      fr_removed: 'Удален из друзей',
+      fr_removed: 'Удалён из друзей',
       ch_title: 'Лобби-чат',
       ch_online: 'Прямой эфир',
       ch_ph: 'Напиши сообщение...',
@@ -145,8 +153,16 @@
       sh_vibe: 'Вибрация',
       set_rm: 'Уменьшить движение',
       set_rm_sub: 'Минимизировать анимации',
+      set_install: 'Установить приложение',
+      set_install_sub: 'Добавить на главный экран',
+      set_install_btn: 'Установить',
+      ios_install_title: 'Установка на iPhone / iPad',
+      ios_install_step1: 'Нажми кнопку «Поделиться» в нижней панели Safari',
+      ios_install_step2: 'Прокрути вниз и выбери «На экран „Домой“»',
+      ios_install_ok: 'Понятно 👍',
+      install_browser_hint: 'В меню браузера выберите «Установить приложение»',
       set_about: 'О проекте',
-      set_about_desc: 'Мультиплеер пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка.',
+      set_about_desc: 'Мультиплеерные пати-игры в реальном времени прямо в браузере. Без установки — просто ссылка.',
       close: 'Закрыть'
     },
     en: {
@@ -216,6 +232,14 @@
       sh_vibe: 'Vibration',
       set_rm: 'Reduce motion',
       set_rm_sub: 'Minimize animations',
+      set_install: 'Install App',
+      set_install_sub: 'Add to Home Screen',
+      set_install_btn: 'Install',
+      ios_install_title: 'Install on iPhone / iPad',
+      ios_install_step1: 'Tap the Share button in Safari’s toolbar',
+      ios_install_step2: 'Scroll down and tap “Add to Home Screen”',
+      ios_install_ok: 'Got it 👍',
+      install_browser_hint: 'In your browser menu, select “Install app”',
       set_about: 'About Lobby.gg',
       set_about_desc: 'Real-time multiplayer party games in your browser. No installs — just a link.',
       close: 'Close'
@@ -287,6 +311,14 @@
       sh_vibe: 'Vibration',
       set_rm: 'Bewegung reduzieren',
       set_rm_sub: 'Animationen minimieren',
+      set_install: 'App installieren',
+      set_install_sub: 'Zum Home-Bildschirm hinzufügen',
+      set_install_btn: 'Installieren',
+      ios_install_title: 'Installation auf iPhone / iPad',
+      ios_install_step1: 'Tippe auf Teilen in der Safari-Symbolleiste',
+      ios_install_step2: 'Scrolle nach unten und tippe auf „Zum Home-Bildschirm“',
+      ios_install_ok: 'Verstanden 👍',
+      install_browser_hint: 'Im Browser-Menü auf „App installieren“ tippen',
       set_about: 'Über Lobby.gg',
       set_about_desc: 'Echtzeit-Multiplayer-Partyspiele direkt im Browser. Keine Installation — einfach ein Link.',
       close: 'Schließen'
@@ -727,6 +759,17 @@
                     <small data-i18n="set_rm_sub">Minimize animations and motion</small>
                   </div>
                   <button type="button" class="sw" id="set-rm-sw" role="switch" aria-checked="false" aria-label="Reduce motion toggle"></button>
+                </div>
+
+                <div class="set-row" id="set-install-row" style="cursor:pointer">
+                  <div class="set-ic">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <div class="r-mid">
+                    <b data-i18n="set_install">Install App</b>
+                    <small data-i18n="set_install_sub">Add to Home Screen</small>
+                  </div>
+                  <button type="button" class="btn-ghost" id="set-install-btn" style="width:auto;padding:6px 12px;font-size:12px;font-weight:800;border-radius:10px" data-i18n="set_install_btn">Install</button>
                 </div>
               </div>
 
@@ -2121,8 +2164,124 @@
       rmSw.addEventListener('click', toggleReducedMotion);
     }
 
+    // Install app button & wiring
+    const installRow = document.getElementById('set-install-row');
+    const installBtn = document.getElementById('set-install-btn');
+    if (installRow) {
+      installRow.addEventListener('click', handleInstallClick);
+    }
+    if (installBtn) {
+      installBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        handleInstallClick();
+      });
+    }
+
     syncSoundUI();
     syncVibeUI();
+    syncInstallUI();
+  }
+
+  let deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    syncInstallUI();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    syncInstallUI();
+  });
+
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', syncInstallUI);
+    } catch (_) {}
+  }
+
+  function isAppInstalled() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           (window.navigator && window.navigator.standalone === true);
+  }
+
+  function syncInstallUI() {
+    const row = document.getElementById('set-install-row');
+    if (!row) return;
+    if (isAppInstalled()) {
+      row.style.display = 'none';
+    } else {
+      row.style.display = 'flex';
+    }
+  }
+
+  function showIosInstallModal() {
+    let m = document.getElementById('iosInstallModal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'iosInstallModal';
+      m.className = 'ios-install-modal';
+      m.setAttribute('role', 'dialog');
+      m.setAttribute('aria-modal', 'true');
+      m.setAttribute('data-dismiss', 'backdrop');
+      document.body.appendChild(m);
+      m.addEventListener('click', e => {
+        if (e.target === m || e.target.closest('#iosInstallCloseBtn')) {
+          m.style.display = 'none';
+        }
+      });
+    }
+    m.innerHTML = `
+      <div class="ios-install-box">
+        <div class="ios-install-head">
+          <div class="ios-install-icon">📲</div>
+          <h3 class="ios-install-title">${tr('ios_install_title')}</h3>
+        </div>
+        <div class="ios-install-steps">
+          <div class="ios-install-step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <span>${tr('ios_install_step1')}</span>
+              <div class="step-illu" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="ios-install-step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <span>${tr('ios_install_step2')}</span>
+              <div class="step-illu" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-main ios-install-close" id="iosInstallCloseBtn">${tr('ios_install_ok')}</button>
+      </div>
+    `;
+    m.style.display = 'flex';
+  }
+
+  function handleInstallClick() {
+    if (isAppInstalled()) {
+      syncInstallUI();
+      return;
+    }
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(() => {
+        deferredInstallPrompt = null;
+        syncInstallUI();
+      });
+      return;
+    }
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIos) {
+      showIosInstallModal();
+      return;
+    }
+    showToast(tr('install_browser_hint'));
   }
 
   // ═══════════ EVENT LISTENERS & WIRING ═══════════

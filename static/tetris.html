@@ -383,7 +383,7 @@ function drawSquare(c, r, typeIdx, alpha) {
 }
 
 let board = [];
-let score = 0, lines = 0, level = 1, best = +(localStorage.getItem('jg_tetris_best') || 0), runStartBest = best;
+let score = 0, lines = 0, level = 1, best = +(localStorage.getItem('jg_best_tetris') || localStorage.getItem('jg_tetris_best') || 0), runStartBest = best;
 let gameOver = false;
 let bag = [], nextType = 0, holdType = null, canHold = true;
 let dropTrails = [];
@@ -661,6 +661,7 @@ function updateScoreHUD() {
   linesDisplay.textContent = String(lines);
   if (score > best) {
     best = score;
+    localStorage.setItem('jg_best_tetris', String(best));
     localStorage.setItem('jg_tetris_best', String(best));
     bestDisplay.textContent = String(best);
   }
@@ -736,6 +737,7 @@ function showGameOverScreen() {
   const isNewRecord = score > runStartBest && score > 0;
   if (score > best) {
     best = score;
+    localStorage.setItem('jg_best_tetris', String(best));
     localStorage.setItem('jg_tetris_best', String(best));
   }
   bestDisplay.textContent = String(best);
@@ -754,7 +756,7 @@ function showGameOverScreen() {
       ],
       share: () => ({
         title: '🧱 Tetris — Lobby.gg',
-        text: `🧱 Tetris — Lobby.gg\n🏆 ${score} · ${t('lines_lbl')}: ${lines} · ${t('lvl_lbl')}: ${level}`
+        text: `🧱 Tetris — Lobby.gg\n🏆 ${score} · ${t('lines_lbl')}: ${lines} · ${t('lvl_lbl')}: ${level}${isNewRecord ? ('\n' + (window.ArcadeFX && ArcadeFX.I18N[LANG] ? ArcadeFX.I18N[LANG].new_record : '🔥 Новый рекорд!')) : ''}`
       }),
       onRestart: () => {
         resetGame();

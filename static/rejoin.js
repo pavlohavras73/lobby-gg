@@ -94,6 +94,7 @@
            str.includes('not found') ||
            str.includes('nicht gefunden') ||
            str.includes('не знайдена') ||
+           str.includes('не знайдено') ||
            str.includes('room_not_found');
   }
 

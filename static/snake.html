@@ -269,7 +269,7 @@ let cell = 20, pxSize = 340, dpr = 1;
 let bgCanvas = null, appleCanvas = null;
 let snake = [], prevSnake = [], dir = { x: 1, y: 0 }, dirQueue = [];
 let food = null, bonusFood = null;
-let score = 0, applesEaten = 0, best = +(localStorage.getItem('snake_best') || 0), runStartBest = best;
+let score = 0, applesEaten = 0, best = +(localStorage.getItem('jg_best_snake') || localStorage.getItem('snake_best') || 0), runStartBest = best;
 let tickMs = 110, lastTickTime = 0, timer = null, dead = false, deathTimer = null;
 let rafId = 0;
 
@@ -469,6 +469,7 @@ function updateScoreUI() {
   document.getElementById('score').textContent = score;
   if (score > best) {
     best = score;
+    localStorage.setItem('jg_best_snake', String(best));
     localStorage.setItem('snake_best', String(best));
     document.getElementById('best').textContent = best;
   }
@@ -692,7 +693,7 @@ function gameOver() {
         stats: [{ label: t('len_lbl'), value: snake.length }],
         share: () => ({
           title: '🐍 Snake — Lobby.gg',
-          text: `🐍 Snake — Lobby.gg\n🍎 ${score} · ${t('len_lbl')}: ${snake.length}`
+          text: `🐍 Snake — Lobby.gg\n🍎 ${score} · ${t('len_lbl')}: ${snake.length}${isNewRecord ? ('\n' + (window.ArcadeFX && ArcadeFX.I18N[LANG] ? ArcadeFX.I18N[LANG].new_record : '🔥 Новый рекорд!')) : ''}`
         }),
         onRestart: () => restart()
       });

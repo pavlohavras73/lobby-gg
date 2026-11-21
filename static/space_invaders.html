@@ -207,7 +207,7 @@
   <header class="game-topbar">
     <a href="/games" class="back-btn" data-i18n="back_games">‹ Игры</a>
     <div class="top-title">🚀 Shuttle Cruiser</div>
-    <div style="display:flex;align-items:center;gap:6px"><button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn" title="Правила">i</button><div class="dust-pill">✨ <span id="dustVal">0</span></div></div>
+    <div style="display:flex;align-items:center;gap:6px"><button type="button" id="rulesBtn" class="top-icon-btn" data-i18n-title="rules_btn" title="Правила">i</button><div class="dust-pill" id="recordPill">🏆 <span id="recordVal">0</span></div><div class="dust-pill">✨ <span id="dustVal">0</span></div></div>
   </header>
 
   <div class="lang-wrap">
@@ -259,6 +259,7 @@
         <div class="hp-txt" id="hpTxt">100/100</div>
       </div>
       <div class="hud-pill" id="hudSector">1-1</div>
+      <div class="hud-pill" id="hudBestPill">🏆 <span id="hudBestVal">0</span></div>
       <div class="hud-pill" id="hudLvl">Lv.1</div>
       <button type="button" class="hud-pill" id="pauseBtn" style="cursor:pointer;color:#fff;width:auto;flex:none;padding:4px 10px">⏸</button>
     </div>
@@ -427,7 +428,7 @@ const UI = {
     share_btn: "🔗 Поделиться"
   },
   en: {
-    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Rules",
     back_games: "‹ Games",
     tab_galaxies: "Galaxies",
     tab_hangar: "Hangar",
@@ -473,7 +474,7 @@ const UI = {
     share_btn: "🔗 Share"
   },
   de: {
-    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Правила",
+    title: "Shuttle Cruiser — Lobby.gg", rules_btn: "Regeln",
     back_games: "‹ Spiele",
     tab_galaxies: "Galaxien",
     tab_hangar: "Hangar",
@@ -533,11 +534,20 @@ let selectedSector = 1;
 let previewShipId = saveState.selected_ship || 'spark';
 let engine = null;
 
+function updateHudBest() {
+  const b = +(localStorage.getItem('jg_best_shuttle') || localStorage.getItem('jg_best_space_invaders') || (saveState && saveState.best_score) || 0);
+  const el1 = document.getElementById('recordVal');
+  if (el1) el1.textContent = String(b);
+  const el2 = document.getElementById('hudBestVal');
+  if (el2) el2.textContent = String(b);
+}
+
 function applyUI() {
   window.SHUTTLE_LANG = LANG;
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  updateHudBest();
   renderGalaxies();
   renderHangar();
 }
@@ -870,12 +880,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     },
     onGameOver: info => {
       lastGameOverInfo = info;
+      const prevBest = +(localStorage.getItem('jg_best_shuttle') || localStorage.getItem('jg_best_space_invaders') || (saveState && saveState.best_score) || 0);
+      const isNewRecord = info.score > prevBest && info.score > 0;
+      const best = isNewRecord ? info.score : prevBest;
+      info.isNewRecord = isNewRecord;
       saveState.dust = (saveState.dust || 0) + info.dust;
-      saveState.best_score = Math.max(saveState.best_score || 0, info.score);
+      saveState.best_score = best;
+      localStorage.setItem('jg_best_shuttle', String(best));
+      localStorage.setItem('jg_best_space_invaders', String(best));
       SAVE.pushCloud(saveState);
+      updateHudBest();
       document.getElementById('endTitle').textContent = t('ship_lost');
-      document.getElementById('endStats').textContent = `${t('sector_lbl')} ${info.galaxy || 1}-${info.sector} · ${t('score_lbl')}: ${info.score} · +✨ ${info.dust}`;
+      const recLine = isNewRecord ? ` · 🔥 ${t('new_record', 'Новый рекорд!')}` : '';
+      document.getElementById('endStats').textContent = `${t('sector_lbl')} ${info.galaxy || 1}-${info.sector} · ${t('score_lbl')}: ${info.score} · +✨ ${info.dust}${recLine}`;
       document.getElementById('endModal').classList.add('open');
+      if (isNewRecord && window.ArcadeFX) {
+        ArcadeFX.confetti();
+        ArcadeFX.vibrate([20, 30, 20]);
+      }
     }
   });
 
@@ -933,7 +955,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (window.LobbyUI && LobbyUI.shareResult) {
         const info = lastGameOverInfo || {};
         const titleStr = '🚀 Shuttle Cruiser — Lobby.gg';
-        const txt = `🚀 Shuttle Cruiser — Lobby.gg\n🌌 ${t('sector_lbl')} ${info.galaxy || 1}-${info.sector || 1} · ${t('score_lbl')}: ${info.score || 0} · +✨ ${info.dust || 0}`;
+        const recLine = info.isNewRecord ? ('\n🔥 ' + (t('new_record', 'Новый рекорд!'))) : '';
+        const txt = `🚀 Shuttle Cruiser — Lobby.gg\n🌌 ${t('sector_lbl')} ${info.galaxy || 1}-${info.sector || 1} · ${t('score_lbl')}: ${info.score || 0} · +✨ ${info.dust || 0}${recLine}`;
         LobbyUI.shareResult({ title: titleStr, text: txt });
       }
     };

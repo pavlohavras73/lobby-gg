@@ -388,6 +388,8 @@ function applyUI() {
 }
 
 function renderStats() {
+  const jgBest = +(localStorage.getItem('jg_best_raskol') || 0);
+  if (jgBest > (save.best_score || 0)) save.best_score = jgBest;
   $('shardVal').textContent = save.shards || 0;
   $('sRoom').textContent = save.max_sector > 1 || save.runs ? (save.max_sector || 1) + '/10' : '—';
   $('sWins').textContent = save.wins || 0;
@@ -526,11 +528,18 @@ function fmtTime(s) { s = Math.round(s); return Math.floor(s / 60) + ':' + Strin
 function endRun(r) {
   runActive = false;
   const rec = SAVE.recordRun(save, r);
+  if (save && save.best_score) {
+    localStorage.setItem('jg_best_raskol', String(save.best_score));
+  }
   if (!SAVE.DEBUG_RUN) SAVE.pushCloud(save);
   const titleText = r.win ? t('victory') : t('death');
   $('resTitle').textContent = titleText;
   $('resTitle').style.color = r.win ? '#67e8f9' : '#fca5a5';
   $('resRec').innerHTML = rec && r.score > 0 ? `<span class="newrec">${LobbyUI.esc(t('new_record'))}</span>` : '';
+  if (rec && r.score > 0 && window.ArcadeFX) {
+    ArcadeFX.confetti();
+    ArcadeFX.vibrate([20, 30, 20]);
+  }
   $('rRoom').textContent = r.room + '/10';
   $('rKills').textContent = r.kills;
   $('rShards').textContent = '+' + r.shards;

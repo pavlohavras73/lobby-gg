@@ -227,7 +227,7 @@ let tileNodes = new Map();
 let dyingTimer = 0;
 let pendingMergeFinalizer = null;
 let nextId = 1;
-let score = 0, best = +(localStorage.getItem('g2048_best') || 0), runStartBest = best;
+let score = 0, best = +(localStorage.getItem('jg_best_2048') || localStorage.getItem('g2048_best') || 0), runStartBest = best;
 let size = 340, gap = 8, cell = 75, won = false, over = false;
 
 document.getElementById('best').textContent = best;
@@ -506,6 +506,7 @@ function move(dir) {
   document.getElementById('score').textContent = score;
   if (score > best) {
     best = score;
+    localStorage.setItem('jg_best_2048', String(best));
     localStorage.setItem('g2048_best', String(best));
     document.getElementById('best').textContent = best;
   }
@@ -562,7 +563,7 @@ function endGame(isWin) {
       stats: [{ label: t('max_tile_lbl'), value: mx }],
       share: () => ({
         title: '🔢 2048 — Lobby.gg',
-        text: `🔢 2048 — Lobby.gg\n🏆 ${t('score')}: ${score} · ${t('max_tile_lbl')}: ${mx}`
+        text: `🔢 2048 — Lobby.gg\n🏆 ${t('score')}: ${score} · ${t('max_tile_lbl')}: ${mx}${isNewRecord ? ('\n' + (window.ArcadeFX && ArcadeFX.I18N[LANG] ? ArcadeFX.I18N[LANG].new_record : '🔥 Новый рекорд!')) : ''}`
       }),
       onRestart: () => newGame()
     });

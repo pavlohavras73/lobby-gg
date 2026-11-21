@@ -259,7 +259,7 @@ function isSolved() {
 }
 
 function updateBestDisplay() {
-  const b = +(localStorage.getItem('fifteen_best_' + N) || 0);
+  const b = +(localStorage.getItem('jg_best_fifteen') || localStorage.getItem('fifteen_best_' + N) || 0);
   document.getElementById('best').textContent = b > 0 ? String(b) : '—';
 }
 
@@ -336,9 +336,10 @@ function tap(i) {
   if (isSolved()) {
     solvedFlag = true;
     const key = 'fifteen_best_' + N;
-    const prevBest = +(localStorage.getItem(key) || 0);
+    const prevBest = +(localStorage.getItem('jg_best_fifteen') || localStorage.getItem(key) || 0);
     const isNewRecord = !prevBest || moves < prevBest;
     const best = isNewRecord ? moves : prevBest;
+    localStorage.setItem('jg_best_fifteen', String(best));
     localStorage.setItem(key, String(best));
     updateBestDisplay();
 
@@ -362,7 +363,7 @@ function tap(i) {
           stats: [{ label: t('size_lbl'), value: `${N}×${N}` }],
           share: () => ({
             title: `🧩 15-Puzzle (${N}×${N}) — Lobby.gg`,
-            text: `🧩 ${t('win_title')} (${N}×${N})\n🏆 ${t('moves')}: ${moves} — Lobby.gg`
+            text: `🧩 ${t('win_title')} (${N}×${N})\n🏆 ${t('moves')}: ${moves}${isNewRecord ? ('\n' + (window.ArcadeFX && ArcadeFX.I18N[LANG] ? ArcadeFX.I18N[LANG].new_record : '🔥 Новый рекорд!')) : ''} — Lobby.gg`
           }),
           onRestart: () => newGame()
         });

@@ -417,7 +417,7 @@
       <div class="afx-card" role="dialog" aria-modal="true">
         <h2 class="afx-title">${esc(title)}</h2>
         ${o.subtitle ? `<div class="afx-sub">${esc(o.subtitle)}</div>` : ''}
-        ${o.isNewRecord ? `<div class="afx-badge">${esc(newRecLbl)}</div>` : ''}
+        ${o.isNewRecord ? `<div class="afx-badge" id="afxRecordBadge">${esc(newRecLbl)}</div>` : ''}
         <div class="afx-grid">
           <div class="afx-stat"><div class="l">${esc(scoreLbl)}</div><div class="v" id="afxScoreVal">${esc(o.score ?? 0)}</div></div>
           <div class="afx-stat"><div class="l">${esc(bestLbl)}</div><div class="v" id="afxBestVal">${esc(o.best ?? 0)}</div></div>
@@ -445,7 +445,8 @@
         } else if (w.LobbyUI && w.LobbyUI.shareResult) {
           const s = typeof o.share === 'function' ? o.share() : (typeof o.share === 'object' && o.share !== null ? o.share : {});
           const statText = Array.isArray(o.stats) && o.stats.length ? (' · ' + o.stats.map(st => `${st.label}: ${st.value}`).join(' · ')) : '';
-          const defaultText = `${title}\n${scoreLbl}: ${o.score ?? 0}${statText}`;
+          const recLine = o.isNewRecord ? ('\n' + newRecLbl) : '';
+          const defaultText = `${title}\n${scoreLbl}: ${o.score ?? 0}${statText}${recLine}`;
           w.LobbyUI.shareResult({
             title: s.title || document.title || 'Lobby.gg',
             text: s.text || defaultText,

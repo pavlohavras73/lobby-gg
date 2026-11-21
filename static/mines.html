@@ -146,6 +146,7 @@
     <option value="hard" data-i18n="d_hard">Сложно 14×16</option>
   </select>
   <button type="button" class="sec reset-btn" onclick="newGame()" data-i18n-title="new_title" aria-label="Restart">↻</button>
+  <div class="score"><div class="l" data-i18n="best_lbl">Рекорд</div><div class="v" id="bestTime">—</div></div>
 </div>
 
 <div class="board" id="board"></div>
@@ -180,6 +181,7 @@ const UI = {
     win_title: "🎉 Розміновано!",
     opened_lbl: "Відкрито",
     time_lbl: "Час",
+    best_lbl: "Рекорд",
     sec_suf: "с"
   },
   ru: {
@@ -205,6 +207,7 @@ const UI = {
     win_title: "🎉 Разминировал!",
     opened_lbl: "Открыто",
     time_lbl: "Время",
+    best_lbl: "Рекорд",
     sec_suf: "с"
   },
   en: {
@@ -230,6 +233,7 @@ const UI = {
     win_title: "🎉 Cleared!",
     opened_lbl: "Opened",
     time_lbl: "Time",
+    best_lbl: "Best",
     sec_suf: "s"
   },
   de: {
@@ -251,10 +255,11 @@ const UI = {
     d_hard: "14×16",
     hint: "Tippen — öffnen. 🚩 AN → tippen setzt Flagge. Öffne alle sicheren Felder.",
     all_games: "← Alle Spiele",
-    boom_title: "💥 Boom! Mine",
+    boom_title: "💥 Bumm! Mine",
     win_title: "🎉 Geschafft!",
     opened_lbl: "Aufgedeckt",
     time_lbl: "Zeit",
+    best_lbl: "Rekord",
     sec_suf: "s"
   }
 };
@@ -281,6 +286,7 @@ function applyUI() {
   });
   document.querySelectorAll('#langbar button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   setFlagBtn();
+  updateBestDisplay();
   if (window.ArcadeFX) ArcadeFX.refreshI18n(LANG);
 }
 
@@ -305,6 +311,14 @@ function clearMineTimers() {
   mineTimers = [];
 }
 
+function updateBestDisplay() {
+  const diffVal = document.getElementById('diff') ? document.getElementById('diff').value : 'med';
+  const diffKey = 'mines_best_' + diffVal;
+  const b = +(localStorage.getItem('jg_best_mines') || localStorage.getItem(diffKey) || 0);
+  const el = document.getElementById('bestTime');
+  if (el) el.textContent = b > 0 ? (b + (UI[LANG] ? UI[LANG].sec_suf : 'с')) : '—';
+}
+
 function newGame() {
   clearMineTimers();
   if (window.ArcadeFX) ArcadeFX.hideGameOver();
@@ -316,6 +330,7 @@ function newGame() {
   revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
   flags = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
   document.getElementById('minecount').textContent = MINES;
+  updateBestDisplay();
   layout();
   buildBoardDOM();
 }
@@ -460,10 +475,12 @@ function click(x, y) {
     over = true;
     const elapsed = Math.max(1, Math.round((performance.now() - startTime) / 1000));
     const diffKey = 'mines_best_' + document.getElementById('diff').value;
-    const prevBest = +(localStorage.getItem(diffKey) || 0);
+    const prevBest = +(localStorage.getItem('jg_best_mines') || localStorage.getItem(diffKey) || 0);
     const isNewRecord = !prevBest || elapsed < prevBest;
     const best = isNewRecord ? elapsed : prevBest;
+    localStorage.setItem('jg_best_mines', String(best));
     localStorage.setItem(diffKey, String(best));
+    updateBestDisplay();
 
     if (window.ArcadeFX) {
       ArcadeFX.vibrate([20, 40, 20]);
@@ -481,7 +498,7 @@ function click(x, y) {
         stats: [{ label: t('opened_lbl'), value: COLS * ROWS - MINES }],
         share: () => ({
           title: '🚩 Minesweeper — Lobby.gg',
-          text: `🚩 ${t('win_title')} (${elapsed}${t('sec_suf')}) · ${t('opened_lbl')}: ${COLS * ROWS - MINES} — Lobby.gg`
+          text: `🚩 ${t('win_title')} (${elapsed}${t('sec_suf')}) · ${t('opened_lbl')}: ${COLS * ROWS - MINES}${isNewRecord ? ('\n' + (window.ArcadeFX && ArcadeFX.I18N[LANG] ? ArcadeFX.I18N[LANG].new_record : '🔥 Новый рекорд!')) : ''} — Lobby.gg`
         }),
         onRestart: () => newGame()
       });
