@@ -1731,6 +1731,7 @@
   fetch('/games/me',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{
     if(d&&d.profile){
       const p=d.profile;
+      try { localStorage.setItem('jg_auth_user', p.display_name || 'user'); } catch (_) {}
       document.getElementById('hp-av').textContent=p.avatar||'🙂';
       if(p.color)document.querySelector('.pc-av').style.background=p.color;
       if(p.display_name){
@@ -1739,6 +1740,8 @@
       }
       window._pcPlayed=(p.stats||{}).played||0;
       renderPcStats();
+    } else {
+      try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
     }
   }).catch(()=>{});
   fetch('/games/friends',{credentials:'include'}).then(r=>r.ok?r.json():null).then(d=>{

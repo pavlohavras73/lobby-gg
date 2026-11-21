@@ -241,7 +241,9 @@
     if (sock) {
       try {
         sock.send(JSON.stringify({ action: "quick_cancel" }));
-      } catch (_) {}
+      } catch (err) {
+        console.error("[Quickplay] cancel send failed:", err);
+      }
     }
     setUIState("idle");
   }
@@ -368,7 +370,9 @@
         if (sock) {
           try {
             sock.send(JSON.stringify({ action: "add_bot", diff: diff }));
-          } catch (_) {}
+          } catch (err) {
+            console.error("[Quickplay] add_bot send failed:", err);
+          }
         }
       }
     } else if (

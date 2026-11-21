@@ -1386,7 +1386,11 @@
 
   async function loadProfile() {
     const d = await apiGet('/me');
-    if (!d || !d.profile) return;
+    if (!d || !d.profile) {
+      try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
+      return;
+    }
+    try { localStorage.setItem('jg_auth_user', d.profile.display_name || 'user'); } catch (_) {}
 
     state.user = Object.assign({}, state.user, d.profile);
     state.draftAvatar = state.user.avatar || '🙂';
@@ -1523,6 +1527,7 @@
   }
 
   async function logout() {
+    try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
     await apiPost('/auth/logout', {});
     location.href = '/games/login';
   }
@@ -2190,7 +2195,9 @@
         const msgEl = document.querySelector(`.msg[data-id="${id}"]`);
         if (msgEl) msgEl.remove();
         return;
-      } catch (_) {}
+      } catch (err) {
+        console.warn('[Chat] WebSocket delete failed, falling back to HTTP:', err);
+      }
     }
     const res = await apiPost('/chat/delete', { id });
     if (res.ok) {
@@ -2568,7 +2575,9 @@
       if (!a) return;
       const h = a.getAttribute('href') || '';
       const m = h.match(/\/games\/([a-z0-9_]+)/i);
-      if (m && m[1]) recordRecentGame(m[1]);
+      if (m && m[1] && window.LobbyShell && typeof window.LobbyShell.recordRecent === 'function') {
+        window.LobbyShell.recordRecent(m[1]);
+      }
     }, { capture: true, passive: true });
 
     // 10. Sound & Vibration external sync

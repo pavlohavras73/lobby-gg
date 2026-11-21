@@ -49,14 +49,21 @@
     return out;
   }
 
+  function isAuthUser() {
+    try { return !!localStorage.getItem('jg_auth_user'); } catch (_) { return false; }
+  }
+
   async function syncOnBoot() {
     let cur = loadLocal();
+    if (!isAuthUser()) return cur;
     try {
       const res = await fetch(API, { credentials: 'include' });
       if (res.ok) {
         const j = await res.json();
         if (j && j.data) { cur = merge(cur, j.data); saveLocal(cur); }
         await pushCloud(cur);
+      } else if (res.status === 401) {
+        try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
       }
     } catch (_) {}
     return cur;
@@ -65,8 +72,12 @@
   async function pushCloud(s) {
     if (DEBUG_RUN) return;
     saveLocal(s);
+    if (!isAuthUser()) return;
     try {
-      await fetch(API, { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s) });
+      const res = await fetch(API, { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s) });
+      if (res && res.status === 401) {
+        try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
+      }
     } catch (_) {}
   }
 

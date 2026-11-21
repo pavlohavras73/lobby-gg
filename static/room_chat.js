@@ -34,6 +34,7 @@
       you: "Вы",
       rate_err: "Подождите секунду перед следующим сообщением",
       close: "Свернуть",
+      send_err: "Не удалось отправить — проверьте связь",
     },
     uk: {
       btn: "Чат",
@@ -44,6 +45,7 @@
       you: "Ви",
       rate_err: "Зачекайте секунду перед наступним повідомленням",
       close: "Згорнути",
+      send_err: "Не вдалося надіслати — перевірте зв’язок",
     },
     en: {
       btn: "Chat",
@@ -54,6 +56,7 @@
       you: "You",
       rate_err: "Wait 1 second between messages",
       close: "Minimize",
+      send_err: "Couldn’t send — check your connection",
     },
     de: {
       btn: "Chat",
@@ -64,6 +67,7 @@
       you: "Du",
       rate_err: "Warte 1 Sekunde vor der nächsten Nachricht",
       close: "Minimieren",
+      send_err: "Senden fehlgeschlagen – Verbindung prüfen",
     },
   };
 
@@ -762,7 +766,11 @@
     inputEl.value = "";
     try {
       sock.send(JSON.stringify({ action: "room_chat", act: "room_chat", text: text }));
-    } catch (_) {}
+    } catch (err) {
+      console.error("[RoomChat] send failed:", err);
+      showError(t("send_err"));
+      inputEl.value = text;
+    }
   }
 
   // ── Обработка входящих сообщений игрового WebSocket ──

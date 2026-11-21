@@ -105,7 +105,7 @@
   #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: none; }
   body.in-run #hud { display: block; }
   .hud-top { position: absolute; top: calc(8px + var(--st)); left: calc(10px + var(--sl)); right: calc(10px + var(--sr)); display: flex; align-items: flex-start; gap: 10px; }
-  .hpbox { min-width: 170px; max-width: 240px; flex: 0 1 240px; }
+  .hpbox { min-width: 120px; max-width: 240px; flex: 0 1 240px; }
   .hpbar { position: relative; height: 18px; border-radius: 10px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.18); overflow: hidden; }
   .hpfill { position: absolute; inset: 0; width: 100%; background: linear-gradient(90deg, #dc2626, #f87171); transition: width .15s; }
   .hpghost { position: absolute; inset: 0; width: 100%; background: rgba(255,255,255,.35); transition: width .6s .2s; }
@@ -304,7 +304,7 @@
   <button class="btn-sec" id="lbClose" type="button" data-i18n="close">Закрыть</button>
 </div></div>
 
-<div id="rotate"><div class="phone"></div><div class="t1" data-i18n="rotate">Поверни телефон</div><div class="t2" data-i18n="rotate2">Раскол играется горизонтально: левый палец — бег, правый — удары.</div></div>
+<div id="rotate"><div class="phone"></div><div class="t1" data-i18n="rotate">Поверни телефон</div><div class="t2" data-i18n="rotate2">Раскол играется горизонтально: левый палец — бег, правый — удары.</div><button type="button" class="btn-sec" onclick="toMenu()" data-i18n="menu" style="margin-top:14px;pointer-events:auto">В меню</button></div>
 
 <script src="/games/static/ui.js" fetchpriority="low"></script>
 <script src="/games/static/sfx.js" fetchpriority="low"></script>

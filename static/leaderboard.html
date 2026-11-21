@@ -1095,7 +1095,13 @@ async function loadGameLeaderboard(gameId) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     if (!d || !d.ok) throw new Error('bad payload');
-    if (d.me && !myUsername) myUsername = d.me;
+    if (d.me) {
+      myUsername = d.me;
+      try { localStorage.setItem('jg_auth_user', d.me); } catch (_) {}
+      if (!myRatings) fetchMyRatings();
+    } else {
+      try { localStorage.removeItem('jg_auth_user'); } catch (_) {}
+    }
     currentRows = Array.isArray(d.leaderboard) ? d.leaderboard : [];
     lbCache[currentGame] = currentRows;
     loadState = 'ready';
@@ -1130,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', applyUI);
 document.addEventListener('DOMContentLoaded', async () => {
   const hashGame = (location.hash || '').replace(/^#/, '').trim().toLowerCase();
   if (DUELS.some(d => d.id === hashGame)) currentGame = hashGame;
-  await Promise.all([fetchMyRatings(), loadGameLeaderboard(currentGame)]);
+  await loadGameLeaderboard(currentGame);
 });
 </script>
 </body>

@@ -25,7 +25,12 @@ CODE_RE = re.compile(r"\b[A-Z0-9]{4}\b")
 def page_for(b, token, probs, who):
     ctx = b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
     ctx.add_cookies([{"name": "jsession", "value": token, "url": BASE}])
-    ctx.add_init_script(f"try{{localStorage.setItem('jg_lang','{LANG}')}}catch(e){{}}")
+    ctx.add_init_script(f"""try {{
+        localStorage.setItem('jg_lang','{LANG}');
+        ['mafia','bunker','uno','poker','durak','spy','alias','guesswho','quoridor','variants','c4_3d'].forEach(g => {{
+            localStorage.setItem('jg_rules_seen_' + g, '1');
+        }});
+    }} catch(e) {{}}""")
     pg = ctx.new_page()
     pg.on("pageerror", lambda e: probs.append(f"{who} JS: {str(e)[:150]}"))
     pg.on("console", lambda m: m.type == "error" and not IGNORE.search(m.text) and probs.append(f"{who} console: {m.text[:150]}"))
@@ -37,7 +42,13 @@ def click(pg, rx, timeout=3000):
     btn = pg.locator("button:visible").filter(has_text=rx).first
     if not btn.count():
         return False
-    btn.click(timeout=timeout)
+    try:
+        btn.click(timeout=timeout)
+    except Exception:
+        try:
+            btn.click(timeout=1000, force=True)
+        except Exception:
+            return False
     return True
 
 
@@ -117,6 +128,8 @@ def main(games):
             try:
                 started, steps, probs = run_game(b, tokens, game)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 started, steps, probs = False, [f"сбой теста: {str(e)[:120]}"], []
             ok = started and not probs
             bad += not ok

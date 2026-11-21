@@ -221,6 +221,11 @@
   function openDrawer(tab) {
     return ensureDrawerLoaded().then(function (d) {
       return d.open(tab);
+    }).catch(function (err) {
+      console.error('[Shell] Failed to open drawer:', err);
+      if (tab === 'friends' || tab === 'account') {
+        window.location.href = '/games/profile';
+      }
     });
   }
 
@@ -233,6 +238,8 @@
   function switchTab(tab) {
     return ensureDrawerLoaded().then(function (d) {
       return d.switchTab(tab);
+    }).catch(function (err) {
+      console.error('[Shell] switchTab failed:', err);
     });
   }
 

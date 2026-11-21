@@ -316,7 +316,7 @@
     if (typeof m.__onDismiss === 'function') {
       const fn = m.__onDismiss;
       m.__onDismiss = null;
-      try { fn(); } catch (e) {}
+      try { fn(); } catch (e) { console.error('[LobbyUI] modal onDismiss error:', e); }
     }
     if (typeof m.close === 'function') {
       try { m.close(); } catch (e) {}
@@ -470,6 +470,11 @@
     }
   } catch (e) {}
 
+  const KNOWN_RULES_GAMES = new Set([
+    "bunker", "mafia", "spy", "alias", "variants", "guesswho", "poker", "geostake", "raskol", "space_invaders",
+    "uno", "durak", "chess", "checkers", "battleship", "reversi", "dots", "bulls", "quoridor", "connect4_3d", "race", "geobunker"
+  ]);
+
   const RULES_CACHE = {};
   const rulesLoadingPromises = {};
 
@@ -478,6 +483,7 @@
     k = k.toLowerCase();
     if (RULES_CACHE[k]) return Promise.resolve(RULES_CACHE[k]);
     if (w.LOBBY_RULES && w.LOBBY_RULES[k]) return Promise.resolve(RULES_CACHE[k] = w.LOBBY_RULES[k]);
+    if (!KNOWN_RULES_GAMES.has(k)) return Promise.resolve(null);
     if (rulesLoadingPromises[k]) return rulesLoadingPromises[k];
     return rulesLoadingPromises[k] = new Promise((resolve) => {
       const s = document.createElement("script");
@@ -703,11 +709,6 @@
       }, { capture: true, passive: true });
     });
   } catch (e) {}
-
-  const KNOWN_RULES_GAMES = new Set([
-    "bunker", "mafia", "spy", "alias", "variants", "guesswho", "poker", "geostake", "raskol", "space_invaders",
-    "uno", "durak", "chess", "checkers", "battleship", "reversi", "dots", "bulls", "quoridor", "connect4_3d", "race", "geobunker"
-  ]);
 
   function checkAutoRules(gameKey) {
     if (!gameKey) gameKey = getCurGameKey();
@@ -1204,7 +1205,12 @@
         vibrate(10);
         closeRoomError();
         if (typeof opts.onRetry === "function") {
-          opts.onRetry();
+          try {
+            opts.onRetry();
+          } catch (err) {
+            console.error("[LobbyUI] roomError onRetry failed:", err);
+            w.location.reload();
+          }
         } else {
           const params = new URLSearchParams(w.location.search);
           if (params.has("code") || params.has("join")) {

@@ -4,7 +4,7 @@
  * - страницы — всегда из сети; без сети — офлайн-заглушка;
  * - API, WebSocket, вход/выход — не трогаем вообще.
  */
-const CACHE = "lobby-static-v28";  // v28: stage 17 shell lazy-drawer, emoji title fixes, index perf optimization, results lobby/rematch actions
+const CACHE = "lobby-static-v29";  // v29: stage 18 click-all 34 pages audit, guest silence (0 401s), empty catch fallbacks
 const OFFLINE = "/games/static/offline.html";
 
 const PRECACHE = [

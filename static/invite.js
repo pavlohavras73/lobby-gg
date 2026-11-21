@@ -90,7 +90,9 @@
         try {
           if (typeof join === 'function') join();
           else if (typeof joinGame === 'function') joinGame();
-        } catch (e) {}
+        } catch (e) {
+          console.error('[Invite] auto-join failed:', e);
+        }
       }, 500);
     });
   }
